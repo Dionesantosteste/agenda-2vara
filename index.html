@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agenda 2ª Vara</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg: #F3ECDF;
+    --paper: #FBF7EE;
+    --ink: #2A2118;
+    --muted: #8A7B65;
+    --line: #DFD3B8;
+    --accent: #7A2E2E;
+    --accent-ink: #FBF7EE;
+    --accent-soft: #F0DEDA;
+    --danger: #8A3B24;
+    --focus: #3C6E5C;
+    --shadow: 24px 24px 60px rgba(42,33,24,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
+      --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
+      --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
+    --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
+    --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    padding: 28px 16px 60px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width: 900px; margin: 0 auto; }
+
+  .setup-banner{
+    background: var(--accent-soft); border:1px solid var(--accent); color:var(--ink);
+    border-radius:12px; padding:14px 16px; margin-bottom:18px; font-size:13.5px; line-height:1.5;
+  }
+  .setup-banner code{ background:rgba(0,0,0,.08); padding:1px 5px; border-radius:4px; font-family:"IBM Plex Mono",monospace; }
+
+  header{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom: 22px; }
+  h1{
+    font-family:"Fraunces", Georgia, serif; font-optical-sizing:auto;
+    font-weight:600; font-size: clamp(26px, 5vw, 38px);
+    margin:0; letter-spacing:-0.01em; text-wrap:balance;
+  }
+  .tagline{ color:var(--muted); font-size:13.5px; margin-top:4px; }
+  .count{
+    font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:12px; color:var(--muted);
+    letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
+  }
+
+  .searchbar{
+    display:flex; gap:10px; align-items:center;
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding: 12px 16px; box-shadow: var(--shadow); margin-bottom: 18px;
+  }
+  .searchbar svg{ flex:none; color:var(--muted); }
+  .searchbar input{
+    flex:1; border:0; background:transparent; outline:0;
+    font-family:"IBM Plex Sans", sans-serif; font-size:16px; color:var(--ink);
+  }
+  .searchbar input::placeholder{ color:var(--muted); }
+  .clear-btn{ border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; padding:4px 8px; border-radius:8px; font-family:inherit; }
+  .clear-btn:hover{ background:var(--accent-soft); color:var(--accent); }
+  .clear-btn:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{ outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 22px; }
+  .chip{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.03em;
+    padding: 6px 12px; border-radius: 999px; border:1px solid var(--line);
+    background:var(--paper); color:var(--muted); cursor:pointer;
+  }
+  .chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .chip-manage{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.03em;
+    padding: 6px 12px; border-radius: 999px; border:1px dashed var(--line);
+    background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; gap:5px;
+  }
+  .chip-manage:hover{ color:var(--accent); border-color:var(--accent); }
+
+  .layout{ display:grid; grid-template-columns: 40px 1fr; gap: 14px; align-items:start; }
+  .index{
+    position:sticky; top:12px; display:flex; flex-direction:column; gap:2px;
+    font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--muted); padding-top: 6px;
+  }
+  .index button{ background:none; border:0; color:inherit; cursor:pointer; padding:2px 0; font-family:inherit; text-align:center; }
+  .index button[data-active="true"]{ color:var(--accent); font-weight:600; }
+  .index button:disabled{ opacity:.28; cursor:default; }
+
+  .groups{ display:flex; flex-direction:column; gap:18px; }
+  .group-label{ font-family:"Fraunces", serif; font-weight:600; font-size:15px; color:var(--accent); padding-left:4px; }
+  .cards{ display:flex; flex-direction:column; gap:10px; }
+
+  .card{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    padding: 14px 16px; display:grid; grid-template-columns: 42px 1fr auto;
+    gap:14px; align-items:center; box-shadow: var(--shadow);
+  }
+  .avatar{
+    width:42px; height:42px; border-radius:50%; background:var(--accent-soft);
+    color:var(--accent); display:flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif; font-weight:600; font-size:16px; flex:none;
+  }
+  .card .info{ min-width:0; }
+  .card .name{ font-weight:600; font-size:15.5px; }
+  .card .name mark{ background:var(--accent-soft); color:var(--ink); border-radius:3px; }
+  .card .meta{ display:flex; gap:14px; flex-wrap:wrap; margin-top:3px; font-size:13px; color:var(--muted); }
+  .card .meta a{ color:var(--muted); text-decoration:none; }
+  .card .meta a:hover{ color:var(--accent); text-decoration:underline; }
+  .card .meta .phone{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; }
+  .card .meta .more{ color:var(--muted); opacity:.8; }
+  .badge{
+    font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap; justify-self:end;
+  }
+  .card-actions{ display:flex; gap:4px; }
+  .icon-btn{
+    border:0; background:transparent; color:var(--muted); cursor:pointer;
+    width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex:none;
+  }
+  .icon-btn:hover{ background:var(--accent-soft); color:var(--accent); }
+  .icon-btn.danger:hover{ background:var(--accent-soft); color:var(--danger); }
+
+  .empty{ text-align:center; padding: 48px 20px; color:var(--muted); font-family:"Fraunces", serif; font-size:17px; }
+
+  .fab{
+    position:fixed; right:22px; bottom:22px; width:56px; height:56px; border-radius:50%; border:0;
+    background:var(--accent); color:var(--accent-ink); cursor:pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25); display:flex; align-items:center; justify-content:center; font-size:26px; line-height:1;
+  }
+  .fab:hover{ filter:brightness(1.06); }
+
+  dialog{
+    border:0; border-radius:18px; padding:0; width:min(460px, calc(100vw - 32px));
+    background:var(--paper); color:var(--ink); box-shadow: var(--shadow); max-height: calc(100vh - 48px);
+  }
+  dialog::backdrop{ background: rgba(20,16,10,.45); }
+  form.sheet{ padding: 22px 22px 18px; display:flex; flex-direction:column; gap:14px; max-height: calc(100vh - 48px); overflow-y:auto; }
+  form.sheet h2{ font-family:"Fraunces", serif; font-weight:600; font-size:21px; margin:0; }
+  .field{ display:flex; flex-direction:column; gap:5px; }
+  .field label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:"IBM Plex Mono", monospace; }
+  .field input, .field select{
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px;
+    font-size:15px; font-family:"IBM Plex Sans", sans-serif; background:var(--bg); color:var(--ink);
+  }
+
+  .multi-block{ display:flex; flex-direction:column; gap:8px; }
+  .multi-head{ display:flex; justify-content:space-between; align-items:center; }
+  .multi-head label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:"IBM Plex Mono", monospace; }
+  .add-row-btn{
+    border:1px dashed var(--line); background:transparent; color:var(--muted); border-radius:8px;
+    padding:4px 10px; font-size:12px; cursor:pointer; font-family:"IBM Plex Mono", monospace;
+  }
+  .add-row-btn:hover{ color:var(--accent); border-color:var(--accent); }
+  .multi-row{ display:grid; grid-template-columns: 88px 1fr 30px; gap:8px; align-items:center; }
+  .multi-row select{ border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--bg); color:var(--ink); font-size:13px; font-family:"IBM Plex Sans", sans-serif; }
+  .multi-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--bg); color:var(--ink); font-size:14px; font-family:"IBM Plex Sans", sans-serif; }
+  .remove-row-btn{ border:0; background:transparent; color:var(--muted); cursor:pointer; width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
+  .remove-row-btn:hover{ background:var(--accent-soft); color:var(--danger); }
+
+  .sheet-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:4px; gap:10px;}
+  .btn{
+    font-family:"IBM Plex Sans", sans-serif; font-weight:600; font-size:14px; border-radius:10px;
+    padding:10px 16px; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--ink);
+  }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .btn.ghost{ border-color:transparent; color:var(--muted); }
+  .btn.ghost:hover{ color:var(--danger); }
+
+  .cat-row{ display:grid; grid-template-columns: 1fr 30px; gap:8px; align-items:center; }
+  .cat-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--bg); color:var(--ink); font-size:14px; font-family:"IBM Plex Sans", sans-serif; }
+  .cat-list{ display:flex; flex-direction:column; gap:8px; max-height: 260px; overflow-y:auto; padding-right:2px; }
+  .cat-empty{ color: var(--muted); font-size: 13px; padding: 4px 0; }
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
+    background:var(--ink); color:var(--paper); padding:9px 16px; border-radius:10px;
+    font-size:13px; opacity:0; pointer-events:none; transition:opacity .25s ease;
+  }
+  .toast.show{ opacity:1; }
+
+  @media (max-width:520px){
+    .layout{ grid-template-columns: 1fr; }
+    .index{ position:static; flex-direction:row; overflow-x:auto; gap:10px; padding:0 2px 6px; }
+    .card{ grid-template-columns: 38px 1fr; }
+    .badge{ display:none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="setup-banner" id="setupBanner">
+    ⚠️ Antes de usar: abra este arquivo num editor de texto e preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code>
+    no topo do <code>&lt;script&gt;</code> (perto do final do arquivo) com os dados do seu projeto Supabase.
+    Veja o arquivo <code>LEIA-ME.md</code> que acompanha este download para o passo a passo completo.
+  </div>
+
+  <header>
+    <div>
+      <h1>Agenda 2ª Vara</h1>
+      <div class="tagline">Contatos buscáveis por nome, telefone ou e-mail</div>
+    </div>
+    <div class="count" id="count">— contatos</div>
+  </header>
+
+  <div class="searchbar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input id="search" type="text" placeholder="Buscar por nome, telefone ou e-mail…" autocomplete="off" />
+    <button class="clear-btn" id="clearSearch" hidden>limpar</button>
+  </div>
+
+  <div class="filters" id="filters"></div>
+
+  <div class="layout">
+    <nav class="index" id="index" aria-label="Índice alfabético"></nav>
+    <div id="results">
+      <div class="groups" id="groups"></div>
+      <div class="empty" id="emptyState" hidden></div>
+    </div>
+  </div>
+</div>
+
+<button class="fab" id="addBtn" aria-label="Adicionar contato" title="Adicionar contato">+</button>
+
+<dialog id="dialog">
+  <form class="sheet" id="form">
+    <h2 id="dialogTitle">Novo contato</h2>
+    <input type="hidden" id="contactId" />
+    <div class="field">
+      <label for="fName">Nome</label>
+      <input id="fName" maxlength="80" placeholder="Maria Silva" />
+    </div>
+
+    <div class="multi-block">
+      <div class="multi-head">
+        <label>Telefones</label>
+        <button type="button" class="add-row-btn" id="addPhoneRow">+ telefone</button>
+      </div>
+      <div id="phoneRows"></div>
+    </div>
+
+    <div class="multi-block">
+      <div class="multi-head">
+        <label>E-mails</label>
+        <button type="button" class="add-row-btn" id="addEmailRow">+ e-mail</button>
+      </div>
+      <div id="emailRows"></div>
+    </div>
+
+    <div class="field">
+      <label for="fCategory">Categoria</label>
+      <select id="fCategory"></select>
+    </div>
+    <div class="field" id="inlineCatWrap" hidden>
+      <label for="inlineCatInput">Nova categoria</label>
+      <input id="inlineCatInput" maxlength="30" placeholder="Digite o nome e pressione Enter" />
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" id="deleteBtn" hidden>Excluir</button>
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button type="button" class="btn" id="cancelBtn">Cancelar</button>
+        <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="catDialog">
+  <form class="sheet" id="catForm">
+    <h2>Categorias</h2>
+    <div class="cat-list" id="catList"></div>
+    <div class="cat-row">
+      <input id="newCatName" maxlength="30" placeholder="Nova categoria" />
+      <button type="button" class="icon-btn" id="addCatBtn" title="Adicionar categoria">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+    </div>
+    <div class="sheet-actions">
+      <div style="margin-left:auto;">
+        <button type="button" class="btn" id="closeCatBtn">Fechar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ======================================================================
+  // CONFIGURAÇÃO — preencha com os dados do SEU projeto Supabase.
+  // Veja LEIA-ME.md para o passo a passo (é gratuito e leva ~5 minutos).
+  // Settings -> API, no painel do seu projeto em supabase.com
+  // ======================================================================
+  var SUPABASE_URL = "https://mgfsfzzvngqarwcmfzxy.supabase.co";       // ex: https://xxxxxxxx.supabase.co
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1nZnNmenp2bmdxYXJ3Y21menh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMzk5OTEsImV4cCI6MjEwNDcxNTk5MX0.QTc6CC4KBIbE3kTfgS0lR4qv4w5DI2GJmfwpKh5oZDk";    // chave pública "anon"
+  // ======================================================================
+
+  var configured = SUPABASE_URL.indexOf("http") === 0 && SUPABASE_ANON_KEY.length > 20;
+  var supabase = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  var banner = document.getElementById('setupBanner');
+  if (configured) banner.hidden = true;
+
+  var els = {
+    search: document.getElementById('search'),
+    clearSearch: document.getElementById('clearSearch'),
+    filters: document.getElementById('filters'),
+    index: document.getElementById('index'),
+    groups: document.getElementById('groups'),
+    emptyState: document.getElementById('emptyState'),
+    count: document.getElementById('count'),
+    addBtn: document.getElementById('addBtn'),
+    dialog: document.getElementById('dialog'),
+    dialogTitle: document.getElementById('dialogTitle'),
+    form: document.getElementById('form'),
+    contactId: document.getElementById('contactId'),
+    fName: document.getElementById('fName'),
+    phoneRows: document.getElementById('phoneRows'),
+    emailRows: document.getElementById('emailRows'),
+    addPhoneRow: document.getElementById('addPhoneRow'),
+    addEmailRow: document.getElementById('addEmailRow'),
+    fCategory: document.getElementById('fCategory'),
+    inlineCatWrap: document.getElementById('inlineCatWrap'),
+    inlineCatInput: document.getElementById('inlineCatInput'),
+    deleteBtn: document.getElementById('deleteBtn'),
+    cancelBtn: document.getElementById('cancelBtn'),
+    toast: document.getElementById('toast'),
+    catDialog: document.getElementById('catDialog'),
+    catForm: document.getElementById('catForm'),
+    catList: document.getElementById('catList'),
+    newCatName: document.getElementById('newCatName'),
+    addCatBtn: document.getElementById('addCatBtn'),
+    closeCatBtn: document.getElementById('closeCatBtn')
+  };
+
+  var ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
+  var PHONE_LABELS = ["Celular","Casa","Trabalho","Fax","Outro"];
+  var EMAIL_LABELS = ["Pessoal","Trabalho","Outro"];
+  var DEFAULT_CATEGORIES = ["Perito","Advogado","Magistrado","Secretarias","Gabinetes","Diretorias","Cidades"];
+
+  var state = {
+    contacts: [],
+    categories: DEFAULT_CATEGORIES.slice(),
+    query: "",
+    category: "Todos"
+  };
+
+  function toast(msg){
+    els.toast.textContent = msg;
+    els.toast.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function(){ els.toast.classList.remove('show'); }, 2200);
+  }
+
+  function normalize(s){
+    return (s || "").toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, "");
+  }
+
+  function initialOf(name){
+    var n = normalize(name).trim();
+    if (!n) return "#";
+    var c = n[0].toUpperCase();
+    return (c >= "A" && c <= "Z") ? c : "#";
+  }
+
+  // ---------------------------------------------------------------------
+  // Supabase data access
+  // ---------------------------------------------------------------------
+
+  async function loadContacts(){
+    if (!supabase) return;
+    var res = await supabase.from('contacts').select('*').order('name', { ascending: true });
+    if (res.error){ toast('Erro ao carregar contatos: ' + res.error.message); return; }
+    state.contacts = (res.data || []).map(function(row){
+      return {
+        id: row.id,
+        name: row.name || "",
+        phones: row.phones || [],
+        emails: row.emails || [],
+        category: row.category || ""
+      };
+    });
+    render();
+  }
+
+  async function loadCategories(){
+    if (!supabase) return;
+    var res = await supabase.from('categories').select('*').order('name', { ascending: true });
+    if (res.error){ toast('Erro ao carregar categorias: ' + res.error.message); return; }
+    if (res.data && res.data.length){
+      state.categories = res.data.map(function(r){ return r.name; });
+    } else {
+      // seed default categories on first run
+      var rows = DEFAULT_CATEGORIES.map(function(name){ return { name: name }; });
+      var ins = await supabase.from('categories').insert(rows);
+      if (!ins.error) state.categories = DEFAULT_CATEGORIES.slice();
+    }
+    renderFilters();
+  }
+
+  async function seedExampleContactsIfEmpty(){
+    if (!supabase) return;
+    var res = await supabase.from('contacts').select('id', { count: 'exact', head: true });
+    if (res.error || (res.count && res.count > 0)) return;
+    var examples = [
+      { name: "Dr. Ricardo Mendes (Perito Contábil)", category: "Perito",
+        phones: [{ label: "Celular", value: "(65) 99811-2233" }],
+        emails: [{ label: "Trabalho", value: "ricardo.mendes@pericia.com" }] },
+      { name: "Dra. Carla Souza (OAB/MT 12345)", category: "Advogado",
+        phones: [{ label: "Celular", value: "(65) 99722-4455" }],
+        emails: [{ label: "Trabalho", value: "carla.souza@advocacia.com" }] },
+      { name: "Secretaria da 2ª Vara Cível", category: "Secretarias",
+        phones: [{ label: "Trabalho", value: "(65) 99544-8899" }],
+        emails: [{ label: "Trabalho", value: "2vara.civel@tjmt.jus.br" }] }
+    ];
+    await supabase.from('contacts').insert(examples);
+  }
+
+  async function upsertContact(id, data){
+    if (!supabase) { toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return; }
+    var payload = { name: data.name, phones: data.phones, emails: data.emails, category: data.category };
+    var res = id
+      ? await supabase.from('contacts').update(payload).eq('id', id)
+      : await supabase.from('contacts').insert(payload);
+    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return; }
+    toast(id ? 'Contato atualizado' : 'Contato adicionado');
+    await loadContacts();
+  }
+
+  async function deleteContact(id){
+    if (!supabase) return;
+    var res = await supabase.from('contacts').delete().eq('id', id);
+    if (res.error){ toast('Não foi possível excluir: ' + res.error.message); return; }
+    toast('Contato excluído');
+    await loadContacts();
+  }
+
+  async function persistCategories(next){
+    var prev = state.categories;
+    state.categories = next;
+    renderFilters();
+    renderCatList();
+    if (!supabase) return;
+    var added = next.filter(function(c){ return prev.indexOf(c) === -1; });
+    var removed = prev.filter(function(c){ return next.indexOf(c) === -1; });
+    if (added.length){
+      await supabase.from('categories').insert(added.map(function(name){ return { name: name }; }));
+    }
+    for (var i=0;i<removed.length;i++){
+      await supabase.from('categories').delete().eq('name', removed[i]);
+    }
+  }
+
+  async function renameCategoryOnContacts(oldName, newName){
+    if (!supabase) return;
+    await supabase.from('categories').update({ name: newName }).eq('name', oldName);
+    await supabase.from('contacts').update({ category: newName }).eq('category', oldName);
+    await loadContacts();
+  }
+
+  // ---------------------------------------------------------------------
+  // Rendering (same UI logic as the Claude-hosted version)
+  // ---------------------------------------------------------------------
+
+  function renderFilters(){
+    els.filters.innerHTML = "";
+    var allCats = ["Todos"].concat(state.categories);
+    allCats.forEach(function(cat){
+      var b = document.createElement('button');
+      b.className = 'chip';
+      b.type = 'button';
+      b.textContent = cat;
+      b.setAttribute('aria-pressed', String(state.category === cat));
+      b.addEventListener('click', function(){
+        state.category = cat;
+        renderFilters();
+        render();
+      });
+      els.filters.appendChild(b);
+    });
+    var manageBtn = document.createElement('button');
+    manageBtn.type = 'button';
+    manageBtn.className = 'chip-manage';
+    manageBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> categorias';
+    manageBtn.addEventListener('click', openCatDialog);
+    els.filters.appendChild(manageBtn);
+  }
+
+  function contactPhones(c){ return (c.phones && c.phones.length) ? c.phones : []; }
+  function contactEmails(c){ return (c.emails && c.emails.length) ? c.emails : []; }
+
+  function matches(c){
+    var q = normalize(state.query);
+    var catOk = state.category === "Todos" || (c.category || "") === state.category;
+    if (!catOk) return false;
+    if (!q) return true;
+    if (normalize(c.name).indexOf(q) !== -1) return true;
+    var phones = contactPhones(c), emails = contactEmails(c);
+    for (var i=0;i<phones.length;i++){ if (normalize(phones[i].value).indexOf(q) !== -1) return true; }
+    for (var j=0;j<emails.length;j++){ if (normalize(emails[j].value).indexOf(q) !== -1) return true; }
+    return false;
+  }
+
+  function highlight(text, q){
+    if (!q) return escapeHtml(text);
+    var n = normalize(text), nq = normalize(q);
+    var idx = n.indexOf(nq);
+    if (idx === -1) return escapeHtml(text);
+    return escapeHtml(text.slice(0, idx)) + "<mark>" + escapeHtml(text.slice(idx, idx + q.length)) + "</mark>" + escapeHtml(text.slice(idx + q.length));
+  }
+
+  function escapeHtml(s){
+    return (s || "").toString().replace(/[&<>"']/g, function(m){
+      return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];
+    });
+  }
+
+  function render(){
+    var list = state.contacts.filter(matches).sort(function(a,b){
+      return normalize(a.name).localeCompare(normalize(b.name));
+    });
+
+    els.count.textContent = list.length + (list.length === 1 ? " contato" : " contatos");
+
+    var byLetter = {};
+    list.forEach(function(c){
+      var letter = initialOf(c.name);
+      (byLetter[letter] = byLetter[letter] || []).push(c);
+    });
+
+    els.index.innerHTML = "";
+    ALPHABET.forEach(function(letter){
+      var btn = document.createElement('button');
+      btn.textContent = letter;
+      var has = !!byLetter[letter];
+      btn.disabled = !has;
+      btn.setAttribute('data-active', 'false');
+      if (has){
+        btn.addEventListener('click', function(){
+          var el = document.getElementById('group-' + letter);
+          if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
+        });
+      }
+      els.index.appendChild(btn);
+    });
+
+    els.groups.innerHTML = "";
+    if (list.length === 0){
+      els.emptyState.hidden = false;
+      els.emptyState.textContent = !configured
+        ? "Configure o Supabase (veja o aviso acima) para começar a salvar contatos."
+        : (state.query || state.category !== "Todos"
+          ? "Nenhum contato encontrado."
+          : "Nenhum contato ainda — toque em + para adicionar.");
+      return;
+    }
+    els.emptyState.hidden = true;
+
+    ALPHABET.forEach(function(letter){
+      var items = byLetter[letter];
+      if (!items) return;
+      var group = document.createElement('div');
+      group.id = 'group-' + letter;
+
+      var label = document.createElement('div');
+      label.className = 'group-label';
+      label.textContent = letter;
+      group.appendChild(label);
+
+      var cards = document.createElement('div');
+      cards.className = 'cards';
+
+      items.forEach(function(c){
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var avatar = document.createElement('div');
+        avatar.className = 'avatar';
+        avatar.textContent = (c.name || "?").trim().charAt(0).toUpperCase();
+
+        var info = document.createElement('div');
+        info.className = 'info';
+        var nameEl = document.createElement('div');
+        nameEl.className = 'name';
+        nameEl.innerHTML = highlight(c.name || "", state.query);
+        var meta = document.createElement('div');
+        meta.className = 'meta';
+
+        var phones = contactPhones(c), emails = contactEmails(c);
+        var bits = [];
+        if (phones.length){
+          bits.push('<a class="phone" href="tel:' + encodeURIComponent(phones[0].value) + '">' + highlight(phones[0].value, state.query) + '</a>');
+        }
+        if (emails.length){
+          bits.push('<a href="mailto:' + encodeURIComponent(emails[0].value) + '">' + highlight(emails[0].value, state.query) + '</a>');
+        }
+        var extra = Math.max(0, phones.length - 1) + Math.max(0, emails.length - 1);
+        if (extra > 0){ bits.push('<span class="more">+' + extra + '</span>'); }
+        meta.innerHTML = bits.join(' · ') || '<span class="more">sem contato salvo</span>';
+
+        info.appendChild(nameEl);
+        info.appendChild(meta);
+
+        var right = document.createElement('div');
+        right.style.display = 'flex';
+        right.style.flexDirection = 'column';
+        right.style.alignItems = 'flex-end';
+        right.style.gap = '6px';
+
+        var badge = document.createElement('span');
+        badge.className = 'badge';
+        badge.textContent = c.category || 'Sem categoria';
+
+        var actions = document.createElement('div');
+        actions.className = 'card-actions';
+        var editBtn = document.createElement('button');
+        editBtn.className = 'icon-btn';
+        editBtn.type = 'button';
+        editBtn.title = 'Editar';
+        editBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+        editBtn.addEventListener('click', function(){ openDialog(c); });
+        actions.appendChild(editBtn);
+
+        right.appendChild(badge);
+        right.appendChild(actions);
+
+        card.appendChild(avatar);
+        card.appendChild(info);
+        card.appendChild(right);
+        cards.appendChild(card);
+      });
+
+      group.appendChild(cards);
+      els.groups.appendChild(group);
+    });
+  }
+
+  // ---- multi-value rows (phones / emails) ----
+
+  function makeMultiRow(container, labels, entry){
+    var row = document.createElement('div');
+    row.className = 'multi-row';
+
+    var select = document.createElement('select');
+    labels.forEach(function(l){
+      var opt = document.createElement('option');
+      opt.value = l; opt.textContent = l;
+      select.appendChild(opt);
+    });
+    select.value = entry && entry.label ? entry.label : labels[0];
+
+    var input = document.createElement('input');
+    input.type = (labels === EMAIL_LABELS) ? 'email' : 'text';
+    input.placeholder = (labels === EMAIL_LABELS) ? 'nome@email.com' : '(65) 99999-0000';
+    input.value = entry && entry.value ? entry.value : '';
+    input.className = 'row-value';
+
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'remove-row-btn';
+    removeBtn.title = 'Remover';
+    removeBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    removeBtn.addEventListener('click', function(){ row.remove(); });
+
+    row.appendChild(select);
+    row.appendChild(input);
+    row.appendChild(removeBtn);
+    container.appendChild(row);
+    return row;
+  }
+
+  function readMultiRows(container){
+    var out = [];
+    container.querySelectorAll('.multi-row').forEach(function(row){
+      var label = row.querySelector('select').value;
+      var value = row.querySelector('.row-value').value.trim();
+      if (value) out.push({ label: label, value: value });
+    });
+    return out;
+  }
+
+  els.addPhoneRow.addEventListener('click', function(){ makeMultiRow(els.phoneRows, PHONE_LABELS, null); });
+  els.addEmailRow.addEventListener('click', function(){ makeMultiRow(els.emailRows, EMAIL_LABELS, null); });
+
+  function populateCategorySelect(selected){
+    els.fCategory.innerHTML = "";
+    var blankOpt = document.createElement('option');
+    blankOpt.value = ""; blankOpt.textContent = "Sem categoria";
+    els.fCategory.appendChild(blankOpt);
+    state.categories.forEach(function(cat){
+      var opt = document.createElement('option');
+      opt.value = cat; opt.textContent = cat;
+      els.fCategory.appendChild(opt);
+    });
+    var addOpt = document.createElement('option');
+    addOpt.value = "__add_new__"; addOpt.textContent = "+ Nova categoria…";
+    els.fCategory.appendChild(addOpt);
+    els.fCategory.value = (selected !== undefined && selected !== null) ? selected : "";
+  }
+
+  els.fCategory.addEventListener('change', function(){
+    if (els.fCategory.value === '__add_new__'){
+      els.inlineCatWrap.hidden = false;
+      els.inlineCatInput.value = "";
+      setTimeout(function(){ els.inlineCatInput.focus(); }, 20);
+    } else {
+      els.inlineCatWrap.hidden = true;
+    }
+  });
+
+  async function commitInlineCategory(){
+    var name = els.inlineCatInput.value.trim();
+    if (!name){
+      els.fCategory.value = "";
+      els.inlineCatWrap.hidden = true;
+      return;
+    }
+    if (state.categories.indexOf(name) === -1){
+      await persistCategories(state.categories.concat([name]));
+    }
+    populateCategorySelect(name);
+    els.inlineCatWrap.hidden = true;
+  }
+
+  els.inlineCatInput.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); commitInlineCategory(); }
+    if (e.key === 'Escape'){ e.preventDefault(); els.fCategory.value = ""; els.inlineCatWrap.hidden = true; }
+  });
+  els.inlineCatInput.addEventListener('blur', function(){ commitInlineCategory(); });
+
+  function openDialog(contact){
+    els.form.reset();
+    els.phoneRows.innerHTML = "";
+    els.emailRows.innerHTML = "";
+    els.inlineCatWrap.hidden = true;
+    populateCategorySelect();
+
+    if (contact){
+      els.dialogTitle.textContent = 'Editar contato';
+      els.contactId.value = contact.id;
+      els.fName.value = contact.name || "";
+      var phones = contactPhones(contact), emails = contactEmails(contact);
+      if (phones.length){ phones.forEach(function(p){ makeMultiRow(els.phoneRows, PHONE_LABELS, p); }); }
+      else { makeMultiRow(els.phoneRows, PHONE_LABELS, null); }
+      if (emails.length){ emails.forEach(function(e){ makeMultiRow(els.emailRows, EMAIL_LABELS, e); }); }
+      else { makeMultiRow(els.emailRows, EMAIL_LABELS, null); }
+      if (contact.category && state.categories.indexOf(contact.category) === -1){
+        var opt = document.createElement('option');
+        opt.value = contact.category; opt.textContent = contact.category + ' (removida)';
+        els.fCategory.insertBefore(opt, els.fCategory.lastChild);
+      }
+      els.fCategory.value = contact.category || '';
+      els.deleteBtn.hidden = false;
+    } else {
+      els.dialogTitle.textContent = 'Novo contato';
+      els.contactId.value = "";
+      makeMultiRow(els.phoneRows, PHONE_LABELS, null);
+      makeMultiRow(els.emailRows, EMAIL_LABELS, null);
+      els.fCategory.value = "";
+      els.deleteBtn.hidden = true;
+    }
+    els.dialog.showModal();
+    setTimeout(function(){ els.fName.focus(); }, 30);
+  }
+
+  els.addBtn.addEventListener('click', function(){ openDialog(null); });
+  els.cancelBtn.addEventListener('click', function(){ els.dialog.close(); });
+
+  els.search.addEventListener('input', function(){
+    state.query = els.search.value;
+    els.clearSearch.hidden = !state.query;
+    render();
+  });
+  els.clearSearch.addEventListener('click', function(){
+    els.search.value = "";
+    state.query = "";
+    els.clearSearch.hidden = true;
+    els.search.focus();
+    render();
+  });
+
+  els.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var id = els.contactId.value || null;
+    var data = {
+      name: els.fName.value.trim(),
+      phones: readMultiRows(els.phoneRows),
+      emails: readMultiRows(els.emailRows),
+      category: els.fCategory.value
+    };
+    if (!data.name && data.phones.length === 0 && data.emails.length === 0){
+      toast('Preencha ao menos um campo');
+      return;
+    }
+    upsertContact(id, data);
+    els.dialog.close();
+  });
+
+  els.deleteBtn.addEventListener('click', function(){
+    var id = els.contactId.value;
+    if (!id) return;
+    deleteContact(id);
+    els.dialog.close();
+  });
+
+  els.dialog.addEventListener('click', function(e){
+    var r = els.form.getBoundingClientRect();
+    var inside = r.top <= e.clientY && e.clientY <= r.top + r.height && r.left <= e.clientX && e.clientX <= r.left + r.width;
+    if (!inside) els.dialog.close();
+  });
+
+  // ---- category management ----
+
+  function renderCatList(){
+    els.catList.innerHTML = "";
+    if (state.categories.length === 0){
+      var e = document.createElement('div');
+      e.className = 'cat-empty';
+      e.textContent = 'Nenhuma categoria ainda.';
+      els.catList.appendChild(e);
+      return;
+    }
+    state.categories.forEach(function(cat, idx){
+      var row = document.createElement('div');
+      row.className = 'cat-row';
+      var input = document.createElement('input');
+      input.value = cat;
+      input.addEventListener('change', function(){
+        var newName = input.value.trim();
+        if (!newName){ input.value = cat; return; }
+        if (newName === cat) return;
+        if (state.categories.indexOf(newName) !== -1){
+          toast('Já existe uma categoria com esse nome');
+          input.value = cat;
+          return;
+        }
+        var next = state.categories.slice();
+        next[idx] = newName;
+        var oldName = cat;
+        state.categories = next;
+        renderFilters();
+        renderCatList();
+        renameCategoryOnContacts(oldName, newName);
+        if (state.category === oldName) state.category = newName;
+      });
+      var delBtn = document.createElement('button');
+      delBtn.type = 'button';
+      delBtn.className = 'icon-btn danger';
+      delBtn.title = 'Excluir categoria';
+      delBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+      delBtn.addEventListener('click', function(){
+        var next = state.categories.filter(function(c){ return c !== cat; });
+        persistCategories(next);
+        if (state.category === cat) state.category = 'Todos';
+        renderFilters();
+        render();
+      });
+      row.appendChild(input);
+      row.appendChild(delBtn);
+      els.catList.appendChild(row);
+    });
+  }
+
+  function openCatDialog(){
+    renderCatList();
+    els.newCatName.value = "";
+    els.catDialog.showModal();
+    setTimeout(function(){ els.newCatName.focus(); }, 30);
+  }
+
+  els.addCatBtn.addEventListener('click', function(){
+    var name = els.newCatName.value.trim();
+    if (!name) return;
+    if (state.categories.indexOf(name) !== -1){
+      toast('Essa categoria já existe');
+      return;
+    }
+    persistCategories(state.categories.concat([name]));
+    els.newCatName.value = "";
+    els.newCatName.focus();
+  });
+  els.newCatName.addEventListener('keydown', function(e){
+    if (e.key === 'Enter'){ e.preventDefault(); els.addCatBtn.click(); }
+  });
+  els.closeCatBtn.addEventListener('click', function(){ els.catDialog.close(); });
+  els.catDialog.addEventListener('click', function(e){
+    var r = els.catForm.getBoundingClientRect();
+    var inside = r.top <= e.clientY && e.clientY <= r.top + r.height && r.left <= e.clientX && e.clientX <= r.left + r.width;
+    if (!inside) els.catDialog.close();
+  });
+
+  // ---------------------------------------------------------------------
+  // Boot
+  // ---------------------------------------------------------------------
+
+  renderFilters();
+  render();
+
+  if (configured){
+    (async function(){
+      await loadCategories();
+      await seedExampleContactsIfEmpty();
+      await loadContacts();
+
+      // Atualiza a tela automaticamente quando QUALQUER pessoa altera os dados
+      supabase
+        .channel('contacts-changes')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, loadContacts)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, loadCategories)
+        .subscribe();
+    })();
+  }
+})();
+</script>
+</body>
+</html>
