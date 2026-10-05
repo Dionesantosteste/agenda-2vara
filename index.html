@@ -776,20 +776,6 @@
 
 <main class="main">
 <div class="wrap">
-  <div class="gtop" id="gTopo">
-    <label class="gsearch" for="gBusca">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="gBusca" type="search" placeholder="Buscar processo ou nome em todo o portal (perícias, audiências, contatos…)" autocomplete="off" aria-label="Buscar em todo o portal por número do processo ou nome" aria-controls="gResultados" />
-      <kbd class="gkbd" aria-hidden="true">Ctrl K</kbd>
-    </label>
-    <div class="gresultados" id="gResultados" hidden role="dialog" aria-label="Resultados da busca">
-      <div class="gr-head">
-        <span id="gResumo"></span>
-        <button type="button" class="icon-btn" id="gFechar" aria-label="Fechar a busca"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-      </div>
-      <div class="gr-body" id="gLista"></div>
-    </div>
-  </div>
   <div class="setup-banner" id="setupBanner">
     ⚠️ Antes de usar: abra este arquivo num editor de texto e preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code>
     no topo do <code>&lt;script&gt;</code> (perto do final do arquivo) com os dados do seu projeto Supabase.
@@ -830,6 +816,21 @@
       </div>
       <div class="count" id="perCount">— perícias</div>
     </header>
+
+    <div class="gtop" id="gTopo">
+      <label class="gsearch" for="gBusca">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="gBusca" type="search" placeholder="Buscar perícia pelo nº do processo, nome do autor ou do perito" autocomplete="off" aria-label="Buscar em todo o portal por número do processo ou nome" aria-controls="gResultados" />
+        <kbd class="gkbd" aria-hidden="true">Ctrl K</kbd>
+      </label>
+      <div class="gresultados" id="gResultados" hidden role="dialog" aria-label="Resultados da busca">
+        <div class="gr-head">
+          <span id="gResumo"></span>
+          <button type="button" class="icon-btn" id="gFechar" aria-label="Fechar a busca"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        </div>
+        <div class="gr-body" id="gLista"></div>
+      </div>
+    </div>
 
     <form class="quick" id="perForm" autocomplete="off" aria-labelledby="perFormTitle">
       <div class="quick-head">
@@ -2016,6 +2017,7 @@
     });
     document.getElementById('topbarTitle').textContent = ROUTES[r].title;
     els.addBtn.hidden = (r !== 'agenda');
+    document.getElementById('gBuscaTopo').hidden = (r !== 'pericias');
     document.querySelector('.main .wrap').classList.toggle('wide', r === 'organizacao');
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
@@ -4408,14 +4410,18 @@
     if (e.target.closest('#gTopo') || e.target.closest('#gBuscaTopo')) return;
     gFechar(false);
   });
-  G.topo.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); G.input.focus(); });
+  function abrirBusca(){
+    if (currentRoute !== 'pericias') location.hash = 'pericias';
+    setTimeout(function(){ G.input.scrollIntoView({ block: 'center', behavior: 'smooth' }); G.input.focus(); G.input.select(); }, 80);
+  }
+  G.topo.addEventListener('click', abrirBusca);
   // Atalho: Ctrl+K (ou /) abre a busca
   document.addEventListener('keydown', function(e){
     var tag = (e.target.tagName || '').toLowerCase();
+    if (currentRoute !== 'pericias') return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' || (e.key === '/' && tag !== 'input' && tag !== 'textarea' && tag !== 'select' && !e.target.isContentEditable)){
       e.preventDefault();
-      window.scrollTo({ top: 0 });
-      G.input.focus(); G.input.select();
+      abrirBusca();
     }
   });
 

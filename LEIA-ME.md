@@ -171,10 +171,10 @@ Como funciona:
 
 ## Busca e número do processo
 
-- **Busca geral:** o campo "Buscar processo ou nome", no topo de todas as páginas (acima do título e dos formulários),
+- **Busca geral:** o campo de busca da seção **Perícias** (entre o título e o formulário de cadastro)
   procura de uma vez em perícias (em andamento e concluídas), audiências, contatos da Agenda e, com a Organização
   destrancada, nas tarefas. Aceita o número do processo com ou sem pontuação, ou só um pedaço dele, e nomes.
-  Atalho: **Ctrl+K** ou **/**.
+  Atalho em Perícias: **Ctrl+K** ou **/**. Agenda e Audiências usam a busca própria de cada uma.
 - **Número do processo:** nos campos de processo, os pontos e o traço entram sozinhos enquanto se digita
   (padrão CNJ `0000000-00.0000.0.00.0000`), também ao colar.
 
