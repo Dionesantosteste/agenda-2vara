@@ -346,6 +346,22 @@
 
   .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
 
+  /* ================= Indicador de carregamento ================= */
+  .busy-bar{ position:fixed; top:0; left:0; right:0; height:3px; z-index:200; overflow:hidden; pointer-events:none; opacity:0; transition:opacity .2s; background:var(--accent-soft); }
+  .busy-bar::before{ content:""; position:absolute; top:0; bottom:0; left:-40%; width:40%; background:var(--accent); border-radius:2px; animation:busy-slide 1.1s ease-in-out infinite; }
+  @keyframes busy-slide{ 0%{ left:-40%; } 100%{ left:100%; } }
+  .busy-pill{ position:fixed; top:calc(12px + env(safe-area-inset-top, 0px)); right:16px; z-index:200; display:flex; align-items:center; gap:8px;
+    background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:7px 14px 7px 10px;
+    box-shadow:0 4px 14px rgba(20,32,51,.16); font-family:var(--font-ui); font-size:13px; font-weight:500;
+    opacity:0; transform:translateY(-8px); transition:opacity .2s, transform .2s; pointer-events:none; }
+  .spin{ width:16px; height:16px; border-radius:50%; border:2px solid var(--accent-soft); border-top-color:var(--accent); animation:busy-spin .7s linear infinite; flex:none; }
+  @keyframes busy-spin{ to{ transform:rotate(360deg); } }
+  html.busy .busy-bar, html.busy .busy-pill{ opacity:1; transform:none; }
+  html.busy, html.busy button, html.busy select{ cursor:progress; }
+  @media (prefers-reduced-motion: reduce){
+    .busy-bar::before{ animation-duration:3s; } .spin{ animation-duration:2s; } .busy-pill{ transition:none; }
+  }
+
   /* ================= Perícias ================= */
   .per-grid{ display:grid; gap:12px; align-items:start;
     grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1.2fr);
@@ -423,6 +439,40 @@
   .ptacts .btn.danger-text{ color:var(--danger); border-color:transparent; margin-left:auto; }
   @media (max-width:700px){
     .perito-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"nome" "esp" "tel" "email" "obs" "btns"; }
+  }
+  .per-modos{ display:flex; gap:4px; background:var(--sunken); border:1px solid var(--line); border-radius:10px; padding:3px; }
+  .per-modo{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:13px; font-weight:500; padding:6px 12px; border-radius:8px; cursor:pointer; white-space:nowrap; }
+  .per-modo[aria-selected="true"]{ background:var(--paper); color:var(--accent); font-weight:600; box-shadow:var(--shadow); }
+  .pg-dup{ grid-column:1 / -1; }
+  .dup-aviso{ border:1px solid var(--warn); background:var(--warn-soft); color:var(--ink); border-radius:10px; padding:10px 12px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; font-size:14px; }
+  .dup-aviso b{ color:var(--warn); }
+  .dup-aviso .btns{ display:flex; gap:8px; margin-left:auto; }
+  .dup-aviso .btn{ height:36px; padding:0 12px; font-size:13px; }
+  .lote{ display:flex; flex-direction:column; gap:12px; }
+  .lote-grid{ display:grid; gap:12px; grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,.7fr) minmax(0,1.3fr); align-items:end; }
+  .lote-grid .field input, .lote-grid .field select{ padding:0 11px; height:43px; font-size:14.5px; }
+  .lote textarea{ font-family:var(--font-data); font-size:13.5px; line-height:1.6; min-height:150px; }
+  .lote-previa{ display:flex; flex-direction:column; gap:6px; max-height:360px; overflow-y:auto; }
+  .lote-previa:empty{ display:none; }
+  .lrow{ display:grid; grid-template-columns:28px minmax(0,1.3fr) minmax(0,1.6fr) 60px minmax(0,2fr); gap:10px; align-items:center;
+    padding:8px 10px; border:1px solid var(--item-line); background:var(--item); border-radius:10px; font-size:13.5px; }
+  .lrow .n{ color:var(--muted); font-variant-numeric:tabular-nums; font-size:12px; }
+  .lrow .proc{ font-family:var(--font-data); font-size:12.5px; overflow-wrap:anywhere; }
+  .lrow .autor{ font-weight:600; overflow-wrap:anywhere; }
+  .lrow .hora{ font-family:var(--font-data); font-size:13px; }
+  .lrow .st{ font-size:12.5px; }
+  .lrow .st.ok{ color:var(--ok); font-weight:600; }
+  .lrow .st.warn{ color:var(--warn); font-weight:600; }
+  .lrow .st.bad{ color:var(--danger); font-weight:600; }
+  .lrow .st label{ display:inline-flex; gap:5px; align-items:center; font-weight:500; color:var(--ink); cursor:pointer; margin-top:2px; }
+  .lrow.skip{ opacity:.6; }
+  .lrow.bad{ border-color:var(--danger); }
+  .lote-acoes{ display:flex; gap:12px; align-items:center; justify-content:flex-end; flex-wrap:wrap; }
+  .lote-resumo{ font-size:13.5px; color:var(--muted); margin-right:auto; }
+  .lote-acoes .btn{ height:43px; }
+  @media (max-width:860px){
+    .lote-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .lt-perito, .lt-local{ grid-column:1 / -1; }
+    .lrow{ grid-template-columns:24px minmax(0,1fr) 54px; } .lrow .autor{ grid-column:2 / 3; } .lrow .st{ grid-column:2 / -1; }
   }
   .and-quick button.concluir{ border-style:solid; border-color:var(--ok); color:var(--ok); font-weight:600; }
   .pesp{ font-size:12px; font-weight:600; border-radius:6px; padding:1px 7px; background:var(--accent-soft); color:var(--accent); }
@@ -737,9 +787,12 @@
     <form class="quick" id="perForm" autocomplete="off" aria-labelledby="perFormTitle">
       <div class="quick-head">
         <h2 id="perFormTitle">Cadastrar perícia</h2>
-        <span class="quick-hint">Sem data, entra como "Não agendada"</span>
+        <div class="per-modos" role="tablist" aria-label="Forma de cadastro">
+          <button type="button" class="per-modo" role="tab" data-modo="uma" aria-selected="true">Uma perícia</button>
+          <button type="button" class="per-modo" role="tab" data-modo="varias" aria-selected="false">Várias de uma vez</button>
+        </div>
       </div>
-      <div class="per-grid">
+      <div class="per-grid" id="perModoUma">
         <div class="field pg-proc">
           <label for="pProcesso">Nº do processo</label>
           <input id="pProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
@@ -774,6 +827,28 @@
           <input id="pObs" maxlength="2000" placeholder="Ex.: periciando com mobilidade reduzida" />
         </div>
         <button type="submit" class="btn primary pg-save">Cadastrar</button>
+        <div class="dup-aviso pg-dup" id="perDupAviso" hidden role="alert"></div>
+      </div>
+
+      <div id="perModoVarias" class="lote" hidden>
+        <div class="lote-grid">
+          <div class="field lt-perito"><label for="lPerito">Perito</label><select id="lPerito"></select></div>
+          <div class="field lt-esp"><label for="lEsp">Especialidade</label><select id="lEsp"></select></div>
+          <div class="field lt-data"><label for="lData">Data da perícia</label><input id="lData" type="date" /></div>
+          <div class="field lt-hora"><label for="lHora">Hora da primeira</label><input id="lHora" type="time" value="08:00" /></div>
+          <div class="field lt-int"><label for="lIntervalo">Intervalo (min)</label><input id="lIntervalo" type="number" min="0" max="240" step="5" value="10" /></div>
+          <div class="field lt-local"><label for="lLocal">Local</label><input id="lLocal" maxlength="160" placeholder="Igual para todas (opcional)" /></div>
+        </div>
+        <div class="field">
+          <label for="lTexto">Processos (um por linha: nº do processo, nome do autor e, se quiser, a hora)</label>
+          <textarea id="lTexto" rows="7" spellcheck="false" placeholder="1002345-67.2026.8.11.0041; Maria Aparecida dos Santos; 08:00&#10;1002346-50.2026.8.11.0041; José Carlos Ferreira; 08:30&#10;10023471220268110041 Ana Beatriz Lima 09:00"></textarea>
+          <span class="field-hint">Pode colar de uma planilha ou de um e-mail. Sem data, entram como "Não agendada". As horas seguem em sequência a partir da primeira, com o intervalo escolhido; se a linha trouxer a hora, vale a da linha e a sequência continua dela.</span>
+        </div>
+        <div class="lote-previa" id="lPrevia"></div>
+        <div class="lote-acoes">
+          <span class="lote-resumo" id="lResumo"></span>
+          <button type="button" class="btn primary" id="lCadastrar" disabled>Cadastrar perícias</button>
+        </div>
       </div>
     </form>
 
@@ -836,7 +911,8 @@
           </select>
         </label>
         <label class="bfield" id="perBatchDataWrap"><span id="perBatchDataLbl">Realizada em</span><input type="date" id="perBatchData" /></label>
-        <label class="bfield" id="perBatchHoraWrap" hidden>Hora<input type="time" id="perBatchHora" /></label>
+        <label class="bfield" id="perBatchHoraWrap" hidden>Hora da primeira<input type="time" id="perBatchHora" value="08:00" /></label>
+        <label class="bfield" id="perBatchIntWrap" hidden>Intervalo (min)<input type="number" id="perBatchInt" min="0" max="240" step="5" value="10" /></label>
         <label class="bfield grow">Andamento (opcional)<input id="perBatchAnd" maxlength="300" placeholder="Ex.: perícias realizadas em mutirão" /></label>
         <div class="batch-btns">
           <button type="button" class="btn primary" id="perBatchApply">Aplicar</button>
@@ -1197,6 +1273,8 @@
   </form>
 </dialog>
 
+<div class="busy-bar" aria-hidden="true"></div>
+<div class="busy-pill" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="busyTxt">Carregando…</span></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -1214,6 +1292,36 @@
   // ======================================================================
 
   var configured = SUPABASE_URL.indexOf("http") === 0 && SUPABASE_ANON_KEY.length > 20;
+  // Indicador "trabalhando": conta as chamadas ao banco em andamento e mostra a faixa e o aviso
+  // (só aparece se a operação passar de 250 ms, para não piscar à toa)
+  var ocupado = { leituras: 0, gravacoes: 0, timer: null };
+  function atualizarOcupado(){
+    var total = ocupado.leituras + ocupado.gravacoes, root = document.documentElement;
+    var txt = document.getElementById('busyTxt');
+    if (txt) txt.textContent = ocupado.gravacoes ? 'Salvando…' : 'Carregando…';
+    if (total > 0){
+      if (!root.classList.contains('busy') && !ocupado.timer){
+        ocupado.timer = setTimeout(function(){ ocupado.timer = null; if (ocupado.leituras + ocupado.gravacoes > 0) root.classList.add('busy'); }, 250);
+      }
+    } else {
+      clearTimeout(ocupado.timer); ocupado.timer = null;
+      root.classList.remove('busy');
+    }
+  }
+  if (window.fetch){
+    var fetchOriginal = window.fetch.bind(window);
+    window.fetch = function(input, init){
+      var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+      var grava = metodo !== 'GET' && metodo !== 'HEAD';
+      var url = String((input && input.url) || input || '');
+      if (grava && /\/rpc\/org_listar/.test(url)) grava = false;   // listar a Organização é leitura
+      if (grava) ocupado.gravacoes++; else ocupado.leituras++;
+      atualizarOcupado();
+      var fim = function(){ if (grava) ocupado.gravacoes--; else ocupado.leituras--; atualizarOcupado(); };
+      return fetchOriginal(input, init).then(function(r){ fim(); return r; }, function(e){ fim(); throw e; });
+    };
+  }
+
   var supabase = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
   var banner = document.getElementById('setupBanner');
@@ -3375,19 +3483,26 @@
       data = new Date(P.data.value + 'T' + (P.hora.value || '09:00'));
       if (isNaN(data.getTime())){ toast('Data ou hora inválida'); return; }
     }
+    if (perModo === 'varias') return;
+    if (!perConfirmouDup && duplicadasDe(formatProcesso(P.proc.value)).length){ mostrarAvisoDup(formatProcesso(P.proc.value), duplicadasDe(formatProcesso(P.proc.value)), true); return; }
     var nomePerito = P.perito.value === '__novo__' ? P.novoPerito.value.trim() : P.perito.value.trim();
     if (P.perito.value === '__novo__' && nomePerito){
       var existente = peritoCadastrado(nomePerito);
       if (existente) nomePerito = existente.nome;
       else if (!(await salvarPerito({ nome: nomePerito, especialidade: P.esp.value }))) return;
     }
-    var p = { processo: formatProcesso(P.proc.value), autor: document.getElementById('pAutor').value.trim(), perito: nomePerito, especialidade: P.esp.value,
+    var procDigitado = formatProcesso(P.proc.value);
+    var dups = duplicadasDe(procDigitado);
+    if (dups.length && !perConfirmouDup){ mostrarAvisoDup(procDigitado, dups, true); return; }
+    perConfirmouDup = false;
+    var p = { processo: procDigitado, autor: document.getElementById('pAutor').value.trim(), perito: nomePerito, especialidade: P.esp.value,
       status: data ? 'agendada' : 'nao_agendada', data: data, local: P.local.value.trim(), realizadaEm: null, laudoEm: null,
       observacoes: P.obs.value.trim(), conferidaEm: null };
     if (!p.processo || !p.autor || !p.perito){ toast('Informe o processo, o autor e o perito'); return; }
     var ok = await salvarPericia(p);
     if (!ok) return;
     toast(data ? 'Perícia cadastrada como Agendada' : 'Perícia cadastrada como Não agendada');
+    esconderAvisoDup();
     P.proc.value = ''; document.getElementById('pAutor').value = ''; P.perito.value = ''; P.novoPerito.value = ''; P.novoPerito.hidden = true; P.novoPerito.required = false; P.esp.value = ''; P.data.value = ''; P.hora.value = ''; P.local.value = ''; P.obs.value = '';
     P.proc.focus();
   });
@@ -3440,6 +3555,7 @@
     }
     P.filtroPerito.innerHTML = '<option value="">Todos os peritos</option>' + nomesDePeritos().map(function(n){ var k = chaveNome(n); return '<option value="' + escapeHtml(k) + '"' + (per.perito === k ? ' selected' : '') + '>' + escapeHtml(n) + '</option>'; }).join('');
     preencherSelectPerito();
+    if (perModo === 'varias'){ preencherLotePerito(); renderPrevia(); }
     document.getElementById('perAbaPeritos').textContent = per.peritos.length || '';
   }
   P.filtroPerito.addEventListener('change', function(){ per.perito = P.filtroPerito.value; renderPericias(); });
@@ -3608,6 +3724,170 @@
   function perFind(id){ for (var i = 0; i < per.items.length; i++) if (per.items[i].id === id) return per.items[i]; return null; }
 
 
+
+  // ---- processos repetidos ----
+  var perConfirmouDup = false;
+  var dupAviso = document.getElementById('perDupAviso');
+  function duplicadasDe(proc, ignorarId){
+    var k = digitsOnly(proc); if (!k) return [];
+    return per.items.filter(function(p){ return aberta(p) && p.id !== ignorarId && digitsOnly(p.processo) === k; });
+  }
+  function descreverPericia(p){
+    var t = p.status === 'agendada' && p.data ? 'agendada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
+      : p.status === 'realizada' && p.realizadaEm ? 'realizada em ' + fmtData(p.realizadaEm) + ' (aguardando laudo)'
+      : 'cadastrada como Não agendada';
+    return t + (p.perito ? ' com ' + p.perito : '');
+  }
+  function mostrarAvisoDup(proc, dups, pedirConfirmacao){
+    dupAviso.hidden = false;
+    dupAviso.innerHTML = '<span><b>Atenção:</b> o processo ' + escapeHtml(proc) + ' já tem perícia ' + escapeHtml(dups.map(descreverPericia).join('; ')) + '.</span>' +
+      (pedirConfirmacao ? '<span class="btns"><button type="button" class="btn" data-dup="cancelar">Cancelar</button><button type="button" class="btn primary" data-dup="confirmar">Cadastrar mesmo assim</button></span>' : '');
+  }
+  function esconderAvisoDup(){ dupAviso.hidden = true; dupAviso.innerHTML = ''; perConfirmouDup = false; }
+  dupAviso.addEventListener('click', function(e){
+    var b = e.target.closest('[data-dup]'); if (!b) return;
+    if (b.getAttribute('data-dup') === 'confirmar'){ perConfirmouDup = true; dupAviso.hidden = true; P.form.requestSubmit ? P.form.requestSubmit() : P.form.querySelector('.pg-save').click(); }
+    else { esconderAvisoDup(); P.proc.focus(); }
+  });
+  P.proc.addEventListener('input', esconderAvisoDup);
+  P.proc.addEventListener('blur', function(){
+    var proc = formatProcesso(P.proc.value), d = duplicadasDe(proc);
+    if (d.length) mostrarAvisoDup(proc, d, false);
+  });
+
+  // ---- cadastro de várias perícias de uma vez ----
+  var perModo = 'uma';
+  var L = {
+    uma: document.getElementById('perModoUma'), varias: document.getElementById('perModoVarias'),
+    perito: document.getElementById('lPerito'), esp: document.getElementById('lEsp'), data: document.getElementById('lData'),
+    hora: document.getElementById('lHora'), intervalo: document.getElementById('lIntervalo'), local: document.getElementById('lLocal'), texto: document.getElementById('lTexto'),
+    previa: document.getElementById('lPrevia'), resumo: document.getElementById('lResumo'), cadastrar: document.getElementById('lCadastrar')
+  };
+  L.esp.innerHTML = PER_ESPECIALIDADES.map(function(e){ return '<option value="' + e + '">' + (e || 'Não informada') + '</option>'; }).join('');
+  var lote = { linhas: [], forcar: {} };
+
+  document.querySelector('.per-modos').addEventListener('click', function(e){
+    var b = e.target.closest('[data-modo]'); if (!b) return;
+    perModo = b.getAttribute('data-modo');
+    document.querySelectorAll('.per-modo').forEach(function(x){ x.setAttribute('aria-selected', String(x === b)); });
+    L.uma.hidden = perModo !== 'uma';
+    L.varias.hidden = perModo !== 'varias';
+    P.form.noValidate = perModo === 'varias';
+    esconderAvisoDup();
+    if (perModo === 'varias'){ preencherLotePerito(); L.texto.focus(); }
+  });
+
+  function preencherLotePerito(){
+    var atual = L.perito.value;
+    L.perito.innerHTML = opcoesPeritos(atual, false);
+  }
+  L.perito.addEventListener('change', function(){
+    var c = peritoCadastrado(L.perito.value);
+    if (c && c.especialidade) L.esp.value = c.especialidade;
+    renderPrevia();
+  });
+
+  var RE_PROC = /\d{7}-?\d{2}\.?\d{4}\.?\d\.?\d{2}\.?\d{4}/;
+  var RE_HORA = /(^|[^\d])([01]?\d|2[0-3])\s*[:hH]\s*([0-5]\d)(?!\d)/;
+  // Lê "processo; autor; hora" em qualquer ordem e com qualquer separador
+  function interpretarLinha(txt){
+    var resto = txt, proc = '', hora = '';
+    var m = resto.match(RE_PROC);
+    if (m){ proc = formatProcesso(m[0]); resto = resto.replace(m[0], ' '); }
+    var h = resto.match(RE_HORA);
+    if (h){ hora = pad(+h[2]) + ':' + h[3]; resto = resto.replace(h[0], h[1] + ' '); }
+    var autor = resto.replace(/[;\t|]+/g, ' ').replace(/\s[-–—]\s/g, ' ').replace(/\b(autor|autora|requerente)\s*:/ig, ' ')
+      .replace(/\s+/g, ' ').trim().replace(/^[-–—,.:]+\s*|\s*[-–—,.:]+$/g, '').trim();
+    return { texto: txt.trim(), processo: proc, autor: autor, hora: hora };
+  }
+
+  function renderPrevia(){
+    var linhas = L.texto.value.split(/\r?\n/).map(function(t){ return t.trim(); }).filter(Boolean);
+    lote.linhas = linhas.map(interpretarLinha);
+    var vistos = {}, prontas = 0, dupl = 0, prob = 0;
+    lote.linhas.forEach(function(r, i){
+      r.erro = !r.processo ? 'Nº do processo não reconhecido' : !r.autor ? 'Falta o nome do autor' : '';
+      r.aviso = '';
+      if (!r.erro){
+        var k = digitsOnly(r.processo);
+        if (vistos[k] !== undefined) r.aviso = 'Repetido na lista (linha ' + (vistos[k] + 1) + ')';
+        else {
+          vistos[k] = i;
+          var d = duplicadasDe(r.processo);
+          if (d.length) r.aviso = 'Já tem perícia ' + d.map(descreverPericia).join('; ');
+        }
+      }
+      r.incluir = !r.erro && (!r.aviso || !!lote.forcar[i]);
+      if (r.erro) prob++; else if (r.aviso && !r.incluir) dupl++; else prontas++;
+    });
+    // Horários em sequência: começa na "hora da primeira" e soma o intervalo; hora escrita na linha reinicia a sequência
+    var passo = Math.max(0, parseInt(L.intervalo.value, 10) || 0);
+    var t = paraMinutos(L.hora.value || '08:00');
+    lote.linhas.forEach(function(r){
+      if (!r.incluir){ r.horaCalc = ''; return; }
+      if (r.hora) t = paraMinutos(r.hora);
+      r.horaCalc = deMinutos(t);
+      t += passo;
+    });
+    L.previa.innerHTML = lote.linhas.map(function(r, i){
+      var hora = r.horaCalc;
+      var st = r.erro ? '<span class="st bad">' + r.erro + '</span>'
+        : r.aviso ? '<span class="st warn">' + escapeHtml(r.aviso) + '<br><label><input type="checkbox" data-forcar="' + i + '"' + (lote.forcar[i] ? ' checked' : '') + '> cadastrar mesmo assim</label></span>'
+        : '<span class="st ok">Pronta' + (L.data.value ? '' : ' · entra como Não agendada') + '</span>';
+      return '<div class="lrow' + (r.erro ? ' bad' : '') + (!r.incluir ? ' skip' : '') + '">' +
+        '<span class="n">' + (i + 1) + '</span>' +
+        '<span class="proc">' + (r.processo ? escapeHtml(r.processo) : '<i>' + escapeHtml(r.texto.slice(0, 40)) + '</i>') + '</span>' +
+        '<span class="autor">' + escapeHtml(r.autor || '—') + '</span>' +
+        '<span class="hora">' + (L.data.value && hora ? hora : '') + '</span>' + st + '</div>';
+    }).join('');
+    var semPerito = !L.perito.value;
+    L.resumo.textContent = !lote.linhas.length ? '' :
+      prontas + (prontas === 1 ? ' pronta' : ' prontas') +
+      (dupl ? ' · ' + dupl + (dupl === 1 ? ' repetida (não será cadastrada)' : ' repetidas (não serão cadastradas)') : '') +
+      (prob ? ' · ' + prob + ' com problema' : '') + (semPerito ? ' · escolha o perito' : '');
+    L.cadastrar.disabled = !prontas || semPerito;
+    L.cadastrar.textContent = prontas ? 'Cadastrar ' + prontas + (prontas === 1 ? ' perícia' : ' perícias') : 'Cadastrar perícias';
+  }
+  function paraMinutos(hm){ var x = String(hm).split(':'); return (+x[0] || 0) * 60 + (+x[1] || 0); }
+  function deMinutos(m){ m = Math.min(m, 23 * 60 + 59); return pad(Math.floor(m / 60)) + ':' + pad(m % 60); }
+  [L.texto, L.data, L.hora, L.intervalo].forEach(function(el){ el.addEventListener('input', function(){ if (el === L.texto) lote.forcar = {}; renderPrevia(); }); });
+  L.previa.addEventListener('change', function(e){
+    var cb = e.target.closest('[data-forcar]'); if (!cb) return;
+    if (cb.checked) lote.forcar[cb.getAttribute('data-forcar')] = true; else delete lote.forcar[cb.getAttribute('data-forcar')];
+    renderPrevia();
+  });
+
+  L.cadastrar.addEventListener('click', async function(){
+    renderPrevia();
+    var alvo = lote.linhas.filter(function(r){ return r.incluir; });
+    if (!alvo.length || !L.perito.value) return;
+    L.cadastrar.disabled = true; L.cadastrar.textContent = 'Cadastrando…';
+    var ok = 0;
+    for (var i = 0; i < alvo.length; i++){
+      var r = alvo[i], hora = r.horaCalc || L.hora.value || '08:00';
+      var data = L.data.value ? new Date(L.data.value + 'T' + hora) : null;
+      var p = { processo: r.processo, autor: r.autor, perito: L.perito.value, especialidade: L.esp.value,
+        status: data ? 'agendada' : 'nao_agendada', data: data, local: L.local.value.trim(), realizadaEm: null, laudoEm: null,
+        observacoes: '', conferidaEm: null };
+      if (await salvarPericia(p, null, true)) ok++;
+      else break;
+    }
+    var ignoradas = lote.linhas.length - alvo.length;
+    await loadPericias();
+    // Tira da caixa só as que foram cadastradas; as repetidas ou com problema ficam para corrigir
+    var feitas = {}; alvo.slice(0, ok).forEach(function(r){ feitas[r.texto] = (feitas[r.texto] || 0) + 1; });
+    L.texto.value = L.texto.value.split(/\r?\n/).filter(function(t){
+      var k = t.trim(); if (!k) return false;
+      if (feitas[k]){ feitas[k]--; return false; }
+      return true;
+    }).join('\n');
+    lote.forcar = {};
+    if (ok === alvo.length)
+      toast(ok + (ok === 1 ? ' perícia cadastrada' : ' perícias cadastradas') + (ignoradas ? ' · ' + ignoradas + (ignoradas === 1 ? ' linha ficou' : ' linhas ficaram') + ' na caixa (repetidas ou com problema)' : ''));
+    else toast('Cadastradas ' + ok + ' de ' + alvo.length + '. As demais continuam na caixa para tentar de novo.');
+    renderPrevia();
+  });
+
   // ---- aba Peritos: cadastro ----
   var PT = {
     form: document.getElementById('peritoForm'), title: document.getElementById('peritoFormTitle'), hint: document.getElementById('peritoFormHint'),
@@ -3728,6 +4008,7 @@
     bar: document.getElementById('perBatch'), n: document.getElementById('perBatchN'), st: document.getElementById('perBatchSt'),
     dataWrap: document.getElementById('perBatchDataWrap'), dataLbl: document.getElementById('perBatchDataLbl'), data: document.getElementById('perBatchData'),
     horaWrap: document.getElementById('perBatchHoraWrap'), hora: document.getElementById('perBatchHora'), and: document.getElementById('perBatchAnd'),
+    intWrap: document.getElementById('perBatchIntWrap'), intervalo: document.getElementById('perBatchInt'),
     apply: document.getElementById('perBatchApply'), clear: document.getElementById('perBatchClear')
   };
   function selecionadas(){ return Object.keys(per.sel).map(perFind).filter(Boolean); }
@@ -3749,6 +4030,7 @@
     var st = PB.st.value;
     PB.dataWrap.hidden = !(st === 'realizada' || st === 'agendada' || st === 'laudo_juntado');
     PB.horaWrap.hidden = st !== 'agendada';
+    PB.intWrap.hidden = st !== 'agendada';
     PB.dataLbl.textContent = st === 'agendada' ? 'Data da perícia' : st === 'laudo_juntado' ? 'Laudo juntado em' : 'Realizada em';
     PB.data.value = dataSugerida();
   }
@@ -3783,6 +4065,12 @@
 
   PB.apply.addEventListener('click', async function(){
     var sel = selecionadas(); if (!sel.length) return;
+    // Mantém a ordem em que as perícias já estavam (pela data atual; sem data, pelo processo)
+    sel.sort(function(a, b){
+      var x = a.data ? a.data.getTime() : Infinity, y = b.data ? b.data.getTime() : Infinity;
+      return (x - y) || a.processo.localeCompare(b.processo);
+    });
+    var horaSeq = paraMinutos(PB.hora.value || '08:00'), passoSeq = Math.max(0, parseInt(PB.intervalo.value, 10) || 0);
     var st = PB.st.value, texto = PB.and.value.trim();
     var data = PB.data.value ? dataLocal(PB.data.value) : null;
     if ((st === 'realizada' || st === 'laudo_juntado' || st === 'agendada') && !data){ toast('Informe a data'); PB.data.focus(); return; }
@@ -3794,7 +4082,7 @@
       if (st){
         if (st === 'realizada'){ novo.status = 'realizada'; novo.realizadaEm = data; novo.laudoEm = null; }
         else if (st === 'laudo_juntado'){ novo.status = 'laudo_juntado'; novo.laudoEm = data; }
-        else if (st === 'agendada'){ novo.status = 'agendada'; novo.data = new Date(PB.data.value + 'T' + (PB.hora.value || '09:00')); novo.realizadaEm = null; novo.laudoEm = null; }
+        else if (st === 'agendada'){ novo.status = 'agendada'; novo.data = new Date(PB.data.value + 'T' + deMinutos(horaSeq + i * passoSeq)); novo.realizadaEm = null; novo.laudoEm = null; }
         else aplicarStatus(novo, st);
         salvou = await salvarPericia(novo, antes, true);
       }
