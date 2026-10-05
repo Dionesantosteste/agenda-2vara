@@ -6,21 +6,21 @@
 <title>Portal 2ª Vara</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  /* Portal 2ª Vara — fundo branco, azul institucional como única cor de destaque.
-     Texto escuro e contraste alto para leitura rápida da pauta. */
+  /* Portal 2ª Vara — fundo cinza-claro levemente azulado; cartões, formulários e menu em branco
+     por cima dele. Azul institucional como única cor de destaque; texto escuro e contraste alto. */
   :root{
-    --bg: #FFFFFF;          /* fundo da página */
+    --bg: #ECEFF4;          /* fundo da página (cinza-claro azulado) */
     --paper: #FFFFFF;       /* cartões e formulários */
-    --sunken: #F3F6FA;      /* campos, menu lateral, áreas de apoio */
+    --sunken: #F4F6F9;      /* campos e áreas de apoio dentro dos cartões */
     --ink: #142033;         /* texto principal */
     --muted: #556275;       /* texto secundário (contraste AA) */
-    --line: #D6DEE8;
+    --line: #D3DBE6;
     --accent: #1D5BB8;      /* azul de destaque */
     --accent-ink: #FFFFFF;
     --accent-soft: #E7F0FC;
     --danger: #B42318;
     --focus: #1D5BB8;
-    --shadow: 0 1px 2px rgba(20,32,51,.05), 0 2px 8px rgba(20,32,51,.05);
+    --shadow: 0 1px 2px rgba(20,32,51,.06), 0 1px 4px rgba(20,32,51,.04);
     --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --font-data: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
     /* status das audiências (semânticas, separadas do acento) */
@@ -215,7 +215,7 @@
   .shell{ display:grid; grid-template-columns: var(--sidebar-w) minmax(0,1fr); min-height:100vh; }
   .sidebar{
     position:sticky; top:0; height:100vh; overflow-y:auto;
-    background:var(--sunken); border-right:1px solid var(--line);
+    background:var(--paper); border-right:1px solid var(--line);
     display:flex; flex-direction:column; gap:26px; padding:26px 14px 20px;
   }
   .brand{ padding:0 10px; display:flex; flex-direction:column; gap:2px; }
@@ -228,7 +228,7 @@
     color:var(--muted); text-decoration:none; font-weight:500; font-size:14.5px;
   }
   .nav-item svg{ flex:none; }
-  .nav-item:hover{ background:var(--line); color:var(--ink); }
+  .nav-item:hover{ background:var(--sunken); color:var(--ink); }
   .nav-item[aria-current="page"]{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
   .nav-item:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
   .nav-count{ margin-left:auto; font-family:var(--font-ui); font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
@@ -252,10 +252,10 @@
   .stat-lbl{ font-family:var(--font-ui); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
   .range{
     display:grid; grid-template-columns: minmax(0,180px) minmax(0,180px); gap:12px;
-    background:var(--sunken); border:1px solid var(--line); border-radius:12px;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
     padding:10px 12px 12px; margin:2px 0 12px; width:max-content; max-width:100%;
   }
-  .range .field input{ background:var(--paper); padding:8px 10px; font-size:14.5px; }
+  .range .field input{ background:var(--sunken); padding:8px 10px; font-size:14.5px; }
 
   .filter-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
   .filter-row:last-of-type{ margin-bottom:22px; }
@@ -515,6 +515,7 @@
       </div>
     </div>
     <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
+    <div class="filter-row" id="audTiposFiltro" role="group" aria-label="Tipo"></div>
     <div class="filter-row" id="audConf" role="group" aria-label="Conferência"></div>
 
     <div class="groups" id="audGroups"></div>
@@ -1320,7 +1321,7 @@
     { key: 'intervalo',  label: 'Entre datas' }
   ];
 
-  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', conf: 'todas' };
+  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', tipo: 'Todos', conf: 'todas' };
   var CONF_FILTROS = [
     { key: 'todas', label: 'Todas' },
     { key: 'nao',   label: 'Não conferidas' },
@@ -1334,6 +1335,7 @@
     periods: document.getElementById('audPeriods'),
     statuses: document.getElementById('audStatuses'),
     conf: document.getElementById('audConf'),
+    tiposFiltro: document.getElementById('audTiposFiltro'),
     groups: document.getElementById('audGroups'),
     empty: document.getElementById('audEmpty'),
     statHoje: document.getElementById('statHoje'),
@@ -1483,6 +1485,7 @@
 
   function audMatches(a){
     if (aud.status !== 'Todos' && a.status !== aud.status) return false;
+    if (aud.tipo !== 'Todos' && a.tipo !== aud.tipo) return false;
     if (aud.conf === 'sim' && !a.conferidaEm) return false;
     if (aud.conf === 'nao' && a.conferidaEm) return false;
     var q = normalize(aud.query).trim();
@@ -1520,6 +1523,10 @@
     A.statuses.innerHTML = '<span class="filter-label">Status</span>';
     ["Todos"].concat(STATUSES).forEach(function(st){
       A.statuses.appendChild(chip(st, aud.status === st, function(){ aud.status = st; renderAudiencias(); }));
+    });
+    A.tiposFiltro.innerHTML = '<span class="filter-label">Tipo</span>';
+    ["Todos"].concat(TIPOS).forEach(function(t){
+      A.tiposFiltro.appendChild(chip(t, aud.tipo === t, function(){ aud.tipo = t; renderAudiencias(); }));
     });
     A.conf.innerHTML = '<span class="filter-label">Conferência</span>';
     CONF_FILTROS.forEach(function(c){
