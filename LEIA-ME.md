@@ -152,6 +152,9 @@ Como funciona:
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
 - O **Perito** é digitado na própria perícia (não vem da Agenda). O campo sugere os nomes já usados em outras perícias.
+- **Alterar em lote:** marque as caixinhas das perícias (ou use "Selecionar" no título de cada dia), escolha a
+  nova situação e a data na barra que aparece embaixo e clique em **Aplicar**. Cada perícia recebe o andamento
+  e, se for "Realizada", o prazo do laudo calculado a partir da data informada.
 
 ### Como adicionar novas seções ao portal depois
 

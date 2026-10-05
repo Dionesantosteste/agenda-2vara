@@ -367,6 +367,25 @@
   .pwhen b{ font-size:17px; font-weight:500; } .pwhen small{ font-size:12px; color:var(--muted); }
   .pwhen .lbl{ font-family:var(--font-ui); font-size:11.5px; color:var(--muted); line-height:1.3; }
   .pinfo{ min-width:0; display:flex; flex-direction:column; gap:5px; }
+  .psel{ display:inline-flex; align-items:center; gap:6px; margin-bottom:6px; cursor:pointer; font-family:var(--font-ui); font-size:11.5px; color:var(--muted); }
+  .psel input{ width:18px; height:18px; margin:0; accent-color:var(--accent); cursor:pointer; }
+  .pcard.sel{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent); }
+  .day-sel{ margin-left:auto; border:1px solid var(--line); background:var(--paper); color:var(--muted); border-radius:999px; padding:3px 10px;
+    font-family:var(--font-ui); font-size:12px; font-weight:500; cursor:pointer; }
+  .day-sel:hover{ border-color:var(--accent); color:var(--accent); }
+  .day-label{ flex-wrap:wrap; }
+  .batch{ position:fixed; left:var(--sidebar-w); right:0; bottom:0; z-index:15; background:var(--paper); border-top:2px solid var(--accent);
+    box-shadow:0 -6px 18px rgba(20,32,51,.14); padding:12px 28px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .batch-in{ max-width:900px; margin:0 auto; display:flex; flex-wrap:wrap; gap:10px 12px; align-items:flex-end; }
+  .batch-n{ flex-basis:100%; font-weight:600; color:var(--accent); }
+  .bfield{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
+  .bfield.grow{ flex:1 1 220px; }
+  .bfield input, .bfield select{ height:40px; border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:10px; padding:0 10px;
+    font-family:var(--font-ui); font-size:14px; text-transform:none; letter-spacing:0; min-width:0; }
+  .batch-btns{ display:flex; gap:8px; }
+  .batch-btns .btn{ height:40px; }
+  .main.has-batch{ padding-bottom:240px; }
+  @media (max-width:860px){ .batch{ left:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); } .bfield{ flex:1 1 140px; } .batch-btns{ flex-basis:100%; } .batch-btns .btn{ flex:1; } }
   .prow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .pperito{ font-weight:600; }
   .pesp{ font-size:12px; font-weight:600; border-radius:6px; padding:1px 7px; background:var(--accent-soft); color:var(--accent); }
@@ -732,6 +751,29 @@
 
     <div class="groups" id="perGroups"></div>
     <div class="empty" id="perEmpty" hidden></div>
+
+    <div class="batch" id="perBatch" hidden role="region" aria-label="Alterar as perícias selecionadas">
+      <div class="batch-in">
+        <span class="batch-n" id="perBatchN"></span>
+        <label class="bfield">Nova situação
+          <select id="perBatchSt">
+            <option value="realizada">Realizada</option>
+            <option value="agendada">Agendada</option>
+            <option value="laudo_juntado">Laudo juntado</option>
+            <option value="nao_agendada">Não agendada</option>
+            <option value="cancelada">Cancelada</option>
+            <option value="">Manter a situação (só registrar andamento)</option>
+          </select>
+        </label>
+        <label class="bfield" id="perBatchDataWrap"><span id="perBatchDataLbl">Realizada em</span><input type="date" id="perBatchData" /></label>
+        <label class="bfield" id="perBatchHoraWrap" hidden>Hora<input type="time" id="perBatchHora" /></label>
+        <label class="bfield grow">Andamento (opcional)<input id="perBatchAnd" maxlength="300" placeholder="Ex.: perícias realizadas em mutirão" /></label>
+        <div class="batch-btns">
+          <button type="button" class="btn primary" id="perBatchApply">Aplicar</button>
+          <button type="button" class="btn" id="perBatchClear">Limpar seleção</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="view-organizacao" aria-labelledby="orgTitle" hidden>
@@ -1751,6 +1793,7 @@
     if (r === 'audiencias') renderAudiencias();
     if (r === 'organizacao') orgOnEnter();
     if (r === 'pericias') renderPericias();
+    else document.querySelector('.main').classList.remove('has-batch');
   }
   window.addEventListener('hashchange', applyRoute);
 
@@ -3048,7 +3091,7 @@
     return c;
   }
 
-  var per = { items: [], andamentos: {}, loaded: false, error: null, query: "", situacao: "andamento", perito: "", abertos: {} };
+  var per = { items: [], andamentos: {}, loaded: false, error: null, query: "", situacao: "andamento", perito: "", abertos: {}, sel: {}, grupos: [] };
 
   var P = {
     count: document.getElementById('perCount'),
@@ -3129,6 +3172,7 @@
     per.andamentos = {};
     (an.data || []).forEach(function(a){ (per.andamentos[a.pericia_id] = per.andamentos[a.pericia_id] || []).push({ id: a.id, texto: a.texto || '', em: new Date(a.created_at) }); });
     Object.keys(per.andamentos).forEach(function(k){ per.andamentos[k].sort(function(x, y){ return y.em - x.em; }); });
+    Object.keys(per.sel).forEach(function(id){ if (!perFind(id)) delete per.sel[id]; });
     renderPericias();
   }
 
@@ -3154,7 +3198,7 @@
     return 'Situação alterada para ' + PER_NOME[p.status];
   }
 
-  async function salvarPericia(p, antes){
+  async function salvarPericia(p, antes, semRecarregar){
     if (!supabase){ toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return false; }
     var res = p.id
       ? await supabase.from('pericias').update(perPayload(p)).eq('id', p.id).select('id')
@@ -3166,8 +3210,9 @@
       if (antes.status !== p.status) await addAndamento(id, textoMudanca(p));
       else if (p.status === 'agendada' && (antes.data ? antes.data.getTime() : 0) !== (p.data ? p.data.getTime() : 0)) await addAndamento(id, 'Data da perícia alterada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()));
       else if (p.status === 'realizada' && antes.realizadaEm && p.realizadaEm && antes.realizadaEm.getTime() !== p.realizadaEm.getTime()) await addAndamento(id, textoMudanca(p));
+      else if (p.status === 'laudo_juntado' && antes.laudoEm && p.laudoEm && antes.laudoEm.getTime() !== p.laudoEm.getTime()) await addAndamento(id, textoMudanca(p));
     }
-    await loadPericias();
+    if (!semRecarregar) await loadPericias();
     return true;
   }
 
@@ -3306,8 +3351,8 @@
       ? '<button type="button" class="conf-btn done" data-pact="conferir" data-id="' + p.id + '" title="Conferida em ' + formatDataHora(p.conferidaEm) + '. Clique para desmarcar.">' + ICON_CHECK + '<span>Conferida</span><span class="conf-date">' + fmtDia(p.conferidaEm) + ' ' + pad(p.conferidaEm.getHours()) + ':' + pad(p.conferidaEm.getMinutes()) + '</span></button>'
       : '<button type="button" class="conf-btn" data-pact="conferir" data-id="' + p.id + '" title="Marcar como conferida">' + ICON_CHECK + '<span>Conferir</span></button>';
 
-    var h = '<article class="pcard' + (atrasado ? ' late' : perto ? ' soon' : '') + (aberta(p) ? '' : ' closed') + '">' +
-      '<div class="pwhen">' + when + '</div>' +
+    var h = '<article class="pcard' + (atrasado ? ' late' : perto ? ' soon' : '') + (aberta(p) ? '' : ' closed') + (per.sel[p.id] ? ' sel' : '') + '">' +
+      '<div class="pwhen"><label class="psel" title="Selecionar para alterar em lote"><input type="checkbox" data-psel="' + p.id + '"' + (per.sel[p.id] ? ' checked' : '') + ' aria-label="Selecionar a perícia do processo ' + escapeHtml(p.processo) + '"></label>' + when + '</div>' +
       '<div class="pinfo">' +
         '<div class="prow">' + procCopyBtn(p.processo) + '</div>' +
         '<div class="prow"><span class="pperito">' + escapeHtml(p.perito) + '</span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
@@ -3339,6 +3384,7 @@
   }
 
   function renderPericias(){
+    renderPerBatch();
     renderPerFiltros();
     renderPerResumo();
     var list = per.items.filter(perPassa);
@@ -3379,13 +3425,103 @@
       if (!porChave[titulo]){ porChave[titulo] = { titulo: titulo, rel: rel, itens: [] }; grupos.push(porChave[titulo]); }
       porChave[titulo].itens.push(p);
     });
-    P.groups.innerHTML = grupos.map(function(g){
-      return '<div class="day"><div class="day-label"><span class="d">' + escapeHtml(g.titulo) + '</span>' + (g.rel ? '<span class="rel">' + g.rel + '</span>' : '') + '</div>' +
+    per.grupos = grupos.map(function(g){ return g.itens.map(function(p){ return p.id; }); });
+    P.groups.innerHTML = grupos.map(function(g, gi){
+      var todos = g.itens.every(function(p){ return per.sel[p.id]; });
+      return '<div class="day"><div class="day-label"><span class="d">' + escapeHtml(g.titulo) + '</span>' + (g.rel ? '<span class="rel">' + g.rel + '</span>' : '') +
+        '<button type="button" class="day-sel" data-pgrp="' + gi + '">' + (todos ? 'Desmarcar ' : 'Selecionar ') + (g.itens.length === 1 ? 'esta' : 'as ' + g.itens.length) + '</button></div>' +
         '<div class="cards">' + g.itens.map(perCard).join('') + '</div></div>';
     }).join('');
   }
 
   function perFind(id){ for (var i = 0; i < per.items.length; i++) if (per.items[i].id === id) return per.items[i]; return null; }
+
+  // ---- alteração em lote ----
+  var PB = {
+    bar: document.getElementById('perBatch'), n: document.getElementById('perBatchN'), st: document.getElementById('perBatchSt'),
+    dataWrap: document.getElementById('perBatchDataWrap'), dataLbl: document.getElementById('perBatchDataLbl'), data: document.getElementById('perBatchData'),
+    horaWrap: document.getElementById('perBatchHoraWrap'), hora: document.getElementById('perBatchHora'), and: document.getElementById('perBatchAnd'),
+    apply: document.getElementById('perBatchApply'), clear: document.getElementById('perBatchClear')
+  };
+  function selecionadas(){ return Object.keys(per.sel).map(perFind).filter(Boolean); }
+
+  // Sugere a data: todas no mesmo dia → esse dia; senão, hoje
+  function dataSugerida(){
+    var st = PB.st.value, sel = selecionadas();
+    if (st === 'realizada'){
+      var dias = {};
+      sel.forEach(function(p){ if (p.data) dias[dayKey(p.data)] = true; });
+      var k = Object.keys(dias);
+      if (k.length === 1 && sel.every(function(p){ return p.data; }) && k[0] <= dayKey(new Date())) return k[0];
+      return dayKey(new Date());
+    }
+    if (st === 'laudo_juntado') return dayKey(new Date());
+    return '';
+  }
+  function atualizarBatchCampos(){
+    var st = PB.st.value;
+    PB.dataWrap.hidden = !(st === 'realizada' || st === 'agendada' || st === 'laudo_juntado');
+    PB.horaWrap.hidden = st !== 'agendada';
+    PB.dataLbl.textContent = st === 'agendada' ? 'Data da perícia' : st === 'laudo_juntado' ? 'Laudo juntado em' : 'Realizada em';
+    PB.data.value = dataSugerida();
+  }
+  PB.st.addEventListener('change', atualizarBatchCampos);
+
+  function renderPerBatch(){
+    var n = selecionadas().length;
+    var estava = !PB.bar.hidden;
+    PB.bar.hidden = n === 0;
+    document.querySelector('.main').classList.toggle('has-batch', n > 0 && currentRoute === 'pericias');
+    PB.n.textContent = n === 1 ? '1 perícia selecionada' : n + ' perícias selecionadas';
+    if (n > 0 && !estava) atualizarBatchCampos();
+  }
+  function limparSelecao(){ per.sel = {}; renderPericias(); }
+  PB.clear.addEventListener('click', limparSelecao);
+
+  P.groups.addEventListener('change', function(e){
+    var cb = e.target.closest('[data-psel]'); if (!cb) return;
+    var id = cb.getAttribute('data-psel');
+    if (cb.checked) per.sel[id] = true; else delete per.sel[id];
+    renderPericias();
+    if (cb.checked && PB.st.value === 'realizada') PB.data.value = dataSugerida();
+  });
+  P.groups.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pgrp]'); if (!b) return;
+    var ids = per.grupos[+b.getAttribute('data-pgrp')] || [];
+    var todos = ids.every(function(id){ return per.sel[id]; });
+    ids.forEach(function(id){ if (todos) delete per.sel[id]; else per.sel[id] = true; });
+    renderPericias();
+    PB.data.value = dataSugerida();
+  });
+
+  PB.apply.addEventListener('click', async function(){
+    var sel = selecionadas(); if (!sel.length) return;
+    var st = PB.st.value, texto = PB.and.value.trim();
+    var data = PB.data.value ? dataLocal(PB.data.value) : null;
+    if ((st === 'realizada' || st === 'laudo_juntado' || st === 'agendada') && !data){ toast('Informe a data'); PB.data.focus(); return; }
+    if (!st && !texto){ toast('Escreva o andamento a registrar'); PB.and.focus(); return; }
+    PB.apply.disabled = true; PB.apply.textContent = 'Aplicando…';
+    var ok = 0;
+    for (var i = 0; i < sel.length; i++){
+      var p = sel[i], antes = perCopia(p), novo = perCopia(p), salvou = true;
+      if (st){
+        if (st === 'realizada'){ novo.status = 'realizada'; novo.realizadaEm = data; novo.laudoEm = null; }
+        else if (st === 'laudo_juntado'){ novo.status = 'laudo_juntado'; novo.laudoEm = data; }
+        else if (st === 'agendada'){ novo.status = 'agendada'; novo.data = new Date(PB.data.value + 'T' + (PB.hora.value || '09:00')); novo.realizadaEm = null; novo.laudoEm = null; }
+        else aplicarStatus(novo, st);
+        salvou = await salvarPericia(novo, antes, true);
+      }
+      if (salvou && texto) await addAndamento(p.id, texto);
+      if (salvou) ok++;
+    }
+    PB.apply.disabled = false; PB.apply.textContent = 'Aplicar';
+    per.sel = {};
+    PB.and.value = '';
+    await loadPericias();
+    var quando = data ? ' em ' + fmtData(data) : '';
+    toast(ok + (ok === 1 ? ' perícia alterada' : ' perícias alteradas') + (st ? ': ' + PER_NOME[st] + (st === 'agendada' ? '' : quando) : ' (andamento registrado)'));
+  });
+
   function perCopia(p){ return Object.assign({}, p); }
 
   // ---- ações ----
