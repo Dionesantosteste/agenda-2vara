@@ -347,12 +347,15 @@
   .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
 
   /* ================= Busca geral ================= */
-  .gsearch{ display:flex; align-items:center; gap:8px; margin:0 2px; padding:0 10px; height:40px; border:1px solid var(--line); border-radius:10px; background:var(--sunken); color:var(--muted); cursor:text; }
-  .gsearch:focus-within{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
-  .gsearch input{ flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font-family:var(--font-ui); font-size:14px; }
+  .gtop{ position:relative; margin-bottom:20px; z-index:40; }
+  .gsearch{ display:flex; align-items:center; gap:10px; padding:0 14px; height:48px; border:1px solid var(--line); border-radius:14px;
+    background:var(--paper); color:var(--muted); cursor:text; box-shadow:var(--shadow); }
+  .gsearch:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .gsearch input{ flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font-family:var(--font-ui); font-size:15px; }
   .gsearch input::-webkit-search-cancel-button{ cursor:pointer; }
-  .gresultados{ position:fixed; z-index:60; top:16px; left:calc(var(--sidebar-w) + 16px); width:min(620px, calc(100vw - var(--sidebar-w) - 32px));
-    max-height:calc(100vh - 32px); display:flex; flex-direction:column; background:var(--paper); border:1px solid var(--line); border-radius:14px;
+  .gkbd{ font-family:var(--font-data); font-size:11px; color:var(--muted); border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; padding:1px 6px; white-space:nowrap; }
+  .gresultados{ position:absolute; z-index:60; top:calc(100% + 6px); left:0; right:0;
+    max-height:min(70vh, 640px); display:flex; flex-direction:column; background:var(--paper); border:1px solid var(--line); border-radius:14px;
     box-shadow:0 12px 40px rgba(20,32,51,.22); overflow:hidden; }
   .gr-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); }
   .gr-body{ overflow-y:auto; padding:8px 8px 12px; display:flex; flex-direction:column; gap:4px; }
@@ -368,9 +371,7 @@
   .gr-vazio{ padding:24px 12px; text-align:center; color:var(--muted); font-size:14px; }
   .gr-mais{ font-size:12.5px; color:var(--muted); padding:2px 10px 6px; }
   .topbar-busca{ margin-left:auto; }
-  @media (max-width:860px){
-    .gresultados{ left:12px; right:12px; width:auto; top:calc(148px + env(safe-area-inset-top, 0px)); max-height:calc(100vh - 164px); }
-  }
+  @media (max-width:860px){ .gkbd{ display:none; } .gsearch{ height:46px; } .gsearch input{ font-size:16px; } .gresultados{ max-height:70vh; } }
 
   .achado{ animation:achado 2s ease-out; }
   @keyframes achado{ 0%, 40%{ box-shadow:0 0 0 3px var(--accent); } 100%{ box-shadow:var(--shadow); } }
@@ -732,10 +733,6 @@
       <span class="brand-name">2ª Vara</span>
       <span class="brand-sub">Portal da secretaria</span>
     </div>
-    <label class="gsearch" for="gBusca">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="gBusca" type="search" placeholder="Buscar processo ou nome" autocomplete="off" aria-label="Buscar em todo o portal por número do processo ou nome" aria-controls="gResultados" />
-    </label>
     <nav class="nav" aria-label="Seções">
       <div class="nav-label">Seções</div>
       <a class="nav-item" href="#agenda" data-route="agenda">
@@ -779,6 +776,20 @@
 
 <main class="main">
 <div class="wrap">
+  <div class="gtop" id="gTopo">
+    <label class="gsearch" for="gBusca">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="gBusca" type="search" placeholder="Buscar processo ou nome em todo o portal (perícias, audiências, contatos…)" autocomplete="off" aria-label="Buscar em todo o portal por número do processo ou nome" aria-controls="gResultados" />
+      <kbd class="gkbd" aria-hidden="true">Ctrl K</kbd>
+    </label>
+    <div class="gresultados" id="gResultados" hidden role="dialog" aria-label="Resultados da busca">
+      <div class="gr-head">
+        <span id="gResumo"></span>
+        <button type="button" class="icon-btn" id="gFechar" aria-label="Fechar a busca"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="gr-body" id="gLista"></div>
+    </div>
+  </div>
   <div class="setup-banner" id="setupBanner">
     ⚠️ Antes de usar: abra este arquivo num editor de texto e preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code>
     no topo do <code>&lt;script&gt;</code> (perto do final do arquivo) com os dados do seu projeto Supabase.
@@ -1309,13 +1320,6 @@
   </form>
 </dialog>
 
-<div class="gresultados" id="gResultados" hidden role="dialog" aria-label="Resultados da busca">
-  <div class="gr-head">
-    <span id="gResumo"></span>
-    <button type="button" class="icon-btn" id="gFechar" aria-label="Fechar a busca"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
-  </div>
-  <div class="gr-body" id="gLista"></div>
-</div>
 <div class="busy-bar" aria-hidden="true"></div>
 <div class="busy-pill" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="busyTxt">Carregando…</span></div>
 <div class="toast" id="toast"></div>
@@ -4401,16 +4405,16 @@
   G.fechar.addEventListener('click', function(){ gFechar(true); });
   document.addEventListener('mousedown', function(e){
     if (G.painel.hidden) return;
-    if (G.painel.contains(e.target) || e.target.closest('.gsearch') || e.target.closest('#gBuscaTopo')) return;
+    if (e.target.closest('#gTopo') || e.target.closest('#gBuscaTopo')) return;
     gFechar(false);
   });
-  G.topo.addEventListener('click', function(){ setNavOpen(true); setTimeout(function(){ G.input.focus(); }, 60); });
+  G.topo.addEventListener('click', function(){ window.scrollTo({ top: 0, behavior: 'smooth' }); G.input.focus(); });
   // Atalho: Ctrl+K (ou /) abre a busca
   document.addEventListener('keydown', function(e){
     var tag = (e.target.tagName || '').toLowerCase();
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' || (e.key === '/' && tag !== 'input' && tag !== 'textarea' && tag !== 'select' && !e.target.isContentEditable)){
       e.preventDefault();
-      if (window.matchMedia('(max-width:860px)').matches) setNavOpen(true);
+      window.scrollTo({ top: 0 });
       G.input.focus(); G.input.select();
     }
   });
