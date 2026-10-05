@@ -515,6 +515,7 @@
       </div>
     </div>
     <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
+    <div class="filter-row" id="audTiposFiltro" role="group" aria-label="Tipo"></div>
     <div class="filter-row" id="audConf" role="group" aria-label="Conferência"></div>
 
     <div class="groups" id="audGroups"></div>
@@ -1320,7 +1321,7 @@
     { key: 'intervalo',  label: 'Entre datas' }
   ];
 
-  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', conf: 'todas' };
+  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', tipo: 'Todos', conf: 'todas' };
   var CONF_FILTROS = [
     { key: 'todas', label: 'Todas' },
     { key: 'nao',   label: 'Não conferidas' },
@@ -1334,6 +1335,7 @@
     periods: document.getElementById('audPeriods'),
     statuses: document.getElementById('audStatuses'),
     conf: document.getElementById('audConf'),
+    tiposFiltro: document.getElementById('audTiposFiltro'),
     groups: document.getElementById('audGroups'),
     empty: document.getElementById('audEmpty'),
     statHoje: document.getElementById('statHoje'),
@@ -1483,6 +1485,7 @@
 
   function audMatches(a){
     if (aud.status !== 'Todos' && a.status !== aud.status) return false;
+    if (aud.tipo !== 'Todos' && a.tipo !== aud.tipo) return false;
     if (aud.conf === 'sim' && !a.conferidaEm) return false;
     if (aud.conf === 'nao' && a.conferidaEm) return false;
     var q = normalize(aud.query).trim();
@@ -1520,6 +1523,10 @@
     A.statuses.innerHTML = '<span class="filter-label">Status</span>';
     ["Todos"].concat(STATUSES).forEach(function(st){
       A.statuses.appendChild(chip(st, aud.status === st, function(){ aud.status = st; renderAudiencias(); }));
+    });
+    A.tiposFiltro.innerHTML = '<span class="filter-label">Tipo</span>';
+    ["Todos"].concat(TIPOS).forEach(function(t){
+      A.tiposFiltro.appendChild(chip(t, aud.tipo === t, function(){ aud.tipo = t; renderAudiencias(); }));
     });
     A.conf.innerHTML = '<span class="filter-label">Conferência</span>';
     CONF_FILTROS.forEach(function(c){
