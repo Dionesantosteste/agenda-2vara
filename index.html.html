@@ -12,6 +12,10 @@
     --bg: #ECEFF4;          /* fundo da página (cinza-claro azulado) */
     --paper: #FFFFFF;       /* cartões e formulários */
     --sunken: #F4F6F9;      /* campos e áreas de apoio dentro dos cartões */
+    --item: #EBF0F7;        /* tarefas, lembretes e rotinas dentro dos painéis brancos */
+    --item-line: #C9D3E1;
+    --urgent-bg: #FDE7E7;   /* tarefa urgente: fundo vermelho clarinho */
+    --urgent-line: #F1B5B5;
     --ink: #142033;         /* texto principal */
     --muted: #556275;       /* texto secundário (contraste AA) */
     --line: #D3DBE6;
@@ -34,6 +38,7 @@
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
+      --item: #222E3F; --item-line: #34435A; --urgent-bg: #3B2125; --urgent-line: #6A3A40;
       --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
       --focus: #7FB0F5; --shadow: none;
       --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
@@ -44,6 +49,7 @@
   }
   :root[data-theme="dark"]{
     --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
+    --item: #222E3F; --item-line: #34435A; --urgent-bg: #3B2125; --urgent-line: #6A3A40;
     --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
     --focus: #7FB0F5; --shadow: none;
     --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
@@ -61,6 +67,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{ max-width: 900px; margin: 0 auto; }
+  .wrap.wide{ max-width: 1600px; }   /* só a Organização usa a tela toda */
 
   .setup-banner{
     background: var(--accent-soft); border:1px solid var(--accent); color:var(--ink);
@@ -360,6 +367,15 @@
   .panel-head span{ font-size:12.5px; color:var(--muted); }
   .org-add{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .org-add .grow{ flex:1 1 220px; min-width:0; }
+  .org-add .full{ flex-basis:100%; }
+  .org-add .proc-in{ font-family:var(--font-data); font-size:14px; flex-basis:240px; }
+  .proc-copy{ display:inline-flex; align-items:center; gap:5px; border:1px solid var(--item-line); background:var(--paper); color:var(--ink);
+    border-radius:6px; padding:1px 6px 1px 7px; font-family:var(--font-data); font-size:12px; cursor:pointer; line-height:1.5; }
+  .proc-copy svg{ color:var(--muted); flex:none; }
+  .proc-copy:hover{ border-color:var(--accent); color:var(--accent); }
+  .proc-copy:hover svg{ color:var(--accent); }
+  .proc-copy.copied{ border-color:var(--ok); color:var(--ok); }
+  .proc-copy.copied svg{ color:var(--ok); }
   .org-in{ border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:10px; padding:0 11px; height:40px; font-family:var(--font-ui); font-size:14.5px; min-width:0; }
   .org-add .btn{ height:40px; padding:0 16px; }
   .swatches{ display:flex; gap:6px; }
@@ -383,14 +399,18 @@
   .tgroup{ display:flex; flex-direction:column; gap:8px; }
   .tgroup-title{ font-size:15px; font-weight:600; color:var(--accent); display:flex; gap:8px; align-items:baseline; margin-top:2px; }
   .tgroup-title .n{ font-size:12px; color:var(--muted); font-weight:500; }
-  .task{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
-  .task.overdue{ border-color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--paper)); }
+  .task{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--item-line); border-radius:10px; background:var(--item); }
+  .task.overdue{ border-color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, var(--item)); }
+  .task.urgent, .kcard.urgent{ background:var(--urgent-bg); border-color:var(--urgent-line); }
+  .task.urgent.overdue, .kcard.urgent.overdue{ border-color:var(--danger); }
+  .task.urgent .tag.urg, .kcard.urgent .tag.urg{ background:var(--paper); }
+  .task.done, .task.rot-done{ background:var(--sunken); border-color:var(--line); }
   .task.done .editable{ text-decoration:line-through; color:var(--muted); }
-  .check{ width:22px; height:22px; margin-top:1px; border-radius:6px; border:2px solid var(--muted); background:transparent; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:var(--paper); padding:0; }
+  .check{ width:22px; height:22px; margin-top:1px; border-radius:6px; border:2px solid var(--muted); background:var(--paper); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:var(--paper); padding:0; }
   .check[aria-checked="true"]{ background:var(--ok); border-color:var(--ok); }
   .t-title{ font-weight:500; overflow-wrap:anywhere; }
   .editable{ cursor:text; border-radius:4px; outline:none; margin:-2px -4px; padding:2px 4px; }
-  .editable:hover{ background:var(--sunken); }
+  .editable:hover{ background:var(--paper); }
   .editable:focus{ background:var(--paper); box-shadow:0 0 0 2px var(--accent); }
   .t-meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:3px; font-size:12.5px; color:var(--muted); }
   .t-meta .proc{ font-family:var(--font-data); font-size:12px; }
@@ -398,9 +418,9 @@
   .t-meta .doneat{ color:var(--ok); }
   .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; border-radius:6px; padding:2px 7px; white-space:nowrap; }
   .tag.urg{ color:var(--danger); border:1px solid var(--danger); background:transparent; }
-  .tag.resp{ color:var(--muted); background:var(--sunken); border:1px solid var(--line); text-transform:none; letter-spacing:0; font-weight:500; }
+  .tag.resp{ color:var(--muted); background:var(--paper); border:1px solid var(--item-line); text-transform:none; letter-spacing:0; font-weight:500; }
   .t-side{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
-  .task.editing{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); grid-template-columns:minmax(0,1fr); }
+  .task.editing{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); grid-template-columns:minmax(0,1fr); background:var(--paper); }
   .task-edit{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
   .task-edit .ttl{ grid-column:1 / -1; }
   .task-edit label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
@@ -409,7 +429,50 @@
   .btn.danger-text{ color:var(--danger); border-color:transparent; }
   .org-empty{ color:var(--muted); font-size:13.5px; padding:6px 2px; }
 
+  .org-tabs-scroll{ overflow-x:auto; margin:0 -4px 16px; padding:2px 4px 4px; }
+  .org-tabs{ display:flex; gap:4px; width:max-content; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:4px; }
+  .org-tab{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:14px; font-weight:500; padding:8px 14px; border-radius:9px; cursor:pointer; white-space:nowrap; display:inline-flex; gap:6px; align-items:center; }
+  .org-tab:hover{ color:var(--ink); background:var(--sunken); }
+  .org-tab[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
+  .org-tab-n{ font-size:11.5px; font-variant-numeric:tabular-nums; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:0 7px; line-height:18px; }
+  .org-tab-n:empty{ display:none; }
+  .org-tab[aria-selected="true"] .org-tab-n{ background:var(--accent-ink); color:var(--accent); }
+  .org-pane{ display:flex; flex-direction:column; gap:16px; }
+
+  .kanban{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; align-items:start; }
+  .col{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .col h3{ margin:2px 4px 4px; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; }
+  .col[data-etapa="fazendo"] h3{ color:var(--accent); }
+  .col[data-etapa="feito"] h3{ color:var(--ok); }
+  .kcard{ background:var(--item); border:1px solid var(--item-line); border-radius:10px; padding:10px 10px 8px; display:flex; flex-direction:column; gap:6px; }
+  .kcard.overdue{ border-color:var(--danger); }
+  .kcard .t-title{ font-size:14px; }
+  .kmove{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
+  .kmove .mv{ border:1px solid var(--line); background:var(--paper); border-radius:8px; height:30px; padding:0 9px; cursor:pointer; color:var(--muted); font-family:var(--font-ui); font-size:12.5px; }
+  .kmove .mv:hover{ color:var(--accent); border-color:var(--accent); }
+
+  .org-stats{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
+  .ostat{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:2px; }
+  .ostat b{ font-size:28px; font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .ostat span{ font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .ostat.alert b{ color:var(--danger); }
+  .rem{ display:grid; grid-template-columns:62px minmax(0,1fr) auto; gap:12px; align-items:center; padding:10px 12px; border:1px solid var(--item-line); border-radius:10px; background:var(--item); }
+  .rem time{ font-family:var(--font-data); font-size:15px; font-weight:500; font-variant-numeric:tabular-nums; display:flex; flex-direction:column; line-height:1.2; }
+  .rem time small{ font-size:11.5px; color:var(--muted); }
+  .rem.now{ border-color:var(--accent); background:var(--accent-soft); }
+  .rem.late{ border-color:var(--danger); }
+  .rem.done{ opacity:.6; }
+  .rem.done .editable{ text-decoration:line-through; }
+  .rem .btn{ height:32px; padding:0 12px; font-size:13px; }
+  .t-meta .next{ color:var(--accent); font-weight:600; }
+
+  .progress{ height:8px; background:var(--sunken); border:1px solid var(--line); border-radius:999px; overflow:hidden; }
+  .progress i{ display:block; height:100%; width:0; background:var(--ok); border-radius:999px; }
+  .freq{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  .task.rot-done .editable{ color:var(--muted); }
+
   @media (max-width:1100px){ .org-split{ grid-template-columns:minmax(0,1fr); } }
+  @media (max-width:860px){ .kanban{ grid-template-columns:minmax(0,1fr); } }
   @media (prefers-reduced-motion: reduce){ .note{ transform:none; } }
 
   @media (max-width:860px){
@@ -433,6 +496,8 @@
 
   @media (max-width:520px){
     .board{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+    .org-stats{ gap:8px; } .ostat{ padding:10px; } .ostat b{ font-size:22px; } .ostat span{ font-size:10.5px; }
+    .rem{ grid-template-columns:52px minmax(0,1fr); } .rem .t-side{ grid-column:2; justify-content:flex-start; }
     .task{ grid-template-columns:28px minmax(0,1fr); } .task .t-side{ grid-column:2; justify-content:flex-start; }
     .summary{ gap:8px; }
     .stat{ padding:10px 10px; }
@@ -544,17 +609,27 @@
       <header>
         <div>
           <h1>Organização</h1>
-          <div class="tagline">Mural de avisos e tarefas da gestão</div>
+          <div class="tagline">Tarefas, mural, lembretes e rotinas da gestão</div>
         </div>
         <div class="org-head-actions">
           <button type="button" class="btn" id="orgLockBtn" title="Trancar a Organização neste navegador">Trancar</button>
         </div>
       </header>
-      <div class="org-split">
+      <div class="org-tabs-scroll">
+        <div class="org-tabs" id="orgTabs" role="tablist" aria-label="Partes da Organização">
+          <button type="button" class="org-tab" role="tab" data-tab="lista">Tarefas e mural</button>
+          <button type="button" class="org-tab" role="tab" data-tab="quadro">Quadro</button>
+          <button type="button" class="org-tab" role="tab" data-tab="lembretes">Lembretes <span class="org-tab-n" id="orgTabLemN"></span></button>
+          <button type="button" class="org-tab" role="tab" data-tab="rotinas">Rotinas <span class="org-tab-n" id="orgTabRotN"></span></button>
+        </div>
+      </div>
+
+      <div class="org-split" id="orgPaneLista">
         <div class="panel">
           <div class="panel-head"><h2>Tarefas</h2><span id="orgTasksInfo"></span></div>
           <form class="org-add" id="orgTaskForm" autocomplete="off">
-            <input class="org-in grow" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
+            <input class="org-in grow full" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
+            <input class="org-in grow proc-in" id="orgTaskProc" maxlength="40" placeholder="Nº do processo (opcional)" aria-label="Número do processo" />
             <input class="org-in" id="orgTaskDue" type="date" aria-label="Prazo" />
             <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="">Normal</option><option value="1">Urgente</option></select>
             <select class="org-in" id="orgTaskResp" aria-label="Responsável"></select>
@@ -570,6 +645,45 @@
             <button type="submit" class="btn primary">Colar nota</button>
           </form>
           <div class="board" id="orgBoard"></div>
+        </div>
+      </div>
+
+      <div id="orgPaneQuadro" class="org-pane" hidden>
+        <form class="org-add" id="orgKanbanForm" autocomplete="off">
+          <input class="org-in grow" id="orgKanbanTitle" maxlength="160" placeholder="Nova tarefa (entra em A fazer)…" required />
+          <button type="submit" class="btn primary">Adicionar</button>
+        </form>
+        <div class="kanban" id="orgKanban"></div>
+      </div>
+
+      <div id="orgPaneLembretes" class="org-pane" hidden>
+        <div class="org-stats" id="orgLemStats"></div>
+        <div class="panel">
+          <div class="panel-head"><h2>Lembretes</h2><span>clique no texto para editar</span></div>
+          <form class="org-add" id="orgLemForm" autocomplete="off">
+            <input class="org-in grow" id="orgLemTexto" maxlength="200" placeholder="Lembrar de…" required />
+            <input class="org-in" id="orgLemData" type="date" aria-label="Data" required />
+            <input class="org-in" id="orgLemHora" type="time" aria-label="Hora (opcional)" />
+            <button type="submit" class="btn primary">Adicionar</button>
+          </form>
+          <div class="tgroup" id="orgLemList"></div>
+        </div>
+      </div>
+
+      <div id="orgPaneRotinas" class="org-pane" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Rotinas</h2><span id="orgRotInfo"></span></div>
+          <div class="progress" id="orgRotProg" role="progressbar" aria-valuemin="0" aria-valuemax="100"><i></i></div>
+          <form class="org-add" id="orgRotForm" autocomplete="off">
+            <input class="org-in grow" id="orgRotTitulo" maxlength="160" placeholder="Nova rotina (ex.: estatística mensal ao CNJ)…" required />
+            <select class="org-in" id="orgRotFreq" aria-label="Frequência">
+              <option value="semanal">Semanal</option>
+              <option value="mensal" selected>Mensal</option>
+              <option value="trimestral">Trimestral</option>
+            </select>
+            <button type="submit" class="btn primary">Adicionar</button>
+          </form>
+          <div class="tgroup" id="orgRotList"></div>
         </div>
       </div>
     </div>
@@ -1428,6 +1542,7 @@
     });
     document.getElementById('topbarTitle').textContent = ROUTES[r].title;
     els.addBtn.hidden = (r !== 'agenda');
+    document.querySelector('.main .wrap').classList.toggle('wide', r === 'organizacao');
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
     if (r === 'audiencias') renderAudiencias();
@@ -2088,7 +2203,15 @@
     });
     org.tarefas = (r.tarefas || []).map(function(t){
       return { id: t.id, titulo: t.titulo || '', prazo: t.prazo ? new Date(t.prazo + 'T00:00') : null, urgente: !!t.urgente,
-        responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null };
+        responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
+        etapa: ORG_ETAPAS_KEYS.indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer') };
+    });
+    org.lembretes = (r.lembretes || []).map(function(l){
+      return { id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
+        processo: l.processo || '', feitoEm: l.feito_em ? new Date(l.feito_em) : null };
+    });
+    org.rotinas = (r.rotinas || []).map(function(x){
+      return { id: x.id, titulo: x.titulo || '', frequencia: ORG_FREQ[x.frequencia] ? x.frequencia : 'mensal', feitaEm: x.feita_em ? new Date(x.feita_em) : null };
     });
   }
 
@@ -2151,8 +2274,13 @@
 
   function renderOrg(){
     if (!org.unlocked) return;
+    renderOrgTabs();
     renderOrgNotes();
     renderOrgTasks();
+    renderOrgKanban();
+    renderOrgLembretes();
+    renderOrgRotinas();
+    O.navCount.textContent = orgPendCount() || '';
   }
 
   function renderOrgNotes(){
@@ -2186,15 +2314,38 @@
       meta.push(late ? '<span class="late">Atrasada ' + (-dd) + (dd === -1 ? ' dia' : ' dias') + ' (' + fmtDia(t.prazo) + ')</span>'
         : dd === 0 ? '<span>Vence hoje</span>' : dd === 1 ? '<span>Vence amanhã</span>' : '<span>Prazo ' + fmtDia(t.prazo) + '</span>');
     }
-    if (t.processo) meta.push('<span class="proc">' + escapeHtml(t.processo) + '</span>');
+    if (t.processo) meta.push(procCopyBtn(t.processo));
     if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
-    return '<div class="task' + (late ? ' overdue' : '') + (t.feitaEm ? ' done' : '') + '">' +
+    return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '">' +
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
       '<div class="t-side">' + (t.urgente && !t.feitaEm ? '<span class="tag urg">Urgente</span>' : '') +
       (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
+  }
+
+  var ICON_COPY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  function procCopyBtn(proc){
+    return '<button type="button" class="proc-copy" data-act="copiar" data-proc="' + escapeHtml(proc) + '" title="Copiar número do processo" aria-label="Copiar número do processo ' + escapeHtml(proc) + '">' + escapeHtml(proc) + ICON_COPY + '</button>';
+  }
+
+  function copiarTexto(txt, btn){
+    function ok(){
+      toast('Número copiado: ' + txt);
+      if (btn){ btn.classList.add('copied'); setTimeout(function(){ btn.classList.remove('copied'); }, 1500); }
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var done = false;
+      try { done = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      if (done) ok(); else toast('Não foi possível copiar. Selecione o número e use Ctrl+C.');
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, fallback);
+    else fallback();
   }
 
   function orgTaskEdit(t){
@@ -2220,8 +2371,6 @@
       { k: 'Concluídas', f: function(t){ return !!t.feitaEm; }, desc: true }
     ];
     var abertas = org.tarefas.filter(function(t){ return !t.feitaEm; }).length;
-    var pend = org.tarefas.filter(function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) <= 0; }).length;
-    O.navCount.textContent = pend || '';
     O.tasksInfo.textContent = org.tarefas.length ? abertas + (abertas === 1 ? ' em aberto' : ' em aberto') + ' · clique no título ou no lápis para editar' : '';
     if (!org.tarefas.length){
       O.tasks.innerHTML = '<div class="org-empty">Nenhuma tarefa ainda. Escreva acima e clique em "Adicionar".</div>';
@@ -2245,7 +2394,8 @@
   function orgSaveTask(t){
     return orgCall('org_salvar_tarefa', {
       p_id: t.id || null, p_titulo: t.titulo, p_prazo: t.prazo ? dayKey(t.prazo) : null, p_urgente: !!t.urgente,
-      p_responsavel: t.responsavel || '', p_processo: t.processo || '', p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null
+      p_responsavel: t.responsavel || '', p_processo: t.processo || '', p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null,
+      p_etapa: t.etapa || (t.feitaEm ? 'feito' : 'afazer')
     });
   }
   function orgSaveNote(n){
@@ -2253,6 +2403,8 @@
   }
 
   // ---- ações ----
+
+  document.getElementById('orgTaskProc').addEventListener('blur', function(e){ e.target.value = formatProcesso(e.target.value); });
 
   O.swatches.addEventListener('click', function(e){
     var b = e.target.closest('[data-cor]'); if (!b) return;
@@ -2274,9 +2426,9 @@
     e.preventDefault();
     var titulo = O.taskTitle.value.trim(); if (!titulo) return;
     var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
-      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: '', feitaEm: null });
+      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
     if (!orgOk(r)) return;
-    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = '';
+    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = ''; document.getElementById('orgTaskProc').value = '';
     toast('Tarefa adicionada');
     await orgLoad();
     O.taskTitle.focus();
@@ -2297,7 +2449,7 @@
     if (act === 'feita'){
       var t = orgFind(org.tarefas, id); if (!t) return;
       var feitaEm = t.feitaEm ? null : new Date();
-      r = await orgSaveTask(Object.assign({}, t, { feitaEm: feitaEm }));
+      r = await orgSaveTask(Object.assign({}, t, { feitaEm: feitaEm, etapa: feitaEm ? 'feito' : 'afazer' }));
       if (orgOk(r)){ if (feitaEm) toast('Feita em ' + formatDataHora(feitaEm)); await orgLoad(); }
     }
     if (act === 'editar'){
@@ -2337,7 +2489,7 @@
   O.content.addEventListener('keydown', function(e){
     var el = e.target.closest('[data-edit]'); if (!el) return;
     if (e.key === 'Escape'){ el.innerText = el.dataset.orig; el.blur(); }
-    if (e.key === 'Enter' && el.getAttribute('data-edit') === 'tarefa'){ e.preventDefault(); el.blur(); }
+    if (e.key === 'Enter' && el.getAttribute('data-edit') !== 'nota'){ e.preventDefault(); el.blur(); }
   });
   O.content.addEventListener('focusout', async function(e){
     var el = e.target.closest('[data-edit]'); if (!el) return;
@@ -2350,13 +2502,287 @@
       n.texto = txt;
       r = await orgSaveNote(n);
       if (orgOk(r)) toast('Nota atualizada'); else await orgLoad();
+    } else if (el.getAttribute('data-edit') === 'lembrete'){
+      var l = orgFind(org.lembretes, id); if (!l) return;
+      l.texto = txt;
+      r = await orgSaveLembrete(l);
+      if (orgOk(r)) toast('Lembrete atualizado'); else await orgLoad();
+    } else if (el.getAttribute('data-edit') === 'rotina'){
+      var ro = orgFind(org.rotinas, id); if (!ro) return;
+      ro.titulo = txt;
+      r = await orgSaveRotina(ro);
+      if (orgOk(r)) toast('Rotina atualizada'); else await orgLoad();
     } else {
       var t = orgFind(org.tarefas, id); if (!t) return;
       t.titulo = txt;
       r = await orgSaveTask(t);
-      if (orgOk(r)) toast('Tarefa atualizada'); else await orgLoad();
+      if (orgOk(r)){ toast('Tarefa atualizada'); renderOrg(); } else await orgLoad();
     }
   });
+
+
+  // ---- abas da Organização: quadro, lembretes e rotinas ----
+
+  var ORG_ETAPAS = [["afazer", "A fazer"], ["fazendo", "Fazendo"], ["feito", "Feito"]];
+  var ORG_ETAPAS_KEYS = ["afazer", "fazendo", "feito"];
+  var ORG_FREQ = { semanal: "Semanal", mensal: "Mensal", trimestral: "Trimestral" };
+  var ORG_PERIODO = { semanal: "nesta semana", mensal: "neste mês", trimestral: "neste trimestre" };
+  org.lembretes = []; org.rotinas = []; org.tab = 'lista';
+  try { var savedTab = sessionStorage.getItem('orgTab'); if (savedTab) org.tab = savedTab; } catch (e) {}
+
+  var OT = {
+    tabs: document.getElementById('orgTabs'),
+    lemN: document.getElementById('orgTabLemN'),
+    rotN: document.getElementById('orgTabRotN'),
+    panes: { lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
+      lembretes: document.getElementById('orgPaneLembretes'), rotinas: document.getElementById('orgPaneRotinas') },
+    kanban: document.getElementById('orgKanban'),
+    kanbanForm: document.getElementById('orgKanbanForm'),
+    kanbanTitle: document.getElementById('orgKanbanTitle'),
+    lemStats: document.getElementById('orgLemStats'),
+    lemForm: document.getElementById('orgLemForm'),
+    lemTexto: document.getElementById('orgLemTexto'),
+    lemData: document.getElementById('orgLemData'),
+    lemHora: document.getElementById('orgLemHora'),
+    lemList: document.getElementById('orgLemList'),
+    rotInfo: document.getElementById('orgRotInfo'),
+    rotProg: document.getElementById('orgRotProg'),
+    rotForm: document.getElementById('orgRotForm'),
+    rotTitulo: document.getElementById('orgRotTitulo'),
+    rotFreq: document.getElementById('orgRotFreq'),
+    rotList: document.getElementById('orgRotList')
+  };
+  OT.lemData.value = dayKey(new Date());
+
+  function horaAgora(){ var n = new Date(); return pad(n.getHours()) + ':' + pad(n.getMinutes()); }
+  function lemPendentesAte(dias){ return org.lembretes.filter(function(l){ return !l.feitoEm && orgDiff(l.data) <= dias; }); }
+
+  function orgPendCount(){
+    var t = org.tarefas.filter(function(x){ return !x.feitaEm && x.prazo && orgDiff(x.prazo) <= 0; }).length;
+    return t + lemPendentesAte(0).length;
+  }
+
+  function periodoInicio(freq){
+    var d = startOfDay(new Date());
+    if (freq === 'semanal') d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    else if (freq === 'mensal') d.setDate(1);
+    else d.setMonth(Math.floor(d.getMonth() / 3) * 3, 1);
+    return d;
+  }
+  function rotFeita(r){ return !!(r.feitaEm && r.feitaEm >= periodoInicio(r.frequencia)); }
+
+  function renderOrgTabs(){
+    if (!OT.panes[org.tab]) org.tab = 'lista';
+    OT.tabs.querySelectorAll('.org-tab').forEach(function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === org.tab)); });
+    Object.keys(OT.panes).forEach(function(k){ OT.panes[k].hidden = k !== org.tab; });
+    OT.lemN.textContent = lemPendentesAte(0).length || '';
+    OT.rotN.textContent = org.rotinas.filter(function(r){ return !rotFeita(r); }).length || '';
+  }
+
+  OT.tabs.addEventListener('click', function(e){
+    var b = e.target.closest('.org-tab'); if (!b) return;
+    org.tab = b.getAttribute('data-tab');
+    try { sessionStorage.setItem('orgTab', org.tab); } catch (e2) {}
+    org.editing = null;
+    renderOrg();
+  });
+
+  // ---- quadro ----
+  function renderOrgKanban(){
+    var h = '';
+    ORG_ETAPAS.forEach(function(c, ci){
+      var all = org.tarefas.filter(function(t){ return t.etapa === c[0]; });
+      var items = all.slice().sort(function(a, b){
+        if (c[0] === 'feito') return (b.feitaEm || 0) - (a.feitaEm || 0);
+        return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (b.urgente - a.urgente);
+      });
+      if (c[0] === 'feito') items = items.slice(0, 20);
+      h += '<section class="col" data-etapa="' + c[0] + '" aria-label="' + c[1] + '"><h3>' + c[1] + ' <span>' + all.length + '</span></h3>';
+      if (!items.length) h += '<div class="org-empty">Nada aqui.</div>';
+      items.forEach(function(t){
+        var late = c[0] !== 'feito' && t.prazo && orgDiff(t.prazo) < 0;
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && c[0] !== 'feito' ? ' urgent' : '') + '">' +
+          '<div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar">' + escapeHtml(t.titulo) + '</span></div>' +
+          '<div class="t-meta">' + (t.prazo ? '<span' + (late ? ' class="late"' : '') + '>' + (late ? 'Atrasada · ' : 'Prazo ') + fmtDia(t.prazo) + '</span>' : '') +
+          (t.urgente && c[0] !== 'feito' ? '<span class="tag urg">Urgente</span>' : '') +
+          (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+          (t.processo ? procCopyBtn(t.processo) : '') +
+          (t.feitaEm && c[0] === 'feito' ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
+          '<div class="kmove">' +
+          (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '">← ' + ORG_ETAPAS[ci - 1][1] + '</button>' : '<span></span>') +
+          '<button type="button" class="icon-btn" data-act="editar-quadro" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
+          (ci < 2 ? '<button type="button" class="mv" data-act="mover" data-dir="1" data-id="' + t.id + '">' + ORG_ETAPAS[ci + 1][1] + ' →</button>' : '<span></span>') +
+          '</div></div>';
+      });
+      h += '</section>';
+    });
+    OT.kanban.innerHTML = h;
+  }
+
+  OT.kanbanForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var titulo = OT.kanbanTitle.value.trim(); if (!titulo) return;
+    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: false, responsavel: '', processo: '', feitaEm: null, etapa: 'afazer' });
+    if (!orgOk(r)) return;
+    OT.kanbanTitle.value = '';
+    toast('Tarefa adicionada em A fazer');
+    await orgLoad();
+    OT.kanbanTitle.focus();
+  });
+
+  // ---- lembretes ----
+  function orgSaveLembrete(l){
+    return orgCall('org_salvar_lembrete', { p_id: l.id || null, p_texto: l.texto, p_data: dayKey(l.data), p_hora: l.hora || null,
+      p_processo: l.processo || '', p_feito_em: l.feitoEm ? l.feitoEm.toISOString() : null });
+  }
+  function lemOrdem(a, b){ return (a.data - b.data) || (a.hora < b.hora ? -1 : a.hora > b.hora ? 1 : 0); }
+
+  function lemRow(l, opts){
+    var cls = 'rem' + (l.feitoEm ? ' done' : '') + (opts.next ? ' now' : '') + (opts.late ? ' late' : '');
+    var quando = opts.comData
+      ? fmtDia(l.data) + (l.hora ? '<small>' + l.hora + '</small>' : '')
+      : (l.hora || '<small>sem hora</small>');
+    var meta = [];
+    if (opts.next) meta.push('<span class="next">Próximo</span>');
+    if (opts.late && !opts.comData) meta.push('<span class="late">Horário passou</span>');
+    if (opts.late && opts.comData) meta.push('<span class="late">Atrasado ' + (-orgDiff(l.data)) + (orgDiff(l.data) === -1 ? ' dia' : ' dias') + '</span>');
+    if (opts.comData && !opts.late){ var dd = orgDiff(l.data); meta.push('<span>' + (dd === 1 ? 'Amanhã' : 'Em ' + dd + ' dias') + '</span>'); }
+    if (l.feitoEm) meta.push('<span class="doneat">Feito às ' + pad(l.feitoEm.getHours()) + ':' + pad(l.feitoEm.getMinutes()) + '</span>');
+    return '<div class="' + cls + '"><time>' + quando + '</time>' +
+      '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="lembrete" data-id="' + l.id + '" title="Clique para editar">' + escapeHtml(l.texto) + '</span></div>' +
+      (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
+      '<div class="t-side"><button type="button" class="btn" data-act="lem-feito" data-id="' + l.id + '">' + (l.feitoEm ? 'Desfazer' : 'Concluir') + '</button>' +
+      '<button type="button" class="icon-btn" data-act="lem-excluir" data-id="' + l.id + '" title="Excluir lembrete" aria-label="Excluir lembrete">' + ICON_X + '</button></div></div>';
+  }
+
+  function renderOrgLembretes(){
+    var hm = horaAgora();
+    var hoje = org.lembretes.filter(function(l){ return orgDiff(l.data) === 0; }).sort(lemOrdem);
+    var atrasados = org.lembretes.filter(function(l){ return !l.feitoEm && orgDiff(l.data) < 0; }).sort(lemOrdem);
+    var proximos = org.lembretes.filter(function(l){ return !l.feitoEm && orgDiff(l.data) > 0; }).sort(lemOrdem);
+    var pendHoje = hoje.filter(function(l){ return !l.feitoEm; });
+    var passouHoje = pendHoje.filter(function(l){ return l.hora && l.hora < hm; });
+    var next = pendHoje.filter(function(l){ return l.hora && l.hora >= hm; })[0] || null;
+    var passou = passouHoje.length + atrasados.length;
+    OT.lemStats.innerHTML =
+      '<div class="ostat"><b>' + pendHoje.length + '</b><span>para hoje</span></div>' +
+      '<div class="ostat' + (passou ? ' alert' : '') + '"><b>' + passou + '</b><span>horário passou</span></div>' +
+      '<div class="ostat"><b>' + proximos.length + '</b><span>próximos dias</span></div>';
+    var h = '';
+    if (atrasados.length){
+      h += '<div class="tgroup-title">Atrasados <span class="n">' + atrasados.length + '</span></div>' +
+        atrasados.map(function(l){ return lemRow(l, { comData: true, late: true }); }).join('');
+    }
+    h += '<div class="tgroup-title">Hoje <span class="n">' + capitalize(new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })) + '</span></div>';
+    h += hoje.length ? hoje.map(function(l){
+      return lemRow(l, { next: l === next, late: !l.feitoEm && l.hora && l.hora < hm });
+    }).join('') : '<div class="org-empty">Nenhum lembrete para hoje.</div>';
+    if (proximos.length){
+      h += '<div class="tgroup-title">Próximos dias <span class="n">' + proximos.length + '</span></div>' +
+        proximos.map(function(l){ return lemRow(l, { comData: true }); }).join('');
+    }
+    OT.lemList.innerHTML = h;
+  }
+
+  OT.lemForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var texto = OT.lemTexto.value.trim(); if (!texto || !OT.lemData.value) return;
+    var r = await orgSaveLembrete({ texto: texto, data: new Date(OT.lemData.value + 'T00:00'), hora: OT.lemHora.value, processo: '', feitoEm: null });
+    if (!orgOk(r)) return;
+    OT.lemTexto.value = ''; OT.lemHora.value = '';
+    toast('Lembrete adicionado');
+    await orgLoad();
+    OT.lemTexto.focus();
+  });
+
+  // ---- rotinas ----
+  function orgSaveRotina(x){
+    return orgCall('org_salvar_rotina', { p_id: x.id || null, p_titulo: x.titulo, p_frequencia: x.frequencia, p_feita_em: x.feitaEm ? x.feitaEm.toISOString() : null });
+  }
+
+  function renderOrgRotinas(){
+    var ordemFreq = { semanal: 0, mensal: 1, trimestral: 2 };
+    var list = org.rotinas.slice().sort(function(a, b){
+      return (rotFeita(a) - rotFeita(b)) || (ordemFreq[a.frequencia] - ordemFreq[b.frequencia]) || a.titulo.localeCompare(b.titulo);
+    });
+    var feitas = list.filter(rotFeita).length;
+    var pct = list.length ? Math.round(feitas / list.length * 100) : 0;
+    OT.rotInfo.textContent = list.length ? feitas + ' de ' + list.length + ' feitas no período · clique no título para editar' : '';
+    OT.rotProg.querySelector('i').style.width = pct + '%';
+    OT.rotProg.setAttribute('aria-valuenow', String(pct));
+    OT.rotProg.hidden = !list.length;
+    if (!list.length){
+      OT.rotList.innerHTML = '<div class="org-empty">Nenhuma rotina ainda. Cadastre as tarefas que se repetem toda semana, mês ou trimestre.</div>';
+      return;
+    }
+    OT.rotList.innerHTML = list.map(function(x){
+      var ok = rotFeita(x);
+      var meta = ok ? '<span class="doneat">Feita em ' + formatDataHora(x.feitaEm) + '</span>'
+        : '<span>Pendente ' + ORG_PERIODO[x.frequencia] + '</span>' + (x.feitaEm ? '<span>Última vez em ' + fmtDia(x.feitaEm) + '/' + x.feitaEm.getFullYear() + '</span>' : '');
+      return '<div class="task' + (ok ? ' rot-done' : '') + '">' +
+        '<button type="button" class="check" role="checkbox" aria-checked="' + ok + '" data-act="rot-feita" data-id="' + x.id + '" aria-label="Marcar rotina como feita">' + (ok ? ICON_CHECK : '') + '</button>' +
+        '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="rotina" data-id="' + x.id + '" title="Clique para editar">' + escapeHtml(x.titulo) + '</span></div><div class="t-meta">' + meta + '</div></div>' +
+        '<div class="t-side"><span class="freq">' + ORG_FREQ[x.frequencia] + '</span>' +
+        '<button type="button" class="icon-btn" data-act="rot-excluir" data-id="' + x.id + '" title="Excluir rotina" aria-label="Excluir rotina">' + ICON_X + '</button></div></div>';
+    }).join('');
+  }
+
+  OT.rotForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var titulo = OT.rotTitulo.value.trim(); if (!titulo) return;
+    var r = await orgSaveRotina({ titulo: titulo, frequencia: OT.rotFreq.value, feitaEm: null });
+    if (!orgOk(r)) return;
+    OT.rotTitulo.value = '';
+    toast('Rotina adicionada');
+    await orgLoad();
+    OT.rotTitulo.focus();
+  });
+
+  // ---- ações das abas novas ----
+  O.content.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-act]'); if (!b || !O.content.contains(b)) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), r;
+    if (act === 'copiar'){ copiarTexto(b.getAttribute('data-proc'), b); return; }
+    if (act === 'mover'){
+      var t = orgFind(org.tarefas, id); if (!t) return;
+      var etapa = ORG_ETAPAS_KEYS[ORG_ETAPAS_KEYS.indexOf(t.etapa) + Number(b.getAttribute('data-dir'))]; if (!etapa) return;
+      var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
+      r = await orgSaveTask(Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm }));
+      if (orgOk(r)){ if (etapa === 'feito') toast('Feita em ' + formatDataHora(feitaEm)); await orgLoad(); }
+    }
+    if (act === 'editar-quadro'){
+      org.tab = 'lista'; org.editing = id;
+      try { sessionStorage.setItem('orgTab', 'lista'); } catch (e2) {}
+      renderOrg();
+      var el = document.getElementById('oeTitulo'); if (el){ el.focus(); el.scrollIntoView({ block: 'center' }); }
+    }
+    if (act === 'lem-feito'){
+      var l = orgFind(org.lembretes, id); if (!l) return;
+      r = await orgSaveLembrete(Object.assign({}, l, { feitoEm: l.feitoEm ? null : new Date() }));
+      if (orgOk(r)) await orgLoad();
+    }
+    if (act === 'lem-excluir'){
+      r = await orgCall('org_excluir_lembrete', { p_id: id });
+      if (orgOk(r)){ toast('Lembrete excluído'); await orgLoad(); }
+    }
+    if (act === 'rot-feita'){
+      var x = orgFind(org.rotinas, id); if (!x) return;
+      var quando = rotFeita(x) ? null : new Date();
+      r = await orgSaveRotina(Object.assign({}, x, { feitaEm: quando }));
+      if (orgOk(r)){ if (quando) toast('Rotina feita em ' + formatDataHora(quando)); await orgLoad(); }
+    }
+    if (act === 'rot-excluir'){
+      if (!b.classList.contains('armed')){
+        b.classList.add('armed'); b.innerHTML = '<span style="font-size:12px;padding:0 4px;white-space:nowrap">Excluir?</span>'; b.style.width = 'auto'; b.style.color = 'var(--danger)';
+        return;
+      }
+      r = await orgCall('org_excluir_rotina', { p_id: id });
+      if (orgOk(r)){ toast('Rotina excluída'); await orgLoad(); }
+    }
+  });
+
+  // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta
+  setInterval(function(){ if (org.unlocked && currentRoute === 'organizacao' && !O.content.contains(document.activeElement)) renderOrg(); }, 60000);
 
   // ---------------------------------------------------------------------
   // Boot
