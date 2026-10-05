@@ -151,7 +151,10 @@ Como funciona:
   `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
-- O **Perito** é digitado na própria perícia (não vem da Agenda). O campo sugere os nomes já usados em outras perícias.
+- **Peritos:** a aba **Peritos** (dentro de Perícias) tem o cadastro próprio de peritos, separado da Agenda: nome,
+  especialidade, telefone, e-mail e observações. No cadastro da perícia, o perito é escolhido numa lista (ou cadastrado
+  ali mesmo em "+ Cadastrar novo perito…"), e a especialidade é preenchida sozinha. Ao renomear um perito, as perícias
+  dele passam a usar o nome novo. O SQL traz para o cadastro os peritos já usados nas perícias.
 - Cada perícia tem o **Nome do autor** em destaque e o perito logo abaixo. Se a tabela foi criada antes desse
   campo, rode no SQL Editor: `alter table pericias add column if not exists autor text not null default '';`
 - Ao marcar **Laudo juntado** (pela situação, pela alteração em lote ou pelo atalho "Laudo juntado (concluir)" do
