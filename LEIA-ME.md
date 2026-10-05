@@ -133,6 +133,26 @@ update org_config set pin_hash = extensions.crypt('000000', extensions.gen_salt(
 
 Os dados do mural e das tarefas não são apagados ao trocar a senha.
 
+## Passo 2.4 — Perícias
+
+A seção **Perícias** acompanha cada perícia da nomeação até o laudo juntado:
+**Não agendada → Agendada → Realizada → Laudo juntado** (ou **Cancelada**).
+
+1. No GitHub, abra [`sql/pericias.sql`](sql/pericias.sql), clique em **Raw** e copie tudo (Ctrl+A, Ctrl+C).
+2. No Supabase, vá em **SQL Editor → New query**, cole e clique em **Run**.
+
+Pode rodar de novo sem perder nada. O acesso é igual ao das audiências (aberto para quem usa o site).
+
+Como funciona:
+- Ao marcar como **Realizada**, o site calcula o **prazo do laudo: 30 dias úteis** a partir do dia
+  seguinte à realização. Não contam sábados, domingos, feriados nacionais (inclusive Carnaval,
+  Sexta-feira Santa e Corpus Christi) e o recesso forense de 20/12 a 20/01.
+- Feriados estaduais ou municipais podem ser acrescentados na lista `FERIADOS_EXTRAS` do
+  `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
+- Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
+  andamentos à mão.
+- O campo **Perito** sugere os contatos da Agenda com a categoria **Perito** e mostra o telefone e o e-mail deles.
+
 ### Como adicionar novas seções ao portal depois
 
 No `index.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
