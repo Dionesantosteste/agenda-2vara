@@ -167,6 +167,7 @@ Como funciona:
 - **Alterar em lote:** marque as caixinhas das perícias (ou use "Selecionar" no título de cada dia), escolha a
   nova situação e a data na barra que aparece embaixo e clique em **Aplicar**. Cada perícia recebe o andamento
   e, se for "Realizada", o prazo do laudo calculado a partir da data informada.
+  Ao reagendar em lote, informe a hora da primeira e o intervalo: as perícias recebem horários em sequência.
 
 ### Como adicionar novas seções ao portal depois
 
