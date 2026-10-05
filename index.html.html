@@ -14,6 +14,8 @@
     --sunken: #F4F6F9;      /* campos e áreas de apoio dentro dos cartões */
     --item: #EBF0F7;        /* tarefas, lembretes e rotinas dentro dos painéis brancos */
     --item-line: #C9D3E1;
+    --urgent-bg: #FDE7E7;   /* tarefa urgente: fundo vermelho clarinho */
+    --urgent-line: #F1B5B5;
     --ink: #142033;         /* texto principal */
     --muted: #556275;       /* texto secundário (contraste AA) */
     --line: #D3DBE6;
@@ -36,7 +38,7 @@
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
-      --item: #222E3F; --item-line: #34435A;
+      --item: #222E3F; --item-line: #34435A; --urgent-bg: #3B2125; --urgent-line: #6A3A40;
       --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
       --focus: #7FB0F5; --shadow: none;
       --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
@@ -47,7 +49,7 @@
   }
   :root[data-theme="dark"]{
     --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
-    --item: #222E3F; --item-line: #34435A;
+    --item: #222E3F; --item-line: #34435A; --urgent-bg: #3B2125; --urgent-line: #6A3A40;
     --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
     --focus: #7FB0F5; --shadow: none;
     --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
@@ -64,7 +66,8 @@
     padding:0;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{ max-width: 1600px; margin: 0 auto; }
+  .wrap{ max-width: 900px; margin: 0 auto; }
+  .wrap.wide{ max-width: 1600px; }   /* só a Organização usa a tela toda */
 
   .setup-banner{
     background: var(--accent-soft); border:1px solid var(--accent); color:var(--ink);
@@ -389,6 +392,9 @@
   .tgroup-title .n{ font-size:12px; color:var(--muted); font-weight:500; }
   .task{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--item-line); border-radius:10px; background:var(--item); }
   .task.overdue{ border-color:var(--danger); background:color-mix(in srgb, var(--danger) 10%, var(--item)); }
+  .task.urgent, .kcard.urgent{ background:var(--urgent-bg); border-color:var(--urgent-line); }
+  .task.urgent.overdue, .kcard.urgent.overdue{ border-color:var(--danger); }
+  .task.urgent .tag.urg, .kcard.urgent .tag.urg{ background:var(--paper); }
   .task.done, .task.rot-done{ background:var(--sunken); border-color:var(--line); }
   .task.done .editable{ text-decoration:line-through; color:var(--muted); }
   .check{ width:22px; height:22px; margin-top:1px; border-radius:6px; border:2px solid var(--muted); background:var(--paper); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:var(--paper); padding:0; }
@@ -1526,6 +1532,7 @@
     });
     document.getElementById('topbarTitle').textContent = ROUTES[r].title;
     els.addBtn.hidden = (r !== 'agenda');
+    document.querySelector('.main .wrap').classList.toggle('wide', r === 'organizacao');
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
     if (r === 'audiencias') renderAudiencias();
@@ -2299,7 +2306,7 @@
     }
     if (t.processo) meta.push('<span class="proc">' + escapeHtml(t.processo) + '</span>');
     if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
-    return '<div class="task' + (late ? ' overdue' : '') + (t.feitaEm ? ' done' : '') + '">' +
+    return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '">' +
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
@@ -2559,7 +2566,7 @@
       if (!items.length) h += '<div class="org-empty">Nada aqui.</div>';
       items.forEach(function(t){
         var late = c[0] !== 'feito' && t.prazo && orgDiff(t.prazo) < 0;
-        h += '<div class="kcard' + (late ? ' overdue' : '') + '">' +
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && c[0] !== 'feito' ? ' urgent' : '') + '">' +
           '<div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar">' + escapeHtml(t.titulo) + '</span></div>' +
           '<div class="t-meta">' + (t.prazo ? '<span' + (late ? ' class="late"' : '') + '>' + (late ? 'Atrasada · ' : 'Prazo ') + fmtDia(t.prazo) + '</span>' : '') +
           (t.urgente && c[0] !== 'feito' ? '<span class="tag urg">Urgente</span>' : '') +
