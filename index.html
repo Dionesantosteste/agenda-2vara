@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agenda 2ª Vara</title>
+<title>Portal 2ª Vara</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
   :root{
@@ -18,25 +18,34 @@
     --danger: #8A3B24;
     --focus: #3C6E5C;
     --shadow: 24px 24px 60px rgba(42,33,24,.12);
+    /* status das audiências (semânticas, separadas do acento) */
+    --info: #2F5D7C; --info-soft: #DCE6EC;
+    --ok: #3C6E5C; --ok-soft: #DCE9E2;
+    --warn: #9A6212; --warn-soft: #F3E3C6;
+    --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
       --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
       --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
       --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
+      --info: #8DB7D4; --info-soft: #1F2C35; --ok: #7FBFA6; --ok-soft: #1E2D27;
+      --warn: #E2B064; --warn-soft: #3A2E1B; color-scheme: dark;
     }
   }
   :root[data-theme="dark"]{
     --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
     --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
     --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
+    --info: #8DB7D4; --info-soft: #1F2C35; --ok: #7FBFA6; --ok-soft: #1E2D27;
+    --warn: #E2B064; --warn-soft: #3A2E1B; color-scheme: dark;
   }
 
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
-    padding: 28px 16px 60px;
+    padding:0;
     -webkit-font-smoothing:antialiased;
   }
   .wrap{ max-width: 900px; margin: 0 auto; }
@@ -149,10 +158,15 @@
   form.sheet h2{ font-family:"Fraunces", serif; font-weight:600; font-size:21px; margin:0; }
   .field{ display:flex; flex-direction:column; gap:5px; }
   .field label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:"IBM Plex Mono", monospace; }
-  .field input, .field select{
+  .field input, .field select, .field textarea{
     border:1px solid var(--line); border-radius:10px; padding:10px 12px;
     font-size:15px; font-family:"IBM Plex Sans", sans-serif; background:var(--bg); color:var(--ink);
+    min-width:0; width:100%;
   }
+  .field textarea{ resize:vertical; line-height:1.5; min-height:96px; }
+  .field input.mono{ font-family:"IBM Plex Mono", monospace; font-size:14.5px; letter-spacing:.01em; }
+  .field-row{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; }
+  .field-hint{ font-size:12px; color:var(--muted); }
 
   .multi-block{ display:flex; flex-direction:column; gap:8px; }
   .multi-head{ display:flex; justify-content:space-between; align-items:center; }
@@ -189,6 +203,121 @@
   }
   .toast.show{ opacity:1; }
 
+
+  /* ================= Portal: menu lateral + área principal ================= */
+  .shell{ display:grid; grid-template-columns: var(--sidebar-w) minmax(0,1fr); min-height:100vh; }
+  .sidebar{
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+    background:var(--paper); border-right:1px solid var(--line);
+    display:flex; flex-direction:column; gap:26px; padding:26px 14px 20px;
+  }
+  .brand{ padding:0 10px; display:flex; flex-direction:column; gap:2px; }
+  .brand-name{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:23px; letter-spacing:-0.01em; }
+  .brand-sub{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .nav{ display:flex; flex-direction:column; gap:2px; }
+  .nav-label{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:0 10px 6px; }
+  .nav-item{
+    display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:10px;
+    color:var(--muted); text-decoration:none; font-weight:500; font-size:14.5px;
+  }
+  .nav-item svg{ flex:none; }
+  .nav-item:hover{ background:var(--bg); color:var(--ink); }
+  .nav-item[aria-current="page"]{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .nav-item:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .nav-count{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .sidebar-foot{ margin-top:auto; padding:0 10px; font-size:12.5px; color:var(--muted); line-height:1.45; }
+  .sidebar-foot strong{ display:block; color:var(--ink); font-weight:500; }
+
+  .main-col{ min-width:0; }
+  .main{ min-width:0; padding:30px 28px 100px; }
+  .topbar{ display:none; }
+  .scrim{ display:none; }
+
+  /* ================= Audiências ================= */
+  .summary{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; margin-bottom:18px; }
+  .stat{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:12px 14px;
+    display:flex; flex-direction:column; gap:2px; text-align:left; cursor:pointer; color:var(--ink); font-family:inherit;
+  }
+  .stat:hover{ border-color:var(--accent); }
+  .stat[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .stat-num{ font-family:"Fraunces", serif; font-weight:600; font-size:28px; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .stat-lbl{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+  .stat.warn .stat-num{ color:var(--warn); }
+  .stat.warn.zero .stat-num{ color:var(--muted); }
+
+  .filter-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+  .filter-row:last-of-type{ margin-bottom:22px; }
+  .filter-label{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); min-width:56px; }
+
+  .day{ display:flex; flex-direction:column; gap:10px; }
+  .day-label{ display:flex; align-items:baseline; gap:10px; padding-left:4px; }
+  .day-label .d{ font-family:"Fraunces", serif; font-weight:600; font-size:15px; color:var(--accent); }
+  .day-label .rel{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+
+  .hcard{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    padding:14px 16px; display:grid; grid-template-columns: 58px minmax(0,1fr) auto; gap:14px; align-items:start;
+  }
+  .hcard.pending{ border-color:var(--warn); }
+  .htime{ font-family:"IBM Plex Mono", monospace; font-size:17px; font-weight:500; font-variant-numeric:tabular-nums; padding-top:1px; }
+  .hinfo{ min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .hproc{ font-family:"IBM Plex Mono", monospace; font-size:14.5px; font-weight:500; overflow-wrap:anywhere; }
+  .hproc mark, .hobs mark, .htipo mark{ background:var(--accent-soft); color:var(--ink); border-radius:3px; }
+  .htipo{ font-size:13.5px; color:var(--ink); }
+  .hobs{ font-size:13px; color:var(--muted); line-height:1.45; white-space:pre-line;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .flag{ align-self:flex-start; font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--warn); background:var(--warn-soft); border-radius:6px; padding:2px 7px; margin-top:2px; }
+  .hcard.cancelled .hproc, .hcard.cancelled .htime{ text-decoration:line-through; color:var(--muted); }
+  .hside{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+
+  .status-pill{ position:relative; display:inline-flex; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:transparent; }
+  .status-pill select{
+    appearance:none; -webkit-appearance:none; border:0; background:transparent; color:inherit; cursor:pointer;
+    font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+    padding:4px 22px 4px 10px; border-radius:999px;
+  }
+  .status-pill::after{ content:""; position:absolute; right:9px; top:50%; width:5px; height:5px; margin-top:-4px;
+    border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); pointer-events:none; }
+  .status-pill[data-status="Designada"]{ color:var(--info); border-color:var(--info); background:var(--info-soft); }
+  .status-pill[data-status="Realizada"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
+  .status-pill[data-status="Redesignada"]{ color:var(--warn); border-color:var(--warn); background:var(--warn-soft); }
+  .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--bg); }
+  .status-pill select option{ color:var(--ink); background:var(--paper); text-transform:none; }
+
+  .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
+
+  @media (max-width:860px){
+    .shell{ grid-template-columns: minmax(0,1fr); }
+    .sidebar{
+      position:fixed; left:0; top:0; bottom:0; height:auto; width:min(280px, 84vw); z-index:30;
+      transform:translateX(-100%); transition:transform .22s ease; box-shadow:none;
+    }
+    .shell.nav-open .sidebar{ transform:none; box-shadow:var(--shadow); }
+    .shell.nav-open .scrim{ display:block; position:fixed; inset:0; z-index:25; border:0; background:rgba(20,16,10,.45); }
+    .topbar{
+      display:flex; align-items:center; gap:10px; position:sticky; top:0; z-index:20;
+      background:var(--paper); border-bottom:1px solid var(--line); padding:10px 16px;
+    }
+    .topbar .icon-btn{ width:36px; height:36px; color:var(--ink); }
+    .topbar-title{ font-family:"Fraunces", serif; font-weight:600; font-size:17px; }
+    .topbar-sub{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-left:auto; }
+    .main{ padding:20px 16px 100px; }
+  }
+  @media (prefers-reduced-motion: reduce){ .sidebar{ transition:none; } }
+
+  @media (max-width:520px){
+    .summary{ gap:8px; }
+    .stat{ padding:10px 10px; }
+    .stat-num{ font-size:23px; }
+    .stat-lbl{ font-size:10px; }
+    .hcard{ grid-template-columns: 50px minmax(0,1fr); }
+    .hside{ grid-column: 1 / -1; flex-direction:row; justify-content:space-between; align-items:center; }
+    .htime{ font-size:15.5px; }
+    .filter-label{ min-width:0; width:100%; }
+  }
+
   @media (max-width:520px){
     .layout{ grid-template-columns: 1fr; }
     .index{ position:static; flex-direction:row; overflow-x:auto; gap:10px; padding:0 2px 6px; }
@@ -199,6 +328,42 @@
 </head>
 <body>
 
+<div class="shell" id="shell">
+  <aside class="sidebar" id="sidebar" aria-label="Menu do portal">
+    <div class="brand">
+      <span class="brand-name">2ª Vara</span>
+      <span class="brand-sub">Portal da secretaria</span>
+    </div>
+    <nav class="nav" aria-label="Seções">
+      <div class="nav-label">Seções</div>
+      <a class="nav-item" href="#agenda" data-route="agenda">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="14" height="18" rx="2"/><circle cx="11" cy="10" r="2.5"/><path d="M7 17c.8-1.9 2.2-2.9 4-2.9s3.2 1 4 2.9"/><path d="M18 7h2M18 12h2M18 17h2"/></svg>
+        <span>Agenda</span>
+        <span class="nav-count" id="navCountAgenda"></span>
+      </a>
+      <a class="nav-item" href="#audiencias" data-route="audiencias">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17"/><path d="M8 20h8"/><path d="M5 7h14"/><path d="M5 7l-3 6.5a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6.5a3 3 0 0 0 6 0z"/></svg>
+        <span>Audiências</span>
+        <span class="nav-count" id="navCountAud" title="Audiências hoje"></span>
+      </a>
+    </nav>
+    <div class="sidebar-foot">
+      <strong id="todayLong"></strong>
+      <span id="todayAud"></span>
+    </div>
+  </aside>
+  <button type="button" class="scrim" id="scrim" aria-label="Fechar menu" tabindex="-1"></button>
+
+  <div class="main-col">
+  <div class="topbar">
+    <button type="button" class="icon-btn" id="navToggle" aria-label="Abrir menu" aria-controls="sidebar" aria-expanded="false">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+    </button>
+    <span class="topbar-title" id="topbarTitle">Agenda</span>
+    <span class="topbar-sub">2ª Vara</span>
+  </div>
+
+<main class="main">
 <div class="wrap">
   <div class="setup-banner" id="setupBanner">
     ⚠️ Antes de usar: abra este arquivo num editor de texto e preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON_KEY</code>
@@ -206,9 +371,10 @@
     Veja o arquivo <code>LEIA-ME.md</code> que acompanha este download para o passo a passo completo.
   </div>
 
+  <section id="view-agenda" aria-labelledby="agendaTitle">
   <header>
     <div>
-      <h1>Agenda 2ª Vara</h1>
+      <h1 id="agendaTitle">Agenda</h1>
       <div class="tagline">Contatos buscáveis por nome, telefone ou e-mail</div>
     </div>
     <div class="count" id="count">— contatos</div>
@@ -228,6 +394,44 @@
       <div class="groups" id="groups"></div>
       <div class="empty" id="emptyState" hidden></div>
     </div>
+  </div>
+  </section>
+
+  <section id="view-audiencias" aria-labelledby="audTitle" hidden>
+    <header>
+      <div>
+        <h1 id="audTitle">Audiências</h1>
+        <div class="tagline">Pauta e acompanhamento por processo</div>
+      </div>
+      <div class="count" id="audCount">— audiências</div>
+    </header>
+
+    <div class="summary">
+      <button type="button" class="stat" data-period="hoje" aria-pressed="false">
+        <span class="stat-num" id="statHoje">0</span><span class="stat-lbl">hoje</span>
+      </button>
+      <button type="button" class="stat" data-period="semana" aria-pressed="false">
+        <span class="stat-num" id="statSemana">0</span><span class="stat-lbl">próximos 7 dias</span>
+      </button>
+      <button type="button" class="stat warn" data-period="pendentes" aria-pressed="false" id="statPendBtn">
+        <span class="stat-num" id="statPend">0</span><span class="stat-lbl">sem atualização</span>
+      </button>
+    </div>
+
+    <div class="searchbar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="audSearch" type="text" placeholder="Buscar por processo, tipo ou observação…" autocomplete="off" />
+      <button class="clear-btn" id="audClearSearch" hidden>limpar</button>
+    </div>
+
+    <div class="filter-row" id="audPeriods" role="group" aria-label="Período"></div>
+    <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
+
+    <div class="groups" id="audGroups"></div>
+    <div class="empty" id="audEmpty" hidden></div>
+  </section>
+</div>
+</main>
   </div>
 </div>
 
@@ -289,6 +493,50 @@
     <div class="sheet-actions">
       <div style="margin-left:auto;">
         <button type="button" class="btn" id="closeCatBtn">Fechar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="audDialog">
+  <form class="sheet" id="audForm">
+    <h2 id="audDialogTitle">Nova audiência</h2>
+    <input type="hidden" id="audId" />
+    <div class="field">
+      <label for="aProcesso">Nº do processo</label>
+      <input id="aProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" autocomplete="off" required />
+      <span class="field-hint">Com 20 dígitos, o número é formatado no padrão CNJ.</span>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="aData">Data</label>
+        <input id="aData" type="date" required />
+      </div>
+      <div class="field">
+        <label for="aHora">Hora</label>
+        <input id="aHora" type="time" required />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="aTipo">Tipo</label>
+        <input id="aTipo" list="audTipos" maxlength="60" placeholder="Instrução e julgamento" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="aStatus">Status</label>
+        <select id="aStatus"></select>
+      </div>
+    </div>
+    <datalist id="audTipos"></datalist>
+    <div class="field">
+      <label for="aObs">Observações</label>
+      <textarea id="aObs" rows="4" maxlength="4000" placeholder="Ex.: intimar testemunhas; audiência por videoconferência"></textarea>
+    </div>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" id="audDeleteBtn" hidden>Excluir</button>
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button type="button" class="btn" id="audCancelBtn">Cancelar</button>
+        <button type="submit" class="btn primary">Salvar</button>
       </div>
     </div>
   </form>
@@ -536,6 +784,7 @@
     });
 
     els.count.textContent = list.length + (list.length === 1 ? " contato" : " contatos");
+    document.getElementById('navCountAgenda').textContent = state.contacts.length || "";
 
     var byLetter = {};
     list.forEach(function(c){
@@ -778,7 +1027,10 @@
     setTimeout(function(){ els.fName.focus(); }, 30);
   }
 
-  els.addBtn.addEventListener('click', function(){ openDialog(null); });
+  els.addBtn.addEventListener('click', function(){
+    if (currentRoute === 'audiencias') openAudDialog(null);
+    else openDialog(null);
+  });
   els.cancelBtn.addEventListener('click', function(){ els.dialog.close(); });
 
   els.search.addEventListener('input', function(){
@@ -904,14 +1156,492 @@
     if (!inside) els.catDialog.close();
   });
 
+
+  // ---------------------------------------------------------------------
+  // Portal: navegação entre seções (#agenda, #audiencias, ...)
+  // Para criar uma seção nova: um <a data-route> no menu, uma <section>
+  // com id "view-<rota>" e uma entrada em ROUTES.
+  // ---------------------------------------------------------------------
+
+  var ROUTES = {
+    agenda:     { title: 'Agenda',     add: 'Adicionar contato' },
+    audiencias: { title: 'Audiências', add: 'Cadastrar audiência' }
+  };
+  var currentRoute = 'agenda';
+  var shell = document.getElementById('shell');
+  var navToggle = document.getElementById('navToggle');
+  var navLinks = document.querySelectorAll('.nav-item[data-route]');
+
+  function setNavOpen(open){
+    shell.classList.toggle('nav-open', open);
+    navToggle.setAttribute('aria-expanded', String(open));
+  }
+  navToggle.addEventListener('click', function(){ setNavOpen(!shell.classList.contains('nav-open')); });
+  document.getElementById('scrim').addEventListener('click', function(){ setNavOpen(false); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') setNavOpen(false); });
+
+  function applyRoute(){
+    var r = (location.hash || '').replace('#', '');
+    if (!ROUTES[r]) r = 'agenda';
+    var changed = r !== currentRoute;
+    currentRoute = r;
+    Object.keys(ROUTES).forEach(function(k){
+      document.getElementById('view-' + k).hidden = (k !== r);
+    });
+    navLinks.forEach(function(a){
+      if (a.getAttribute('data-route') === r) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    document.getElementById('topbarTitle').textContent = ROUTES[r].title;
+    els.addBtn.setAttribute('aria-label', ROUTES[r].add);
+    els.addBtn.title = ROUTES[r].add;
+    setNavOpen(false);
+    if (changed) window.scrollTo(0, 0);
+    if (r === 'audiencias') renderAudiencias();
+  }
+  window.addEventListener('hashchange', applyRoute);
+
+  // ---------------------------------------------------------------------
+  // Audiências
+  // ---------------------------------------------------------------------
+
+  var STATUSES = ["Designada", "Realizada", "Redesignada", "Cancelada"];
+  var TIPOS_SUGERIDOS = ["Conciliação", "Mediação", "Instrução", "Instrução e julgamento", "Una", "Justificação", "Custódia", "Oitiva de testemunha"];
+  var PERIODS = [
+    { key: 'proximas',   label: 'Próximas' },
+    { key: 'hoje',       label: 'Hoje' },
+    { key: 'semana',     label: 'Próximos 7 dias' },
+    { key: 'mes',        label: 'Este mês' },
+    { key: 'anteriores', label: 'Anteriores' },
+    { key: 'pendentes',  label: 'Sem atualização' },
+    { key: 'todas',      label: 'Todas' }
+  ];
+
+  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos' };
+
+  var A = {
+    count: document.getElementById('audCount'),
+    search: document.getElementById('audSearch'),
+    clearSearch: document.getElementById('audClearSearch'),
+    periods: document.getElementById('audPeriods'),
+    statuses: document.getElementById('audStatuses'),
+    groups: document.getElementById('audGroups'),
+    empty: document.getElementById('audEmpty'),
+    statHoje: document.getElementById('statHoje'),
+    statSemana: document.getElementById('statSemana'),
+    statPend: document.getElementById('statPend'),
+    statPendBtn: document.getElementById('statPendBtn'),
+    stats: document.querySelectorAll('.stat[data-period]'),
+    navCount: document.getElementById('navCountAud'),
+    todayLong: document.getElementById('todayLong'),
+    todayAud: document.getElementById('todayAud'),
+    dialog: document.getElementById('audDialog'),
+    form: document.getElementById('audForm'),
+    title: document.getElementById('audDialogTitle'),
+    id: document.getElementById('audId'),
+    processo: document.getElementById('aProcesso'),
+    data: document.getElementById('aData'),
+    hora: document.getElementById('aHora'),
+    tipo: document.getElementById('aTipo'),
+    statusSel: document.getElementById('aStatus'),
+    obs: document.getElementById('aObs'),
+    tipos: document.getElementById('audTipos'),
+    deleteBtn: document.getElementById('audDeleteBtn'),
+    cancelBtn: document.getElementById('audCancelBtn')
+  };
+
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function dayKey(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function startOfDay(d){ var x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function capitalize(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+  function digitsOnly(s){ return (s || '').replace(/\D/g, ''); }
+
+  // Número único CNJ: NNNNNNN-DD.AAAA.J.TR.OOOO
+  function formatProcesso(v){
+    var d = digitsOnly(v);
+    if (d.length !== 20) return (v || '').trim();
+    return d.replace(/^(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})$/, '$1-$2.$3.$4.$5.$6');
+  }
+
+  function isPending(a, now){ return a.status === 'Designada' && a.date < now; }
+
+  async function loadAudiencias(){
+    if (!supabase) return;
+    var res = await supabase.from('audiencias').select('*').order('data_hora', { ascending: true });
+    aud.loaded = true;
+    if (res.error){ aud.error = res.error; renderAudiencias(); return; }
+    aud.error = null;
+    aud.items = (res.data || []).map(function(r){
+      return {
+        id: r.id,
+        processo: r.processo || "",
+        date: new Date(r.data_hora),
+        tipo: r.tipo || "",
+        status: r.status || "Designada",
+        observacoes: r.observacoes || ""
+      };
+    });
+    renderAudiencias();
+  }
+
+  async function upsertAudiencia(id, data){
+    if (!supabase){ toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return; }
+    var payload = {
+      processo: data.processo,
+      data_hora: data.date.toISOString(),
+      tipo: data.tipo,
+      status: data.status,
+      observacoes: data.observacoes,
+      updated_at: new Date().toISOString()
+    };
+    var res = id
+      ? await supabase.from('audiencias').update(payload).eq('id', id)
+      : await supabase.from('audiencias').insert(payload);
+    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return; }
+    toast(id ? 'Audiência atualizada' : 'Audiência cadastrada');
+    await loadAudiencias();
+  }
+
+  async function setAudStatus(a, status){
+    var prev = a.status;
+    a.status = status;
+    renderAudiencias();
+    var res = await supabase.from('audiencias')
+      .update({ status: status, updated_at: new Date().toISOString() }).eq('id', a.id);
+    if (res.error){
+      a.status = prev;
+      renderAudiencias();
+      toast('Não foi possível alterar o status: ' + res.error.message);
+      return;
+    }
+    toast('Status: ' + status);
+  }
+
+  async function deleteAudiencia(id){
+    if (!supabase) return;
+    var res = await supabase.from('audiencias').delete().eq('id', id);
+    if (res.error){ toast('Não foi possível excluir: ' + res.error.message); return; }
+    toast('Audiência excluída');
+    await loadAudiencias();
+  }
+
+  function audInPeriod(a, now){
+    var today = startOfDay(now);
+    switch (aud.period){
+      case 'proximas':   return a.date >= today;
+      case 'hoje':       return a.date >= today && a.date < addDays(today, 1);
+      case 'semana':     return a.date >= today && a.date < addDays(today, 7);
+      case 'mes':        return a.date.getFullYear() === now.getFullYear() && a.date.getMonth() === now.getMonth();
+      case 'anteriores': return a.date < today;
+      case 'pendentes':  return isPending(a, now);
+      default:           return true;
+    }
+  }
+
+  function audMatches(a){
+    if (aud.status !== 'Todos' && a.status !== aud.status) return false;
+    var q = normalize(aud.query).trim();
+    if (!q) return true;
+    var qd = digitsOnly(q);
+    if (qd.length >= 3 && digitsOnly(a.processo).indexOf(qd) !== -1) return true;
+    return [a.processo, a.tipo, a.observacoes, a.status].some(function(f){ return normalize(f).indexOf(q) !== -1; });
+  }
+
+  function chip(label, pressed, onClick){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.textContent = label;
+    b.setAttribute('aria-pressed', String(pressed));
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  function renderAudFilters(){
+    A.periods.innerHTML = '<span class="filter-label">Período</span>';
+    PERIODS.forEach(function(p){
+      A.periods.appendChild(chip(p.label, aud.period === p.key, function(){ aud.period = p.key; renderAudiencias(); }));
+    });
+    A.statuses.innerHTML = '<span class="filter-label">Status</span>';
+    ["Todos"].concat(STATUSES).forEach(function(st){
+      A.statuses.appendChild(chip(st, aud.status === st, function(){ aud.status = st; renderAudiencias(); }));
+    });
+    A.stats.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-period') === aud.period)); });
+  }
+
+  function dayLabel(d, now){
+    var today = startOfDay(now);
+    var diff = Math.round((startOfDay(d) - today) / 86400000);
+    var opts = { weekday: 'long', day: '2-digit', month: 'long' };
+    if (d.getFullYear() !== now.getFullYear()) opts.year = 'numeric';
+    var rel = diff === 0 ? 'hoje' : diff === 1 ? 'amanhã' : diff === -1 ? 'ontem' : '';
+    return { text: capitalize(d.toLocaleDateString('pt-BR', opts)), rel: rel };
+  }
+
+  function renderSummary(now){
+    var today = startOfDay(now), tomorrow = addDays(today, 1), week = addDays(today, 7);
+    var hoje = 0, semana = 0, pend = 0;
+    aud.items.forEach(function(a){
+      if (a.status === 'Cancelada') return;
+      if (a.date >= today && a.date < tomorrow) hoje++;
+      if (a.date >= today && a.date < week) semana++;
+      if (isPending(a, now)) pend++;
+    });
+    A.statHoje.textContent = hoje;
+    A.statSemana.textContent = semana;
+    A.statPend.textContent = pend;
+    A.statPendBtn.classList.toggle('zero', pend === 0);
+    A.navCount.textContent = hoje || "";
+    A.todayLong.textContent = capitalize(now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
+    A.todayAud.textContent = !aud.loaded || aud.error ? "" :
+      hoje === 0 ? "Nenhuma audiência hoje" : hoje === 1 ? "1 audiência hoje" : hoje + " audiências hoje";
+  }
+
+  function buildAudCard(a, now){
+    var card = document.createElement('div');
+    card.className = 'hcard';
+    var pending = isPending(a, now);
+    if (pending) card.classList.add('pending');
+    if (a.status === 'Cancelada') card.classList.add('cancelled');
+
+    var time = document.createElement('div');
+    time.className = 'htime';
+    time.textContent = pad(a.date.getHours()) + ':' + pad(a.date.getMinutes());
+
+    var info = document.createElement('div');
+    info.className = 'hinfo';
+    var proc = document.createElement('div');
+    proc.className = 'hproc';
+    proc.innerHTML = highlight(a.processo || 'Processo não informado', aud.query);
+    info.appendChild(proc);
+    if (a.tipo){
+      var tipo = document.createElement('div');
+      tipo.className = 'htipo';
+      tipo.innerHTML = highlight(a.tipo, aud.query);
+      info.appendChild(tipo);
+    }
+    if (a.observacoes){
+      var obs = document.createElement('div');
+      obs.className = 'hobs';
+      obs.title = a.observacoes;
+      obs.innerHTML = highlight(a.observacoes, aud.query);
+      info.appendChild(obs);
+    }
+    if (pending){
+      var flag = document.createElement('span');
+      flag.className = 'flag';
+      flag.textContent = 'Já passou — atualize o status';
+      info.appendChild(flag);
+    }
+
+    var side = document.createElement('div');
+    side.className = 'hside';
+    var pill = document.createElement('label');
+    pill.className = 'status-pill';
+    pill.setAttribute('data-status', a.status);
+    var sel = document.createElement('select');
+    sel.setAttribute('aria-label', 'Status da audiência do processo ' + a.processo);
+    var opts = STATUSES.indexOf(a.status) === -1 ? STATUSES.concat([a.status]) : STATUSES;
+    opts.forEach(function(st){
+      var o = document.createElement('option');
+      o.value = st; o.textContent = st;
+      sel.appendChild(o);
+    });
+    sel.value = a.status;
+    sel.addEventListener('change', function(){ setAudStatus(a, sel.value); });
+    pill.appendChild(sel);
+
+    var editBtn = document.createElement('button');
+    editBtn.className = 'icon-btn';
+    editBtn.type = 'button';
+    editBtn.title = 'Editar audiência';
+    editBtn.setAttribute('aria-label', 'Editar audiência do processo ' + a.processo);
+    editBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+    editBtn.addEventListener('click', function(){ openAudDialog(a); });
+
+    side.appendChild(pill);
+    side.appendChild(editBtn);
+
+    card.appendChild(time);
+    card.appendChild(info);
+    card.appendChild(side);
+    return card;
+  }
+
+  function renderAudiencias(){
+    var now = new Date();
+    renderAudFilters();
+    renderSummary(now);
+
+    var list = aud.items.filter(function(a){ return audInPeriod(a, now) && audMatches(a); });
+    var desc = aud.period === 'anteriores';
+    list.sort(function(x, y){ return desc ? y.date - x.date : x.date - y.date; });
+
+    A.count.textContent = list.length + (list.length === 1 ? " audiência" : " audiências");
+    A.groups.innerHTML = "";
+
+    if (list.length === 0){
+      A.empty.hidden = false;
+      if (!configured) A.empty.textContent = "Configure o Supabase (veja o aviso acima) para começar a cadastrar audiências.";
+      else if (!aud.loaded) A.empty.textContent = "Carregando audiências…";
+      else if (aud.error) A.empty.textContent = /audiencias|42P01|PGRST205/.test((aud.error.code || '') + ' ' + (aud.error.message || ''))
+        ? "A tabela de audiências ainda não existe no Supabase. Rode o SQL da seção “Audiências” do LEIA-ME.md e recarregue a página."
+        : "Erro ao carregar audiências: " + aud.error.message;
+      else if (aud.items.length === 0) A.empty.textContent = "Nenhuma audiência cadastrada. Toque em + para cadastrar a primeira.";
+      else A.empty.textContent = aud.period === 'pendentes' ? "Tudo em dia: nenhuma audiência passada sem atualização." : "Nenhuma audiência neste filtro.";
+      return;
+    }
+    A.empty.hidden = true;
+
+    var groups = [], byKey = {};
+    list.forEach(function(a){
+      var k = dayKey(a.date);
+      if (!byKey[k]){ byKey[k] = { date: a.date, items: [] }; groups.push(byKey[k]); }
+      byKey[k].items.push(a);
+    });
+
+    groups.forEach(function(g){
+      var day = document.createElement('div');
+      day.className = 'day';
+      var lbl = dayLabel(g.date, now);
+      var head = document.createElement('div');
+      head.className = 'day-label';
+      head.innerHTML = '<span class="d">' + escapeHtml(lbl.text) + '</span>' + (lbl.rel ? '<span class="rel">' + lbl.rel + '</span>' : '');
+      day.appendChild(head);
+      var cards = document.createElement('div');
+      cards.className = 'cards';
+      g.items.forEach(function(a){ cards.appendChild(buildAudCard(a, now)); });
+      day.appendChild(cards);
+      A.groups.appendChild(day);
+    });
+  }
+
+  A.stats.forEach(function(b){
+    b.addEventListener('click', function(){
+      var p = b.getAttribute('data-period');
+      aud.period = aud.period === p ? 'proximas' : p;
+      renderAudiencias();
+    });
+  });
+
+  A.search.addEventListener('input', function(){
+    aud.query = A.search.value;
+    A.clearSearch.hidden = !aud.query;
+    renderAudiencias();
+  });
+  A.clearSearch.addEventListener('click', function(){
+    A.search.value = "";
+    aud.query = "";
+    A.clearSearch.hidden = true;
+    A.search.focus();
+    renderAudiencias();
+  });
+
+  // ---- formulário da audiência ----
+
+  STATUSES.forEach(function(st){
+    var o = document.createElement('option');
+    o.value = st; o.textContent = st;
+    A.statusSel.appendChild(o);
+  });
+
+  function fillTipos(){
+    var seen = {}, out = [];
+    TIPOS_SUGERIDOS.concat(aud.items.map(function(a){ return a.tipo; })).forEach(function(t){
+      var k = normalize(t).trim();
+      if (k && !seen[k]){ seen[k] = true; out.push(t.trim()); }
+    });
+    A.tipos.innerHTML = out.map(function(t){ return '<option value="' + escapeHtml(t) + '"></option>'; }).join('');
+  }
+
+  function disarmDelete(){
+    A.deleteBtn.classList.remove('armed');
+    A.deleteBtn.textContent = 'Excluir';
+  }
+
+  function openAudDialog(a){
+    A.form.reset();
+    disarmDelete();
+    fillTipos();
+    if (a){
+      A.title.textContent = 'Editar audiência';
+      A.id.value = a.id;
+      A.processo.value = a.processo;
+      A.data.value = dayKey(a.date);
+      A.hora.value = pad(a.date.getHours()) + ':' + pad(a.date.getMinutes());
+      A.tipo.value = a.tipo;
+      if (STATUSES.indexOf(a.status) === -1){
+        var o = document.createElement('option');
+        o.value = a.status; o.textContent = a.status;
+        A.statusSel.appendChild(o);
+      }
+      A.statusSel.value = a.status;
+      A.obs.value = a.observacoes;
+      A.deleteBtn.hidden = false;
+    } else {
+      A.title.textContent = 'Nova audiência';
+      A.id.value = "";
+      A.data.value = dayKey(new Date());
+      A.statusSel.value = 'Designada';
+      A.deleteBtn.hidden = true;
+    }
+    A.dialog.showModal();
+    setTimeout(function(){ A.processo.focus(); }, 30);
+  }
+
+  A.processo.addEventListener('blur', function(){ A.processo.value = formatProcesso(A.processo.value); });
+
+  A.form.addEventListener('submit', function(e){
+    e.preventDefault();
+    var date = new Date(A.data.value + 'T' + A.hora.value);
+    if (isNaN(date.getTime())){ toast('Informe data e hora válidas'); return; }
+    var processo = formatProcesso(A.processo.value);
+    if (!processo){ toast('Informe o número do processo'); return; }
+    upsertAudiencia(A.id.value || null, {
+      processo: processo,
+      date: date,
+      tipo: A.tipo.value.trim(),
+      status: A.statusSel.value,
+      observacoes: A.obs.value.trim()
+    });
+    A.dialog.close();
+  });
+
+  A.cancelBtn.addEventListener('click', function(){ A.dialog.close(); });
+
+  A.deleteBtn.addEventListener('click', function(){
+    var id = A.id.value;
+    if (!id) return;
+    if (!A.deleteBtn.classList.contains('armed')){
+      A.deleteBtn.classList.add('armed');
+      A.deleteBtn.textContent = 'Confirmar exclusão';
+      return;
+    }
+    deleteAudiencia(id);
+    A.dialog.close();
+  });
+
+  A.dialog.addEventListener('click', function(e){
+    var r = A.form.getBoundingClientRect();
+    var inside = r.top <= e.clientY && e.clientY <= r.top + r.height && r.left <= e.clientX && e.clientX <= r.left + r.width;
+    if (!inside) A.dialog.close();
+  });
+
+  // Mantém "hoje" e os avisos de "já passou" corretos com a página aberta
+  setInterval(renderAudiencias, 60000);
+
   // ---------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------
 
   renderFilters();
   render();
+  applyRoute();
+  renderAudiencias();
 
   if (configured){
+    loadAudiencias();
     (async function(){
       await loadCategories();
       await seedExampleContactsIfEmpty();
@@ -922,6 +1652,7 @@
         .channel('contacts-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'contacts' }, loadContacts)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'categories' }, loadCategories)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'audiencias' }, loadAudiencias)
         .subscribe();
     })();
   }
