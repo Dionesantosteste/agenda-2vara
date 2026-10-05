@@ -690,7 +690,7 @@
         </div>
         <div class="field pg-perito">
           <label for="pPerito">Perito</label>
-          <input id="pPerito" list="perPeritosLista" maxlength="120" placeholder="Nome (sugere os peritos da Agenda)" required />
+          <input id="pPerito" list="perPeritosLista" maxlength="120" placeholder="Nome do perito" required />
         </div>
         <div class="field pg-esp">
           <label for="pEsp">Especialidade</label>
@@ -1192,7 +1192,6 @@
       };
     });
     render();
-    renderPericias();
   }
 
   async function loadCategories(){
@@ -3106,15 +3105,11 @@
   }
   function agendadaProxima(p){ return p.status === 'agendada' && p.data && perDiff(p.data) >= 0 && perDiff(p.data) < 15; }
 
-  // Pessoas da Agenda com a categoria "Perito"
-  function peritosDaAgenda(){
-    return state.contacts.filter(function(c){ return normalize(c.category).indexOf('perit') !== -1 && c.name; });
-  }
-  function contatoDoPerito(nome){
-    var n = normalize(nome).trim(); if (!n) return null;
-    var lista = peritosDaAgenda();
-    for (var i = 0; i < lista.length; i++){ if (normalize(lista[i].name).trim() === n) return lista[i]; }
-    return null;
+  // Nomes de peritos já usados nas perícias (para sugerir ao digitar)
+  function peritosUsados(){
+    var vistos = {}, out = [];
+    per.items.forEach(function(p){ var k = normalize(p.perito).trim(); if (k && !vistos[k]){ vistos[k] = true; out.push(p.perito.trim()); } });
+    return out.sort(function(a, b){ return a.localeCompare(b); });
   }
 
   // ---- dados ----
@@ -3189,12 +3184,14 @@
   // ---- cadastro ----
   P.proc.addEventListener('blur', function(){ P.proc.value = formatProcesso(P.proc.value); });
   P.eProc.addEventListener('blur', function(){ P.eProc.value = formatProcesso(P.eProc.value); });
-  function sugerirEspecialidade(input, select){
-    var c = contatoDoPerito(input.value); if (!c || select.value) return;
-    var n = normalize(c.name + ' ' + c.category);
-    PER_ESPECIALIDADES.forEach(function(e){ if (e && n.indexOf(normalize(e).slice(0, 5)) !== -1) select.value = e; });
-  }
-  P.perito.addEventListener('change', function(){ sugerirEspecialidade(P.perito, P.esp); });
+  // Ao escolher um perito já usado, sugere a especialidade da última perícia dele
+  P.perito.addEventListener('change', function(){
+    if (P.esp.value) return;
+    var n = normalize(P.perito.value).trim();
+    for (var i = per.items.length - 1; i >= 0; i--){
+      if (normalize(per.items[i].perito).trim() === n && per.items[i].especialidade){ P.esp.value = per.items[i].especialidade; break; }
+    }
+  });
 
   P.form.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -3248,7 +3245,7 @@
     per.items.forEach(function(p){ var k = normalize(p.perito).trim(); if (k && !nomes[k]){ nomes[k] = true; opts.push([k, p.perito]); } });
     opts.sort(function(a, b){ return a[1].localeCompare(b[1]); });
     P.filtroPerito.innerHTML = '<option value="">Todos os peritos</option>' + opts.map(function(o){ return '<option value="' + escapeHtml(o[0]) + '"' + (per.perito === o[0] ? ' selected' : '') + '>' + escapeHtml(o[1]) + '</option>'; }).join('');
-    P.lista.innerHTML = peritosDaAgenda().map(function(c){ return '<option value="' + escapeHtml(c.name) + '"></option>'; }).join('');
+    P.lista.innerHTML = peritosUsados().map(function(n){ return '<option value="' + escapeHtml(n) + '"></option>'; }).join('');
   }
   P.filtroPerito.addEventListener('change', function(){ per.perito = P.filtroPerito.value; renderPericias(); });
   P.search.addEventListener('input', function(){ per.query = P.search.value; P.clearSearch.hidden = !per.query; renderPericias(); });
@@ -3282,7 +3279,6 @@
 
   // ---- cartões ----
   function perCard(p){
-    var c = contatoDoPerito(p.perito);
     var pr = prazoLaudo(p), atrasado = laudoAtrasado(p), perto = laudoPerto(p);
     var when;
     if (p.status === 'realizada' && pr) when = '<span class="lbl">laudo até</span><b>' + fmtDia(pr) + '</b>';
@@ -3315,7 +3311,6 @@
       '<div class="pinfo">' +
         '<div class="prow">' + procCopyBtn(p.processo) + '</div>' +
         '<div class="prow"><span class="pperito">' + escapeHtml(p.perito) + '</span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
-        (c ? '<div class="pcontact">' + (c.phones[0] ? '<span>' + escapeHtml(c.phones[0].value) + '</span>' : '') + (c.emails[0] ? '<span>' + escapeHtml(c.emails[0].value) + '</span>' : '') + '</div>' : '') +
         (meta.length ? '<div class="pmeta">' + meta.join('') + '</div>' : '') +
         (p.observacoes ? '<div class="pobs">' + escapeHtml(p.observacoes) + '</div>' : '') +
         (atrasado ? '<span class="pflag">Cobrar laudo do perito</span>' : '') +

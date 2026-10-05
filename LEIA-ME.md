@@ -151,7 +151,7 @@ Como funciona:
   `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
-- O campo **Perito** sugere os contatos da Agenda com a categoria **Perito** e mostra o telefone e o e-mail deles.
+- O **Perito** é digitado na própria perícia (não vem da Agenda). O campo sugere os nomes já usados em outras perícias.
 
 ### Como adicionar novas seções ao portal depois
 
