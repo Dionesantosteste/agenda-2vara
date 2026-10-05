@@ -169,6 +169,15 @@ Como funciona:
   e, se for "Realizada", o prazo do laudo calculado a partir da data informada.
   Ao reagendar em lote, informe a hora da primeira e o intervalo: as perícias recebem horários em sequência.
 
+## Busca e número do processo
+
+- **Busca geral:** o campo "Buscar processo ou nome", no topo do menu lateral (no celular, a lupa no topo da tela),
+  procura de uma vez em perícias (em andamento e concluídas), audiências, contatos da Agenda e, com a Organização
+  destrancada, nas tarefas. Aceita o número do processo com ou sem pontuação, ou só um pedaço dele, e nomes.
+  Atalho: **Ctrl+K** ou **/**.
+- **Número do processo:** nos campos de processo, os pontos e o traço entram sozinhos enquanto se digita
+  (padrão CNJ `0000000-00.0000.0.00.0000`), também ao colar.
+
 ### Como adicionar novas seções ao portal depois
 
 No `index.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
