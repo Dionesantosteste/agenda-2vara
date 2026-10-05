@@ -10,6 +10,7 @@
 create table if not exists pericias (
   id uuid primary key default gen_random_uuid(),
   processo text not null default '',
+  autor text not null default '',
   perito text not null default '',
   especialidade text not null default '',
   status text not null default 'nao_agendada',   -- nao_agendada, agendada, realizada, laudo_juntado, cancelada
@@ -22,6 +23,9 @@ create table if not exists pericias (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- para quem criou a tabela antes do campo "autor"
+alter table pericias add column if not exists autor text not null default '';
 
 create table if not exists pericias_andamentos (
   id uuid primary key default gen_random_uuid(),
@@ -64,5 +68,44 @@ end $$;
 do $$
 begin
   alter publication supabase_realtime add table pericias_andamentos;
+exception when duplicate_object or undefined_object then null;
+end $$;
+
+-- =====================================================================
+-- Cadastro de peritos (lista própria da seção Perícias)
+-- =====================================================================
+create table if not exists peritos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  especialidade text not null default '',
+  telefone text not null default '',
+  email text not null default '',
+  observacoes text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create unique index if not exists peritos_nome_idx on peritos (lower(nome));
+
+alter table peritos enable row level security;
+drop policy if exists "public read peritos" on peritos;
+drop policy if exists "public write peritos" on peritos;
+drop policy if exists "public update peritos" on peritos;
+drop policy if exists "public delete peritos" on peritos;
+create policy "public read peritos" on peritos for select using (true);
+create policy "public write peritos" on peritos for insert with check (true);
+create policy "public update peritos" on peritos for update using (true);
+create policy "public delete peritos" on peritos for delete using (true);
+
+-- Traz para o cadastro os peritos já digitados nas perícias (não duplica)
+insert into peritos (nome, especialidade)
+select distinct on (lower(trim(perito))) trim(perito), especialidade
+from pericias
+where trim(perito) <> ''
+order by lower(trim(perito)), created_at desc
+on conflict do nothing;
+
+do $$
+begin
+  alter publication supabase_realtime add table peritos;
 exception when duplicate_object or undefined_object then null;
 end $$;

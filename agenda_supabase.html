@@ -348,9 +348,9 @@
 
   /* ================= Perícias ================= */
   .per-grid{ display:grid; gap:12px; align-items:start;
-    grid-template-columns: minmax(0,1.6fr) minmax(0,1.6fr) minmax(0,1.1fr);
-    grid-template-areas: "proc perito esp" "data hora local" "obs obs save"; }
-  .pg-proc{ grid-area:proc; } .pg-perito{ grid-area:perito; } .pg-esp{ grid-area:esp; } .pg-data{ grid-area:data; }
+    grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1.2fr);
+    grid-template-areas: "proc autor autor autor" "perito perito esp esp" "data hora local local" "obs obs obs save"; }
+  .pg-proc{ grid-area:proc; } .pg-autor{ grid-area:autor; } .pg-perito{ grid-area:perito; } .pg-esp{ grid-area:esp; } .pg-data{ grid-area:data; }
   .pg-hora{ grid-area:hora; } .pg-local{ grid-area:local; } .pg-obs{ grid-area:obs; } .pg-save{ grid-area:save; height:43px; align-self:end; }
   .per-grid .field input, .per-grid .field select{ padding:0 11px; height:43px; font-size:14.5px; }
   .per-summary{ grid-template-columns:repeat(4, minmax(0,1fr)); }
@@ -387,7 +387,44 @@
   .main.has-batch{ padding-bottom:240px; }
   @media (max-width:860px){ .batch{ left:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); } .bfield{ flex:1 1 140px; } .batch-btns{ flex-basis:100%; } .batch-btns .btn{ flex:1; } }
   .prow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .pperito{ font-weight:600; }
+  .pautor{ font-size:16.5px; font-weight:600; color:var(--ink); line-height:1.3; overflow-wrap:anywhere; }
+  .pautor.vazio{ font-size:14px; font-weight:500; color:var(--muted); font-style:italic; }
+  .pperito{ font-size:13px; font-weight:500; color:var(--muted); }
+  .pperito b{ font-weight:600; color:var(--ink); }
+  .per-abas{ display:flex; gap:4px; width:max-content; max-width:100%; overflow-x:auto; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:4px; margin-bottom:14px; }
+  .per-aba{ flex:none; }
+  .per-aba{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:14px; font-weight:500; padding:8px 14px; border-radius:9px; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+  .per-aba:hover{ color:var(--ink); background:var(--sunken); }
+  .per-aba[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
+  .per-aba .n{ font-size:11.5px; font-variant-numeric:tabular-nums; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:0 7px; line-height:18px; }
+  .per-aba .n:empty{ display:none; }
+  .per-aba[aria-selected="true"] .n{ background:var(--accent-ink); color:var(--accent); }
+  .perito-grid{ display:grid; gap:12px; align-items:end;
+    grid-template-columns: minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);
+    grid-template-areas: "nome nome esp esp" "tel email email email" "obs obs obs btns"; }
+  .pt-nome{ grid-area:nome; } .pt-esp{ grid-area:esp; } .pt-tel{ grid-area:tel; } .pt-email{ grid-area:email; } .pt-obs{ grid-area:obs; }
+  .pt-btns{ grid-area:btns; display:flex; gap:8px; } .pt-btns .btn{ flex:1; height:43px; }
+  .perito-grid .field input, .perito-grid .field select{ padding:0 11px; height:43px; font-size:14.5px; }
+  #pNovoPerito{ margin-top:6px; }
+  .pgrid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:12px; }
+  .ptcard{ background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:14px 16px; display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .ptcard.editing{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .ptcard h3{ margin:0; font-size:16px; font-weight:600; overflow-wrap:anywhere; }
+  .ptcard .contato{ display:flex; flex-direction:column; gap:2px; font-size:13px; color:var(--muted); }
+  .ptcard .contato span{ font-family:var(--font-data); font-size:12.5px; overflow-wrap:anywhere; }
+  .ptcard .obs{ font-size:13px; color:var(--muted); }
+  .ptnums{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:8px; }
+  .ptnums div{ background:var(--sunken); border-radius:10px; padding:8px 10px; }
+  .ptnums b{ display:block; font-size:21px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.1; }
+  .ptnums span{ font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+  .ptnums .bad b{ color:var(--danger); }
+  .ptacts{ display:flex; gap:6px; flex-wrap:wrap; }
+  .ptacts .btn{ height:34px; padding:0 12px; font-size:13px; }
+  .ptacts .btn.danger-text{ color:var(--danger); border-color:transparent; margin-left:auto; }
+  @media (max-width:700px){
+    .perito-grid{ grid-template-columns:minmax(0,1fr); grid-template-areas:"nome" "esp" "tel" "email" "obs" "btns"; }
+  }
+  .and-quick button.concluir{ border-style:solid; border-color:var(--ok); color:var(--ok); font-weight:600; }
   .pesp{ font-size:12px; font-weight:600; border-radius:6px; padding:1px 7px; background:var(--accent-soft); color:var(--accent); }
   .pcontact{ font-family:var(--font-data); font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
   .pmeta{ display:flex; gap:12px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
@@ -427,7 +464,7 @@
   .timeline .icon-btn{ width:24px; height:24px; }
   .timeline-empty{ font-size:13px; color:var(--muted); }
   @media (max-width:700px){
-    .per-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"proc proc" "perito perito" "esp esp" "data hora" "local local" "obs obs" "save save"; }
+    .per-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"proc proc" "autor autor" "perito perito" "esp esp" "data hora" "local local" "obs obs" "save save"; }
     .per-summary{ grid-template-columns:repeat(2, minmax(0,1fr)); }
   }
   @media (max-width:560px){
@@ -707,9 +744,14 @@
           <label for="pProcesso">Nº do processo</label>
           <input id="pProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
         </div>
+        <div class="field pg-autor">
+          <label for="pAutor">Nome do autor</label>
+          <input id="pAutor" maxlength="160" placeholder="Parte autora do processo" required />
+        </div>
         <div class="field pg-perito">
           <label for="pPerito">Perito</label>
-          <input id="pPerito" list="perPeritosLista" maxlength="120" placeholder="Nome do perito" required />
+          <select id="pPerito" required></select>
+          <input id="pNovoPerito" maxlength="120" placeholder="Nome do novo perito" hidden />
         </div>
         <div class="field pg-esp">
           <label for="pEsp">Especialidade</label>
@@ -733,24 +775,52 @@
         </div>
         <button type="submit" class="btn primary pg-save">Cadastrar</button>
       </div>
-      <datalist id="perPeritosLista"></datalist>
     </form>
 
     <div class="summary per-summary" id="perSummary"></div>
 
+    <div class="per-abas" id="perAbas" role="tablist" aria-label="Perícias em andamento ou concluídas">
+      <button type="button" class="per-aba" role="tab" data-aba="andamento">Em andamento <span class="n" id="perAbaAnd"></span></button>
+      <button type="button" class="per-aba" role="tab" data-aba="concluidas">Concluídas <span class="n" id="perAbaConc"></span></button>
+      <button type="button" class="per-aba" role="tab" data-aba="peritos">Peritos <span class="n" id="perAbaPeritos"></span></button>
+    </div>
+
     <div class="searchbar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="perSearch" type="text" placeholder="Buscar por processo, perito, local ou observação…" autocomplete="off" />
+      <input id="perSearch" type="text" placeholder="Buscar por autor, processo, perito, local ou observação…" autocomplete="off" />
       <button class="clear-btn" id="perClearSearch" hidden>limpar</button>
     </div>
     <div class="filter-row" id="perSituacao" role="group" aria-label="Situação"></div>
-    <div class="filter-row">
+    <div class="filter-row" id="perFiltroPeritoRow">
       <span class="filter-label">Perito</span>
       <select class="per-select" id="perFiltroPerito" aria-label="Filtrar por perito"></select>
     </div>
 
     <div class="groups" id="perGroups"></div>
     <div class="empty" id="perEmpty" hidden></div>
+
+    <div id="perPeritosView" hidden>
+      <form class="quick" id="peritoForm" autocomplete="off" aria-labelledby="peritoFormTitle">
+        <div class="quick-head">
+          <h2 id="peritoFormTitle">Cadastrar perito</h2>
+          <span class="quick-hint" id="peritoFormHint">Depois é só escolher o perito na lista ao cadastrar a perícia</span>
+        </div>
+        <input type="hidden" id="peritoId" />
+        <div class="perito-grid">
+          <div class="field pt-nome"><label for="ptNome">Nome</label><input id="ptNome" maxlength="120" placeholder="Ex.: Dra. Paula Andrade" required /></div>
+          <div class="field pt-esp"><label for="ptEsp">Especialidade</label><select id="ptEsp"></select></div>
+          <div class="field pt-tel"><label for="ptTel">Telefone</label><input id="ptTel" maxlength="40" placeholder="(65) 99999-0000" /></div>
+          <div class="field pt-email"><label for="ptEmail">E-mail</label><input id="ptEmail" type="email" maxlength="120" placeholder="nome@email.com" /></div>
+          <div class="field pt-obs"><label for="ptObs">Observações</label><input id="ptObs" maxlength="500" placeholder="Ex.: atende só às terças; prefere intimação por e-mail" /></div>
+          <div class="pt-btns">
+            <button type="button" class="btn" id="ptCancelar" hidden>Cancelar</button>
+            <button type="submit" class="btn primary" id="ptSalvar">Cadastrar perito</button>
+          </div>
+        </div>
+      </form>
+      <div class="empty" id="peritosEmpty" hidden></div>
+      <div class="pgrid" id="peritosLista"></div>
+    </div>
 
     <div class="batch" id="perBatch" hidden role="region" aria-label="Alterar as perícias selecionadas">
       <div class="batch-in">
@@ -1027,10 +1097,14 @@
       <label for="peProcesso">Nº do processo</label>
       <input id="peProcesso" class="mono" maxlength="40" required />
     </div>
+    <div class="field">
+      <label for="peAutor">Nome do autor</label>
+      <input id="peAutor" maxlength="160" />
+    </div>
     <div class="field-row">
       <div class="field">
         <label for="pePerito">Perito</label>
-        <input id="pePerito" list="perPeritosLista" maxlength="120" required />
+        <select id="pePerito" required></select>
       </div>
       <div class="field">
         <label for="peEsp">Especialidade</label>
@@ -3091,7 +3165,7 @@
     return c;
   }
 
-  var per = { items: [], andamentos: {}, loaded: false, error: null, query: "", situacao: "andamento", perito: "", abertos: {}, sel: {}, grupos: [] };
+  var per = { items: [], andamentos: {}, peritos: [], peritosErro: null, loaded: false, error: null, query: "", aba: "andamento", situacao: "andamento", concl: "todas", perito: "", abertos: {}, sel: {}, grupos: [] };
 
   var P = {
     count: document.getElementById('perCount'),
@@ -3103,7 +3177,7 @@
     hora: document.getElementById('pHora'),
     local: document.getElementById('pLocal'),
     obs: document.getElementById('pObs'),
-    lista: document.getElementById('perPeritosLista'),
+    novoPerito: document.getElementById('pNovoPerito'),
     summary: document.getElementById('perSummary'),
     search: document.getElementById('perSearch'),
     clearSearch: document.getElementById('perClearSearch'),
@@ -3149,10 +3223,34 @@
   function agendadaProxima(p){ return p.status === 'agendada' && p.data && perDiff(p.data) >= 0 && perDiff(p.data) < 15; }
 
   // Nomes de peritos já usados nas perícias (para sugerir ao digitar)
-  function peritosUsados(){
+  function chaveNome(n){ return normalize(n).trim().replace(/\s+/g, ' '); }
+  function peritoCadastrado(nome){
+    var k = chaveNome(nome); if (!k) return null;
+    for (var i = 0; i < per.peritos.length; i++) if (chaveNome(per.peritos[i].nome) === k) return per.peritos[i];
+    return null;
+  }
+  // Nomes para escolher: os cadastrados e, se faltar algum, os já usados nas perícias
+  function nomesDePeritos(){
     var vistos = {}, out = [];
-    per.items.forEach(function(p){ var k = normalize(p.perito).trim(); if (k && !vistos[k]){ vistos[k] = true; out.push(p.perito.trim()); } });
-    return out.sort(function(a, b){ return a.localeCompare(b); });
+    per.peritos.forEach(function(x){ var k = chaveNome(x.nome); if (!vistos[k]){ vistos[k] = true; out.push(x.nome); } });
+    per.items.forEach(function(p){ var k = chaveNome(p.perito); if (k && !vistos[k]){ vistos[k] = true; out.push(p.perito.trim()); } });
+    return out.sort(function(a, b){ return a.localeCompare(b, 'pt-BR'); });
+  }
+  function opcoesPeritos(atual, comNovo){
+    var nomes = nomesDePeritos();
+    if (atual && nomes.map(chaveNome).indexOf(chaveNome(atual)) === -1) nomes.unshift(atual);
+    var h = '<option value="" disabled' + (atual ? '' : ' selected') + '>Escolha o perito…</option>';
+    h += nomes.map(function(n){
+      var c = peritoCadastrado(n);
+      return '<option value="' + escapeHtml(n) + '"' + (chaveNome(n) === chaveNome(atual) ? ' selected' : '') + '>' + escapeHtml(n) + (c && c.especialidade ? ' · ' + escapeHtml(c.especialidade) : '') + '</option>';
+    }).join('');
+    if (comNovo) h += '<option value="__novo__">+ Cadastrar novo perito…</option>';
+    return h;
+  }
+  function preencherSelectPerito(){
+    var atual = P.perito.value === '__novo__' ? '__novo__' : P.perito.value;
+    P.perito.innerHTML = opcoesPeritos(atual === '__novo__' ? '' : atual, true);
+    if (atual === '__novo__') P.perito.value = '__novo__';
   }
 
   // ---- dados ----
@@ -3163,10 +3261,15 @@
     if (res.error){ per.error = res.error; renderPericias(); return; }
     per.error = null;
     per.items = (res.data || []).map(function(r){
-      return { id: r.id, processo: r.processo || '', perito: r.perito || '', especialidade: r.especialidade || '',
+      return { id: r.id, processo: r.processo || '', autor: r.autor || '', perito: r.perito || '', especialidade: r.especialidade || '',
         status: PER_NOME[r.status] ? r.status : 'nao_agendada', data: r.data_pericia ? new Date(r.data_pericia) : null,
         local: r.local || '', realizadaEm: dataLocal(r.realizada_em), laudoEm: dataLocal(r.laudo_em),
         observacoes: r.observacoes || '', conferidaEm: r.conferida_em ? new Date(r.conferida_em) : null };
+    });
+    var pt = await supabase.from('peritos').select('*').order('nome', { ascending: true });
+    per.peritosErro = pt.error || null;
+    per.peritos = (pt.data || []).map(function(x){
+      return { id: x.id, nome: x.nome || '', especialidade: x.especialidade || '', telefone: x.telefone || '', email: x.email || '', observacoes: x.observacoes || '' };
     });
     var an = await supabase.from('pericias_andamentos').select('*').order('created_at', { ascending: false });
     per.andamentos = {};
@@ -3177,7 +3280,7 @@
   }
 
   function perPayload(p){
-    return { processo: p.processo, perito: p.perito, especialidade: p.especialidade, status: p.status,
+    return { processo: p.processo, autor: p.autor || '', perito: p.perito, especialidade: p.especialidade, status: p.status,
       data_pericia: p.data ? p.data.toISOString() : null, local: p.local,
       realizada_em: p.realizadaEm ? dayKey(p.realizadaEm) : null, laudo_em: p.laudoEm ? dayKey(p.laudoEm) : null,
       observacoes: p.observacoes, conferida_em: p.conferidaEm ? p.conferidaEm.toISOString() : null,
@@ -3194,7 +3297,7 @@
   function textoMudanca(p){
     if (p.status === 'agendada') return 'Perícia agendada' + (p.data ? ' para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '');
     if (p.status === 'realizada') return 'Perícia realizada em ' + fmtData(p.realizadaEm) + '. Prazo do laudo: ' + fmtData(prazoLaudo(p)) + ' (' + PRAZO_LAUDO_DIAS_UTEIS + ' dias úteis)';
-    if (p.status === 'laudo_juntado') return 'Laudo juntado em ' + fmtData(p.laudoEm);
+    if (p.status === 'laudo_juntado') return 'Laudo juntado em ' + fmtData(p.laudoEm) + '. Perícia concluída';
     return 'Situação alterada para ' + PER_NOME[p.status];
   }
 
@@ -3203,7 +3306,12 @@
     var res = p.id
       ? await supabase.from('pericias').update(perPayload(p)).eq('id', p.id).select('id')
       : await supabase.from('pericias').insert(perPayload(p)).select('id');
-    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return false; }
+    if (res.error){
+      toast(/autor/.test(res.error.message || '')
+        ? 'Falta a coluna "autor" no Supabase. Rode o SQL do LEIA-ME.md (Passo 2.4) e tente de novo.'
+        : 'Não foi possível salvar: ' + res.error.message);
+      return false;
+    }
     var id = p.id || (res.data && res.data[0] && res.data[0].id);
     if (!p.id && id) await addAndamento(id, 'Perícia cadastrada' + (p.status === 'agendada' ? '. ' + textoMudanca(p) : ' (não agendada)'));
     else if (antes && id){
@@ -3229,14 +3337,36 @@
   // ---- cadastro ----
   P.proc.addEventListener('blur', function(){ P.proc.value = formatProcesso(P.proc.value); });
   P.eProc.addEventListener('blur', function(){ P.eProc.value = formatProcesso(P.eProc.value); });
-  // Ao escolher um perito já usado, sugere a especialidade da última perícia dele
+  // Ao escolher o perito, preenche a especialidade dele; "+ Cadastrar novo" abre o campo do nome
   P.perito.addEventListener('change', function(){
-    if (P.esp.value) return;
-    var n = normalize(P.perito.value).trim();
+    var novo = P.perito.value === '__novo__';
+    P.novoPerito.hidden = !novo;
+    P.novoPerito.required = novo;
+    if (novo){ P.novoPerito.focus(); return; }
+    var c = peritoCadastrado(P.perito.value);
+    if (c && c.especialidade){ P.esp.value = c.especialidade; return; }
+    var n = chaveNome(P.perito.value);
     for (var i = per.items.length - 1; i >= 0; i--){
-      if (normalize(per.items[i].perito).trim() === n && per.items[i].especialidade){ P.esp.value = per.items[i].especialidade; break; }
+      if (chaveNome(per.items[i].perito) === n && per.items[i].especialidade){ P.esp.value = per.items[i].especialidade; break; }
     }
   });
+  P.ePerito.addEventListener('change', function(){
+    var c = peritoCadastrado(P.ePerito.value);
+    if (c && c.especialidade) P.eEsp.value = c.especialidade;
+  });
+
+  async function salvarPerito(x){
+    var payload = { nome: x.nome, especialidade: x.especialidade || '', telefone: x.telefone || '', email: x.email || '', observacoes: x.observacoes || '', updated_at: new Date().toISOString() };
+    var res = x.id ? await supabase.from('peritos').update(payload).eq('id', x.id) : await supabase.from('peritos').insert(payload);
+    if (res.error){
+      var m = res.error.message || '';
+      toast(/duplicate|peritos_nome_idx|23505/.test(m + (res.error.code || '')) ? 'Já existe um perito com esse nome.'
+        : /peritos|42P01|PGRST205/.test(m + (res.error.code || '')) ? 'Falta a tabela de peritos no Supabase. Rode o SQL do LEIA-ME.md (Passo 2.4).'
+        : 'Não foi possível salvar o perito: ' + m);
+      return false;
+    }
+    return true;
+  }
 
   P.form.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -3245,33 +3375,45 @@
       data = new Date(P.data.value + 'T' + (P.hora.value || '09:00'));
       if (isNaN(data.getTime())){ toast('Data ou hora inválida'); return; }
     }
-    var p = { processo: formatProcesso(P.proc.value), perito: P.perito.value.trim(), especialidade: P.esp.value,
+    var nomePerito = P.perito.value === '__novo__' ? P.novoPerito.value.trim() : P.perito.value.trim();
+    if (P.perito.value === '__novo__' && nomePerito){
+      var existente = peritoCadastrado(nomePerito);
+      if (existente) nomePerito = existente.nome;
+      else if (!(await salvarPerito({ nome: nomePerito, especialidade: P.esp.value }))) return;
+    }
+    var p = { processo: formatProcesso(P.proc.value), autor: document.getElementById('pAutor').value.trim(), perito: nomePerito, especialidade: P.esp.value,
       status: data ? 'agendada' : 'nao_agendada', data: data, local: P.local.value.trim(), realizadaEm: null, laudoEm: null,
       observacoes: P.obs.value.trim(), conferidaEm: null };
-    if (!p.processo || !p.perito){ toast('Informe o processo e o perito'); return; }
+    if (!p.processo || !p.autor || !p.perito){ toast('Informe o processo, o autor e o perito'); return; }
     var ok = await salvarPericia(p);
     if (!ok) return;
     toast(data ? 'Perícia cadastrada como Agendada' : 'Perícia cadastrada como Não agendada');
-    P.proc.value = ''; P.perito.value = ''; P.esp.value = ''; P.data.value = ''; P.hora.value = ''; P.local.value = ''; P.obs.value = '';
+    P.proc.value = ''; document.getElementById('pAutor').value = ''; P.perito.value = ''; P.novoPerito.value = ''; P.novoPerito.hidden = true; P.novoPerito.required = false; P.esp.value = ''; P.data.value = ''; P.hora.value = ''; P.local.value = ''; P.obs.value = '';
     P.proc.focus();
   });
 
   // ---- filtros ----
   var PER_SITUACOES = [
-    ["andamento", "Em andamento"], ["nao_agendada", "Não agendadas"], ["agendada", "Agendadas"],
-    ["realizada", "Aguardando laudo"], ["atrasado", "Laudo atrasado"], ["laudo_juntado", "Laudo juntado"], ["todas", "Todas"]
+    ["andamento", "Todas em andamento"], ["nao_agendada", "Não agendadas"], ["agendada", "Agendadas"],
+    ["realizada", "Aguardando laudo"], ["atrasado", "Laudo atrasado"]
   ];
+  var PER_CONCLUIDAS = [["todas", "Todas"], ["laudo_juntado", "Laudo juntado"], ["cancelada", "Canceladas"]];
   function perPassa(p){
-    var s = per.situacao;
-    if (s === 'andamento' && !aberta(p)) return false;
-    if (s === 'atrasado' && !laudoAtrasado(p)) return false;
-    if (['nao_agendada', 'agendada', 'realizada', 'laudo_juntado'].indexOf(s) !== -1 && p.status !== s) return false;
-    if (per.perito && normalize(p.perito).trim() !== per.perito) return false;
+    if (per.aba === 'concluidas'){
+      if (aberta(p)) return false;
+      if (per.concl !== 'todas' && p.status !== per.concl) return false;
+    } else {
+      var s = per.situacao;
+      if (!aberta(p)) return false;
+      if (s === 'atrasado' && !laudoAtrasado(p)) return false;
+      if (['nao_agendada', 'agendada', 'realizada'].indexOf(s) !== -1 && p.status !== s) return false;
+    }
+    if (per.perito && chaveNome(p.perito) !== per.perito) return false;
     var q = normalize(per.query).trim();
     if (!q) return true;
     var qd = digitsOnly(q);
     if (qd.length >= 3 && digitsOnly(p.processo).indexOf(qd) !== -1) return true;
-    return [p.processo, p.perito, p.especialidade, p.local, p.observacoes].some(function(f){ return normalize(f).indexOf(q) !== -1; });
+    return [p.autor, p.processo, p.perito, p.especialidade, p.local, p.observacoes].some(function(f){ return normalize(f).indexOf(q) !== -1; });
   }
 
   // Data que define a ordem: perícia agendada → data da perícia; realizada → prazo do laudo
@@ -3282,17 +3424,31 @@
   }
 
   function renderPerFiltros(){
+    document.querySelectorAll('#perAbas .per-aba').forEach(function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-aba') === per.aba)); });
+    var nAnd = per.items.filter(aberta).length, nConc = per.items.length - nAnd;
+    document.getElementById('perAbaAnd').textContent = nAnd || '';
+    document.getElementById('perAbaConc').textContent = nConc || '';
     P.situacao.innerHTML = '<span class="filter-label">Situação</span>';
-    PER_SITUACOES.forEach(function(x){
-      P.situacao.appendChild(chip(x[1], per.situacao === x[0], function(){ per.situacao = x[0]; renderPericias(); }));
-    });
-    var nomes = {}, opts = [];
-    per.items.forEach(function(p){ var k = normalize(p.perito).trim(); if (k && !nomes[k]){ nomes[k] = true; opts.push([k, p.perito]); } });
-    opts.sort(function(a, b){ return a[1].localeCompare(b[1]); });
-    P.filtroPerito.innerHTML = '<option value="">Todos os peritos</option>' + opts.map(function(o){ return '<option value="' + escapeHtml(o[0]) + '"' + (per.perito === o[0] ? ' selected' : '') + '>' + escapeHtml(o[1]) + '</option>'; }).join('');
-    P.lista.innerHTML = peritosUsados().map(function(n){ return '<option value="' + escapeHtml(n) + '"></option>'; }).join('');
+    if (per.aba === 'concluidas'){
+      PER_CONCLUIDAS.forEach(function(x){
+        P.situacao.appendChild(chip(x[1], per.concl === x[0], function(){ per.concl = x[0]; renderPericias(); }));
+      });
+    } else {
+      PER_SITUACOES.forEach(function(x){
+        P.situacao.appendChild(chip(x[1], per.situacao === x[0], function(){ per.situacao = x[0]; renderPericias(); }));
+      });
+    }
+    P.filtroPerito.innerHTML = '<option value="">Todos os peritos</option>' + nomesDePeritos().map(function(n){ var k = chaveNome(n); return '<option value="' + escapeHtml(k) + '"' + (per.perito === k ? ' selected' : '') + '>' + escapeHtml(n) + '</option>'; }).join('');
+    preencherSelectPerito();
+    document.getElementById('perAbaPeritos').textContent = per.peritos.length || '';
   }
   P.filtroPerito.addEventListener('change', function(){ per.perito = P.filtroPerito.value; renderPericias(); });
+  document.getElementById('perAbas').addEventListener('click', function(e){
+    var b = e.target.closest('.per-aba'); if (!b) return;
+    per.aba = b.getAttribute('data-aba');
+    per.sel = {};
+    renderPericias();
+  });
   P.search.addEventListener('input', function(){ per.query = P.search.value; P.clearSearch.hidden = !per.query; renderPericias(); });
   P.clearSearch.addEventListener('click', function(){ P.search.value = ''; per.query = ''; P.clearSearch.hidden = true; renderPericias(); P.search.focus(); });
 
@@ -3318,6 +3474,7 @@
   P.summary.addEventListener('click', function(e){
     var b = e.target.closest('.stat'); if (!b) return;
     var s = b.getAttribute('data-sit');
+    per.aba = 'andamento';
     per.situacao = per.situacao === s ? 'andamento' : s;
     renderPericias();
   });
@@ -3327,7 +3484,7 @@
     var pr = prazoLaudo(p), atrasado = laudoAtrasado(p), perto = laudoPerto(p);
     var when;
     if (p.status === 'realizada' && pr) when = '<span class="lbl">laudo até</span><b>' + fmtDia(pr) + '</b>';
-    else if (p.status === 'laudo_juntado' && p.laudoEm) when = '<span class="lbl">laudo em</span><b>' + fmtDia(p.laudoEm) + '</b>';
+    else if (p.status === 'laudo_juntado' && p.laudoEm) when = '<span class="lbl">concluída em</span><b>' + fmtDia(p.laudoEm) + '</b><small>' + p.laudoEm.getFullYear() + '</small>';
     else if (p.data) when = '<b>' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) + '</b><small>' + fmtDia(p.data) + '</small>';
     else when = '<span class="lbl">sem data marcada</span>';
 
@@ -3354,8 +3511,10 @@
     var h = '<article class="pcard' + (atrasado ? ' late' : perto ? ' soon' : '') + (aberta(p) ? '' : ' closed') + (per.sel[p.id] ? ' sel' : '') + '">' +
       '<div class="pwhen"><label class="psel" title="Selecionar para alterar em lote"><input type="checkbox" data-psel="' + p.id + '"' + (per.sel[p.id] ? ' checked' : '') + ' aria-label="Selecionar a perícia do processo ' + escapeHtml(p.processo) + '"></label>' + when + '</div>' +
       '<div class="pinfo">' +
+        '<div class="pautor' + (p.autor ? '' : ' vazio') + '">' + (p.autor ? escapeHtml(p.autor) : 'Autor não informado') + '</div>' +
+        '<div class="prow"><span class="pperito">Perito: <b>' + escapeHtml(p.perito) + '</b></span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
+        (function(){ var c = peritoCadastrado(p.perito); return c && (c.telefone || c.email) ? '<div class="pcontact">' + (c.telefone ? '<span>' + escapeHtml(c.telefone) + '</span>' : '') + (c.email ? '<span>' + escapeHtml(c.email) + '</span>' : '') + '</div>' : ''; })() +
         '<div class="prow">' + procCopyBtn(p.processo) + '</div>' +
-        '<div class="prow"><span class="pperito">' + escapeHtml(p.perito) + '</span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
         (meta.length ? '<div class="pmeta">' + meta.join('') + '</div>' : '') +
         (p.observacoes ? '<div class="pobs">' + escapeHtml(p.observacoes) + '</div>' : '') +
         (atrasado ? '<span class="pflag">Cobrar laudo do perito</span>' : '') +
@@ -3373,7 +3532,8 @@
     if (aberto){
       h += '<div class="andamento">' +
         '<form class="and-add" data-pform="andamento" data-id="' + p.id + '"><input maxlength="300" placeholder="Registrar andamento (ex.: perito intimado por e-mail)" aria-label="Novo andamento" required><button type="submit" class="btn primary">Registrar</button></form>' +
-        '<div class="and-quick">' + PER_ATALHOS.map(function(t){ return '<button type="button" data-pact="atalho" data-id="' + p.id + '" data-txt="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>'; }).join('') + '</div>' +
+        '<div class="and-quick">' + PER_ATALHOS.map(function(t){ return '<button type="button" data-pact="atalho" data-id="' + p.id + '" data-txt="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>'; }).join('') +
+          (aberta(p) ? '<button type="button" class="concluir" data-pact="concluir" data-id="' + p.id + '" title="Marca o laudo como juntado hoje e move a perícia para Concluídas">✓ Laudo juntado (concluir)</button>' : '') + '</div>' +
         (ands.length ? '<ol class="timeline">' + ands.map(function(a){
           return '<li><time>' + formatDataHora(a.em) + '</time><span class="txt">' + escapeHtml(a.texto) + '</span>' +
             '<button type="button" class="icon-btn" data-pact="and-excluir" data-aid="' + a.id + '" title="Apagar este andamento" aria-label="Apagar andamento">' + ICON_X + '</button></li>';
@@ -3387,13 +3547,19 @@
     renderPerBatch();
     renderPerFiltros();
     renderPerResumo();
+    var naAbaPeritos = per.aba === 'peritos';
+    document.getElementById('perPeritosView').hidden = !naAbaPeritos;
+    P.situacao.hidden = naAbaPeritos;
+    document.getElementById('perFiltroPeritoRow').hidden = naAbaPeritos;
+    P.search.placeholder = naAbaPeritos ? 'Buscar perito por nome, especialidade ou contato…' : 'Buscar por autor, processo, perito, local ou observação…';
+    if (naAbaPeritos){ P.groups.innerHTML = ''; P.empty.hidden = true; renderPeritos(); return; }
     var list = per.items.filter(perPassa);
     list.sort(function(a, b){
       var la = laudoAtrasado(a), lb = laudoAtrasado(b);
       if (la !== lb) return la ? -1 : 1;
       var x = perChave(a), y = perChave(b);
       if (!x && !y) return 0; if (!x) return 1; if (!y) return -1;
-      return per.situacao === 'laudo_juntado' ? y - x : x - y;
+      return per.aba === 'concluidas' ? y - x : x - y;
     });
     P.count.textContent = list.length + (list.length === 1 ? ' perícia' : ' perícias');
     P.groups.innerHTML = '';
@@ -3405,6 +3571,7 @@
         ? 'A tabela de perícias ainda não existe no Supabase. Rode o arquivo sql/pericias.sql (veja o LEIA-ME.md) e recarregue a página.'
         : 'Erro ao carregar perícias: ' + per.error.message;
       else if (!per.items.length) P.empty.textContent = 'Nenhuma perícia cadastrada ainda. Use o formulário acima para cadastrar a primeira.';
+      else if (per.aba === 'concluidas') P.empty.textContent = 'Nenhuma perícia concluída ainda. Ao juntar o laudo, a perícia vem para cá.';
       else P.empty.textContent = 'Nenhuma perícia nesta situação.';
       return;
     }
@@ -3412,7 +3579,11 @@
     var grupos = [], porChave = {};
     list.forEach(function(p){
       var titulo, rel = '';
-      if (laudoAtrasado(p)) titulo = 'Laudos atrasados';
+      if (per.aba === 'concluidas'){
+        var dc = p.status === 'laudo_juntado' ? p.laudoEm : null;
+        titulo = p.status === 'cancelada' ? 'Canceladas' : dc ? 'Concluídas em ' + dc.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Concluídas';
+      }
+      else if (laudoAtrasado(p)) titulo = 'Laudos atrasados';
       else {
         var d = perChave(p);
         if (!d) titulo = p.status === 'nao_agendada' ? 'Aguardando data do perito' : 'Sem data';
@@ -3435,6 +3606,122 @@
   }
 
   function perFind(id){ for (var i = 0; i < per.items.length; i++) if (per.items[i].id === id) return per.items[i]; return null; }
+
+
+  // ---- aba Peritos: cadastro ----
+  var PT = {
+    form: document.getElementById('peritoForm'), title: document.getElementById('peritoFormTitle'), hint: document.getElementById('peritoFormHint'),
+    id: document.getElementById('peritoId'), nome: document.getElementById('ptNome'), esp: document.getElementById('ptEsp'),
+    tel: document.getElementById('ptTel'), email: document.getElementById('ptEmail'), obs: document.getElementById('ptObs'),
+    cancelar: document.getElementById('ptCancelar'), salvar: document.getElementById('ptSalvar'),
+    lista: document.getElementById('peritosLista'), empty: document.getElementById('peritosEmpty')
+  };
+  PT.esp.innerHTML = PER_ESPECIALIDADES.map(function(e){ return '<option value="' + e + '">' + (e || 'Não informada') + '</option>'; }).join('');
+  var ptEditandoNome = null;
+
+  function limparFormPerito(){
+    PT.id.value = ''; PT.nome.value = ''; PT.esp.value = ''; PT.tel.value = ''; PT.email.value = ''; PT.obs.value = '';
+    PT.title.textContent = 'Cadastrar perito'; PT.salvar.textContent = 'Cadastrar perito'; PT.cancelar.hidden = true;
+    PT.hint.textContent = 'Depois é só escolher o perito na lista ao cadastrar a perícia';
+    ptEditandoNome = null;
+  }
+  PT.cancelar.addEventListener('click', function(){ limparFormPerito(); renderPericias(); });
+
+  PT.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var x = { id: PT.id.value || null, nome: PT.nome.value.trim().replace(/\s+/g, ' '), especialidade: PT.esp.value,
+      telefone: PT.tel.value.trim(), email: PT.email.value.trim(), observacoes: PT.obs.value.trim() };
+    if (!x.nome){ toast('Informe o nome do perito'); return; }
+    var outro = peritoCadastrado(x.nome);
+    if (outro && outro.id !== x.id){ toast('Já existe um perito com esse nome.'); return; }
+    if (!(await salvarPerito(x))) return;
+    // Renomeou: atualiza o nome nas perícias desse perito
+    if (x.id && ptEditandoNome && chaveNome(ptEditandoNome) !== chaveNome(x.nome)){
+      var alvo = per.items.filter(function(p){ return chaveNome(p.perito) === chaveNome(ptEditandoNome); });
+      for (var i = 0; i < alvo.length; i++){
+        await supabase.from('pericias').update({ perito: x.nome, updated_at: new Date().toISOString() }).eq('id', alvo[i].id);
+      }
+    }
+    toast(x.id ? 'Perito atualizado' : 'Perito cadastrado');
+    limparFormPerito();
+    await loadPericias();
+    PT.nome.focus();
+  });
+
+  function renderPeritos(){
+    var q = normalize(per.query).trim();
+    // Peritos cadastrados + nomes usados em perícias que ainda não estão no cadastro
+    var lista = per.peritos.map(function(x){ return Object.assign({ cadastrado: true }, x); });
+    nomesDePeritos().forEach(function(n){ if (!peritoCadastrado(n)) lista.push({ id: null, nome: n, especialidade: '', telefone: '', email: '', observacoes: '', cadastrado: false }); });
+    if (q) lista = lista.filter(function(x){ return [x.nome, x.especialidade, x.telefone, x.email, x.observacoes].some(function(f){ return normalize(f).indexOf(q) !== -1; }); });
+    lista.sort(function(a, b){ return a.nome.localeCompare(b.nome, 'pt-BR'); });
+    P.count.textContent = lista.length + (lista.length === 1 ? ' perito' : ' peritos');
+    if (per.peritosErro){
+      PT.empty.hidden = false;
+      PT.empty.textContent = 'A tabela de peritos ainda não existe no Supabase. Rode o SQL do LEIA-ME.md (Passo 2.4) e recarregue a página.';
+    } else if (!lista.length){
+      PT.empty.hidden = false;
+      PT.empty.textContent = q ? 'Nenhum perito encontrado.' : 'Nenhum perito cadastrado ainda. Use o formulário acima.';
+    } else PT.empty.hidden = true;
+    PT.lista.innerHTML = lista.map(function(x){
+      var minhas = per.items.filter(function(p){ return chaveNome(p.perito) === chaveNome(x.nome); });
+      var and = minhas.filter(aberta).length, atr = minhas.filter(laudoAtrasado).length, conc = minhas.filter(function(p){ return p.status === 'laudo_juntado'; }).length;
+      return '<article class="ptcard' + (x.id && PT.id.value === x.id ? ' editing' : '') + '">' +
+        '<div><h3>' + escapeHtml(x.nome) + '</h3>' +
+          (x.especialidade ? '<div class="prow" style="margin-top:4px"><span class="pesp">' + escapeHtml(x.especialidade) + '</span></div>' : '') +
+          (!x.cadastrado ? '<div class="pobs" style="margin-top:4px">Usado em perícias, mas ainda sem cadastro.</div>' : '') + '</div>' +
+        (x.telefone || x.email ? '<div class="contato">' + (x.telefone ? '<span>' + escapeHtml(x.telefone) + '</span>' : '') + (x.email ? '<span>' + escapeHtml(x.email) + '</span>' : '') + '</div>' : '') +
+        (x.observacoes ? '<div class="obs">' + escapeHtml(x.observacoes) + '</div>' : '') +
+        '<div class="ptnums"><div><b>' + and + '</b><span>em andamento</span></div><div class="' + (atr ? 'bad' : '') + '"><b>' + atr + '</b><span>laudos atrasados</span></div><div><b>' + conc + '</b><span>concluídas</span></div></div>' +
+        '<div class="ptacts">' +
+          (minhas.length ? '<button type="button" class="btn" data-ptact="ver" data-nome="' + escapeHtml(x.nome) + '">Ver perícias</button>' : '') +
+          (x.cadastrado ? '<button type="button" class="btn" data-ptact="editar" data-id="' + x.id + '">Editar</button>' +
+            '<button type="button" class="btn danger-text" data-ptact="excluir" data-id="' + x.id + '" data-n="' + minhas.length + '">Excluir</button>'
+            : '<button type="button" class="btn primary" data-ptact="cadastrar" data-nome="' + escapeHtml(x.nome) + '">Completar cadastro</button>') +
+        '</div></article>';
+    }).join('');
+  }
+
+  PT.lista.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-ptact]'); if (!b) return;
+    var act = b.getAttribute('data-ptact');
+    if (act === 'ver'){
+      per.aba = 'andamento'; per.situacao = 'andamento'; per.perito = chaveNome(b.getAttribute('data-nome'));
+      per.query = ''; P.search.value = ''; P.clearSearch.hidden = true;
+      renderPericias(); P.groups.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      return;
+    }
+    if (act === 'cadastrar'){
+      limparFormPerito(); PT.nome.value = b.getAttribute('data-nome');
+      var n = chaveNome(PT.nome.value);
+      for (var i = per.items.length - 1; i >= 0; i--){ if (chaveNome(per.items[i].perito) === n && per.items[i].especialidade){ PT.esp.value = per.items[i].especialidade; break; } }
+      PT.form.scrollIntoView({ block: 'start', behavior: 'smooth' }); PT.tel.focus();
+      return;
+    }
+    var x = per.peritos.filter(function(y){ return y.id === b.getAttribute('data-id'); })[0]; if (!x) return;
+    if (act === 'editar'){
+      PT.id.value = x.id; PT.nome.value = x.nome; PT.esp.value = x.especialidade; PT.tel.value = x.telefone; PT.email.value = x.email; PT.obs.value = x.observacoes;
+      ptEditandoNome = x.nome;
+      PT.title.textContent = 'Editar perito'; PT.salvar.textContent = 'Salvar alterações'; PT.cancelar.hidden = false;
+      PT.hint.textContent = 'Se mudar o nome, as perícias deste perito passam a usar o nome novo';
+      renderPericias();
+      PT.form.scrollIntoView({ block: 'start', behavior: 'smooth' }); PT.nome.focus();
+      return;
+    }
+    if (act === 'excluir'){
+      if (!b.classList.contains('armed')){
+        var n2 = +b.getAttribute('data-n');
+        b.classList.add('armed');
+        b.textContent = n2 ? 'Excluir mesmo? (' + n2 + (n2 === 1 ? ' perícia continua' : ' perícias continuam') + ' com o nome)' : 'Confirmar exclusão';
+        return;
+      }
+      var res = await supabase.from('peritos').delete().eq('id', x.id);
+      if (res.error){ toast('Não foi possível excluir: ' + res.error.message); return; }
+      if (PT.id.value === x.id) limparFormPerito();
+      toast('Perito excluído do cadastro');
+      await loadPericias();
+    }
+  });
 
   // ---- alteração em lote ----
   var PB = {
@@ -3537,7 +3824,8 @@
       return;
     }
     var ok = await salvarPericia(novo, antes);
-    if (ok) toast(novo.status === 'realizada' ? 'Realizada. Laudo até ' + fmtData(prazoLaudo(novo)) : 'Situação: ' + PER_NOME[novo.status]);
+    if (ok) toast(novo.status === 'realizada' ? 'Realizada. Laudo até ' + fmtData(prazoLaudo(novo))
+      : !aberta(novo) ? 'Perícia ' + (novo.status === 'cancelada' ? 'cancelada' : 'concluída') + ' e movida para Concluídas' : 'Situação: ' + PER_NOME[novo.status]);
     else renderPericias();
   });
 
@@ -3551,6 +3839,12 @@
     if (act === 'conferir' && p){
       var novo = perCopia(p); novo.conferidaEm = p.conferidaEm ? null : new Date();
       if (await salvarPericia(novo)) toast(novo.conferidaEm ? 'Conferida em ' + formatDataHora(novo.conferidaEm) : 'Conferência desmarcada');
+      return;
+    }
+    if (act === 'concluir' && p){
+      var fim = perCopia(p); fim.status = 'laudo_juntado'; fim.laudoEm = startOfDay(new Date());
+      if (!fim.realizadaEm) fim.realizadaEm = fim.data && startOfDay(fim.data) <= fim.laudoEm ? startOfDay(fim.data) : null;
+      if (await salvarPericia(fim, perCopia(p))) toast('Perícia concluída e movida para Concluídas');
       return;
     }
     if (act === 'atalho' && p){ await addAndamento(p.id, b.getAttribute('data-txt')); toast('Andamento registrado'); await loadPericias(); return; }
@@ -3588,7 +3882,7 @@
   function openPerDialog(p, antes){
     perEditando = { antes: antes, base: p };
     P.eId.value = p.id;
-    P.eProc.value = p.processo; P.ePerito.value = p.perito; P.eEsp.value = p.especialidade;
+    P.eProc.value = p.processo; document.getElementById('peAutor').value = p.autor || ''; P.ePerito.innerHTML = opcoesPeritos(p.perito, false); P.eEsp.value = p.especialidade;
     P.eStatus.value = p.status;
     P.eData.value = p.data ? dayKey(p.data) : ''; P.eHora.value = p.data ? pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '';
     P.eLocal.value = p.local; P.eReal.value = p.realizadaEm ? dayKey(p.realizadaEm) : ''; P.eLaudo.value = p.laudoEm ? dayKey(p.laudoEm) : '';
@@ -3603,7 +3897,7 @@
     e.preventDefault();
     if (!perEditando) return;
     var p = perCopia(perEditando.base);
-    p.processo = formatProcesso(P.eProc.value); p.perito = P.ePerito.value.trim(); p.especialidade = P.eEsp.value;
+    p.processo = formatProcesso(P.eProc.value); p.autor = document.getElementById('peAutor').value.trim(); p.perito = P.ePerito.value.trim(); p.especialidade = P.eEsp.value;
     p.data = P.eData.value ? new Date(P.eData.value + 'T' + (P.eHora.value || '09:00')) : null;
     p.local = P.eLocal.value.trim(); p.observacoes = P.eObs.value.trim();
     p.realizadaEm = P.eReal.value ? dataLocal(P.eReal.value) : null;
@@ -3659,6 +3953,7 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'audiencias' }, loadAudiencias)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pericias' }, loadPericias)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pericias_andamentos' }, loadPericias)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'peritos' }, loadPericias)
         .subscribe();
     })();
   }
