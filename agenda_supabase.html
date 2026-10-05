@@ -367,6 +367,15 @@
   .panel-head span{ font-size:12.5px; color:var(--muted); }
   .org-add{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .org-add .grow{ flex:1 1 220px; min-width:0; }
+  .org-add .full{ flex-basis:100%; }
+  .org-add .proc-in{ font-family:var(--font-data); font-size:14px; flex-basis:240px; }
+  .proc-copy{ display:inline-flex; align-items:center; gap:5px; border:1px solid var(--item-line); background:var(--paper); color:var(--ink);
+    border-radius:6px; padding:1px 6px 1px 7px; font-family:var(--font-data); font-size:12px; cursor:pointer; line-height:1.5; }
+  .proc-copy svg{ color:var(--muted); flex:none; }
+  .proc-copy:hover{ border-color:var(--accent); color:var(--accent); }
+  .proc-copy:hover svg{ color:var(--accent); }
+  .proc-copy.copied{ border-color:var(--ok); color:var(--ok); }
+  .proc-copy.copied svg{ color:var(--ok); }
   .org-in{ border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:10px; padding:0 11px; height:40px; font-family:var(--font-ui); font-size:14.5px; min-width:0; }
   .org-add .btn{ height:40px; padding:0 16px; }
   .swatches{ display:flex; gap:6px; }
@@ -619,7 +628,8 @@
         <div class="panel">
           <div class="panel-head"><h2>Tarefas</h2><span id="orgTasksInfo"></span></div>
           <form class="org-add" id="orgTaskForm" autocomplete="off">
-            <input class="org-in grow" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
+            <input class="org-in grow full" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
+            <input class="org-in grow proc-in" id="orgTaskProc" maxlength="40" placeholder="Nº do processo (opcional)" aria-label="Número do processo" />
             <input class="org-in" id="orgTaskDue" type="date" aria-label="Prazo" />
             <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="">Normal</option><option value="1">Urgente</option></select>
             <select class="org-in" id="orgTaskResp" aria-label="Responsável"></select>
@@ -2304,7 +2314,7 @@
       meta.push(late ? '<span class="late">Atrasada ' + (-dd) + (dd === -1 ? ' dia' : ' dias') + ' (' + fmtDia(t.prazo) + ')</span>'
         : dd === 0 ? '<span>Vence hoje</span>' : dd === 1 ? '<span>Vence amanhã</span>' : '<span>Prazo ' + fmtDia(t.prazo) + '</span>');
     }
-    if (t.processo) meta.push('<span class="proc">' + escapeHtml(t.processo) + '</span>');
+    if (t.processo) meta.push(procCopyBtn(t.processo));
     if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
     return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '">' +
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
@@ -2313,6 +2323,29 @@
       '<div class="t-side">' + (t.urgente && !t.feitaEm ? '<span class="tag urg">Urgente</span>' : '') +
       (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
+  }
+
+  var ICON_COPY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+  function procCopyBtn(proc){
+    return '<button type="button" class="proc-copy" data-act="copiar" data-proc="' + escapeHtml(proc) + '" title="Copiar número do processo" aria-label="Copiar número do processo ' + escapeHtml(proc) + '">' + escapeHtml(proc) + ICON_COPY + '</button>';
+  }
+
+  function copiarTexto(txt, btn){
+    function ok(){
+      toast('Número copiado: ' + txt);
+      if (btn){ btn.classList.add('copied'); setTimeout(function(){ btn.classList.remove('copied'); }, 1500); }
+    }
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var done = false;
+      try { done = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      if (done) ok(); else toast('Não foi possível copiar. Selecione o número e use Ctrl+C.');
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(ok, fallback);
+    else fallback();
   }
 
   function orgTaskEdit(t){
@@ -2371,6 +2404,8 @@
 
   // ---- ações ----
 
+  document.getElementById('orgTaskProc').addEventListener('blur', function(e){ e.target.value = formatProcesso(e.target.value); });
+
   O.swatches.addEventListener('click', function(e){
     var b = e.target.closest('[data-cor]'); if (!b) return;
     org.cor = b.getAttribute('data-cor');
@@ -2391,9 +2426,9 @@
     e.preventDefault();
     var titulo = O.taskTitle.value.trim(); if (!titulo) return;
     var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
-      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: '', feitaEm: null });
+      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
     if (!orgOk(r)) return;
-    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = '';
+    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = ''; document.getElementById('orgTaskProc').value = '';
     toast('Tarefa adicionada');
     await orgLoad();
     O.taskTitle.focus();
@@ -2571,6 +2606,7 @@
           '<div class="t-meta">' + (t.prazo ? '<span' + (late ? ' class="late"' : '') + '>' + (late ? 'Atrasada · ' : 'Prazo ') + fmtDia(t.prazo) + '</span>' : '') +
           (t.urgente && c[0] !== 'feito' ? '<span class="tag urg">Urgente</span>' : '') +
           (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+          (t.processo ? procCopyBtn(t.processo) : '') +
           (t.feitaEm && c[0] === 'feito' ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
           (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '">← ' + ORG_ETAPAS[ci - 1][1] + '</button>' : '<span></span>') +
@@ -2706,6 +2742,7 @@
   O.content.addEventListener('click', async function(e){
     var b = e.target.closest('[data-act]'); if (!b || !O.content.contains(b)) return;
     var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), r;
+    if (act === 'copiar'){ copiarTexto(b.getAttribute('data-proc'), b); return; }
     if (act === 'mover'){
       var t = orgFind(org.tarefas, id); if (!t) return;
       var etapa = ORG_ETAPAS_KEYS[ORG_ETAPAS_KEYS.indexOf(t.etapa) + Number(b.getAttribute('data-dir'))]; if (!etapa) return;
