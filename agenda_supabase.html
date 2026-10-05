@@ -282,6 +282,17 @@
     color:var(--warn); background:var(--warn-soft); border-radius:6px; padding:2px 7px; margin-top:2px; }
   .hcard.cancelled .hproc, .hcard.cancelled .htime{ text-decoration:line-through; color:var(--muted); }
   .hside{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
+  .hactions{ display:flex; align-items:center; gap:4px; }
+  .conf-btn{
+    display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+    font-family:var(--font-ui); font-size:12.5px; font-weight:500; cursor:pointer;
+    border:1px dashed var(--line); background:transparent; color:var(--muted);
+    border-radius:8px; padding:4px 9px; min-height:30px;
+  }
+  .conf-btn:hover{ border-color:var(--ok); color:var(--ok); }
+  .conf-btn.done{ border-style:solid; border-color:var(--ok); background:var(--ok-soft); color:var(--ok); }
+  .conf-btn.done .conf-date{ font-family:var(--font-data); font-size:12px; font-variant-numeric:tabular-nums; }
+  .conf-btn.armed{ border-style:solid; border-color:var(--danger); background:transparent; color:var(--danger); }
 
   .status-pill{ position:relative; display:inline-flex; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:transparent; }
   .status-pill select{
@@ -347,7 +358,7 @@
     .stat-num{ font-size:23px; }
     .stat-lbl{ font-size:10px; }
     .hcard{ grid-template-columns: 50px minmax(0,1fr); }
-    .hside{ grid-column: 1 / -1; flex-direction:row; justify-content:space-between; align-items:center; }
+    .hside{ grid-column: 1 / -1; flex-direction:row; justify-content:space-between; align-items:center; flex-wrap:wrap; }
     .htime{ font-size:15.5px; }
     .filter-label{ min-width:0; width:100%; }
   }
@@ -504,6 +515,7 @@
       </div>
     </div>
     <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
+    <div class="filter-row" id="audConf" role="group" aria-label="Conferência"></div>
 
     <div class="groups" id="audGroups"></div>
     <div class="empty" id="audEmpty" hidden></div>
@@ -1308,7 +1320,12 @@
     { key: 'intervalo',  label: 'Entre datas' }
   ];
 
-  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos' };
+  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', conf: 'todas' };
+  var CONF_FILTROS = [
+    { key: 'todas', label: 'Todas' },
+    { key: 'nao',   label: 'Não conferidas' },
+    { key: 'sim',   label: 'Conferidas' }
+  ];
 
   var A = {
     count: document.getElementById('audCount'),
@@ -1316,6 +1333,7 @@
     clearSearch: document.getElementById('audClearSearch'),
     periods: document.getElementById('audPeriods'),
     statuses: document.getElementById('audStatuses'),
+    conf: document.getElementById('audConf'),
     groups: document.getElementById('audGroups'),
     empty: document.getElementById('audEmpty'),
     statHoje: document.getElementById('statHoje'),
@@ -1372,7 +1390,8 @@
         date: new Date(r.data_hora),
         tipo: r.tipo || "",
         status: STATUS_ANTIGOS[r.status] || r.status || STATUS_PADRAO,
-        observacoes: r.observacoes || ""
+        observacoes: r.observacoes || "",
+        conferidaEm: r.conferida_em ? new Date(r.conferida_em) : null
       };
     });
     renderAudiencias();
@@ -1412,6 +1431,29 @@
     toast('Status: ' + status);
   }
 
+  async function toggleConferida(a){
+    var prev = a.conferidaEm;
+    var next = prev ? null : new Date();
+    a.conferidaEm = next;
+    renderAudiencias();
+    var res = await supabase.from('audiencias')
+      .update({ conferida_em: next ? next.toISOString() : null }).eq('id', a.id);
+    if (res.error){
+      a.conferidaEm = prev;
+      renderAudiencias();
+      var msg = res.error.message || '';
+      toast(/conferida_em/.test(msg)
+        ? 'Falta a coluna "conferida_em" no Supabase. Rode o SQL do LEIA-ME.md (Passo 2.2).'
+        : 'Não foi possível marcar: ' + msg);
+      return;
+    }
+    toast(next ? 'Audiência conferida em ' + formatDataHora(next) : 'Conferência desmarcada');
+  }
+
+  function formatDataHora(d){
+    return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' às ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }
+
   async function deleteAudiencia(id){
     if (!supabase) return;
     var res = await supabase.from('audiencias').delete().eq('id', id);
@@ -1441,6 +1483,8 @@
 
   function audMatches(a){
     if (aud.status !== 'Todos' && a.status !== aud.status) return false;
+    if (aud.conf === 'sim' && !a.conferidaEm) return false;
+    if (aud.conf === 'nao' && a.conferidaEm) return false;
     var q = normalize(aud.query).trim();
     if (!q) return true;
     var qd = digitsOnly(q);
@@ -1476,6 +1520,10 @@
     A.statuses.innerHTML = '<span class="filter-label">Status</span>';
     ["Todos"].concat(STATUSES).forEach(function(st){
       A.statuses.appendChild(chip(st, aud.status === st, function(){ aud.status = st; renderAudiencias(); }));
+    });
+    A.conf.innerHTML = '<span class="filter-label">Conferência</span>';
+    CONF_FILTROS.forEach(function(c){
+      A.conf.appendChild(chip(c.label, aud.conf === c.key, function(){ aud.conf = c.key; renderAudiencias(); }));
     });
     A.stats.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-period') === aud.period)); });
   }
@@ -1571,8 +1619,35 @@
     editBtn.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
     editBtn.addEventListener('click', function(){ openAudDialog(a); });
 
+    var conf = document.createElement('button');
+    conf.type = 'button';
+    conf.className = 'conf-btn';
+    var checkSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+    if (a.conferidaEm){
+      conf.classList.add('done');
+      conf.innerHTML = checkSvg + '<span>Conferida</span><span class="conf-date">' + formatDataHora(a.conferidaEm).replace(' às ', ' ') + '</span>';
+      conf.title = 'Conferida em ' + formatDataHora(a.conferidaEm) + '. Clique para desmarcar.';
+    } else {
+      conf.innerHTML = checkSvg + '<span>Conferir</span>';
+      conf.title = 'Marcar como conferida (grava a data e a hora de agora)';
+    }
+    conf.addEventListener('click', function(){
+      if (a.conferidaEm && !conf.classList.contains('armed')){
+        conf.classList.add('armed');
+        conf.innerHTML = '<span>Desmarcar conferência?</span>';
+        setTimeout(function(){ if (conf.isConnected && conf.classList.contains('armed')) renderAudiencias(); }, 4000);
+        return;
+      }
+      toggleConferida(a);
+    });
+
+    var actions = document.createElement('div');
+    actions.className = 'hactions';
+    actions.appendChild(conf);
+    actions.appendChild(editBtn);
+
     side.appendChild(pill);
-    side.appendChild(editBtn);
+    side.appendChild(actions);
 
     card.appendChild(time);
     card.appendChild(info);

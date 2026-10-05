@@ -70,6 +70,7 @@ create table audiencias (
   tipo text default '',
   status text not null default 'A cumprir',   -- A cumprir, Cumprida, Redesignada, Cancelada
   observacoes text default '',
+  conferida_em timestamptz,                  -- data/hora em que foi marcada como conferida
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -93,6 +94,14 @@ alter publication supabase_realtime add table audiencias;
 Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo para rodar este SQL.
 
 Para mudar a lista de status, edite `STATUSES` no `index.html` (o primeiro da lista é o padrão de uma audiência nova).
+
+## Passo 2.2 — Coluna "conferida" (para quem já criou a tabela antes)
+
+Se a tabela `audiencias` foi criada antes da opção **Conferir**, rode também:
+
+```sql
+alter table audiencias add column if not exists conferida_em timestamptz;
+```
 
 ### Como adicionar novas seções ao portal depois
 
