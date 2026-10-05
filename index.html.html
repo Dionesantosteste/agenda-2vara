@@ -469,7 +469,7 @@
         <span class="stat-num" id="statHoje">0</span><span class="stat-lbl">hoje</span>
       </button>
       <button type="button" class="stat" data-period="semana" aria-pressed="false">
-        <span class="stat-num" id="statSemana">0</span><span class="stat-lbl">próximos 7 dias</span>
+        <span class="stat-num" id="statSemana">0</span><span class="stat-lbl">próximos 15 dias</span>
       </button>
       <button type="button" class="stat warn" data-period="pendentes" aria-pressed="false" id="statPendBtn">
         <span class="stat-num" id="statPend">0</span><span class="stat-lbl">sem atualização</span>
@@ -1261,13 +1261,14 @@
 
   var STATUSES = ["A cumprir", "Cumprida", "Redesignada", "Cancelada"];
   var STATUS_PADRAO = STATUSES[0];
+  var JANELA_DIAS = 15; // período do filtro e do quadro "Próximos N dias"
   // nomes usados na primeira versão, convertidos ao carregar
   var STATUS_ANTIGOS = { "Designada": "A cumprir", "Realizada": "Cumprida" };
   var TIPOS_SUGERIDOS = ["Conciliação", "Mediação", "Instrução", "Instrução e julgamento", "Una", "Justificação", "Custódia", "Oitiva de testemunha"];
   var PERIODS = [
     { key: 'proximas',   label: 'Próximas' },
     { key: 'hoje',       label: 'Hoje' },
-    { key: 'semana',     label: 'Próximos 7 dias' },
+    { key: 'semana',     label: 'Próximos ' + JANELA_DIAS + ' dias' },
     { key: 'mes',        label: 'Este mês' },
     { key: 'anteriores', label: 'Anteriores' },
     { key: 'pendentes',  label: 'Sem atualização' },
@@ -1389,7 +1390,7 @@
     switch (aud.period){
       case 'proximas':   return a.date >= today;
       case 'hoje':       return a.date >= today && a.date < addDays(today, 1);
-      case 'semana':     return a.date >= today && a.date < addDays(today, 7);
+      case 'semana':     return a.date >= today && a.date < addDays(today, JANELA_DIAS);
       case 'mes':        return a.date.getFullYear() === now.getFullYear() && a.date.getMonth() === now.getMonth();
       case 'anteriores': return a.date < today;
       case 'pendentes':  return isPending(a, now);
@@ -1438,7 +1439,7 @@
   }
 
   function renderSummary(now){
-    var today = startOfDay(now), tomorrow = addDays(today, 1), week = addDays(today, 7);
+    var today = startOfDay(now), tomorrow = addDays(today, 1), week = addDays(today, JANELA_DIAS);
     var hoje = 0, semana = 0, pend = 0;
     aud.items.forEach(function(a){
       if (a.status === 'Cancelada') return;
