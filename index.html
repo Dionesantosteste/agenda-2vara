@@ -27,6 +27,8 @@
     --info: #1D5BB8; --info-soft: #E7F0FC;
     --ok: #157A3E; --ok-soft: #E3F4EA;
     --warn: #A35A00; --warn-soft: #FDF0DC;
+    --note-amarelo: #FFF3B0; --note-verde: #D9F2DF; --note-rosa: #FCE0E6; --note-azul: #DCE9FF; --note-ink: #2A2A1E;
+    --note-shadow: 0 2px 6px rgba(20,32,51,.12);
     --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
@@ -36,6 +38,8 @@
       --focus: #7FB0F5; --shadow: none;
       --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
       --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
+      --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
+      --note-shadow: 0 2px 8px rgba(0,0,0,.4);
     }
   }
   :root[data-theme="dark"]{
@@ -44,6 +48,8 @@
     --focus: #7FB0F5; --shadow: none;
     --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
     --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
+    --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
+    --note-shadow: 0 2px 8px rgba(0,0,0,.4);
   }
 
   *{box-sizing:border-box;}
@@ -333,6 +339,79 @@
 
   .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
 
+  /* ================= Organização ================= */
+  .lock{ max-width:380px; margin:48px auto; background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+    padding:28px 24px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
+  .lock-ico{ width:52px; height:52px; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; }
+  .lock h2{ margin:0; font-size:20px; font-weight:600; }
+  .lock p{ margin:0; color:var(--muted); font-size:14px; }
+  .lock form{ display:flex; flex-direction:column; gap:12px; width:100%; }
+  .pin-input{ width:100%; text-align:center; font-family:var(--font-data); font-size:28px; letter-spacing:.5em; padding:10px 0 10px .5em;
+    border:1px solid var(--line); border-radius:12px; background:var(--sunken); color:var(--ink); }
+  .pin-input:focus{ outline:2px solid var(--focus); outline-offset:1px; }
+  .lock-msg{ min-height:1.4em; font-size:13.5px; color:var(--danger); }
+  .lock .btn{ width:100%; height:44px; }
+
+  .org-head-actions{ display:flex; gap:8px; align-items:center; }
+  .org-split{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:18px; align-items:start; }
+  .panel{ background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:16px 18px 18px; display:flex; flex-direction:column; gap:14px; min-width:0; }
+  .panel-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .panel-head h2{ margin:0; font-size:18px; font-weight:600; }
+  .panel-head span{ font-size:12.5px; color:var(--muted); }
+  .org-add{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .org-add .grow{ flex:1 1 220px; min-width:0; }
+  .org-in{ border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:10px; padding:0 11px; height:40px; font-family:var(--font-ui); font-size:14.5px; min-width:0; }
+  .org-add .btn{ height:40px; padding:0 16px; }
+  .swatches{ display:flex; gap:6px; }
+  .sw{ width:26px; height:26px; border-radius:7px; border:2px solid transparent; cursor:pointer; box-shadow:inset 0 0 0 1px rgba(0,0,0,.1); padding:0; }
+  .sw[aria-pressed="true"]{ border-color:var(--accent); }
+  .c-amarelo{ background:var(--note-amarelo); } .c-verde{ background:var(--note-verde); } .c-rosa{ background:var(--note-rosa); } .c-azul{ background:var(--note-azul); }
+
+  .board{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:14px; }
+  .note{ position:relative; min-height:118px; padding:14px 14px 36px; border-radius:4px 4px 14px 4px; color:var(--note-ink);
+    box-shadow:var(--note-shadow); font-size:14px; line-height:1.45; transform:rotate(var(--r,0deg)); }
+  .note.pinned{ outline:2px solid var(--accent); outline-offset:-2px; }
+  .note-text{ outline:none; border-radius:4px; cursor:text; min-height:3em; margin:-3px; padding:3px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .note-text:hover{ background:rgba(0,0,0,.05); }
+  .note-text:focus{ background:rgba(255,255,255,.5); box-shadow:0 0 0 2px var(--accent); }
+  .note-foot{ position:absolute; left:10px; right:6px; bottom:4px; display:flex; align-items:center; justify-content:space-between; font-size:11.5px; opacity:.8; }
+  .note-actions{ display:flex; gap:2px; }
+  .note .icon-btn{ color:inherit; width:28px; height:28px; }
+  .note .icon-btn:hover{ background:rgba(0,0,0,.08); color:inherit; }
+  .pin-badge{ position:absolute; top:-8px; right:12px; background:var(--accent); color:var(--accent-ink); font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; border-radius:6px; padding:2px 7px; }
+
+  .tgroup{ display:flex; flex-direction:column; gap:8px; }
+  .tgroup-title{ font-size:15px; font-weight:600; color:var(--accent); display:flex; gap:8px; align-items:baseline; margin-top:2px; }
+  .tgroup-title .n{ font-size:12px; color:var(--muted); font-weight:500; }
+  .task{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
+  .task.overdue{ border-color:var(--danger); background:color-mix(in srgb, var(--danger) 8%, var(--paper)); }
+  .task.done .editable{ text-decoration:line-through; color:var(--muted); }
+  .check{ width:22px; height:22px; margin-top:1px; border-radius:6px; border:2px solid var(--muted); background:transparent; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; color:var(--paper); padding:0; }
+  .check[aria-checked="true"]{ background:var(--ok); border-color:var(--ok); }
+  .t-title{ font-weight:500; overflow-wrap:anywhere; }
+  .editable{ cursor:text; border-radius:4px; outline:none; margin:-2px -4px; padding:2px 4px; }
+  .editable:hover{ background:var(--sunken); }
+  .editable:focus{ background:var(--paper); box-shadow:0 0 0 2px var(--accent); }
+  .t-meta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:3px; font-size:12.5px; color:var(--muted); }
+  .t-meta .proc{ font-family:var(--font-data); font-size:12px; }
+  .t-meta .late{ color:var(--danger); font-weight:600; }
+  .t-meta .doneat{ color:var(--ok); }
+  .tag{ font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; border-radius:6px; padding:2px 7px; white-space:nowrap; }
+  .tag.urg{ color:var(--danger); border:1px solid var(--danger); background:transparent; }
+  .tag.resp{ color:var(--muted); background:var(--sunken); border:1px solid var(--line); text-transform:none; letter-spacing:0; font-weight:500; }
+  .t-side{ display:flex; gap:6px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+  .task.editing{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); grid-template-columns:minmax(0,1fr); }
+  .task-edit{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+  .task-edit .ttl{ grid-column:1 / -1; }
+  .task-edit label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
+  .task-edit .org-in{ width:100%; }
+  .task-edit .row-btns{ grid-column:1 / -1; display:flex; gap:8px; justify-content:space-between; flex-wrap:wrap; }
+  .btn.danger-text{ color:var(--danger); border-color:transparent; }
+  .org-empty{ color:var(--muted); font-size:13.5px; padding:6px 2px; }
+
+  @media (max-width:1100px){ .org-split{ grid-template-columns:minmax(0,1fr); } }
+  @media (prefers-reduced-motion: reduce){ .note{ transform:none; } }
+
   @media (max-width:860px){
     .shell{ grid-template-columns: minmax(0,1fr); }
     .sidebar{
@@ -353,6 +432,8 @@
   @media (prefers-reduced-motion: reduce){ .sidebar{ transition:none; } }
 
   @media (max-width:520px){
+    .board{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+    .task{ grid-template-columns:28px minmax(0,1fr); } .task .t-side{ grid-column:2; justify-content:flex-start; }
     .summary{ gap:8px; }
     .stat{ padding:10px 10px; }
     .stat-num{ font-size:23px; }
@@ -390,6 +471,11 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v17"/><path d="M8 20h8"/><path d="M5 7h14"/><path d="M5 7l-3 6.5a3 3 0 0 0 6 0z"/><path d="M19 7l-3 6.5a3 3 0 0 0 6 0z"/></svg>
         <span>Audiências</span>
         <span class="nav-count" id="navCountAud" title="Audiências hoje"></span>
+      </a>
+      <a class="nav-item" href="#organizacao" data-route="organizacao">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6"/><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 11l2 2 4-4"/><path d="M9 17h6"/></svg>
+        <span>Organização</span>
+        <span class="nav-count" id="navCountOrg" title="Tarefas para hoje ou atrasadas"></span>
       </a>
     </nav>
     <div class="sidebar-foot">
@@ -440,6 +526,53 @@
       <div class="empty" id="emptyState" hidden></div>
     </div>
   </div>
+  </section>
+
+  <section id="view-organizacao" aria-labelledby="orgTitle" hidden>
+    <div class="lock" id="orgLock">
+      <div class="lock-ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></div>
+      <h2 id="orgTitle">Organização</h2>
+      <p>Área do gestor. Digite a senha de 6 dígitos.</p>
+      <form id="orgPinForm" autocomplete="off">
+        <input class="pin-input" id="orgPin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" aria-label="Senha de 6 dígitos" placeholder="••••••" required />
+        <div class="lock-msg" id="orgMsg" role="alert"></div>
+        <button type="submit" class="btn primary" id="orgEnter">Entrar</button>
+      </form>
+    </div>
+
+    <div id="orgContent" hidden>
+      <header>
+        <div>
+          <h1>Organização</h1>
+          <div class="tagline">Mural de avisos e tarefas da gestão</div>
+        </div>
+        <div class="org-head-actions">
+          <button type="button" class="btn" id="orgLockBtn" title="Trancar a Organização neste navegador">Trancar</button>
+        </div>
+      </header>
+      <div class="org-split">
+        <div class="panel">
+          <div class="panel-head"><h2>Tarefas</h2><span id="orgTasksInfo"></span></div>
+          <form class="org-add" id="orgTaskForm" autocomplete="off">
+            <input class="org-in grow" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
+            <input class="org-in" id="orgTaskDue" type="date" aria-label="Prazo" />
+            <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="">Normal</option><option value="1">Urgente</option></select>
+            <select class="org-in" id="orgTaskResp" aria-label="Responsável"></select>
+            <button type="submit" class="btn primary">Adicionar</button>
+          </form>
+          <div id="orgTasks" class="tgroup"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Mural</h2><span id="orgNotesInfo"></span></div>
+          <form class="org-add" id="orgNoteForm" autocomplete="off">
+            <input class="org-in grow" id="orgNoteText" maxlength="300" placeholder="Escreva um aviso ou lembrete rápido…" required />
+            <div class="swatches" id="orgSwatches" role="group" aria-label="Cor da nota"></div>
+            <button type="submit" class="btn primary">Colar nota</button>
+          </form>
+          <div class="board" id="orgBoard"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section id="view-audiencias" aria-labelledby="audTitle" hidden>
@@ -1265,7 +1398,8 @@
 
   var ROUTES = {
     agenda:     { title: 'Agenda' },
-    audiencias: { title: 'Audiências' }
+    audiencias: { title: 'Audiências' },
+    organizacao: { title: 'Organização' }
   };
   var currentRoute = 'agenda';
   var shell = document.getElementById('shell');
@@ -1297,6 +1431,7 @@
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
     if (r === 'audiencias') renderAudiencias();
+    if (r === 'organizacao') orgOnEnter();
   }
   window.addEventListener('hashchange', applyRoute);
 
@@ -1862,6 +1997,366 @@
 
   // Mantém "hoje" e os avisos de "já passou" corretos com a página aberta
   setInterval(renderAudiencias, 60000);
+
+  // ---------------------------------------------------------------------
+  // Organização (mural + tarefas) — protegida por senha conferida no Supabase.
+  // Os dados só saem do banco pelas funções org_* (ver sql/organizacao.sql).
+  // ---------------------------------------------------------------------
+
+  var ORG_CORES = ["amarelo", "verde", "rosa", "azul"];
+  var ORG_RESPS = ["Gestor", "Secretaria", "Cartório", "Assessoria", "Gabinete"];
+  var ORG_ROT = ["-0.8deg", "0.6deg", "-0.3deg", "0.9deg", "-0.6deg", "0.4deg"];
+  var ORG_CE = (function(){
+    var d = document.createElement('div');
+    try { d.contentEditable = 'plaintext-only'; } catch (e) { return 'true'; }
+    return d.contentEditable === 'plaintext-only' ? 'plaintext-only' : 'true';
+  })();
+  var ICON_CHECK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  var ICON_PIN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5"/><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3z"/></svg>';
+  var ICON_X = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  var ICON_PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+  var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false };
+  try { org.pin = sessionStorage.getItem('orgPin'); } catch (e) {}
+
+  var O = {
+    lock: document.getElementById('orgLock'),
+    pinForm: document.getElementById('orgPinForm'),
+    pin: document.getElementById('orgPin'),
+    msg: document.getElementById('orgMsg'),
+    enter: document.getElementById('orgEnter'),
+    content: document.getElementById('orgContent'),
+    lockBtn: document.getElementById('orgLockBtn'),
+    notesInfo: document.getElementById('orgNotesInfo'),
+    noteForm: document.getElementById('orgNoteForm'),
+    noteText: document.getElementById('orgNoteText'),
+    swatches: document.getElementById('orgSwatches'),
+    board: document.getElementById('orgBoard'),
+    tasksInfo: document.getElementById('orgTasksInfo'),
+    taskForm: document.getElementById('orgTaskForm'),
+    taskTitle: document.getElementById('orgTaskTitle'),
+    taskDue: document.getElementById('orgTaskDue'),
+    taskUrg: document.getElementById('orgTaskUrg'),
+    taskResp: document.getElementById('orgTaskResp'),
+    tasks: document.getElementById('orgTasks'),
+    navCount: document.getElementById('navCountOrg')
+  };
+
+  O.taskResp.innerHTML = '<option value="">Responsável</option>' + ORG_RESPS.map(function(r){ return '<option>' + r + '</option>'; }).join('');
+
+  function orgStatusMsg(st){
+    if (st === 'senha') return 'Senha incorreta.';
+    if (st === 'bloqueado') return 'Muitas tentativas erradas. Aguarde 5 minutos e tente de novo.';
+    if (st === 'sem_config') return 'A senha ainda não foi configurada no Supabase (veja o LEIA-ME.md).';
+    return '';
+  }
+
+  async function orgCall(fn, args){
+    if (!supabase) return { status: 'erro', message: 'Configure o Supabase primeiro (veja LEIA-ME.md).' };
+    var res = await supabase.rpc(fn, Object.assign({ p_pin: org.pin }, args || {}));
+    if (res.error){
+      var m = (res.error.code || '') + ' ' + (res.error.message || '');
+      return { status: 'erro', message: /PGRST202|org_|function/i.test(m)
+        ? 'A Organização ainda não foi instalada no Supabase. Rode o arquivo sql/organizacao.sql (veja o LEIA-ME.md).'
+        : 'Erro no banco de dados: ' + res.error.message };
+    }
+    return res.data || { status: 'erro', message: 'O banco não respondeu.' };
+  }
+
+  // Trata a resposta; devolve true quando deu certo
+  function orgOk(r){
+    if (r.status === 'ok') return true;
+    if (r.status === 'erro'){ toast(r.message); return false; }
+    orgLock(orgStatusMsg(r.status));
+    return false;
+  }
+
+  function orgLock(msg){
+    org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
+    try { sessionStorage.removeItem('orgPin'); } catch (e) {}
+    O.content.hidden = true;
+    O.lock.hidden = false;
+    O.msg.textContent = msg || '';
+    O.pin.value = '';
+    O.navCount.textContent = '';
+    if (currentRoute === 'organizacao') setTimeout(function(){ O.pin.focus(); }, 30);
+  }
+
+  function orgParse(r){
+    org.notas = (r.notas || []).map(function(n){
+      return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
+    });
+    org.tarefas = (r.tarefas || []).map(function(t){
+      return { id: t.id, titulo: t.titulo || '', prazo: t.prazo ? new Date(t.prazo + 'T00:00') : null, urgente: !!t.urgente,
+        responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null };
+    });
+  }
+
+  async function orgLoad(){
+    var r = await orgCall('org_listar');
+    if (!orgOk(r)) return false;
+    orgParse(r);
+    org.unlocked = true;
+    O.lock.hidden = true;
+    O.content.hidden = false;
+    renderOrg();
+    return true;
+  }
+
+  function orgOnEnter(){
+    if (org.unlocked){ renderOrg(); return; }
+    O.content.hidden = true;
+    O.lock.hidden = false;
+    if (org.pin) orgLoad();
+    else setTimeout(function(){ O.pin.focus(); }, 30);
+  }
+
+  O.pin.addEventListener('input', function(){
+    O.pin.value = O.pin.value.replace(/\D/g, '').slice(0, 6);
+    O.msg.textContent = '';
+    if (O.pin.value.length === 6) O.pinForm.requestSubmit ? O.pinForm.requestSubmit() : O.enter.click();
+  });
+
+  O.pinForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (!/^\d{6}$/.test(O.pin.value)){ O.msg.textContent = 'A senha tem 6 números.'; return; }
+    O.enter.disabled = true;
+    O.enter.textContent = 'Conferindo…';
+    org.pin = O.pin.value;
+    var r = await orgCall('org_listar');
+    O.enter.disabled = false;
+    O.enter.textContent = 'Entrar';
+    if (r.status === 'ok'){
+      try { sessionStorage.setItem('orgPin', org.pin); } catch (e2) {}
+      orgParse(r);
+      org.unlocked = true;
+      O.lock.hidden = true;
+      O.content.hidden = false;
+      O.pin.value = '';
+      renderOrg();
+      return;
+    }
+    org.pin = null;
+    O.pin.value = '';
+    O.msg.textContent = r.status === 'erro' ? r.message : orgStatusMsg(r.status);
+    O.pin.focus();
+  });
+
+  O.lockBtn.addEventListener('click', function(){ orgLock(''); toast('Organização trancada'); });
+
+  // ---- render ----
+
+  function orgDiff(d){ return Math.round((d - startOfDay(new Date())) / 86400000); }
+  function fmtDia(d){ return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
+
+  function renderOrg(){
+    if (!org.unlocked) return;
+    renderOrgNotes();
+    renderOrgTasks();
+  }
+
+  function renderOrgNotes(){
+    O.swatches.innerHTML = ORG_CORES.map(function(c){
+      return '<button type="button" class="sw c-' + c + '" data-cor="' + c + '" aria-pressed="' + (org.cor === c) + '" aria-label="Nota ' + c + '" title="' + capitalize(c) + '"></button>';
+    }).join('');
+    var list = org.notas.slice().sort(function(a, b){ return (b.fixada - a.fixada) || (b.criada - a.criada); });
+    var fix = list.filter(function(n){ return n.fixada; }).length;
+    O.notesInfo.textContent = list.length ? fix + (fix === 1 ? ' fixada · ' : ' fixadas · ') + list.length + (list.length === 1 ? ' nota' : ' notas') + ' · clique no texto para editar' : '';
+    if (!list.length){
+      O.board.innerHTML = '<div class="org-empty">Nenhuma nota ainda. Escreva um aviso acima e clique em "Colar nota".</div>';
+      return;
+    }
+    O.board.innerHTML = list.map(function(n, i){
+      return '<div class="note c-' + n.cor + (n.fixada ? ' pinned' : '') + '" style="--r:' + ORG_ROT[i % ORG_ROT.length] + '">' +
+        (n.fixada ? '<span class="pin-badge">Fixado</span>' : '') +
+        '<div class="note-text" contenteditable="' + ORG_CE + '" spellcheck="true" data-edit="nota" data-id="' + n.id + '" role="textbox" aria-multiline="true" aria-label="Texto da nota" title="Clique para editar">' + escapeHtml(n.texto) + '</div>' +
+        '<div class="note-foot"><span>' + fmtDia(n.criada) + '</span><span class="note-actions">' +
+        '<button type="button" class="icon-btn" data-act="fixar" data-id="' + n.id + '" title="' + (n.fixada ? 'Desafixar' : 'Fixar no topo') + '" aria-label="' + (n.fixada ? 'Desafixar nota' : 'Fixar nota') + '">' + ICON_PIN + '</button>' +
+        '<button type="button" class="icon-btn" data-act="excluir-nota" data-id="' + n.id + '" title="Remover nota" aria-label="Remover nota">' + ICON_X + '</button>' +
+        '</span></div></div>';
+    }).join('');
+  }
+
+  function orgTaskRow(t){
+    if (org.editing === t.id) return orgTaskEdit(t);
+    var late = !t.feitaEm && t.prazo && orgDiff(t.prazo) < 0;
+    var meta = [];
+    if (t.prazo){
+      var dd = orgDiff(t.prazo);
+      meta.push(late ? '<span class="late">Atrasada ' + (-dd) + (dd === -1 ? ' dia' : ' dias') + ' (' + fmtDia(t.prazo) + ')</span>'
+        : dd === 0 ? '<span>Vence hoje</span>' : dd === 1 ? '<span>Vence amanhã</span>' : '<span>Prazo ' + fmtDia(t.prazo) + '</span>');
+    }
+    if (t.processo) meta.push('<span class="proc">' + escapeHtml(t.processo) + '</span>');
+    if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
+    return '<div class="task' + (late ? ' overdue' : '') + (t.feitaEm ? ' done' : '') + '">' +
+      '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
+      '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
+      (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
+      '<div class="t-side">' + (t.urgente && !t.feitaEm ? '<span class="tag urg">Urgente</span>' : '') +
+      (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+      '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
+  }
+
+  function orgTaskEdit(t){
+    var resps = ORG_RESPS.slice();
+    if (t.responsavel && resps.indexOf(t.responsavel) === -1) resps.push(t.responsavel);
+    return '<form class="task editing" data-form="editar" data-id="' + t.id + '"><div class="task-edit">' +
+      '<label class="ttl">Tarefa<input class="org-in" id="oeTitulo" value="' + escapeHtml(t.titulo) + '" maxlength="160" required></label>' +
+      '<label>Prazo<input class="org-in" type="date" id="oePrazo" value="' + (t.prazo ? dayKey(t.prazo) : '') + '"></label>' +
+      '<label>Prioridade<select class="org-in" id="oeUrg"><option value="">Normal</option><option value="1"' + (t.urgente ? ' selected' : '') + '>Urgente</option></select></label>' +
+      '<label>Responsável<select class="org-in" id="oeResp"><option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Nº do processo<input class="org-in mono-in" id="oeProc" value="' + escapeHtml(t.processo) + '" maxlength="40" placeholder="opcional" style="font-family:var(--font-data)"></label>' +
+      '<div class="row-btns"><button type="button" class="btn danger-text" data-act="excluir-tarefa" data-id="' + t.id + '">Excluir</button>' +
+      '<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="cancelar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></span></div>' +
+      '</div></form>';
+  }
+
+  function renderOrgTasks(){
+    var groups = [
+      { k: 'Atrasadas', f: function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) < 0; } },
+      { k: 'Hoje', f: function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) === 0; } },
+      { k: 'Próximas', f: function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) > 0; } },
+      { k: 'Sem prazo', f: function(t){ return !t.feitaEm && !t.prazo; } },
+      { k: 'Concluídas', f: function(t){ return !!t.feitaEm; }, desc: true }
+    ];
+    var abertas = org.tarefas.filter(function(t){ return !t.feitaEm; }).length;
+    var pend = org.tarefas.filter(function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) <= 0; }).length;
+    O.navCount.textContent = pend || '';
+    O.tasksInfo.textContent = org.tarefas.length ? abertas + (abertas === 1 ? ' em aberto' : ' em aberto') + ' · clique no título ou no lápis para editar' : '';
+    if (!org.tarefas.length){
+      O.tasks.innerHTML = '<div class="org-empty">Nenhuma tarefa ainda. Escreva acima e clique em "Adicionar".</div>';
+      return;
+    }
+    var h = '';
+    groups.forEach(function(g){
+      var items = org.tarefas.filter(g.f).sort(function(a, b){
+        if (g.desc) return b.feitaEm - a.feitaEm;
+        return ((a.prazo || 0) - (b.prazo || 0)) || (b.urgente - a.urgente);
+      });
+      if (!items.length) return;
+      if (g.desc && items.length > 15) items = items.slice(0, 15);
+      h += '<div class="tgroup-title">' + g.k + ' <span class="n">' + items.length + '</span></div>' + items.map(orgTaskRow).join('');
+    });
+    O.tasks.innerHTML = h;
+  }
+
+  function orgFind(list, id){ for (var i = 0; i < list.length; i++){ if (list[i].id === id) return list[i]; } return null; }
+
+  function orgSaveTask(t){
+    return orgCall('org_salvar_tarefa', {
+      p_id: t.id || null, p_titulo: t.titulo, p_prazo: t.prazo ? dayKey(t.prazo) : null, p_urgente: !!t.urgente,
+      p_responsavel: t.responsavel || '', p_processo: t.processo || '', p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null
+    });
+  }
+  function orgSaveNote(n){
+    return orgCall('org_salvar_nota', { p_id: n.id || null, p_texto: n.texto, p_cor: n.cor, p_fixada: !!n.fixada });
+  }
+
+  // ---- ações ----
+
+  O.swatches.addEventListener('click', function(e){
+    var b = e.target.closest('[data-cor]'); if (!b) return;
+    org.cor = b.getAttribute('data-cor');
+    renderOrgNotes();
+  });
+
+  O.noteForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var texto = O.noteText.value.trim(); if (!texto) return;
+    var r = await orgSaveNote({ texto: texto, cor: org.cor, fixada: false });
+    if (!orgOk(r)) return;
+    O.noteText.value = '';
+    toast('Nota colada no mural');
+    await orgLoad();
+  });
+
+  O.taskForm.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var titulo = O.taskTitle.value.trim(); if (!titulo) return;
+    var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
+      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: '', feitaEm: null });
+    if (!orgOk(r)) return;
+    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = '';
+    toast('Tarefa adicionada');
+    await orgLoad();
+    O.taskTitle.focus();
+  });
+
+  O.content.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-act]'); if (!b || !O.content.contains(b)) return;
+    var act = b.getAttribute('data-act'), id = b.getAttribute('data-id'), r;
+    if (act === 'fixar'){
+      var n = orgFind(org.notas, id); if (!n) return;
+      r = await orgSaveNote({ id: n.id, texto: n.texto, cor: n.cor, fixada: !n.fixada });
+      if (orgOk(r)) await orgLoad();
+    }
+    if (act === 'excluir-nota'){
+      r = await orgCall('org_excluir_nota', { p_id: id });
+      if (orgOk(r)){ toast('Nota removida'); await orgLoad(); }
+    }
+    if (act === 'feita'){
+      var t = orgFind(org.tarefas, id); if (!t) return;
+      var feitaEm = t.feitaEm ? null : new Date();
+      r = await orgSaveTask(Object.assign({}, t, { feitaEm: feitaEm }));
+      if (orgOk(r)){ if (feitaEm) toast('Feita em ' + formatDataHora(feitaEm)); await orgLoad(); }
+    }
+    if (act === 'editar'){
+      org.editing = id; renderOrgTasks();
+      var el = document.getElementById('oeTitulo'); if (el) el.focus();
+    }
+    if (act === 'cancelar'){ org.editing = null; renderOrgTasks(); }
+    if (act === 'excluir-tarefa'){
+      if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Confirmar exclusão'; return; }
+      r = await orgCall('org_excluir_tarefa', { p_id: id });
+      if (orgOk(r)){ org.editing = null; toast('Tarefa excluída'); await orgLoad(); }
+    }
+  });
+
+  O.content.addEventListener('submit', async function(e){
+    if (e.target.getAttribute('data-form') !== 'editar') return;
+    e.preventDefault();
+    var t = orgFind(org.tarefas, e.target.getAttribute('data-id')); if (!t) return;
+    var dv = document.getElementById('oePrazo').value;
+    var r = await orgSaveTask(Object.assign({}, t, {
+      titulo: document.getElementById('oeTitulo').value.trim() || t.titulo,
+      prazo: dv ? new Date(dv + 'T00:00') : null,
+      urgente: !!document.getElementById('oeUrg').value,
+      responsavel: document.getElementById('oeResp').value,
+      processo: formatProcesso(document.getElementById('oeProc').value)
+    }));
+    if (!orgOk(r)) return;
+    org.editing = null;
+    toast('Tarefa atualizada');
+    await orgLoad();
+  });
+
+  // Edição direto no texto: salva ao sair; Esc desfaz; Enter salva no título da tarefa
+  O.content.addEventListener('focusin', function(e){
+    var el = e.target.closest('[data-edit]'); if (el) el.dataset.orig = el.innerText;
+  });
+  O.content.addEventListener('keydown', function(e){
+    var el = e.target.closest('[data-edit]'); if (!el) return;
+    if (e.key === 'Escape'){ el.innerText = el.dataset.orig; el.blur(); }
+    if (e.key === 'Enter' && el.getAttribute('data-edit') === 'tarefa'){ e.preventDefault(); el.blur(); }
+  });
+  O.content.addEventListener('focusout', async function(e){
+    var el = e.target.closest('[data-edit]'); if (!el) return;
+    var txt = el.innerText.replace(/\n{3,}/g, '\n\n').trim(), id = el.getAttribute('data-id');
+    if (!txt){ el.innerText = el.dataset.orig; return; }
+    if (txt === (el.dataset.orig || '').trim()) return;
+    var r;
+    if (el.getAttribute('data-edit') === 'nota'){
+      var n = orgFind(org.notas, id); if (!n) return;
+      n.texto = txt;
+      r = await orgSaveNote(n);
+      if (orgOk(r)) toast('Nota atualizada'); else await orgLoad();
+    } else {
+      var t = orgFind(org.tarefas, id); if (!t) return;
+      t.titulo = txt;
+      r = await orgSaveTask(t);
+      if (orgOk(r)) toast('Tarefa atualizada'); else await orgLoad();
+    }
+  });
 
   // ---------------------------------------------------------------------
   // Boot
