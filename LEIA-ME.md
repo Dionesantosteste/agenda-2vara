@@ -103,9 +103,33 @@ Se a tabela `audiencias` foi criada antes da opção **Conferir**, rode também:
 alter table audiencias add column if not exists conferida_em timestamptz;
 ```
 
+## Passo 2.3 — Organização (mural + tarefas) com senha
+
+A seção **Organização** fica protegida por uma senha de 6 números. Quem confere a senha é o
+próprio Supabase: sem ela, o banco não entrega nem grava nada da Organização, mesmo para quem
+tem o endereço do projeto. A senha fica guardada criptografada e **não aparece no código do site**.
+
+1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) e copie todo o conteúdo.
+2. No Supabase, vá em **SQL Editor → New query** e cole.
+3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
+4. Clique em **Run**. Deve aparecer "Success".
+
+Detalhes:
+- Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
+- Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
+- A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
+
+**Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
+
+```sql
+update org_config set pin_hash = extensions.crypt('000000', extensions.gen_salt('bf')), tentativas = 0, bloqueado_ate = null where id = 1;
+```
+
+Os dados do mural e das tarefas não são apagados ao trocar a senha.
+
 ### Como adicionar novas seções ao portal depois
 
-No `index.html`, cada seção tem três partes:
+No `index.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
 1. um link no menu lateral (`<a class="nav-item" href="#nome" data-route="nome">`);
 2. um bloco `<section id="view-nome" hidden>` com o conteúdo;
 3. uma entrada em `ROUTES` no script.
