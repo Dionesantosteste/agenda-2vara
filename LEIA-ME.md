@@ -68,7 +68,7 @@ create table audiencias (
   processo text not null default '',
   data_hora timestamptz not null,
   tipo text default '',
-  status text not null default 'Designada',   -- Designada, Realizada, Redesignada, Cancelada
+  status text not null default 'A cumprir',   -- A cumprir, Cumprida, Redesignada, Cancelada
   observacoes text default '',
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -91,6 +91,8 @@ alter publication supabase_realtime add table audiencias;
 > ativar login (Supabase Auth) — é só pedir que o código é ajustado.
 
 Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo para rodar este SQL.
+
+Para mudar a lista de status, edite `STATUSES` no `index.html` (o primeiro da lista é o padrão de uma audiência nova).
 
 ### Como adicionar novas seções ao portal depois
 

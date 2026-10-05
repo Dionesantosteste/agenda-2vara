@@ -281,8 +281,8 @@
   }
   .status-pill::after{ content:""; position:absolute; right:9px; top:50%; width:5px; height:5px; margin-top:-4px;
     border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); pointer-events:none; }
-  .status-pill[data-status="Designada"]{ color:var(--info); border-color:var(--info); background:var(--info-soft); }
-  .status-pill[data-status="Realizada"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
+  .status-pill[data-status="A cumprir"]{ color:var(--info); border-color:var(--info); background:var(--info-soft); }
+  .status-pill[data-status="Cumprida"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
   .status-pill[data-status="Redesignada"]{ color:var(--warn); border-color:var(--warn); background:var(--warn-soft); }
   .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--bg); }
   .status-pill select option{ color:var(--ink); background:var(--paper); text-transform:none; }
@@ -297,16 +297,16 @@
   .quick-grid{
     display:grid; gap:12px; align-items:start;
     grid-template-columns: minmax(0,2fr) minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.5fr);
-    grid-template-areas: "proc data hora tipo" "obs obs obs save";
+    grid-template-areas: "proc data hora status" "tipo obs obs save";
   }
   .q-proc{ grid-area:proc; } .q-data{ grid-area:data; } .q-hora{ grid-area:hora; }
-  .q-tipo{ grid-area:tipo; } .q-obs{ grid-area:obs; } .q-save{ grid-area:save; height:43px; align-self:end; }
-  .quick .field input{ padding:0 11px; height:43px; font-size:14.5px; }
+  .q-tipo{ grid-area:tipo; } .q-status{ grid-area:status; } .q-obs{ grid-area:obs; } .q-save{ grid-area:save; height:43px; align-self:end; }
+  .quick .field input, .quick .field select{ padding:0 11px; height:43px; font-size:14.5px; }
   @media (max-width:640px){
     .quick{ padding:14px 14px 16px; }
     .quick-grid{
       grid-template-columns: minmax(0,1fr) minmax(0,1fr);
-      grid-template-areas: "proc proc" "data hora" "tipo tipo" "obs obs" "save save";
+      grid-template-areas: "proc proc" "data hora" "status tipo" "obs obs" "save save";
     }
   }
 
@@ -447,6 +447,10 @@
         <div class="field q-hora">
           <label for="qHora">Hora</label>
           <input id="qHora" type="time" required />
+        </div>
+        <div class="field q-status">
+          <label for="qStatus">Status</label>
+          <select id="qStatus"></select>
         </div>
         <div class="field q-tipo">
           <label for="qTipo">Tipo</label>
@@ -1255,7 +1259,10 @@
   // Audiências
   // ---------------------------------------------------------------------
 
-  var STATUSES = ["Designada", "Realizada", "Redesignada", "Cancelada"];
+  var STATUSES = ["A cumprir", "Cumprida", "Redesignada", "Cancelada"];
+  var STATUS_PADRAO = STATUSES[0];
+  // nomes usados na primeira versão, convertidos ao carregar
+  var STATUS_ANTIGOS = { "Designada": "A cumprir", "Realizada": "Cumprida" };
   var TIPOS_SUGERIDOS = ["Conciliação", "Mediação", "Instrução", "Instrução e julgamento", "Una", "Justificação", "Custódia", "Oitiva de testemunha"];
   var PERIODS = [
     { key: 'proximas',   label: 'Próximas' },
@@ -1314,7 +1321,7 @@
     return d.replace(/^(\d{7})(\d{2})(\d{4})(\d)(\d{2})(\d{4})$/, '$1-$2.$3.$4.$5.$6');
   }
 
-  function isPending(a, now){ return a.status === 'Designada' && a.date < now; }
+  function isPending(a, now){ return a.status === STATUS_PADRAO && a.date < now; }
 
   async function loadAudiencias(){
     if (!supabase) return;
@@ -1328,7 +1335,7 @@
         processo: r.processo || "",
         date: new Date(r.data_hora),
         tipo: r.tipo || "",
-        status: r.status || "Designada",
+        status: STATUS_ANTIGOS[r.status] || r.status || STATUS_PADRAO,
         observacoes: r.observacoes || ""
       };
     });
@@ -1681,8 +1688,15 @@
     data: document.getElementById('qData'),
     hora: document.getElementById('qHora'),
     tipo: document.getElementById('qTipo'),
-    obs: document.getElementById('qObs')
+    obs: document.getElementById('qObs'),
+    status: document.getElementById('qStatus')
   };
+  STATUSES.forEach(function(st){
+    var o = document.createElement('option');
+    o.value = st; o.textContent = st;
+    Q.status.appendChild(o);
+  });
+  Q.status.value = STATUS_PADRAO;
   Q.data.value = dayKey(new Date());
   fillTipos();
 
@@ -1698,12 +1712,13 @@
       processo: processo,
       date: date,
       tipo: Q.tipo.value.trim(),
-      status: 'Designada',
+      status: Q.status.value,
       observacoes: Q.obs.value.trim()
     });
     if (!ok) return;
     // mantém a data para cadastrar várias do mesmo dia
     Q.processo.value = ""; Q.hora.value = ""; Q.tipo.value = ""; Q.obs.value = "";
+    Q.status.value = STATUS_PADRAO;
     fillTipos();
     Q.processo.focus();
   });
