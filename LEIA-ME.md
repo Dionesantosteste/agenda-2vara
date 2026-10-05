@@ -95,6 +95,19 @@ Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo pa
 
 Para mudar a lista de status, edite `STATUSES` no `index.html` (o primeiro da lista é o padrão de uma audiência nova).
 
+## Passo 2.1.1 — Tipos de audiência (lista própria)
+
+Para cadastrar novos tipos de audiência pelo site, rode no SQL Editor o arquivo
+[`sql/audiencias_tipos.sql`](sql/audiencias_tipos.sql) (copie pelo botão **Raw** do GitHub). Ele cria a lista
+com os tipos atuais e os que já estiverem gravados nas audiências. Depois, numa query separada:
+
+```sql
+alter publication supabase_realtime add table audiencias_tipos;
+```
+
+No site: no cadastro, escolha **"+ Cadastrar novo tipo…"** na lista de tipos; no filtro "Tipo", o botão
+**"⚙ tipos"** abre a janela para cadastrar, renomear (atualiza as audiências) ou excluir tipos.
+
 ## Passo 2.2 — Coluna "conferida" (para quem já criou a tabela antes)
 
 Se a tabela `audiencias` foi criada antes da opção **Conferir**, rode também:
