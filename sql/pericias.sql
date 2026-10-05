@@ -10,6 +10,7 @@
 create table if not exists pericias (
   id uuid primary key default gen_random_uuid(),
   processo text not null default '',
+  autor text not null default '',
   perito text not null default '',
   especialidade text not null default '',
   status text not null default 'nao_agendada',   -- nao_agendada, agendada, realizada, laudo_juntado, cancelada
@@ -22,6 +23,9 @@ create table if not exists pericias (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+-- para quem criou a tabela antes do campo "autor"
+alter table pericias add column if not exists autor text not null default '';
 
 create table if not exists pericias_andamentos (
   id uuid primary key default gen_random_uuid(),

@@ -152,6 +152,10 @@ Como funciona:
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
 - O **Perito** é digitado na própria perícia (não vem da Agenda). O campo sugere os nomes já usados em outras perícias.
+- Cada perícia tem o **Nome do autor** em destaque e o perito logo abaixo. Se a tabela foi criada antes desse
+  campo, rode no SQL Editor: `alter table pericias add column if not exists autor text not null default '';`
+- Ao marcar **Laudo juntado** (pela situação, pela alteração em lote ou pelo atalho "Laudo juntado (concluir)" do
+  andamento), a perícia vai para a aba **Concluídas**, um histórico agrupado por mês. As canceladas também ficam lá.
 - **Alterar em lote:** marque as caixinhas das perícias (ou use "Selecionar" no título de cada dia), escolha a
   nova situação e a data na barra que aparece embaixo e clique em **Aplicar**. Cada perícia recebe o andamento
   e, se for "Realizada", o prazo do laudo calculado a partir da data informada.

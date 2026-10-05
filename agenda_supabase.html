@@ -348,9 +348,9 @@
 
   /* ================= Perícias ================= */
   .per-grid{ display:grid; gap:12px; align-items:start;
-    grid-template-columns: minmax(0,1.6fr) minmax(0,1.6fr) minmax(0,1.1fr);
-    grid-template-areas: "proc perito esp" "data hora local" "obs obs save"; }
-  .pg-proc{ grid-area:proc; } .pg-perito{ grid-area:perito; } .pg-esp{ grid-area:esp; } .pg-data{ grid-area:data; }
+    grid-template-columns: minmax(0,1.3fr) minmax(0,1fr) minmax(0,.8fr) minmax(0,1.2fr);
+    grid-template-areas: "proc autor autor autor" "perito perito esp esp" "data hora local local" "obs obs obs save"; }
+  .pg-proc{ grid-area:proc; } .pg-autor{ grid-area:autor; } .pg-perito{ grid-area:perito; } .pg-esp{ grid-area:esp; } .pg-data{ grid-area:data; }
   .pg-hora{ grid-area:hora; } .pg-local{ grid-area:local; } .pg-obs{ grid-area:obs; } .pg-save{ grid-area:save; height:43px; align-self:end; }
   .per-grid .field input, .per-grid .field select{ padding:0 11px; height:43px; font-size:14.5px; }
   .per-summary{ grid-template-columns:repeat(4, minmax(0,1fr)); }
@@ -387,7 +387,18 @@
   .main.has-batch{ padding-bottom:240px; }
   @media (max-width:860px){ .batch{ left:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); } .bfield{ flex:1 1 140px; } .batch-btns{ flex-basis:100%; } .batch-btns .btn{ flex:1; } }
   .prow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .pperito{ font-weight:600; }
+  .pautor{ font-size:16.5px; font-weight:600; color:var(--ink); line-height:1.3; overflow-wrap:anywhere; }
+  .pautor.vazio{ font-size:14px; font-weight:500; color:var(--muted); font-style:italic; }
+  .pperito{ font-size:13px; font-weight:500; color:var(--muted); }
+  .pperito b{ font-weight:600; color:var(--ink); }
+  .per-abas{ display:flex; gap:4px; width:max-content; max-width:100%; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:4px; margin-bottom:14px; }
+  .per-aba{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:14px; font-weight:500; padding:8px 14px; border-radius:9px; cursor:pointer; display:inline-flex; gap:6px; align-items:center; }
+  .per-aba:hover{ color:var(--ink); background:var(--sunken); }
+  .per-aba[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
+  .per-aba .n{ font-size:11.5px; font-variant-numeric:tabular-nums; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:0 7px; line-height:18px; }
+  .per-aba .n:empty{ display:none; }
+  .per-aba[aria-selected="true"] .n{ background:var(--accent-ink); color:var(--accent); }
+  .and-quick button.concluir{ border-style:solid; border-color:var(--ok); color:var(--ok); font-weight:600; }
   .pesp{ font-size:12px; font-weight:600; border-radius:6px; padding:1px 7px; background:var(--accent-soft); color:var(--accent); }
   .pcontact{ font-family:var(--font-data); font-size:12px; color:var(--muted); display:flex; gap:12px; flex-wrap:wrap; }
   .pmeta{ display:flex; gap:12px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
@@ -427,7 +438,7 @@
   .timeline .icon-btn{ width:24px; height:24px; }
   .timeline-empty{ font-size:13px; color:var(--muted); }
   @media (max-width:700px){
-    .per-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"proc proc" "perito perito" "esp esp" "data hora" "local local" "obs obs" "save save"; }
+    .per-grid{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"proc proc" "autor autor" "perito perito" "esp esp" "data hora" "local local" "obs obs" "save save"; }
     .per-summary{ grid-template-columns:repeat(2, minmax(0,1fr)); }
   }
   @media (max-width:560px){
@@ -707,6 +718,10 @@
           <label for="pProcesso">Nº do processo</label>
           <input id="pProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
         </div>
+        <div class="field pg-autor">
+          <label for="pAutor">Nome do autor</label>
+          <input id="pAutor" maxlength="160" placeholder="Parte autora do processo" required />
+        </div>
         <div class="field pg-perito">
           <label for="pPerito">Perito</label>
           <input id="pPerito" list="perPeritosLista" maxlength="120" placeholder="Nome do perito" required />
@@ -738,9 +753,14 @@
 
     <div class="summary per-summary" id="perSummary"></div>
 
+    <div class="per-abas" id="perAbas" role="tablist" aria-label="Perícias em andamento ou concluídas">
+      <button type="button" class="per-aba" role="tab" data-aba="andamento">Em andamento <span class="n" id="perAbaAnd"></span></button>
+      <button type="button" class="per-aba" role="tab" data-aba="concluidas">Concluídas <span class="n" id="perAbaConc"></span></button>
+    </div>
+
     <div class="searchbar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="perSearch" type="text" placeholder="Buscar por processo, perito, local ou observação…" autocomplete="off" />
+      <input id="perSearch" type="text" placeholder="Buscar por autor, processo, perito, local ou observação…" autocomplete="off" />
       <button class="clear-btn" id="perClearSearch" hidden>limpar</button>
     </div>
     <div class="filter-row" id="perSituacao" role="group" aria-label="Situação"></div>
@@ -1026,6 +1046,10 @@
     <div class="field">
       <label for="peProcesso">Nº do processo</label>
       <input id="peProcesso" class="mono" maxlength="40" required />
+    </div>
+    <div class="field">
+      <label for="peAutor">Nome do autor</label>
+      <input id="peAutor" maxlength="160" />
     </div>
     <div class="field-row">
       <div class="field">
@@ -3091,7 +3115,7 @@
     return c;
   }
 
-  var per = { items: [], andamentos: {}, loaded: false, error: null, query: "", situacao: "andamento", perito: "", abertos: {}, sel: {}, grupos: [] };
+  var per = { items: [], andamentos: {}, loaded: false, error: null, query: "", aba: "andamento", situacao: "andamento", concl: "todas", perito: "", abertos: {}, sel: {}, grupos: [] };
 
   var P = {
     count: document.getElementById('perCount'),
@@ -3163,7 +3187,7 @@
     if (res.error){ per.error = res.error; renderPericias(); return; }
     per.error = null;
     per.items = (res.data || []).map(function(r){
-      return { id: r.id, processo: r.processo || '', perito: r.perito || '', especialidade: r.especialidade || '',
+      return { id: r.id, processo: r.processo || '', autor: r.autor || '', perito: r.perito || '', especialidade: r.especialidade || '',
         status: PER_NOME[r.status] ? r.status : 'nao_agendada', data: r.data_pericia ? new Date(r.data_pericia) : null,
         local: r.local || '', realizadaEm: dataLocal(r.realizada_em), laudoEm: dataLocal(r.laudo_em),
         observacoes: r.observacoes || '', conferidaEm: r.conferida_em ? new Date(r.conferida_em) : null };
@@ -3177,7 +3201,7 @@
   }
 
   function perPayload(p){
-    return { processo: p.processo, perito: p.perito, especialidade: p.especialidade, status: p.status,
+    return { processo: p.processo, autor: p.autor || '', perito: p.perito, especialidade: p.especialidade, status: p.status,
       data_pericia: p.data ? p.data.toISOString() : null, local: p.local,
       realizada_em: p.realizadaEm ? dayKey(p.realizadaEm) : null, laudo_em: p.laudoEm ? dayKey(p.laudoEm) : null,
       observacoes: p.observacoes, conferida_em: p.conferidaEm ? p.conferidaEm.toISOString() : null,
@@ -3194,7 +3218,7 @@
   function textoMudanca(p){
     if (p.status === 'agendada') return 'Perícia agendada' + (p.data ? ' para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '');
     if (p.status === 'realizada') return 'Perícia realizada em ' + fmtData(p.realizadaEm) + '. Prazo do laudo: ' + fmtData(prazoLaudo(p)) + ' (' + PRAZO_LAUDO_DIAS_UTEIS + ' dias úteis)';
-    if (p.status === 'laudo_juntado') return 'Laudo juntado em ' + fmtData(p.laudoEm);
+    if (p.status === 'laudo_juntado') return 'Laudo juntado em ' + fmtData(p.laudoEm) + '. Perícia concluída';
     return 'Situação alterada para ' + PER_NOME[p.status];
   }
 
@@ -3203,7 +3227,12 @@
     var res = p.id
       ? await supabase.from('pericias').update(perPayload(p)).eq('id', p.id).select('id')
       : await supabase.from('pericias').insert(perPayload(p)).select('id');
-    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return false; }
+    if (res.error){
+      toast(/autor/.test(res.error.message || '')
+        ? 'Falta a coluna "autor" no Supabase. Rode o SQL do LEIA-ME.md (Passo 2.4) e tente de novo.'
+        : 'Não foi possível salvar: ' + res.error.message);
+      return false;
+    }
     var id = p.id || (res.data && res.data[0] && res.data[0].id);
     if (!p.id && id) await addAndamento(id, 'Perícia cadastrada' + (p.status === 'agendada' ? '. ' + textoMudanca(p) : ' (não agendada)'));
     else if (antes && id){
@@ -3245,33 +3274,39 @@
       data = new Date(P.data.value + 'T' + (P.hora.value || '09:00'));
       if (isNaN(data.getTime())){ toast('Data ou hora inválida'); return; }
     }
-    var p = { processo: formatProcesso(P.proc.value), perito: P.perito.value.trim(), especialidade: P.esp.value,
+    var p = { processo: formatProcesso(P.proc.value), autor: document.getElementById('pAutor').value.trim(), perito: P.perito.value.trim(), especialidade: P.esp.value,
       status: data ? 'agendada' : 'nao_agendada', data: data, local: P.local.value.trim(), realizadaEm: null, laudoEm: null,
       observacoes: P.obs.value.trim(), conferidaEm: null };
-    if (!p.processo || !p.perito){ toast('Informe o processo e o perito'); return; }
+    if (!p.processo || !p.autor || !p.perito){ toast('Informe o processo, o autor e o perito'); return; }
     var ok = await salvarPericia(p);
     if (!ok) return;
     toast(data ? 'Perícia cadastrada como Agendada' : 'Perícia cadastrada como Não agendada');
-    P.proc.value = ''; P.perito.value = ''; P.esp.value = ''; P.data.value = ''; P.hora.value = ''; P.local.value = ''; P.obs.value = '';
+    P.proc.value = ''; document.getElementById('pAutor').value = ''; P.perito.value = ''; P.esp.value = ''; P.data.value = ''; P.hora.value = ''; P.local.value = ''; P.obs.value = '';
     P.proc.focus();
   });
 
   // ---- filtros ----
   var PER_SITUACOES = [
-    ["andamento", "Em andamento"], ["nao_agendada", "Não agendadas"], ["agendada", "Agendadas"],
-    ["realizada", "Aguardando laudo"], ["atrasado", "Laudo atrasado"], ["laudo_juntado", "Laudo juntado"], ["todas", "Todas"]
+    ["andamento", "Todas em andamento"], ["nao_agendada", "Não agendadas"], ["agendada", "Agendadas"],
+    ["realizada", "Aguardando laudo"], ["atrasado", "Laudo atrasado"]
   ];
+  var PER_CONCLUIDAS = [["todas", "Todas"], ["laudo_juntado", "Laudo juntado"], ["cancelada", "Canceladas"]];
   function perPassa(p){
-    var s = per.situacao;
-    if (s === 'andamento' && !aberta(p)) return false;
-    if (s === 'atrasado' && !laudoAtrasado(p)) return false;
-    if (['nao_agendada', 'agendada', 'realizada', 'laudo_juntado'].indexOf(s) !== -1 && p.status !== s) return false;
+    if (per.aba === 'concluidas'){
+      if (aberta(p)) return false;
+      if (per.concl !== 'todas' && p.status !== per.concl) return false;
+    } else {
+      var s = per.situacao;
+      if (!aberta(p)) return false;
+      if (s === 'atrasado' && !laudoAtrasado(p)) return false;
+      if (['nao_agendada', 'agendada', 'realizada'].indexOf(s) !== -1 && p.status !== s) return false;
+    }
     if (per.perito && normalize(p.perito).trim() !== per.perito) return false;
     var q = normalize(per.query).trim();
     if (!q) return true;
     var qd = digitsOnly(q);
     if (qd.length >= 3 && digitsOnly(p.processo).indexOf(qd) !== -1) return true;
-    return [p.processo, p.perito, p.especialidade, p.local, p.observacoes].some(function(f){ return normalize(f).indexOf(q) !== -1; });
+    return [p.autor, p.processo, p.perito, p.especialidade, p.local, p.observacoes].some(function(f){ return normalize(f).indexOf(q) !== -1; });
   }
 
   // Data que define a ordem: perícia agendada → data da perícia; realizada → prazo do laudo
@@ -3282,10 +3317,20 @@
   }
 
   function renderPerFiltros(){
+    document.querySelectorAll('#perAbas .per-aba').forEach(function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-aba') === per.aba)); });
+    var nAnd = per.items.filter(aberta).length, nConc = per.items.length - nAnd;
+    document.getElementById('perAbaAnd').textContent = nAnd || '';
+    document.getElementById('perAbaConc').textContent = nConc || '';
     P.situacao.innerHTML = '<span class="filter-label">Situação</span>';
-    PER_SITUACOES.forEach(function(x){
-      P.situacao.appendChild(chip(x[1], per.situacao === x[0], function(){ per.situacao = x[0]; renderPericias(); }));
-    });
+    if (per.aba === 'concluidas'){
+      PER_CONCLUIDAS.forEach(function(x){
+        P.situacao.appendChild(chip(x[1], per.concl === x[0], function(){ per.concl = x[0]; renderPericias(); }));
+      });
+    } else {
+      PER_SITUACOES.forEach(function(x){
+        P.situacao.appendChild(chip(x[1], per.situacao === x[0], function(){ per.situacao = x[0]; renderPericias(); }));
+      });
+    }
     var nomes = {}, opts = [];
     per.items.forEach(function(p){ var k = normalize(p.perito).trim(); if (k && !nomes[k]){ nomes[k] = true; opts.push([k, p.perito]); } });
     opts.sort(function(a, b){ return a[1].localeCompare(b[1]); });
@@ -3293,6 +3338,12 @@
     P.lista.innerHTML = peritosUsados().map(function(n){ return '<option value="' + escapeHtml(n) + '"></option>'; }).join('');
   }
   P.filtroPerito.addEventListener('change', function(){ per.perito = P.filtroPerito.value; renderPericias(); });
+  document.getElementById('perAbas').addEventListener('click', function(e){
+    var b = e.target.closest('.per-aba'); if (!b) return;
+    per.aba = b.getAttribute('data-aba');
+    per.sel = {};
+    renderPericias();
+  });
   P.search.addEventListener('input', function(){ per.query = P.search.value; P.clearSearch.hidden = !per.query; renderPericias(); });
   P.clearSearch.addEventListener('click', function(){ P.search.value = ''; per.query = ''; P.clearSearch.hidden = true; renderPericias(); P.search.focus(); });
 
@@ -3318,6 +3369,7 @@
   P.summary.addEventListener('click', function(e){
     var b = e.target.closest('.stat'); if (!b) return;
     var s = b.getAttribute('data-sit');
+    per.aba = 'andamento';
     per.situacao = per.situacao === s ? 'andamento' : s;
     renderPericias();
   });
@@ -3327,7 +3379,7 @@
     var pr = prazoLaudo(p), atrasado = laudoAtrasado(p), perto = laudoPerto(p);
     var when;
     if (p.status === 'realizada' && pr) when = '<span class="lbl">laudo até</span><b>' + fmtDia(pr) + '</b>';
-    else if (p.status === 'laudo_juntado' && p.laudoEm) when = '<span class="lbl">laudo em</span><b>' + fmtDia(p.laudoEm) + '</b>';
+    else if (p.status === 'laudo_juntado' && p.laudoEm) when = '<span class="lbl">concluída em</span><b>' + fmtDia(p.laudoEm) + '</b><small>' + p.laudoEm.getFullYear() + '</small>';
     else if (p.data) when = '<b>' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) + '</b><small>' + fmtDia(p.data) + '</small>';
     else when = '<span class="lbl">sem data marcada</span>';
 
@@ -3354,8 +3406,9 @@
     var h = '<article class="pcard' + (atrasado ? ' late' : perto ? ' soon' : '') + (aberta(p) ? '' : ' closed') + (per.sel[p.id] ? ' sel' : '') + '">' +
       '<div class="pwhen"><label class="psel" title="Selecionar para alterar em lote"><input type="checkbox" data-psel="' + p.id + '"' + (per.sel[p.id] ? ' checked' : '') + ' aria-label="Selecionar a perícia do processo ' + escapeHtml(p.processo) + '"></label>' + when + '</div>' +
       '<div class="pinfo">' +
+        '<div class="pautor' + (p.autor ? '' : ' vazio') + '">' + (p.autor ? escapeHtml(p.autor) : 'Autor não informado') + '</div>' +
+        '<div class="prow"><span class="pperito">Perito: <b>' + escapeHtml(p.perito) + '</b></span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
         '<div class="prow">' + procCopyBtn(p.processo) + '</div>' +
-        '<div class="prow"><span class="pperito">' + escapeHtml(p.perito) + '</span>' + (p.especialidade ? '<span class="pesp">' + escapeHtml(p.especialidade) + '</span>' : '') + '</div>' +
         (meta.length ? '<div class="pmeta">' + meta.join('') + '</div>' : '') +
         (p.observacoes ? '<div class="pobs">' + escapeHtml(p.observacoes) + '</div>' : '') +
         (atrasado ? '<span class="pflag">Cobrar laudo do perito</span>' : '') +
@@ -3373,7 +3426,8 @@
     if (aberto){
       h += '<div class="andamento">' +
         '<form class="and-add" data-pform="andamento" data-id="' + p.id + '"><input maxlength="300" placeholder="Registrar andamento (ex.: perito intimado por e-mail)" aria-label="Novo andamento" required><button type="submit" class="btn primary">Registrar</button></form>' +
-        '<div class="and-quick">' + PER_ATALHOS.map(function(t){ return '<button type="button" data-pact="atalho" data-id="' + p.id + '" data-txt="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>'; }).join('') + '</div>' +
+        '<div class="and-quick">' + PER_ATALHOS.map(function(t){ return '<button type="button" data-pact="atalho" data-id="' + p.id + '" data-txt="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>'; }).join('') +
+          (aberta(p) ? '<button type="button" class="concluir" data-pact="concluir" data-id="' + p.id + '" title="Marca o laudo como juntado hoje e move a perícia para Concluídas">✓ Laudo juntado (concluir)</button>' : '') + '</div>' +
         (ands.length ? '<ol class="timeline">' + ands.map(function(a){
           return '<li><time>' + formatDataHora(a.em) + '</time><span class="txt">' + escapeHtml(a.texto) + '</span>' +
             '<button type="button" class="icon-btn" data-pact="and-excluir" data-aid="' + a.id + '" title="Apagar este andamento" aria-label="Apagar andamento">' + ICON_X + '</button></li>';
@@ -3393,7 +3447,7 @@
       if (la !== lb) return la ? -1 : 1;
       var x = perChave(a), y = perChave(b);
       if (!x && !y) return 0; if (!x) return 1; if (!y) return -1;
-      return per.situacao === 'laudo_juntado' ? y - x : x - y;
+      return per.aba === 'concluidas' ? y - x : x - y;
     });
     P.count.textContent = list.length + (list.length === 1 ? ' perícia' : ' perícias');
     P.groups.innerHTML = '';
@@ -3405,6 +3459,7 @@
         ? 'A tabela de perícias ainda não existe no Supabase. Rode o arquivo sql/pericias.sql (veja o LEIA-ME.md) e recarregue a página.'
         : 'Erro ao carregar perícias: ' + per.error.message;
       else if (!per.items.length) P.empty.textContent = 'Nenhuma perícia cadastrada ainda. Use o formulário acima para cadastrar a primeira.';
+      else if (per.aba === 'concluidas') P.empty.textContent = 'Nenhuma perícia concluída ainda. Ao juntar o laudo, a perícia vem para cá.';
       else P.empty.textContent = 'Nenhuma perícia nesta situação.';
       return;
     }
@@ -3412,7 +3467,11 @@
     var grupos = [], porChave = {};
     list.forEach(function(p){
       var titulo, rel = '';
-      if (laudoAtrasado(p)) titulo = 'Laudos atrasados';
+      if (per.aba === 'concluidas'){
+        var dc = p.status === 'laudo_juntado' ? p.laudoEm : null;
+        titulo = p.status === 'cancelada' ? 'Canceladas' : dc ? 'Concluídas em ' + dc.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }) : 'Concluídas';
+      }
+      else if (laudoAtrasado(p)) titulo = 'Laudos atrasados';
       else {
         var d = perChave(p);
         if (!d) titulo = p.status === 'nao_agendada' ? 'Aguardando data do perito' : 'Sem data';
@@ -3537,7 +3596,8 @@
       return;
     }
     var ok = await salvarPericia(novo, antes);
-    if (ok) toast(novo.status === 'realizada' ? 'Realizada. Laudo até ' + fmtData(prazoLaudo(novo)) : 'Situação: ' + PER_NOME[novo.status]);
+    if (ok) toast(novo.status === 'realizada' ? 'Realizada. Laudo até ' + fmtData(prazoLaudo(novo))
+      : !aberta(novo) ? 'Perícia ' + (novo.status === 'cancelada' ? 'cancelada' : 'concluída') + ' e movida para Concluídas' : 'Situação: ' + PER_NOME[novo.status]);
     else renderPericias();
   });
 
@@ -3551,6 +3611,12 @@
     if (act === 'conferir' && p){
       var novo = perCopia(p); novo.conferidaEm = p.conferidaEm ? null : new Date();
       if (await salvarPericia(novo)) toast(novo.conferidaEm ? 'Conferida em ' + formatDataHora(novo.conferidaEm) : 'Conferência desmarcada');
+      return;
+    }
+    if (act === 'concluir' && p){
+      var fim = perCopia(p); fim.status = 'laudo_juntado'; fim.laudoEm = startOfDay(new Date());
+      if (!fim.realizadaEm) fim.realizadaEm = fim.data && startOfDay(fim.data) <= fim.laudoEm ? startOfDay(fim.data) : null;
+      if (await salvarPericia(fim, perCopia(p))) toast('Perícia concluída e movida para Concluídas');
       return;
     }
     if (act === 'atalho' && p){ await addAndamento(p.id, b.getAttribute('data-txt')); toast('Andamento registrado'); await loadPericias(); return; }
@@ -3588,7 +3654,7 @@
   function openPerDialog(p, antes){
     perEditando = { antes: antes, base: p };
     P.eId.value = p.id;
-    P.eProc.value = p.processo; P.ePerito.value = p.perito; P.eEsp.value = p.especialidade;
+    P.eProc.value = p.processo; document.getElementById('peAutor').value = p.autor || ''; P.ePerito.value = p.perito; P.eEsp.value = p.especialidade;
     P.eStatus.value = p.status;
     P.eData.value = p.data ? dayKey(p.data) : ''; P.eHora.value = p.data ? pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '';
     P.eLocal.value = p.local; P.eReal.value = p.realizadaEm ? dayKey(p.realizadaEm) : ''; P.eLaudo.value = p.laudoEm ? dayKey(p.laudoEm) : '';
@@ -3603,7 +3669,7 @@
     e.preventDefault();
     if (!perEditando) return;
     var p = perCopia(perEditando.base);
-    p.processo = formatProcesso(P.eProc.value); p.perito = P.ePerito.value.trim(); p.especialidade = P.eEsp.value;
+    p.processo = formatProcesso(P.eProc.value); p.autor = document.getElementById('peAutor').value.trim(); p.perito = P.ePerito.value.trim(); p.especialidade = P.eEsp.value;
     p.data = P.eData.value ? new Date(P.eData.value + 'T' + (P.eHora.value || '09:00')) : null;
     p.local = P.eLocal.value.trim(); p.observacoes = P.eObs.value.trim();
     p.realizadaEm = P.eReal.value ? dataLocal(P.eReal.value) : null;
