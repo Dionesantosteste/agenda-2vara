@@ -4,48 +4,53 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Portal 2ª Vara</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
+  /* Portal 2ª Vara — fundo branco, azul institucional como única cor de destaque.
+     Texto escuro e contraste alto para leitura rápida da pauta. */
   :root{
-    --bg: #F3ECDF;
-    --paper: #FBF7EE;
-    --ink: #2A2118;
-    --muted: #8A7B65;
-    --line: #DFD3B8;
-    --accent: #7A2E2E;
-    --accent-ink: #FBF7EE;
-    --accent-soft: #F0DEDA;
-    --danger: #8A3B24;
-    --focus: #3C6E5C;
-    --shadow: 24px 24px 60px rgba(42,33,24,.12);
+    --bg: #FFFFFF;          /* fundo da página */
+    --paper: #FFFFFF;       /* cartões e formulários */
+    --sunken: #F3F6FA;      /* campos, menu lateral, áreas de apoio */
+    --ink: #142033;         /* texto principal */
+    --muted: #556275;       /* texto secundário (contraste AA) */
+    --line: #D6DEE8;
+    --accent: #1D5BB8;      /* azul de destaque */
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E7F0FC;
+    --danger: #B42318;
+    --focus: #1D5BB8;
+    --shadow: 0 1px 2px rgba(20,32,51,.05), 0 2px 8px rgba(20,32,51,.05);
+    --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-data: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
     /* status das audiências (semânticas, separadas do acento) */
-    --info: #2F5D7C; --info-soft: #DCE6EC;
-    --ok: #3C6E5C; --ok-soft: #DCE9E2;
-    --warn: #9A6212; --warn-soft: #F3E3C6;
+    --info: #1D5BB8; --info-soft: #E7F0FC;
+    --ok: #157A3E; --ok-soft: #E3F4EA;
+    --warn: #A35A00; --warn-soft: #FDF0DC;
     --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
-      --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
-      --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
-      --info: #8DB7D4; --info-soft: #1F2C35; --ok: #7FBFA6; --ok-soft: #1E2D27;
-      --warn: #E2B064; --warn-soft: #3A2E1B; color-scheme: dark;
+      --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
+      --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
+      --focus: #7FB0F5; --shadow: none;
+      --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
+      --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
     }
   }
   :root[data-theme="dark"]{
-    --bg: #1B1712; --paper: #221C15; --ink: #EFE6D6; --muted: #9C8E76; --line: #3A3226;
-    --accent: #D98B6C; --accent-ink: #221C15; --accent-soft: #3A2620; --danger: #E39B7C;
-    --focus: #7FBFA6; --shadow: 24px 24px 60px rgba(0,0,0,.45);
-    --info: #8DB7D4; --info-soft: #1F2C35; --ok: #7FBFA6; --ok-soft: #1E2D27;
-    --warn: #E2B064; --warn-soft: #3A2E1B; color-scheme: dark;
+    --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
+    --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
+    --focus: #7FB0F5; --shadow: none;
+    --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
+    --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
   }
 
   *{box-sizing:border-box;}
   [hidden]{ display:none !important; }
   body{
     margin:0; background:var(--bg); color:var(--ink);
-    font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family:var(--font-ui);
     padding:0;
     -webkit-font-smoothing:antialiased;
   }
@@ -55,17 +60,17 @@
     background: var(--accent-soft); border:1px solid var(--accent); color:var(--ink);
     border-radius:12px; padding:14px 16px; margin-bottom:18px; font-size:13.5px; line-height:1.5;
   }
-  .setup-banner code{ background:rgba(0,0,0,.08); padding:1px 5px; border-radius:4px; font-family:"IBM Plex Mono",monospace; }
+  .setup-banner code{ background:rgba(0,0,0,.08); padding:1px 5px; border-radius:4px; font-family:var(--font-data); }
 
   header{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom: 22px; }
   h1{
-    font-family:"Fraunces", Georgia, serif; font-optical-sizing:auto;
+    font-family:var(--font-ui);
     font-weight:600; font-size: clamp(26px, 5vw, 38px);
     margin:0; letter-spacing:-0.01em; text-wrap:balance;
   }
   .tagline{ color:var(--muted); font-size:13.5px; margin-top:4px; }
   .count{
-    font-family:"IBM Plex Mono", ui-monospace, monospace; font-size:12px; color:var(--muted);
+    font-family:var(--font-ui); font-size:12px; color:var(--muted);
     letter-spacing:.04em; text-transform:uppercase; white-space:nowrap;
   }
 
@@ -77,7 +82,7 @@
   .searchbar svg{ flex:none; color:var(--muted); }
   .searchbar input{
     flex:1; border:0; background:transparent; outline:0;
-    font-family:"IBM Plex Sans", sans-serif; font-size:16px; color:var(--ink);
+    font-family:var(--font-ui); font-size:16px; color:var(--ink);
   }
   .searchbar input::placeholder{ color:var(--muted); }
   .clear-btn{ border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:13px; padding:4px 8px; border-radius:8px; font-family:inherit; }
@@ -86,13 +91,14 @@
 
   .filters{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom: 22px; }
   .chip{
-    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.03em;
+    font-family:var(--font-ui); font-size:13px; font-weight:500;
     padding: 6px 12px; border-radius: 999px; border:1px solid var(--line);
     background:var(--paper); color:var(--muted); cursor:pointer;
   }
+  .chip:hover{ border-color:var(--accent); color:var(--accent); }
   .chip[aria-pressed="true"]{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
   .chip-manage{
-    font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.03em;
+    font-family:var(--font-ui); font-size:12px; letter-spacing:.03em;
     padding: 6px 12px; border-radius: 999px; border:1px dashed var(--line);
     background:transparent; color:var(--muted); cursor:pointer; display:flex; align-items:center; gap:5px;
   }
@@ -101,14 +107,14 @@
   .layout{ display:grid; grid-template-columns: 40px 1fr; gap: 14px; align-items:start; }
   .index{
     position:sticky; top:12px; display:flex; flex-direction:column; gap:2px;
-    font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--muted); padding-top: 6px;
+    font-family:var(--font-ui); font-size:11px; color:var(--muted); padding-top: 6px;
   }
   .index button{ background:none; border:0; color:inherit; cursor:pointer; padding:2px 0; font-family:inherit; text-align:center; }
   .index button[data-active="true"]{ color:var(--accent); font-weight:600; }
   .index button:disabled{ opacity:.28; cursor:default; }
 
   .groups{ display:flex; flex-direction:column; gap:18px; }
-  .group-label{ font-family:"Fraunces", serif; font-weight:600; font-size:15px; color:var(--accent); padding-left:4px; }
+  .group-label{ font-family:var(--font-ui); font-weight:600; font-size:15px; color:var(--accent); padding-left:4px; }
   .cards{ display:flex; flex-direction:column; gap:10px; }
 
   .card{
@@ -119,7 +125,7 @@
   .avatar{
     width:42px; height:42px; border-radius:50%; background:var(--accent-soft);
     color:var(--accent); display:flex; align-items:center; justify-content:center;
-    font-family:"Fraunces", serif; font-weight:600; font-size:16px; flex:none;
+    font-family:var(--font-ui); font-weight:600; font-size:16px; flex:none;
   }
   .card .info{ min-width:0; }
   .card .name{ font-weight:600; font-size:15.5px; }
@@ -127,10 +133,10 @@
   .card .meta{ display:flex; gap:14px; flex-wrap:wrap; margin-top:3px; font-size:13px; color:var(--muted); }
   .card .meta a{ color:var(--muted); text-decoration:none; }
   .card .meta a:hover{ color:var(--accent); text-decoration:underline; }
-  .card .meta .phone{ font-family:"IBM Plex Mono", monospace; font-variant-numeric:tabular-nums; }
+  .card .meta .phone{ font-family:var(--font-data); font-variant-numeric:tabular-nums; }
   .card .meta .more{ color:var(--muted); opacity:.8; }
   .badge{
-    font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+    font-family:var(--font-ui); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase;
     color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap; justify-self:end;
   }
   .card-actions{ display:flex; gap:4px; }
@@ -141,7 +147,7 @@
   .icon-btn:hover{ background:var(--accent-soft); color:var(--accent); }
   .icon-btn.danger:hover{ background:var(--accent-soft); color:var(--danger); }
 
-  .empty{ text-align:center; padding: 48px 20px; color:var(--muted); font-family:"Fraunces", serif; font-size:17px; }
+  .empty{ text-align:center; padding: 48px 20px; color:var(--muted); font-family:var(--font-ui); font-size:17px; }
 
   .fab{
     position:fixed; right:22px; bottom:22px; width:56px; height:56px; border-radius:50%; border:0;
@@ -156,36 +162,36 @@
   }
   dialog::backdrop{ background: rgba(20,16,10,.45); }
   form.sheet{ padding: 22px 22px 18px; display:flex; flex-direction:column; gap:14px; max-height: calc(100vh - 48px); overflow-y:auto; }
-  form.sheet h2{ font-family:"Fraunces", serif; font-weight:600; font-size:21px; margin:0; }
+  form.sheet h2{ font-family:var(--font-ui); font-weight:600; font-size:21px; margin:0; }
   .field{ display:flex; flex-direction:column; gap:5px; }
-  .field label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:"IBM Plex Mono", monospace; }
+  .field label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:var(--font-ui); }
   .field input, .field select, .field textarea{
     border:1px solid var(--line); border-radius:10px; padding:10px 12px;
-    font-size:15px; font-family:"IBM Plex Sans", sans-serif; background:var(--bg); color:var(--ink);
+    font-size:15px; font-family:var(--font-ui); background:var(--sunken); color:var(--ink);
     min-width:0; width:100%;
   }
   .field textarea{ resize:vertical; line-height:1.5; min-height:96px; }
-  .field input.mono{ font-family:"IBM Plex Mono", monospace; font-size:14.5px; letter-spacing:.01em; }
+  .field input.mono{ font-family:var(--font-data); font-size:14.5px; letter-spacing:.01em; }
   .field-row{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; }
   .field-hint{ font-size:12px; color:var(--muted); }
 
   .multi-block{ display:flex; flex-direction:column; gap:8px; }
   .multi-head{ display:flex; justify-content:space-between; align-items:center; }
-  .multi-head label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:"IBM Plex Mono", monospace; }
+  .multi-head label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-family:var(--font-ui); }
   .add-row-btn{
     border:1px dashed var(--line); background:transparent; color:var(--muted); border-radius:8px;
-    padding:4px 10px; font-size:12px; cursor:pointer; font-family:"IBM Plex Mono", monospace;
+    padding:4px 10px; font-size:12px; cursor:pointer; font-family:var(--font-ui);
   }
   .add-row-btn:hover{ color:var(--accent); border-color:var(--accent); }
   .multi-row{ display:grid; grid-template-columns: 88px 1fr 30px; gap:8px; align-items:center; }
-  .multi-row select{ border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--bg); color:var(--ink); font-size:13px; font-family:"IBM Plex Sans", sans-serif; }
-  .multi-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--bg); color:var(--ink); font-size:14px; font-family:"IBM Plex Sans", sans-serif; }
+  .multi-row select{ border:1px solid var(--line); border-radius:8px; padding:8px; background:var(--sunken); color:var(--ink); font-size:13px; font-family:var(--font-ui); }
+  .multi-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--sunken); color:var(--ink); font-size:14px; font-family:var(--font-ui); }
   .remove-row-btn{ border:0; background:transparent; color:var(--muted); cursor:pointer; width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
   .remove-row-btn:hover{ background:var(--accent-soft); color:var(--danger); }
 
   .sheet-actions{ display:flex; justify-content:space-between; align-items:center; margin-top:4px; gap:10px;}
   .btn{
-    font-family:"IBM Plex Sans", sans-serif; font-weight:600; font-size:14px; border-radius:10px;
+    font-family:var(--font-ui); font-weight:600; font-size:14px; border-radius:10px;
     padding:10px 16px; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--ink);
   }
   .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
@@ -193,7 +199,7 @@
   .btn.ghost:hover{ color:var(--danger); }
 
   .cat-row{ display:grid; grid-template-columns: 1fr 30px; gap:8px; align-items:center; }
-  .cat-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--bg); color:var(--ink); font-size:14px; font-family:"IBM Plex Sans", sans-serif; }
+  .cat-row input{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--sunken); color:var(--ink); font-size:14px; font-family:var(--font-ui); }
   .cat-list{ display:flex; flex-direction:column; gap:8px; max-height: 260px; overflow-y:auto; padding-right:2px; }
   .cat-empty{ color: var(--muted); font-size: 13px; padding: 4px 0; }
 
@@ -209,23 +215,23 @@
   .shell{ display:grid; grid-template-columns: var(--sidebar-w) minmax(0,1fr); min-height:100vh; }
   .sidebar{
     position:sticky; top:0; height:100vh; overflow-y:auto;
-    background:var(--paper); border-right:1px solid var(--line);
+    background:var(--sunken); border-right:1px solid var(--line);
     display:flex; flex-direction:column; gap:26px; padding:26px 14px 20px;
   }
   .brand{ padding:0 10px; display:flex; flex-direction:column; gap:2px; }
-  .brand-name{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:23px; letter-spacing:-0.01em; }
-  .brand-sub{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
+  .brand-name{ font-family:var(--font-ui); font-weight:600; font-size:23px; letter-spacing:-0.01em; }
+  .brand-sub{ font-family:var(--font-ui); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); }
   .nav{ display:flex; flex-direction:column; gap:2px; }
-  .nav-label{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:0 10px 6px; }
+  .nav-label{ font-family:var(--font-ui); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding:0 10px 6px; }
   .nav-item{
     display:flex; align-items:center; gap:11px; padding:9px 10px; border-radius:10px;
     color:var(--muted); text-decoration:none; font-weight:500; font-size:14.5px;
   }
   .nav-item svg{ flex:none; }
-  .nav-item:hover{ background:var(--bg); color:var(--ink); }
+  .nav-item:hover{ background:var(--line); color:var(--ink); }
   .nav-item[aria-current="page"]{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
   .nav-item:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
-  .nav-count{ margin-left:auto; font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .nav-count{ margin-left:auto; font-family:var(--font-ui); font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
   .sidebar-foot{ margin-top:auto; padding:0 10px; font-size:12.5px; color:var(--muted); line-height:1.45; }
   .sidebar-foot strong{ display:block; color:var(--ink); font-weight:500; }
 
@@ -242,33 +248,37 @@
   }
   .stat:hover{ border-color:var(--accent); }
   .stat[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
-  .stat-num{ font-family:"Fraunces", serif; font-weight:600; font-size:28px; line-height:1.1; font-variant-numeric:tabular-nums; }
-  .stat-lbl{ font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
-  .stat.warn .stat-num{ color:var(--warn); }
-  .stat.warn.zero .stat-num{ color:var(--muted); }
+  .stat-num{ font-family:var(--font-ui); font-weight:600; font-size:28px; line-height:1.1; font-variant-numeric:tabular-nums; }
+  .stat-lbl{ font-family:var(--font-ui); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); }
+  .range{
+    display:grid; grid-template-columns: minmax(0,180px) minmax(0,180px); gap:12px;
+    background:var(--sunken); border:1px solid var(--line); border-radius:12px;
+    padding:10px 12px 12px; margin:2px 0 12px; width:max-content; max-width:100%;
+  }
+  .range .field input{ background:var(--paper); padding:8px 10px; font-size:14.5px; }
 
   .filter-row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
   .filter-row:last-of-type{ margin-bottom:22px; }
-  .filter-label{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); min-width:56px; }
+  .filter-label{ font-family:var(--font-ui); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); min-width:56px; }
 
   .day{ display:flex; flex-direction:column; gap:10px; }
   .day-label{ display:flex; align-items:baseline; gap:10px; padding-left:4px; }
-  .day-label .d{ font-family:"Fraunces", serif; font-weight:600; font-size:15px; color:var(--accent); }
-  .day-label .rel{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .day-label .d{ font-family:var(--font-ui); font-weight:600; font-size:15px; color:var(--accent); }
+  .day-label .rel{ font-family:var(--font-ui); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
 
   .hcard{
     background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
     padding:14px 16px; display:grid; grid-template-columns: 58px minmax(0,1fr) auto; gap:14px; align-items:start;
   }
   .hcard.pending{ border-color:var(--warn); }
-  .htime{ font-family:"IBM Plex Mono", monospace; font-size:17px; font-weight:500; font-variant-numeric:tabular-nums; padding-top:1px; }
+  .htime{ font-family:var(--font-data); font-size:17px; font-weight:500; font-variant-numeric:tabular-nums; padding-top:1px; }
   .hinfo{ min-width:0; display:flex; flex-direction:column; gap:3px; }
-  .hproc{ font-family:"IBM Plex Mono", monospace; font-size:14.5px; font-weight:500; overflow-wrap:anywhere; }
+  .hproc{ font-family:var(--font-data); font-size:14.5px; font-weight:500; overflow-wrap:anywhere; }
   .hproc mark, .hobs mark, .htipo mark{ background:var(--accent-soft); color:var(--ink); border-radius:3px; }
   .htipo{ font-size:13.5px; color:var(--ink); }
   .hobs{ font-size:13px; color:var(--muted); line-height:1.45; white-space:pre-line;
     display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  .flag{ align-self:flex-start; font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase;
+  .flag{ align-self:flex-start; font-family:var(--font-ui); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase;
     color:var(--warn); background:var(--warn-soft); border-radius:6px; padding:2px 7px; margin-top:2px; }
   .hcard.cancelled .hproc, .hcard.cancelled .htime{ text-decoration:line-through; color:var(--muted); }
   .hside{ display:flex; flex-direction:column; align-items:flex-end; gap:6px; }
@@ -276,7 +286,7 @@
   .status-pill{ position:relative; display:inline-flex; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:transparent; }
   .status-pill select{
     appearance:none; -webkit-appearance:none; border:0; background:transparent; color:inherit; cursor:pointer;
-    font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.05em; text-transform:uppercase;
+    font-family:var(--font-ui); font-size:11.5px; letter-spacing:.05em; text-transform:uppercase;
     padding:4px 22px 4px 10px; border-radius:999px;
   }
   .status-pill::after{ content:""; position:absolute; right:9px; top:50%; width:5px; height:5px; margin-top:-4px;
@@ -284,7 +294,7 @@
   .status-pill[data-status="A cumprir"]{ color:var(--info); border-color:var(--info); background:var(--info-soft); }
   .status-pill[data-status="Cumprida"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
   .status-pill[data-status="Redesignada"]{ color:var(--warn); border-color:var(--warn); background:var(--warn-soft); }
-  .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--bg); }
+  .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--sunken); }
   .status-pill select option{ color:var(--ink); background:var(--paper); text-transform:none; }
 
   .quick{
@@ -292,7 +302,7 @@
     padding:16px 18px 18px; margin-bottom:18px; display:flex; flex-direction:column; gap:12px;
   }
   .quick-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-  .quick-head h2{ font-family:"Fraunces", serif; font-weight:600; font-size:18px; margin:0; }
+  .quick-head h2{ font-family:var(--font-ui); font-weight:600; font-size:18px; margin:0; }
   .quick-hint{ font-size:12px; color:var(--muted); }
   .quick-grid{
     display:grid; gap:12px; align-items:start;
@@ -325,8 +335,8 @@
       background:var(--paper); border-bottom:1px solid var(--line); padding:10px 16px;
     }
     .topbar .icon-btn{ width:36px; height:36px; color:var(--ink); }
-    .topbar-title{ font-family:"Fraunces", serif; font-weight:600; font-size:17px; }
-    .topbar-sub{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-left:auto; }
+    .topbar-title{ font-family:var(--font-ui); font-weight:600; font-size:17px; }
+    .topbar-sub{ font-family:var(--font-ui); font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-left:auto; }
     .main{ padding:20px 16px 100px; }
   }
   @media (prefers-reduced-motion: reduce){ .sidebar{ transition:none; } }
@@ -454,7 +464,7 @@
         </div>
         <div class="field q-tipo">
           <label for="qTipo">Tipo</label>
-          <input id="qTipo" list="audTipos" maxlength="60" placeholder="Instrução e julgamento" />
+          <select id="qTipo" required></select>
         </div>
         <div class="field q-obs">
           <label for="qObs">Observações</label>
@@ -471,8 +481,8 @@
       <button type="button" class="stat" data-period="semana" aria-pressed="false">
         <span class="stat-num" id="statSemana">0</span><span class="stat-lbl">próximos 15 dias</span>
       </button>
-      <button type="button" class="stat warn" data-period="pendentes" aria-pressed="false" id="statPendBtn">
-        <span class="stat-num" id="statPend">0</span><span class="stat-lbl">sem atualização</span>
+      <button type="button" class="stat" data-period="proxmes" aria-pressed="false">
+        <span class="stat-num" id="statProxMes">0</span><span class="stat-lbl" id="statProxMesLbl">próximo mês</span>
       </button>
     </div>
 
@@ -483,6 +493,16 @@
     </div>
 
     <div class="filter-row" id="audPeriods" role="group" aria-label="Período"></div>
+    <div class="range" id="audRange" hidden>
+      <div class="field">
+        <label for="rangeFrom">De</label>
+        <input id="rangeFrom" type="date" />
+      </div>
+      <div class="field">
+        <label for="rangeTo">Até</label>
+        <input id="rangeTo" type="date" />
+      </div>
+    </div>
     <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
 
     <div class="groups" id="audGroups"></div>
@@ -578,14 +598,13 @@
     <div class="field-row">
       <div class="field">
         <label for="aTipo">Tipo</label>
-        <input id="aTipo" list="audTipos" maxlength="60" placeholder="Instrução e julgamento" autocomplete="off" />
+        <select id="aTipo" required></select>
       </div>
       <div class="field">
         <label for="aStatus">Status</label>
         <select id="aStatus"></select>
       </div>
     </div>
-    <datalist id="audTipos"></datalist>
     <div class="field">
       <label for="aObs">Observações</label>
       <textarea id="aObs" rows="4" maxlength="4000" placeholder="Ex.: intimar testemunhas; audiência por videoconferência"></textarea>
@@ -1277,15 +1296,16 @@
   var JANELA_DIAS = 15; // período do filtro e do quadro "Próximos N dias"
   // nomes usados na primeira versão, convertidos ao carregar
   var STATUS_ANTIGOS = { "Designada": "A cumprir", "Realizada": "Cumprida" };
-  var TIPOS_SUGERIDOS = ["Conciliação", "Mediação", "Instrução", "Instrução e julgamento", "Una", "Justificação", "Custódia", "Oitiva de testemunha"];
+  var TIPOS = ["Instrução e julgamento", "Apresentação", "Em continuação"];
   var PERIODS = [
     { key: 'proximas',   label: 'Próximas' },
     { key: 'hoje',       label: 'Hoje' },
     { key: 'semana',     label: 'Próximos ' + JANELA_DIAS + ' dias' },
     { key: 'mes',        label: 'Este mês' },
+    { key: 'proxmes',    label: 'Próximo mês' },
     { key: 'anteriores', label: 'Anteriores' },
-    { key: 'pendentes',  label: 'Sem atualização' },
-    { key: 'todas',      label: 'Todas' }
+    { key: 'todas',      label: 'Todas' },
+    { key: 'intervalo',  label: 'Entre datas' }
   ];
 
   var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos' };
@@ -1300,8 +1320,11 @@
     empty: document.getElementById('audEmpty'),
     statHoje: document.getElementById('statHoje'),
     statSemana: document.getElementById('statSemana'),
-    statPend: document.getElementById('statPend'),
-    statPendBtn: document.getElementById('statPendBtn'),
+    statProxMes: document.getElementById('statProxMes'),
+    statProxMesLbl: document.getElementById('statProxMesLbl'),
+    range: document.getElementById('audRange'),
+    rangeFrom: document.getElementById('rangeFrom'),
+    rangeTo: document.getElementById('rangeTo'),
     stats: document.querySelectorAll('.stat[data-period]'),
     navCount: document.getElementById('navCountAud'),
     todayLong: document.getElementById('todayLong'),
@@ -1316,7 +1339,6 @@
     tipo: document.getElementById('aTipo'),
     statusSel: document.getElementById('aStatus'),
     obs: document.getElementById('aObs'),
-    tipos: document.getElementById('audTipos'),
     deleteBtn: document.getElementById('audDeleteBtn'),
     cancelBtn: document.getElementById('audCancelBtn')
   };
@@ -1405,11 +1427,17 @@
       case 'hoje':       return a.date >= today && a.date < addDays(today, 1);
       case 'semana':     return a.date >= today && a.date < addDays(today, JANELA_DIAS);
       case 'mes':        return a.date.getFullYear() === now.getFullYear() && a.date.getMonth() === now.getMonth();
+      case 'proxmes':    return a.date >= nextMonthStart(now) && a.date < nextMonthStart(nextMonthStart(now));
       case 'anteriores': return a.date < today;
-      case 'pendentes':  return isPending(a, now);
+      case 'intervalo':
+        var from = aud.from ? new Date(aud.from + 'T00:00') : null;
+        var to = aud.to ? addDays(new Date(aud.to + 'T00:00'), 1) : null;
+        return (!from || a.date >= from) && (!to || a.date < to);
       default:           return true;
     }
   }
+
+  function nextMonthStart(d){ return new Date(d.getFullYear(), d.getMonth() + 1, 1); }
 
   function audMatches(a){
     if (aud.status !== 'Todos' && a.status !== aud.status) return false;
@@ -1433,8 +1461,18 @@
   function renderAudFilters(){
     A.periods.innerHTML = '<span class="filter-label">Período</span>';
     PERIODS.forEach(function(p){
-      A.periods.appendChild(chip(p.label, aud.period === p.key, function(){ aud.period = p.key; renderAudiencias(); }));
+      A.periods.appendChild(chip(p.label, aud.period === p.key, function(){
+        aud.period = p.key;
+        if (p.key === 'intervalo' && !aud.from && !aud.to){
+          aud.from = dayKey(new Date());
+          aud.to = dayKey(addDays(new Date(), 30));
+        }
+        renderAudiencias();
+      }));
     });
+    A.range.hidden = aud.period !== 'intervalo';
+    A.rangeFrom.value = aud.from || "";
+    A.rangeTo.value = aud.to || "";
     A.statuses.innerHTML = '<span class="filter-label">Status</span>';
     ["Todos"].concat(STATUSES).forEach(function(st){
       A.statuses.appendChild(chip(st, aud.status === st, function(){ aud.status = st; renderAudiencias(); }));
@@ -1453,17 +1491,18 @@
 
   function renderSummary(now){
     var today = startOfDay(now), tomorrow = addDays(today, 1), week = addDays(today, JANELA_DIAS);
-    var hoje = 0, semana = 0, pend = 0;
+    var nm = nextMonthStart(now), nm2 = nextMonthStart(nm);
+    var hoje = 0, semana = 0, proxMes = 0;
     aud.items.forEach(function(a){
       if (a.status === 'Cancelada') return;
       if (a.date >= today && a.date < tomorrow) hoje++;
       if (a.date >= today && a.date < week) semana++;
-      if (isPending(a, now)) pend++;
+      if (a.date >= nm && a.date < nm2) proxMes++;
     });
     A.statHoje.textContent = hoje;
     A.statSemana.textContent = semana;
-    A.statPend.textContent = pend;
-    A.statPendBtn.classList.toggle('zero', pend === 0);
+    A.statProxMes.textContent = proxMes;
+    A.statProxMesLbl.textContent = 'em ' + nm.toLocaleDateString('pt-BR', { month: 'long' });
     A.navCount.textContent = hoje || "";
     A.todayLong.textContent = capitalize(now.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }));
     A.todayAud.textContent = !aud.loaded || aud.error ? "" :
@@ -1561,7 +1600,7 @@
         ? "A tabela de audiências ainda não existe no Supabase. Rode o SQL da seção “Audiências” do LEIA-ME.md e recarregue a página."
         : "Erro ao carregar audiências: " + aud.error.message;
       else if (aud.items.length === 0) A.empty.textContent = "Nenhuma audiência cadastrada ainda. Use o formulário acima para cadastrar a primeira.";
-      else A.empty.textContent = aud.period === 'pendentes' ? "Tudo em dia: nenhuma audiência passada sem atualização." : "Nenhuma audiência neste filtro.";
+      else A.empty.textContent = "Nenhuma audiência neste filtro.";
       return;
     }
     A.empty.hidden = true;
@@ -1618,14 +1657,17 @@
     A.statusSel.appendChild(o);
   });
 
-  function fillTipos(){
-    var seen = {}, out = [];
-    TIPOS_SUGERIDOS.concat(aud.items.map(function(a){ return a.tipo; })).forEach(function(t){
-      var k = normalize(t).trim();
-      if (k && !seen[k]){ seen[k] = true; out.push(t.trim()); }
-    });
-    A.tipos.innerHTML = out.map(function(t){ return '<option value="' + escapeHtml(t) + '"></option>'; }).join('');
+  // Preenche a lista de tipos; um tipo antigo fora da lista continua aparecendo
+  function fillTipos(select, current){
+    var opts = TIPOS.slice();
+    if (current && opts.indexOf(current) === -1) opts.push(current);
+    select.innerHTML = '<option value="" disabled>Selecione…</option>' +
+      opts.map(function(t){ return '<option value="' + escapeHtml(t) + '">' + escapeHtml(t) + '</option>'; }).join('');
+    select.value = current || "";
   }
+
+  A.rangeFrom.addEventListener('change', function(){ aud.from = A.rangeFrom.value; renderAudiencias(); });
+  A.rangeTo.addEventListener('change', function(){ aud.to = A.rangeTo.value; renderAudiencias(); });
 
   function disarmDelete(){
     A.deleteBtn.classList.remove('armed');
@@ -1635,14 +1677,13 @@
   function openAudDialog(a){
     A.form.reset();
     disarmDelete();
-    fillTipos();
+    fillTipos(A.tipo, a && a.tipo);
     if (a){
       A.title.textContent = 'Editar audiência';
       A.id.value = a.id;
       A.processo.value = a.processo;
       A.data.value = dayKey(a.date);
       A.hora.value = pad(a.date.getHours()) + ':' + pad(a.date.getMinutes());
-      A.tipo.value = a.tipo;
       if (STATUSES.indexOf(a.status) === -1){
         var o = document.createElement('option');
         o.value = a.status; o.textContent = a.status;
@@ -1712,7 +1753,7 @@
   });
   Q.status.value = STATUS_PADRAO;
   Q.data.value = dayKey(new Date());
-  fillTipos();
+  fillTipos(Q.tipo);
 
   Q.processo.addEventListener('blur', function(){ Q.processo.value = formatProcesso(Q.processo.value); });
 
@@ -1733,7 +1774,7 @@
     // mantém a data para cadastrar várias do mesmo dia
     Q.processo.value = ""; Q.hora.value = ""; Q.tipo.value = ""; Q.obs.value = "";
     Q.status.value = STATUS_PADRAO;
-    fillTipos();
+    fillTipos(Q.tipo);
     Q.processo.focus();
   });
 
