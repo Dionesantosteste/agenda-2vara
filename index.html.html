@@ -663,7 +663,9 @@
     contacts: [],
     categories: DEFAULT_CATEGORIES.slice(),
     query: "",
-    category: "Todos"
+    category: "Todos",
+    loaded: false,
+    loadError: null
   };
 
   function toast(msg){
@@ -691,7 +693,14 @@
   async function loadContacts(){
     if (!supabase) return;
     var res = await supabase.from('contacts').select('*').order('name', { ascending: true });
-    if (res.error){ toast('Erro ao carregar contatos: ' + res.error.message); return; }
+    state.loaded = true;
+    if (res.error){
+      state.loadError = res.error.message || String(res.error);
+      toast('Erro ao carregar contatos: ' + state.loadError);
+      render();
+      return;
+    }
+    state.loadError = null;
     state.contacts = (res.data || []).map(function(row){
       return {
         id: row.id,
@@ -722,7 +731,7 @@
   async function seedExampleContactsIfEmpty(){
     if (!supabase) return;
     var res = await supabase.from('contacts').select('id', { count: 'exact', head: true });
-    if (res.error || (res.count && res.count > 0)) return;
+    if (res.error || res.count !== 0) return;
     var examples = [
       { name: "Dr. Ricardo Mendes (Perito Contábil)", category: "Perito",
         phones: [{ label: "Celular", value: "(65) 99811-2233" }],
@@ -871,6 +880,10 @@
       els.emptyState.hidden = false;
       els.emptyState.textContent = !configured
         ? "Configure o Supabase (veja o aviso acima) para começar a salvar contatos."
+        : state.loadError
+        ? "Não foi possível carregar os contatos do banco de dados (Supabase). Os dados não foram apagados por isso. Erro: " + state.loadError + ". Verifique se o projeto no supabase.com não está pausado e recarregue a página."
+        : !state.loaded
+        ? "Carregando contatos…"
         : (state.query || state.category !== "Todos"
           ? "Nenhum contato encontrado."
           : "Nenhum contato ainda — toque em + para adicionar.");
