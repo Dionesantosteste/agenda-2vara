@@ -171,7 +171,7 @@ Como funciona:
 
 ## Busca e número do processo
 
-- **Busca geral:** o campo "Buscar processo ou nome", no topo do menu lateral (no celular, a lupa no topo da tela),
+- **Busca geral:** o campo "Buscar processo ou nome", no topo de todas as páginas (acima do título e dos formulários),
   procura de uma vez em perícias (em andamento e concluídas), audiências, contatos da Agenda e, com a Organização
   destrancada, nas tarefas. Aceita o número do processo com ou sem pontuação, ou só um pedaço dele, e nomes.
   Atalho: **Ctrl+K** ou **/**.
