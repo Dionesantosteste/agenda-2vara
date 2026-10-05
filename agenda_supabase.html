@@ -42,6 +42,7 @@
   }
 
   *{box-sizing:border-box;}
+  [hidden]{ display:none !important; }
   body{
     margin:0; background:var(--bg); color:var(--ink);
     font-family:"IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
@@ -286,6 +287,29 @@
   .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--bg); }
   .status-pill select option{ color:var(--ink); background:var(--paper); text-transform:none; }
 
+  .quick{
+    background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow);
+    padding:16px 18px 18px; margin-bottom:18px; display:flex; flex-direction:column; gap:12px;
+  }
+  .quick-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .quick-head h2{ font-family:"Fraunces", serif; font-weight:600; font-size:18px; margin:0; }
+  .quick-hint{ font-size:12px; color:var(--muted); }
+  .quick-grid{
+    display:grid; gap:12px; align-items:start;
+    grid-template-columns: minmax(0,2fr) minmax(0,1.15fr) minmax(0,.85fr) minmax(0,1.5fr);
+    grid-template-areas: "proc data hora tipo" "obs obs obs save";
+  }
+  .q-proc{ grid-area:proc; } .q-data{ grid-area:data; } .q-hora{ grid-area:hora; }
+  .q-tipo{ grid-area:tipo; } .q-obs{ grid-area:obs; } .q-save{ grid-area:save; height:43px; align-self:end; }
+  .quick .field input{ padding:0 11px; height:43px; font-size:14.5px; }
+  @media (max-width:640px){
+    .quick{ padding:14px 14px 16px; }
+    .quick-grid{
+      grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+      grid-template-areas: "proc proc" "data hora" "tipo tipo" "obs obs" "save save";
+    }
+  }
+
   .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
 
   @media (max-width:860px){
@@ -406,6 +430,36 @@
       <div class="count" id="audCount">— audiências</div>
     </header>
 
+    <form class="quick" id="quickForm" autocomplete="off" aria-labelledby="quickTitle">
+      <div class="quick-head">
+        <h2 id="quickTitle">Cadastrar audiência</h2>
+        <span class="quick-hint">Enter salva · a data fica para a próxima</span>
+      </div>
+      <div class="quick-grid">
+        <div class="field q-proc">
+          <label for="qProcesso">Nº do processo</label>
+          <input id="qProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
+        </div>
+        <div class="field q-data">
+          <label for="qData">Data</label>
+          <input id="qData" type="date" required />
+        </div>
+        <div class="field q-hora">
+          <label for="qHora">Hora</label>
+          <input id="qHora" type="time" required />
+        </div>
+        <div class="field q-tipo">
+          <label for="qTipo">Tipo</label>
+          <input id="qTipo" list="audTipos" maxlength="60" placeholder="Instrução e julgamento" />
+        </div>
+        <div class="field q-obs">
+          <label for="qObs">Observações</label>
+          <input id="qObs" maxlength="4000" placeholder="Ex.: intimar testemunhas; por videoconferência" />
+        </div>
+        <button type="submit" class="btn primary q-save">Cadastrar</button>
+      </div>
+    </form>
+
     <div class="summary">
       <button type="button" class="stat" data-period="hoje" aria-pressed="false">
         <span class="stat-num" id="statHoje">0</span><span class="stat-lbl">hoje</span>
@@ -500,7 +554,7 @@
 
 <dialog id="audDialog">
   <form class="sheet" id="audForm">
-    <h2 id="audDialogTitle">Nova audiência</h2>
+    <h2 id="audDialogTitle">Editar audiência</h2>
     <input type="hidden" id="audId" />
     <div class="field">
       <label for="aProcesso">Nº do processo</label>
@@ -1027,10 +1081,7 @@
     setTimeout(function(){ els.fName.focus(); }, 30);
   }
 
-  els.addBtn.addEventListener('click', function(){
-    if (currentRoute === 'audiencias') openAudDialog(null);
-    else openDialog(null);
-  });
+  els.addBtn.addEventListener('click', function(){ openDialog(null); });
   els.cancelBtn.addEventListener('click', function(){ els.dialog.close(); });
 
   els.search.addEventListener('input', function(){
@@ -1164,8 +1215,8 @@
   // ---------------------------------------------------------------------
 
   var ROUTES = {
-    agenda:     { title: 'Agenda',     add: 'Adicionar contato' },
-    audiencias: { title: 'Audiências', add: 'Cadastrar audiência' }
+    agenda:     { title: 'Agenda' },
+    audiencias: { title: 'Audiências' }
   };
   var currentRoute = 'agenda';
   var shell = document.getElementById('shell');
@@ -1193,8 +1244,7 @@
       else a.removeAttribute('aria-current');
     });
     document.getElementById('topbarTitle').textContent = ROUTES[r].title;
-    els.addBtn.setAttribute('aria-label', ROUTES[r].add);
-    els.addBtn.title = ROUTES[r].add;
+    els.addBtn.hidden = (r !== 'agenda');
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
     if (r === 'audiencias') renderAudiencias();
@@ -1286,7 +1336,7 @@
   }
 
   async function upsertAudiencia(id, data){
-    if (!supabase){ toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return; }
+    if (!supabase){ toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return false; }
     var payload = {
       processo: data.processo,
       data_hora: data.date.toISOString(),
@@ -1298,9 +1348,10 @@
     var res = id
       ? await supabase.from('audiencias').update(payload).eq('id', id)
       : await supabase.from('audiencias').insert(payload);
-    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return; }
+    if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return false; }
     toast(id ? 'Audiência atualizada' : 'Audiência cadastrada');
     await loadAudiencias();
+    return true;
   }
 
   async function setAudStatus(a, status){
@@ -1488,7 +1539,7 @@
       else if (aud.error) A.empty.textContent = /audiencias|42P01|PGRST205/.test((aud.error.code || '') + ' ' + (aud.error.message || ''))
         ? "A tabela de audiências ainda não existe no Supabase. Rode o SQL da seção “Audiências” do LEIA-ME.md e recarregue a página."
         : "Erro ao carregar audiências: " + aud.error.message;
-      else if (aud.items.length === 0) A.empty.textContent = "Nenhuma audiência cadastrada. Toque em + para cadastrar a primeira.";
+      else if (aud.items.length === 0) A.empty.textContent = "Nenhuma audiência cadastrada ainda. Use o formulário acima para cadastrar a primeira.";
       else A.empty.textContent = aud.period === 'pendentes' ? "Tudo em dia: nenhuma audiência passada sem atualização." : "Nenhuma audiência neste filtro.";
       return;
     }
@@ -1579,12 +1630,6 @@
       A.statusSel.value = a.status;
       A.obs.value = a.observacoes;
       A.deleteBtn.hidden = false;
-    } else {
-      A.title.textContent = 'Nova audiência';
-      A.id.value = "";
-      A.data.value = dayKey(new Date());
-      A.statusSel.value = 'Designada';
-      A.deleteBtn.hidden = true;
     }
     A.dialog.showModal();
     setTimeout(function(){ A.processo.focus(); }, 30);
@@ -1626,6 +1671,41 @@
     var r = A.form.getBoundingClientRect();
     var inside = r.top <= e.clientY && e.clientY <= r.top + r.height && r.left <= e.clientX && e.clientX <= r.left + r.width;
     if (!inside) A.dialog.close();
+  });
+
+  // ---- cadastro direto na tela ----
+
+  var Q = {
+    form: document.getElementById('quickForm'),
+    processo: document.getElementById('qProcesso'),
+    data: document.getElementById('qData'),
+    hora: document.getElementById('qHora'),
+    tipo: document.getElementById('qTipo'),
+    obs: document.getElementById('qObs')
+  };
+  Q.data.value = dayKey(new Date());
+  fillTipos();
+
+  Q.processo.addEventListener('blur', function(){ Q.processo.value = formatProcesso(Q.processo.value); });
+
+  Q.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var date = new Date(Q.data.value + 'T' + Q.hora.value);
+    if (isNaN(date.getTime())){ toast('Informe data e hora válidas'); return; }
+    var processo = formatProcesso(Q.processo.value);
+    if (!processo){ toast('Informe o número do processo'); Q.processo.focus(); return; }
+    var ok = await upsertAudiencia(null, {
+      processo: processo,
+      date: date,
+      tipo: Q.tipo.value.trim(),
+      status: 'Designada',
+      observacoes: Q.obs.value.trim()
+    });
+    if (!ok) return;
+    // mantém a data para cadastrar várias do mesmo dia
+    Q.processo.value = ""; Q.hora.value = ""; Q.tipo.value = ""; Q.obs.value = "";
+    fillTipos();
+    Q.processo.focus();
   });
 
   // Mantém "hoje" e os avisos de "já passou" corretos com a página aberta
