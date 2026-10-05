@@ -103,16 +103,22 @@ Se a tabela `audiencias` foi criada antes da opção **Conferir**, rode também:
 alter table audiencias add column if not exists conferida_em timestamptz;
 ```
 
-## Passo 2.3 — Organização (mural + tarefas) com senha
+## Passo 2.3 — Organização (tarefas, mural, quadro, lembretes e rotinas) com senha
 
 A seção **Organização** fica protegida por uma senha de 6 números. Quem confere a senha é o
 próprio Supabase: sem ela, o banco não entrega nem grava nada da Organização, mesmo para quem
 tem o endereço do projeto. A senha fica guardada criptografada e **não aparece no código do site**.
 
-1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) e copie todo o conteúdo.
+1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
+   tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 10 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
+
+**Atualizar** (quando o arquivo ganhar novidades, como as abas Quadro, Lembretes e Rotinas):
+rode o arquivo inteiro de novo do mesmo jeito. Nada é apagado e a senha atual continua valendo;
+não precisa mexer na linha `<<< SENHA`.
 
 Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
