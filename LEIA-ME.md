@@ -159,6 +159,11 @@ Como funciona:
   campo, rode no SQL Editor: `alter table pericias add column if not exists autor text not null default '';`
 - Ao marcar **Laudo juntado** (pela situação, pela alteração em lote ou pelo atalho "Laudo juntado (concluir)" do
   andamento), a perícia vai para a aba **Concluídas**, um histórico agrupado por mês. As canceladas também ficam lá.
+- **Cadastrar várias de uma vez:** no formulário, escolha "Várias de uma vez", informe o perito, a data, a hora da
+  primeira e o intervalo (10 minutos por padrão) e cole os processos, um por linha (nº do processo, nome do autor e,
+  se quiser, a hora). A prévia mostra o horário de cada uma e avisa linhas com problema.
+- **Processo repetido:** se o processo já tiver perícia em andamento, o site avisa antes de cadastrar (no cadastro
+  individual pede confirmação; no lote a linha fica de fora, a menos que você marque "cadastrar mesmo assim").
 - **Alterar em lote:** marque as caixinhas das perícias (ou use "Selecionar" no título de cada dia), escolha a
   nova situação e a data na barra que aparece embaixo e clique em **Aplicar**. Cada perícia recebe o andamento
   e, se for "Realizada", o prazo do laudo calculado a partir da data informada.
