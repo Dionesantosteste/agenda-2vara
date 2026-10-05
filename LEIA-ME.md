@@ -68,7 +68,7 @@ create table audiencias (
   processo text not null default '',
   data_hora timestamptz not null,
   tipo text default '',
-  status text not null default 'A cumprir',   -- A cumprir, Cumprida, Redesignada, Cancelada
+  status text not null default 'A cumprir',   -- A cumprir, Intimações feitas, Pronto para audiência, Redesignada, Cancelada
   observacoes text default '',
   conferida_em timestamptz,                  -- data/hora em que foi marcada como conferida
   created_at timestamptz default now(),
