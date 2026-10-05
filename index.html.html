@@ -346,6 +346,36 @@
 
   .btn.ghost.armed{ color:var(--danger); background:var(--accent-soft); }
 
+  /* ================= Busca geral ================= */
+  .gsearch{ display:flex; align-items:center; gap:8px; margin:0 2px; padding:0 10px; height:40px; border:1px solid var(--line); border-radius:10px; background:var(--sunken); color:var(--muted); cursor:text; }
+  .gsearch:focus-within{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
+  .gsearch input{ flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--ink); font-family:var(--font-ui); font-size:14px; }
+  .gsearch input::-webkit-search-cancel-button{ cursor:pointer; }
+  .gresultados{ position:fixed; z-index:60; top:16px; left:calc(var(--sidebar-w) + 16px); width:min(620px, calc(100vw - var(--sidebar-w) - 32px));
+    max-height:calc(100vh - 32px); display:flex; flex-direction:column; background:var(--paper); border:1px solid var(--line); border-radius:14px;
+    box-shadow:0 12px 40px rgba(20,32,51,.22); overflow:hidden; }
+  .gr-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); font-size:13px; color:var(--muted); }
+  .gr-body{ overflow-y:auto; padding:8px 8px 12px; display:flex; flex-direction:column; gap:4px; }
+  .gr-sec{ font-size:11.5px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); padding:10px 8px 4px; }
+  .gr-item{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:4px 12px; align-items:center; text-align:left; width:100%;
+    border:1px solid transparent; background:transparent; color:var(--ink); border-radius:10px; padding:9px 10px; cursor:pointer; font-family:var(--font-ui); }
+  .gr-item:hover, .gr-item:focus-visible, .gr-item.ativo{ background:var(--accent-soft); border-color:var(--accent-soft); outline:none; }
+  .gr-item .t{ font-weight:600; font-size:14.5px; overflow-wrap:anywhere; }
+  .gr-item .s{ grid-column:1; font-size:12.5px; color:var(--muted); overflow-wrap:anywhere; }
+  .gr-item .s .proc{ font-family:var(--font-data); font-size:12px; color:var(--ink); }
+  .gr-item .tag{ grid-row:1 / span 2; grid-column:2; align-self:center; }
+  .gr-item mark{ background:var(--warn-soft); color:var(--ink); border-radius:3px; padding:0 1px; }
+  .gr-vazio{ padding:24px 12px; text-align:center; color:var(--muted); font-size:14px; }
+  .gr-mais{ font-size:12.5px; color:var(--muted); padding:2px 10px 6px; }
+  .topbar-busca{ margin-left:auto; }
+  @media (max-width:860px){
+    .gresultados{ left:12px; right:12px; width:auto; top:calc(148px + env(safe-area-inset-top, 0px)); max-height:calc(100vh - 164px); }
+  }
+
+  .achado{ animation:achado 2s ease-out; }
+  @keyframes achado{ 0%, 40%{ box-shadow:0 0 0 3px var(--accent); } 100%{ box-shadow:var(--shadow); } }
+  @media (prefers-reduced-motion: reduce){ .achado{ animation:none; outline:3px solid var(--accent); } }
+
   /* ================= Indicador de carregamento ================= */
   .busy-bar{ position:fixed; top:0; left:0; right:0; height:3px; z-index:200; overflow:hidden; pointer-events:none; opacity:0; transition:opacity .2s; background:var(--accent-soft); }
   .busy-bar::before{ content:""; position:absolute; top:0; bottom:0; left:-40%; width:40%; background:var(--accent); border-radius:2px; animation:busy-slide 1.1s ease-in-out infinite; }
@@ -702,6 +732,10 @@
       <span class="brand-name">2ª Vara</span>
       <span class="brand-sub">Portal da secretaria</span>
     </div>
+    <label class="gsearch" for="gBusca">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="gBusca" type="search" placeholder="Buscar processo ou nome" autocomplete="off" aria-label="Buscar em todo o portal por número do processo ou nome" aria-controls="gResultados" />
+    </label>
     <nav class="nav" aria-label="Seções">
       <div class="nav-label">Seções</div>
       <a class="nav-item" href="#agenda" data-route="agenda">
@@ -738,7 +772,9 @@
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
     </button>
     <span class="topbar-title" id="topbarTitle">Agenda</span>
-    <span class="topbar-sub">2ª Vara</span>
+    <button type="button" class="icon-btn topbar-busca" id="gBuscaTopo" aria-label="Buscar processo ou nome">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
   </div>
 
 <main class="main">
@@ -795,7 +831,7 @@
       <div class="per-grid" id="perModoUma">
         <div class="field pg-proc">
           <label for="pProcesso">Nº do processo</label>
-          <input id="pProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
+          <input data-cnj id="pProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
         </div>
         <div class="field pg-autor">
           <label for="pAutor">Nome do autor</label>
@@ -958,7 +994,7 @@
           <div class="panel-head"><h2>Tarefas</h2><span id="orgTasksInfo"></span></div>
           <form class="org-add" id="orgTaskForm" autocomplete="off">
             <input class="org-in grow full" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
-            <input class="org-in grow proc-in" id="orgTaskProc" maxlength="40" placeholder="Nº do processo (opcional)" aria-label="Número do processo" />
+            <input data-cnj class="org-in grow proc-in" id="orgTaskProc" maxlength="40" placeholder="Nº do processo (opcional)" aria-label="Número do processo" />
             <input class="org-in" id="orgTaskDue" type="date" aria-label="Prazo" />
             <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="">Normal</option><option value="1">Urgente</option></select>
             <select class="org-in" id="orgTaskResp" aria-label="Responsável"></select>
@@ -1035,7 +1071,7 @@
       <div class="quick-grid">
         <div class="field q-proc">
           <label for="qProcesso">Nº do processo</label>
-          <input id="qProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
+          <input data-cnj id="qProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" required />
         </div>
         <div class="field q-data">
           <label for="qData">Data</label>
@@ -1171,7 +1207,7 @@
     <input type="hidden" id="peId" />
     <div class="field">
       <label for="peProcesso">Nº do processo</label>
-      <input id="peProcesso" class="mono" maxlength="40" required />
+      <input data-cnj id="peProcesso" class="mono" maxlength="40" required />
     </div>
     <div class="field">
       <label for="peAutor">Nome do autor</label>
@@ -1236,7 +1272,7 @@
     <input type="hidden" id="audId" />
     <div class="field">
       <label for="aProcesso">Nº do processo</label>
-      <input id="aProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" autocomplete="off" required />
+      <input data-cnj id="aProcesso" class="mono" maxlength="40" placeholder="0000000-00.0000.0.00.0000" autocomplete="off" required />
       <span class="field-hint">Com 20 dígitos, o número é formatado no padrão CNJ.</span>
     </div>
     <div class="field-row">
@@ -1273,6 +1309,13 @@
   </form>
 </dialog>
 
+<div class="gresultados" id="gResultados" hidden role="dialog" aria-label="Resultados da busca">
+  <div class="gr-head">
+    <span id="gResumo"></span>
+    <button type="button" class="icon-btn" id="gFechar" aria-label="Fechar a busca"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="gr-body" id="gLista"></div>
+</div>
 <div class="busy-bar" aria-hidden="true"></div>
 <div class="busy-pill" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="busyTxt">Carregando…</span></div>
 <div class="toast" id="toast"></div>
@@ -2785,7 +2828,7 @@
       '<label>Prazo<input class="org-in" type="date" id="oePrazo" value="' + (t.prazo ? dayKey(t.prazo) : '') + '"></label>' +
       '<label>Prioridade<select class="org-in" id="oeUrg"><option value="">Normal</option><option value="1"' + (t.urgente ? ' selected' : '') + '>Urgente</option></select></label>' +
       '<label>Responsável<select class="org-in" id="oeResp"><option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') + '</select></label>' +
-      '<label>Nº do processo<input class="org-in mono-in" id="oeProc" value="' + escapeHtml(t.processo) + '" maxlength="40" placeholder="opcional" style="font-family:var(--font-data)"></label>' +
+      '<label>Nº do processo<input data-cnj class="org-in mono-in" id="oeProc" value="' + escapeHtml(t.processo) + '" maxlength="40" placeholder="opcional" style="font-family:var(--font-data)"></label>' +
       '<div class="row-btns"><button type="button" class="btn danger-text" data-act="excluir-tarefa" data-id="' + t.id + '">Excluir</button>' +
       '<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="cancelar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></span></div>' +
       '</div></form>';
@@ -4212,6 +4255,164 @@
     var r = P.eform.getBoundingClientRect();
     var inside = r.top <= e.clientY && e.clientY <= r.top + r.height && r.left <= e.clientX && e.clientX <= r.left + r.width;
     if (!inside){ P.dialog.close(); renderPericias(); }
+  });
+
+
+  // ---------------------------------------------------------------------
+  // Número do processo: pontos e traço entram enquanto se digita (padrão CNJ)
+  // ---------------------------------------------------------------------
+  var CNJ_SEP = { 7: '-', 9: '.', 13: '.', 14: '.', 16: '.' };
+  function mascaraCNJ(v){
+    var d = String(v).replace(/\D/g, '').slice(0, 20), out = '';
+    for (var i = 0; i < d.length; i++){ if (CNJ_SEP[i]) out += CNJ_SEP[i]; out += d[i]; }
+    return out;
+  }
+  document.addEventListener('input', function(e){
+    var el = e.target;
+    if (!el || !el.hasAttribute || !el.hasAttribute('data-cnj')) return;
+    var v = el.value;
+    if (/[^\d.\-\s\/]/.test(v)){ el._cnjAnt = v; return; }   // número fora do padrão (com letras): deixa como está
+    var pos = el.selectionStart == null ? v.length : el.selectionStart;
+    var digAntes = v.slice(0, pos).replace(/\D/g, '').length;
+    var dig = v.replace(/\D/g, ''), digAnt = String(el._cnjAnt || '').replace(/\D/g, '');
+    // Apagou só um ponto/traço com Backspace: apaga também o número antes dele
+    if (e.inputType === 'deleteContentBackward' && dig === digAnt && digAntes > 0){
+      dig = dig.slice(0, digAntes - 1) + dig.slice(digAntes); digAntes--;
+    }
+    var novo = mascaraCNJ(dig);
+    el._cnjAnt = novo;
+    if (novo === v) return;
+    el.value = novo;
+    var p = 0, c = 0;
+    while (p < novo.length && c < digAntes){ if (/\d/.test(novo[p])) c++; p++; }
+    if (c === digAntes && CNJ_SEP[c] && p < novo.length && e.inputType && e.inputType.indexOf('insert') === 0) p++;
+    try { el.setSelectionRange(p, p); } catch (e2) {}
+  });
+
+  // ---------------------------------------------------------------------
+  // Busca geral: processo ou nome em perícias, audiências, contatos e tarefas
+  // ---------------------------------------------------------------------
+  var G = {
+    input: document.getElementById('gBusca'), painel: document.getElementById('gResultados'), lista: document.getElementById('gLista'),
+    resumo: document.getElementById('gResumo'), fechar: document.getElementById('gFechar'), topo: document.getElementById('gBuscaTopo')
+  };
+  var gAcoes = [], gAtivo = -1, G_LIMITE = 8;
+
+  function gFechar(limpar){
+    G.painel.hidden = true; gAcoes = []; gAtivo = -1;
+    if (limpar) G.input.value = '';
+  }
+  function irPara(rota){
+    gFechar(true);
+    if (location.hash === '#' + rota) applyRoute(); else location.hash = rota;
+    setTimeout(function(){
+      var alvo = document.querySelector('#view-' + rota + ' .pcard, #view-' + rota + ' .hcard, #view-' + rota + ' .card, #view-' + rota + ' .task');
+      if (alvo){ alvo.scrollIntoView({ block: 'center', behavior: 'smooth' }); alvo.classList.add('achado'); setTimeout(function(){ alvo.classList.remove('achado'); }, 2200); }
+    }, 120);
+  }
+  function gMarca(texto, q){ return q ? highlight(texto || '', q) : escapeHtml(texto || ''); }
+
+  function gBuscar(){
+    var q = G.input.value.trim(), nq = normalize(q), qd = digitsOnly(q);
+    if (nq.length < 2 && qd.length < 3){ gFechar(false); return; }
+    function bate(campos, proc){
+      if (qd.length >= 3 && proc && digitsOnly(proc).indexOf(qd) !== -1) return true;
+      return campos.some(function(f){ return normalize(f).indexOf(nq) !== -1; });
+    }
+    var secoes = [];
+
+    var pers = per.items.filter(function(p){ return bate([p.autor, p.perito, p.processo, p.local], p.processo); });
+    secoes.push({ nome: 'Perícias', itens: pers.map(function(p){
+      var quando = p.status === 'agendada' && p.data ? ' · ' + fmtData(p.data) + ' ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
+        : p.status === 'realizada' && prazoLaudo(p) ? ' · laudo até ' + fmtData(prazoLaudo(p)) : p.status === 'laudo_juntado' && p.laudoEm ? ' · concluída em ' + fmtData(p.laudoEm) : '';
+      return { t: gMarca(p.autor || 'Autor não informado', q), s: '<span class="proc">' + escapeHtml(p.processo) + '</span> · Perito: ' + gMarca(p.perito, q) + quando,
+        tag: '<span class="tag resp">' + PER_NOME[p.status] + '</span>',
+        ir: function(){
+          per.aba = aberta(p) ? 'andamento' : 'concluidas'; per.situacao = 'andamento'; per.concl = 'todas'; per.perito = '';
+          per.query = p.processo; P.search.value = p.processo; P.clearSearch.hidden = false; irPara('pericias');
+        } };
+    }) });
+
+    var auds = aud.items.filter(function(a){ return bate([a.processo, a.tipo, a.observacoes], a.processo); });
+    secoes.push({ nome: 'Audiências', itens: auds.map(function(a){
+      return { t: '<span class="proc" style="font-family:var(--font-data)">' + escapeHtml(a.processo) + '</span>',
+        s: escapeHtml(a.tipo || 'Tipo não informado') + ' · ' + fmtData(a.date) + ' às ' + pad(a.date.getHours()) + ':' + pad(a.date.getMinutes()) + (a.observacoes ? ' · ' + gMarca(a.observacoes.slice(0, 80), q) : ''),
+        tag: '<span class="tag resp">' + escapeHtml(a.status) + '</span>',
+        ir: function(){
+          aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas';
+          aud.query = a.processo; A.search.value = a.processo; A.clearSearch.hidden = false; irPara('audiencias');
+        } };
+    }) });
+
+    var cons = state.contacts.filter(function(c){
+      return bate([c.name].concat(c.phones.map(function(x){ return x.value; }), c.emails.map(function(x){ return x.value; })), '');
+    });
+    secoes.push({ nome: 'Contatos da Agenda', itens: cons.map(function(c){
+      var tel = c.phones[0] ? c.phones[0].value : '', mail = c.emails[0] ? c.emails[0].value : '';
+      return { t: gMarca(c.name, q), s: [tel, mail, c.category].filter(Boolean).map(escapeHtml).join(' · ') || 'sem contato salvo', tag: '',
+        ir: function(){
+          state.category = 'Todos'; state.query = c.name; els.search.value = c.name; els.clearSearch.hidden = false; renderFilters(); irPara('agenda');
+        } };
+    }) });
+
+    if (org.unlocked){
+      var tars = org.tarefas.filter(function(t){ return bate([t.titulo, t.processo, t.responsavel], t.processo); });
+      secoes.push({ nome: 'Tarefas da Organização', itens: tars.map(function(t){
+        return { t: gMarca(t.titulo, q), s: [t.processo ? '<span class="proc">' + escapeHtml(t.processo) + '</span>' : '', t.prazo ? 'prazo ' + fmtData(t.prazo) : '', t.feitaEm ? 'feita' : 'em aberto'].filter(Boolean).join(' · '), tag: '',
+          ir: function(){ org.tab = 'lista'; irPara('organizacao'); } };
+      }) });
+    }
+
+    gAcoes = []; gAtivo = -1;
+    var total = 0, h = '';
+    secoes.forEach(function(sec){
+      if (!sec.itens.length) return;
+      total += sec.itens.length;
+      h += '<div class="gr-sec">' + sec.nome + ' · ' + sec.itens.length + '</div>';
+      sec.itens.slice(0, G_LIMITE).forEach(function(it){
+        h += '<button type="button" class="gr-item" data-g="' + gAcoes.length + '"><span class="t">' + it.t + '</span>' + (it.tag || '') + '<span class="s">' + it.s + '</span></button>';
+        gAcoes.push(it.ir);
+      });
+      if (sec.itens.length > G_LIMITE) h += '<div class="gr-mais">e mais ' + (sec.itens.length - G_LIMITE) + '. Digite mais para refinar.</div>';
+    });
+    G.resumo.textContent = total ? total + (total === 1 ? ' resultado' : ' resultados') + ' para “' + q + '”' : 'Busca por “' + q + '”';
+    G.lista.innerHTML = h || '<div class="gr-vazio">Nada encontrado em perícias, audiências' + (org.unlocked ? ', contatos ou tarefas.' : ' ou contatos.') + '</div>';
+    G.painel.hidden = false;
+  }
+
+  G.input.addEventListener('input', gBuscar);
+  G.input.addEventListener('focus', function(){ if (G.input.value.trim()) gBuscar(); });
+  G.input.addEventListener('keydown', function(e){
+    var itens = G.lista.querySelectorAll('.gr-item');
+    if (e.key === 'Escape'){ gFechar(true); G.input.blur(); return; }
+    if (!itens.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp'){
+      e.preventDefault();
+      gAtivo = (gAtivo + (e.key === 'ArrowDown' ? 1 : -1) + itens.length) % itens.length;
+      itens.forEach(function(b, i){ b.classList.toggle('ativo', i === gAtivo); });
+      itens[gAtivo].scrollIntoView({ block: 'nearest' });
+    }
+    if (e.key === 'Enter'){ e.preventDefault(); var fn = gAcoes[gAtivo >= 0 ? gAtivo : 0]; if (fn) fn(); }
+  });
+  G.lista.addEventListener('click', function(e){
+    var b = e.target.closest('[data-g]'); if (!b) return;
+    var fn = gAcoes[+b.getAttribute('data-g')]; if (fn) fn();
+  });
+  G.fechar.addEventListener('click', function(){ gFechar(true); });
+  document.addEventListener('mousedown', function(e){
+    if (G.painel.hidden) return;
+    if (G.painel.contains(e.target) || e.target.closest('.gsearch') || e.target.closest('#gBuscaTopo')) return;
+    gFechar(false);
+  });
+  G.topo.addEventListener('click', function(){ setNavOpen(true); setTimeout(function(){ G.input.focus(); }, 60); });
+  // Atalho: Ctrl+K (ou /) abre a busca
+  document.addEventListener('keydown', function(e){
+    var tag = (e.target.tagName || '').toLowerCase();
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k' || (e.key === '/' && tag !== 'input' && tag !== 'textarea' && tag !== 'select' && !e.target.isContentEditable)){
+      e.preventDefault();
+      if (window.matchMedia('(max-width:860px)').matches) setNavOpen(true);
+      G.input.focus(); G.input.select();
+    }
   });
 
   // ---------------------------------------------------------------------
