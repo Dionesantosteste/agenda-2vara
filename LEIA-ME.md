@@ -56,6 +56,51 @@ alter publication supabase_realtime add table categories;
 > livre para qualquer pessoa. Se depois quiser restringir (por exemplo, exigir login), me avise
 > que eu ajusto o código para usar autenticação do Supabase.
 
+## Passo 2.1 — Tabela de Audiências (portal)
+
+O site agora é um **portal** com menu lateral: **Agenda** (contatos) e **Audiências**.
+Para a seção de Audiências funcionar, rode também este SQL no **SQL Editor** do Supabase
+(só precisa rodar uma vez):
+
+```sql
+create table audiencias (
+  id uuid primary key default gen_random_uuid(),
+  processo text not null default '',
+  data_hora timestamptz not null,
+  tipo text default '',
+  status text not null default 'A cumprir',   -- A cumprir, Cumprida, Redesignada, Cancelada
+  observacoes text default '',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create index audiencias_data_hora_idx on audiencias (data_hora);
+
+alter table audiencias enable row level security;
+
+create policy "public read audiencias" on audiencias for select using (true);
+create policy "public write audiencias" on audiencias for insert with check (true);
+create policy "public update audiencias" on audiencias for update using (true);
+create policy "public delete audiencias" on audiencias for delete using (true);
+
+alter publication supabase_realtime add table audiencias;
+```
+
+> ⚠️ Assim como os contatos, essas políticas deixam as audiências **abertas para qualquer
+> pessoa** que tenha a URL do Supabase. Como a pauta traz números de processo, considere
+> ativar login (Supabase Auth) — é só pedir que o código é ajustado.
+
+Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo para rodar este SQL.
+
+Para mudar a lista de status, edite `STATUSES` no `index.html` (o primeiro da lista é o padrão de uma audiência nova).
+
+### Como adicionar novas seções ao portal depois
+
+No `index.html`, cada seção tem três partes:
+1. um link no menu lateral (`<a class="nav-item" href="#nome" data-route="nome">`);
+2. um bloco `<section id="view-nome" hidden>` com o conteúdo;
+3. uma entrada em `ROUTES` no script.
+
 ## Passo 3 — Pegar a URL e a chave do projeto
 
 1. No painel, vá em **Settings → API**.
