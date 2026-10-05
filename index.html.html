@@ -30,6 +30,9 @@
     /* status das audiências (semânticas, separadas do acento) */
     --info: #1D5BB8; --info-soft: #E7F0FC;
     --ok: #157A3E; --ok-soft: #E3F4EA;
+    --st-red: #B42318; --st-red-soft: #FDE7E7;
+    --st-yellow: #7A5A00; --st-yellow-soft: #FFF3BF; --st-yellow-line: #D9A800;
+    --st-orange: #B54708; --st-orange-soft: #FFEAD5;
     --warn: #A35A00; --warn-soft: #FDF0DC;
     --note-amarelo: #FFF3B0; --note-verde: #D9F2DF; --note-rosa: #FCE0E6; --note-azul: #DCE9FF; --note-ink: #2A2A1E;
     --note-shadow: 0 2px 6px rgba(20,32,51,.12);
@@ -43,6 +46,7 @@
       --focus: #7FB0F5; --shadow: none;
       --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
       --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
+      --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
       --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
       --note-shadow: 0 2px 8px rgba(0,0,0,.4);
     }
@@ -54,6 +58,7 @@
     --focus: #7FB0F5; --shadow: none;
     --info: #7FB0F5; --info-soft: #1C2D46; --ok: #6FD39A; --ok-soft: #163324;
     --warn: #F4B865; --warn-soft: #3A2A12; color-scheme: dark;
+    --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
     --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
     --note-shadow: 0 2px 8px rgba(0,0,0,.4);
   }
@@ -315,10 +320,12 @@
   }
   .status-pill::after{ content:""; position:absolute; right:9px; top:50%; width:5px; height:5px; margin-top:-4px;
     border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); pointer-events:none; }
-  .status-pill[data-status="A cumprir"]{ color:var(--info); border-color:var(--info); background:var(--info-soft); }
-  .status-pill[data-status="Cumprida"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
-  .status-pill[data-status="Redesignada"]{ color:var(--warn); border-color:var(--warn); background:var(--warn-soft); }
-  .status-pill[data-status="Cancelada"]{ color:var(--muted); border-color:var(--line); background:var(--sunken); }
+  .status-pill[data-status="A cumprir"]{ color:var(--st-red); border-color:var(--st-red); background:var(--st-red-soft); }
+  .status-pill[data-status="Intimações feitas"]{ color:var(--st-yellow); border-color:var(--st-yellow-line); background:var(--st-yellow-soft); }
+  .status-pill[data-status="Pronto para audiência"]{ color:var(--ok); border-color:var(--ok); background:var(--ok-soft); }
+  .status-pill[data-status="Redesignada"]{ color:var(--st-orange); border-color:var(--st-orange); background:var(--st-orange-soft); }
+  .status-pill[data-status="Cancelada"]{ color:var(--st-red); border-color:var(--st-red); background:var(--st-red-soft); }
+  .status-pill[data-status="Cancelada"] select{ font-weight:800; }
   .status-pill select option{ color:var(--ink); background:var(--paper); text-transform:none; }
 
   .quick{
@@ -2032,11 +2039,11 @@
   // Audiências
   // ---------------------------------------------------------------------
 
-  var STATUSES = ["A cumprir", "Cumprida", "Redesignada", "Cancelada"];
+  var STATUSES = ["A cumprir", "Intimações feitas", "Pronto para audiência", "Redesignada", "Cancelada"];
   var STATUS_PADRAO = STATUSES[0];
   var JANELA_DIAS = 15; // período do filtro e do quadro "Próximos N dias"
   // nomes usados na primeira versão, convertidos ao carregar
-  var STATUS_ANTIGOS = { "Designada": "A cumprir", "Realizada": "Cumprida" };
+  var STATUS_ANTIGOS = { "Designada": "A cumprir", "Realizada": "Intimações feitas", "Cumprida": "Intimações feitas" };
   var TIPOS = ["Instrução e julgamento", "Apresentação", "Em continuação"];
   var PERIODS = [
     { key: 'proximas',   label: 'Próximas' },
