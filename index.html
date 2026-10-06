@@ -885,6 +885,65 @@
   .cad-row.pes{ grid-template-columns:minmax(0,1fr) auto auto auto; }
   .cad-row.pes.inativa input{ color:var(--muted); text-decoration:line-through; }
   .cad-row .btn.mini{ height:32px; padding:0 10px; font-size:12.5px; }
+
+  /* ---- modelos de texto ---- */
+  .txt-grid{ display:grid; grid-template-columns:280px minmax(0,1fr) 300px; gap:14px; align-items:start; }
+  .txt-bib .txt-novo{ height:34px; padding:0 12px; font-size:13.5px; }
+  .txt-bib .org-in{ width:100%; height:38px; }
+  .txt-lista{ display:flex; flex-direction:column; gap:6px; max-height:560px; overflow-y:auto; }
+  .txt-item{ all:unset; box-sizing:border-box; cursor:pointer; border:1px solid var(--item-line); background:var(--item); border-radius:10px; padding:9px 10px; display:flex; flex-direction:column; gap:3px; }
+  .txt-item:hover{ border-color:var(--accent); }
+  .txt-item:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .txt-item[aria-current="true"]{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); background:var(--paper); }
+  .txt-item b{ font-weight:600; overflow-wrap:anywhere; }
+  .txt-item small{ color:var(--muted); font-size:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .txt-cat{ font-size:10.5px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:1px 6px; }
+  .txt-star{ color:var(--warn); }
+  .txt-head{ display:flex; gap:10px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; }
+  .txt-head h3{ margin:0; font-size:19px; font-weight:600; overflow-wrap:anywhere; }
+  .txt-head .meta{ color:var(--muted); font-size:12.5px; margin-top:2px; }
+  .txt-acts{ display:flex; gap:6px; flex-wrap:wrap; }
+  .txt-acts .btn{ height:34px; padding:0 12px; font-size:13.5px; }
+  .folha{ background:var(--sunken); border:1px solid var(--line); border-radius:12px; padding:22px 24px; font-family:Georgia, "Times New Roman", serif;
+    font-size:15.5px; line-height:1.65; white-space:pre-wrap; min-height:420px; overflow-wrap:anywhere; color:var(--ink); }
+  .tvar{ background:var(--st-yellow-soft); color:var(--st-yellow); border:1px dashed var(--st-yellow-line); border-radius:5px; padding:0 4px;
+    font-family:var(--font-ui); font-size:13px; font-weight:600; white-space:nowrap; }
+  .tvar.ok{ background:var(--ok-soft); color:var(--ok); border-style:solid; border-color:transparent; font-family:inherit; font-size:inherit; white-space:normal; }
+  .txt-ed{ display:flex; flex-direction:column; gap:10px; }
+  .txt-ed-linha{ display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:10px; }
+  .txt-ed label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
+  .txt-ed .org-in{ width:100%; text-transform:none; letter-spacing:0; }
+  .txt-ins{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .txt-ins span{ font-size:12px; color:var(--muted); }
+  .txt-ins button{ border:1px dashed var(--st-yellow-line); background:var(--st-yellow-soft); color:var(--st-yellow); border-radius:6px; padding:2px 7px; font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-ui); }
+  .txt-editor{ width:100%; min-height:420px; border:1px solid var(--accent); border-radius:12px; padding:16px; background:var(--paper); color:var(--ink);
+    font-family:var(--font-data); font-size:13.5px; line-height:1.6; resize:vertical; }
+  .txt-ed-acts{ display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+  .txt-puxar{ background:var(--accent-soft); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px; }
+  .txt-puxar label, .txt-cps label{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .txt-puxar .org-in{ width:100%; font-family:var(--font-data); font-size:14px; }
+  .txt-puxar p{ margin:0; font-size:12.5px; color:var(--muted); }
+  .txt-achou{ font-size:12.5px; color:var(--ok); font-weight:600; }
+  .txt-cps{ display:flex; flex-direction:column; gap:10px; }
+  .txt-cps .campo{ display:flex; flex-direction:column; gap:4px; }
+  .txt-cps .org-in{ width:100%; }
+  .txt-faltam{ font-size:12.5px; color:var(--warn); }
+  .txt-faltam:empty{ display:none; }
+  .txt-meus{ border-top:1px solid var(--line); padding-top:10px; }
+  .txt-meus summary{ cursor:pointer; font-weight:600; font-size:14px; }
+  .txt-meus[open]{ display:flex; flex-direction:column; gap:8px; }
+  .txt-meus label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .txt-meus .org-in{ width:100%; text-transform:none; letter-spacing:0; }
+  .txt-meus .btn{ height:38px; }
+  .txt-vazio{ color:var(--muted); padding:30px 10px; text-align:center; }
+  @media (max-width:1100px){ .txt-grid{ grid-template-columns:260px minmax(0,1fr); } .txt-grid > .txt-campos{ grid-column:1 / -1; } }
+  @media (max-width:760px){
+    .txt-grid{ grid-template-columns:minmax(0,1fr); }
+    .txt-lista{ max-height:260px; }
+    .folha{ padding:16px; font-size:15px; min-height:0; }
+    .txt-ed-linha{ grid-template-columns:minmax(0,1fr); }
+    .txt-editor{ min-height:300px; }
+  }
   @media (hover:hover) and (pointer:fine){ .kmove .kord{ display:none; } }
   .kdrop-line{ height:4px; border-radius:2px; background:var(--accent); margin:-2px 4px; }
   .kmove .mv{ max-width:44%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1422,6 +1481,7 @@
           <button type="button" class="org-tab" role="tab" data-tab="lista">Tarefas e mural</button>
           <button type="button" class="org-tab" role="tab" data-tab="quadro">Quadro</button>
           <button type="button" class="org-tab" role="tab" data-tab="lembretes">Lembretes <span class="org-tab-n" id="orgTabLemN"></span></button>
+          <button type="button" class="org-tab" role="tab" data-tab="modelos">Modelos de texto</button>
           <button type="button" class="org-tab so-proprio" role="tab" data-tab="rotinas">Rotinas <span class="org-tab-n" id="orgTabRotN"></span></button>
         </div>
       </div>
@@ -1522,6 +1582,37 @@
             <button type="submit" class="btn primary">Adicionar</button>
           </form>
           <div class="tgroup" id="orgLemList"></div>
+        </div>
+      </div>
+
+      <div id="orgPaneModelos" class="org-pane" hidden>
+        <div class="txt-grid">
+          <section class="panel txt-bib" aria-label="Biblioteca de modelos">
+            <div class="panel-head"><h2>Modelos</h2><button type="button" class="btn primary txt-novo" id="txtNovo">+ Novo modelo</button></div>
+            <input class="org-in" id="txtBusca" type="search" maxlength="80" placeholder="Buscar modelo…" aria-label="Buscar modelo" />
+            <div class="kchips" id="txtCats" role="group" aria-label="Categorias"></div>
+            <div class="txt-lista" id="txtLista"></div>
+          </section>
+          <section class="panel txt-doc" aria-label="Texto do modelo" id="txtDoc"></section>
+          <section class="panel txt-campos" aria-label="Preencher os campos">
+            <div class="panel-head"><h2>Preencher</h2></div>
+            <div class="txt-puxar">
+              <label for="txtProc">Nº do processo</label>
+              <input data-cnj class="org-in mono-in" id="txtProc" maxlength="40" placeholder="0000000-00.0000.0.00.0000" />
+              <p>Digite o processo e o portal completa o que já sabe das Audiências e das Perícias.</p>
+              <div id="txtAchou" aria-live="polite"></div>
+            </div>
+            <div id="txtCampos" class="txt-cps"></div>
+            <div class="txt-faltam" id="txtFaltam"></div>
+            <details class="txt-meus" id="txtMeus">
+              <summary>Minha assinatura</summary>
+              <p class="field-hint">Vai no fim dos textos que você copiar. Fica guardada só para a sua tela.</p>
+              <label>Nome<input class="org-in" id="txtMeuNome" maxlength="80" placeholder="Seu nome completo" /></label>
+              <label>Cargo<input class="org-in" id="txtMeuCargo" maxlength="120" placeholder="Ex.: Técnica Judiciária" /></label>
+              <label>Cidade<input class="org-in" id="txtMeuCidade" maxlength="60" placeholder="Ex.: Cuiabá" /></label>
+              <button type="button" class="btn primary" id="txtMeuSalvar">Salvar assinatura</button>
+            </details>
+          </section>
         </div>
       </div>
 
@@ -3442,7 +3533,8 @@
 
   // modo: 'gestor' (senha) ou 'pessoa' (entrou pelo nome). ver: no modo gestor, id da pessoa cuja tela está aberta (null = a do gestor)
   var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false,
-    modo: 'gestor', eu: null, euNome: '', ver: null, pessoas: [], eqTarefas: [], eqColunas: [], temEquipe: false };
+    modo: 'gestor', eu: null, euNome: '', ver: null, pessoas: [], eqTarefas: [], eqColunas: [], temEquipe: false,
+    txt: { tem: false, modelos: [], cats: [], meus: { nome: '', cargo: '', cidade: '', favoritos: [] }, atual: null, cat: 'Todas', q: '', valores: {}, editando: null } };
   try { org.pin = sessionStorage.getItem('orgPin'); } catch (e) {}
   try { org.ver = sessionStorage.getItem('orgVer') || null; } catch (e) {}
   try { if (!org.pin){ org.eu = localStorage.getItem('orgPessoa') || null; if (org.eu) org.modo = 'pessoa'; } } catch (e) {}
@@ -3524,6 +3616,8 @@
   function orgLock(msg){
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
     org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
+    org.txt.valores = {}; org.txt.editando = null; org.txt.atual = null;
+    document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
     try { localStorage.removeItem('orgPessoa'); } catch (e) {}
@@ -3556,6 +3650,14 @@
   function orgParse(r){
     org.temEquipe = r.equipe === true;
     org.temConf = r.conferencia === true;
+    org.txt.tem = Array.isArray(r.txt_modelos);
+    org.txt.modelos = (r.txt_modelos || []).map(function(m){
+      return { id: m.id, nome: m.nome || 'Sem nome', cat: m.categoria || '', texto: m.texto || '', usos: m.usos || 0,
+        por: m.alterado_por || '', alterado: m.updated_at ? new Date(m.updated_at) : null };
+    });
+    org.txt.cats = (r.txt_categorias || []).map(function(c){ return { id: c.id, nome: c.nome || '' }; });
+    var mm = r.txt_meus || {};
+    org.txt.meus = { nome: mm.nome || '', cargo: mm.cargo || '', cidade: mm.cidade || '', favoritos: Array.isArray(mm.favoritos) ? mm.favoritos : [] };
     org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqColunas = r.equipe_colunas || [];
@@ -3671,6 +3773,7 @@
     renderOrgLembretes();
     renderOrgRotinas();
     renderOrgEquipe();
+    renderTxt();
     O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
   }
   function orgParaConferir(){ return org.eqTarefas.filter(orgEmConf).length; }
@@ -3985,7 +4088,7 @@
     lemN: document.getElementById('orgTabLemN'),
     rotN: document.getElementById('orgTabRotN'),
     panes: { equipe: document.getElementById('orgPaneEquipe'), lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
-      lembretes: document.getElementById('orgPaneLembretes'), rotinas: document.getElementById('orgPaneRotinas') },
+      lembretes: document.getElementById('orgPaneLembretes'), modelos: document.getElementById('orgPaneModelos'), rotinas: document.getElementById('orgPaneRotinas') },
     eqN: document.getElementById('orgTabEqN'),
     kanban: document.getElementById('orgKanban'),
     kBusca: document.getElementById('orgKBusca'),
@@ -4748,6 +4851,19 @@
       CAD.novo.innerHTML = '<select id="cadNovaCor" aria-label="Cor da nova etiqueta" style="--lc:' + orgCorEtq('azul') + '">' + cadCorOpts('azul') + '</select>' +
         '<input id="cadNovoNome" maxlength="40" placeholder="Nova etiqueta (ex.: Mandado)">' +
         '<button type="button" class="icon-btn" data-cad="add" title="Adicionar etiqueta" aria-label="Adicionar etiqueta">' + ICON_MAIS + '</button>';
+    } else if (cadModo === 'txtcat'){
+      CAD.titulo.textContent = 'Categorias dos modelos';
+      CAD.dica.textContent = 'Valem para todos. Renomear uma categoria leva os modelos junto; só dá para excluir a que não tem modelos.';
+      if (!org.txt.cats.length) h = '<div class="cat-empty">Nenhuma categoria ainda.</div>';
+      org.txt.cats.forEach(function(c){
+        var usos = org.txt.modelos.filter(function(m){ return m.cat === c.nome; }).length;
+        h += '<div class="cad-row mod" data-id="' + escapeHtml(c.id) + '">' +
+          '<input data-cad="nome" maxlength="40" value="' + escapeHtml(c.nome) + '" aria-label="Nome da categoria">' +
+          '<button type="button" class="icon-btn danger" data-cad="excluir" data-usos="' + usos + '" title="Excluir categoria" aria-label="Excluir a categoria ' + escapeHtml(c.nome) + '">' + ICON_LIXO + '</button></div>';
+      });
+      CAD.novo.className = 'cad-row mod';
+      CAD.novo.innerHTML = '<input id="cadNovoNome" maxlength="40" placeholder="Nova categoria (ex.: Ato ordinatório)">' +
+        '<button type="button" class="icon-btn" data-cad="add" title="Adicionar categoria" aria-label="Adicionar categoria">' + ICON_MAIS + '</button>';
     } else if (cadModo === 'pes'){
       CAD.titulo.textContent = 'Pessoas da equipe';
       CAD.dica.textContent = 'Cada pessoa cadastrada ganha a própria tela (quadro, mural e lembretes) e entra nela escolhendo o nome na Organização, sem senha. Desativar tira o nome da lista de entrada sem apagar nada; excluir apaga a tela inteira da pessoa.';
@@ -4824,9 +4940,10 @@
     var r = cadModo === 'etq'
       ? await orgCall('org_salvar_etiqueta', { p_id: null, p_nome: nome, p_cor: document.getElementById('cadNovaCor').value })
       : cadModo === 'pes' ? await orgCall('org_salvar_pessoa', { p_id: null, p_nome: nome, p_ativo: true })
+      : cadModo === 'txtcat' ? await orgCall('org_txt_salvar_categoria', { p_id: null, p_nome: nome })
       : await orgCall('org_salvar_coluna', { p_chave: null, p_nome: nome });
     if (!orgOk(r)) return;
-    toast(cadModo === 'etq' ? 'Etiqueta criada' : cadModo === 'pes' ? 'Cadastro feito. ' + nome + ' já pode entrar pela lista de nomes da Organização.' : 'Coluna criada');
+    toast(cadModo === 'etq' ? 'Etiqueta criada' : cadModo === 'txtcat' ? 'Categoria criada' : cadModo === 'pes' ? 'Cadastro feito. ' + nome + ' já pode entrar pela lista de nomes da Organização.' : 'Coluna criada');
     await cadRecarregar(true);
   }
 
@@ -4845,6 +4962,14 @@
       r = await orgCall('org_salvar_etiqueta', { p_id: et.id, p_nome: nome, p_cor: cor });
       if (!orgOk(r)) return;
       toast(campo === 'cor' ? 'Cor da etiqueta alterada' : 'Etiqueta renomeada');
+    } else if (cadModo === 'txtcat'){
+      var tc = org.txt.cats.filter(function(c){ return c.id === row.getAttribute('data-id'); })[0]; if (!tc) return;
+      var nc = e.target.value.trim().replace(/\s+/g, ' ');
+      if (!nc || nc === tc.nome){ e.target.value = tc.nome; return; }
+      r = await orgCall('org_txt_salvar_categoria', { p_id: tc.id, p_nome: nc });
+      if (!orgOk(r)){ e.target.value = tc.nome; return; }
+      if (org.txt.cat === tc.nome) org.txt.cat = nc;
+      toast('Categoria renomeada');
     } else if (cadModo === 'pes'){
       var pe = orgPessoa(row.getAttribute('data-id')); if (!pe) return;
       var np = e.target.value.trim().replace(/\s+/g, ' ');
@@ -4878,7 +5003,7 @@
         var usos = Number(b.getAttribute('data-usos')) || 0;
         row.classList.add('confirmando');
         b.classList.add('armed');
-        b.innerHTML = '<span style="font-size:12px;padding:0 6px;color:var(--danger);white-space:nowrap">Excluir?' + (cadModo === 'pes' ? ' (apaga a tela inteira)' : usos
+        b.innerHTML = '<span style="font-size:12px;padding:0 6px;color:var(--danger);white-space:nowrap">Excluir?' + (cadModo === 'pes' ? ' (apaga a tela inteira)' : cadModo === 'txtcat' ? '' : usos
           ? (cadModo === 'etq' ? ' (sai de ' + usos + (usos === 1 ? ' tarefa)' : ' tarefas)') : ' (' + usos + (usos === 1 ? ' tarefa volta' : ' tarefas voltam') + ' para "' + escapeHtml(orgNomeColuna('afazer')) + '")')
           : '') + '</span>';
         return;
@@ -4886,13 +5011,14 @@
       r = cadModo === 'etq' ? await orgCall('org_excluir_etiqueta', { p_id: row.getAttribute('data-id') })
         : cadModo === 'mod' ? await orgCall('org_excluir_modelo', { p_id: row.getAttribute('data-id') })
         : cadModo === 'pes' ? await orgCall('org_excluir_pessoa', { p_id: row.getAttribute('data-id') })
+        : cadModo === 'txtcat' ? await orgCall('org_txt_excluir_categoria', { p_id: row.getAttribute('data-id') })
         : await orgCall('org_excluir_coluna', { p_chave: row.getAttribute('data-chave') });
       if (!orgOk(r)) return;
       if (cadModo === 'pes' && org.ver === row.getAttribute('data-id')){
         org.ver = null;
         try { sessionStorage.removeItem('orgVer'); } catch (e2) {}
       }
-      toast(cadModo === 'etq' ? 'Etiqueta excluída' : cadModo === 'mod' ? 'Modelo excluído' : cadModo === 'pes' ? 'Pessoa excluída' : 'Coluna excluída');
+      toast(cadModo === 'etq' ? 'Etiqueta excluída' : cadModo === 'mod' ? 'Modelo excluído' : cadModo === 'pes' ? 'Pessoa excluída' : cadModo === 'txtcat' ? 'Categoria excluída' : 'Coluna excluída');
       await cadRecarregar(false);
       return;
     }
@@ -5741,6 +5867,299 @@
   O.content.addEventListener('click', function(e){
     var b = e.target.closest('[data-act=conf-enviar]'); if (!b) return;
     var t = orgFind(org.tarefas, b.getAttribute('data-id')); if (t) orgConfAbrir(t, 'enviar');
+  });
+
+  // ======== Modelos de texto: biblioteca única, campos {{entre_chaves}}, copiar para o PJe ========
+  var TXT_CAMPOS = {
+    processo: 'Nº do processo', autor: 'Autor(a)', reu: 'Réu/Ré', destinatario: 'Destinatário(a)', endereco: 'Endereço',
+    tipo_audiencia: 'Tipo de audiência', data: 'Data', hora: 'Hora', local: 'Local', perito: 'Perito(a)', especialidade: 'Especialidade',
+    prazo: 'Prazo (dias)', bem: 'Bem a apreender', orgao: 'Órgão destinatário', assunto: 'Assunto',
+    hoje: 'Data de hoje', cidade: 'Cidade', servidor: 'Quem assina', cargo: 'Cargo'
+  };
+  var TXT_AUTO = { hoje: true, cidade: true, servidor: true, cargo: true };   // vêm da data de hoje e da "Minha assinatura"
+  var TXT_DATAS = { data: true };                                           // saem por extenso
+  var TXT_NOVO = 'TÍTULO\n\nProcesso nº {{processo}}\n\nEscreva aqui o texto…\n\n{{cidade}}, {{hoje}}.\n\n{{servidor}}\n{{cargo}}';
+  var T = {
+    novo: document.getElementById('txtNovo'), busca: document.getElementById('txtBusca'), cats: document.getElementById('txtCats'),
+    lista: document.getElementById('txtLista'), doc: document.getElementById('txtDoc'), proc: document.getElementById('txtProc'),
+    achou: document.getElementById('txtAchou'), campos: document.getElementById('txtCampos'), faltam: document.getElementById('txtFaltam'),
+    meus: document.getElementById('txtMeus'), meuNome: document.getElementById('txtMeuNome'), meuCargo: document.getElementById('txtMeuCargo'),
+    meuCidade: document.getElementById('txtMeuCidade'), meuSalvar: document.getElementById('txtMeuSalvar')
+  };
+
+  function txtExtenso(d){ return d.getDate() + ' de ' + ORG_MESES[d.getMonth()] + ' de ' + d.getFullYear(); }
+  function txtCamposDe(texto){ var v = [], re = /\{\{(\w+)\}\}/g, m; while ((m = re.exec(texto))) if (v.indexOf(m[1]) === -1) v.push(m[1]); return v; }
+  function txtRotulo(k){ return TXT_CAMPOS[k] || capitalize(k.replace(/_/g, ' ')); }
+  function txtModelo(id){ return org.txt.modelos.filter(function(m){ return m.id === id; })[0] || null; }
+  function txtFav(m){ return org.txt.meus.favoritos.indexOf(m.id) !== -1; }
+  function txtAtual(){
+    if (org.txt.editando) return org.txt.editando;
+    var m = txtModelo(org.txt.atual);
+    if (!m && org.txt.modelos.length){ m = txtOrdenados()[0] || org.txt.modelos[0]; org.txt.atual = m.id; }
+    return m;
+  }
+  function txtValor(k){
+    var me = org.txt.meus;
+    if (k === 'hoje') return txtExtenso(new Date());
+    if (k === 'servidor') return me.nome;
+    if (k === 'cargo') return me.cargo;
+    if (k === 'cidade') return me.cidade;
+    var v = org.txt.valores[k]; if (!v) return '';
+    if (TXT_DATAS[k] && /^\d{4}-\d{2}-\d{2}$/.test(v)){ var p = v.split('-'); return txtExtenso(new Date(+p[0], +p[1] - 1, +p[2])); }
+    return v;
+  }
+  function txtFinal(m){ return m.texto.replace(/\{\{(\w+)\}\}/g, function(_, k){ return txtValor(k) || '[' + txtRotulo(k) + ']'; }); }
+  function txtOrdenados(){
+    return org.txt.modelos.slice().sort(function(a, b){ return (txtFav(b) - txtFav(a)) || (b.usos - a.usos) || a.nome.localeCompare(b.nome, 'pt-BR'); });
+  }
+
+  function renderTxt(){
+    if (!org.unlocked) return;
+    if (!org.txt.tem){
+      T.lista.innerHTML = ''; T.cats.innerHTML = '';
+      T.doc.innerHTML = '<div class="txt-vazio">Rode o arquivo sql/organizacao.sql atualizado no Supabase para usar os modelos de texto (veja o LEIA-ME.md).</div>';
+      return;
+    }
+    renderTxtLista(); renderTxtDoc(); renderTxtCampos();
+    if (document.activeElement && !T.meus.contains(document.activeElement)){
+      T.meuNome.value = org.txt.meus.nome; T.meuCargo.value = org.txt.meus.cargo; T.meuCidade.value = org.txt.meus.cidade;
+    }
+  }
+
+  function renderTxtLista(){
+    var nomes = org.txt.cats.map(function(c){ return c.nome; });
+    org.txt.modelos.forEach(function(m){ if (m.cat && nomes.indexOf(m.cat) === -1) nomes.push(m.cat); });
+    if (['Todas', 'Favoritos'].indexOf(org.txt.cat) === -1 && nomes.indexOf(org.txt.cat) === -1) org.txt.cat = 'Todas';
+    T.cats.innerHTML = ['Todas', 'Favoritos'].concat(nomes).map(function(c){
+      return '<button type="button" class="chip" data-txtcat="' + escapeHtml(c) + '" aria-pressed="' + (c === org.txt.cat) + '">' + (c === 'Favoritos' ? '★ ' : '') + escapeHtml(c) + '</button>';
+    }).join('') + '<button type="button" class="chip-manage" data-txtcat-cad="1" title="Criar, renomear ou excluir categorias">+ Categorias</button>';
+    var q = normalize(org.txt.q), atual = txtAtual();
+    var l = txtOrdenados().filter(function(m){
+      if (org.txt.cat === 'Favoritos' && !txtFav(m)) return false;
+      if (org.txt.cat !== 'Todas' && org.txt.cat !== 'Favoritos' && m.cat !== org.txt.cat) return false;
+      return !q || normalize(m.nome + ' ' + m.cat + ' ' + m.texto).indexOf(q) !== -1;
+    });
+    T.lista.innerHTML = l.length ? l.map(function(m){
+      return '<button type="button" class="txt-item" data-txt="' + m.id + '" aria-current="' + (!!atual && m.id === atual.id && !org.txt.editando) + '">' +
+        '<b>' + (txtFav(m) ? '<span class="txt-star" aria-label="Favorito">★</span> ' : '') + escapeHtml(m.nome) + '</b>' +
+        '<small>' + (m.cat ? '<span class="txt-cat">' + escapeHtml(m.cat) + '</span>' : '') + 'usado ' + m.usos + (m.usos === 1 ? ' vez' : ' vezes') + '</small></button>';
+    }).join('') : '<div class="org-empty">' + (org.txt.modelos.length ? 'Nenhum modelo encontrado.' : 'Nenhum modelo ainda. Clique em "+ Novo modelo".') + '</div>';
+  }
+
+  function txtCatOpcoes(sel){
+    var nomes = org.txt.cats.map(function(c){ return c.nome; });
+    if (sel && nomes.indexOf(sel) === -1) nomes.push(sel);
+    return '<option value="">Sem categoria</option>' + nomes.map(function(n){ return '<option' + (n === sel ? ' selected' : '') + '>' + escapeHtml(n) + '</option>'; }).join('');
+  }
+
+  function renderTxtDoc(){
+    var m = txtAtual(), ed = org.txt.editando;
+    if (!m){ T.doc.innerHTML = '<div class="txt-vazio">Escolha um modelo na lista ou crie um novo.</div>'; return; }
+    if (ed){
+      if (T.doc.querySelector('#txtEditor')) return;   // já está aberto: não apaga o que está sendo digitado
+      T.doc.innerHTML = '<div class="txt-ed">' +
+        '<div class="txt-ed-linha"><label>Nome do modelo<input class="org-in" id="txtEdNome" maxlength="80" value="' + escapeHtml(ed.nome) + '"></label>' +
+        '<label>Categoria<select class="org-in" id="txtEdCat">' + txtCatOpcoes(ed.cat) + '</select></label></div>' +
+        '<div class="txt-ins"><span>Inserir campo:</span>' + Object.keys(TXT_CAMPOS).map(function(k){ return '<button type="button" data-ins="' + k + '">' + escapeHtml(TXT_CAMPOS[k]) + '</button>'; }).join('') + '</div>' +
+        '<textarea class="txt-editor" id="txtEditor" aria-label="Texto do modelo">' + escapeHtml(ed.texto) + '</textarea>' +
+        '<p class="field-hint" style="margin:0">Escreva o texto normalmente. O que estiver entre {{chaves}} vira campo para preencher. Dá para criar campos novos, como {{numero_do_mandado}}.</p>' +
+        '<div class="txt-ed-acts">' + (ed.id ? '<button type="button" class="btn danger-text" data-txtact="excluir">Excluir modelo</button>' : '<span></span>') +
+        '<span style="display:flex;gap:8px"><button type="button" class="btn" data-txtact="cancelar">Cancelar</button><button type="button" class="btn primary" data-txtact="salvar">Salvar modelo</button></span></div></div>';
+      return;
+    }
+    var n = txtCamposDe(m.texto).length;
+    var html = escapeHtml(m.texto).replace(/\{\{(\w+)\}\}/g, function(_, k){
+      var v = txtValor(k);
+      return v ? '<span class="tvar ok" title="' + escapeHtml(txtRotulo(k)) + '">' + escapeHtml(v) + '</span>' : '<span class="tvar">' + escapeHtml(txtRotulo(k)) + '</span>';
+    });
+    T.doc.innerHTML = '<div class="txt-head"><div><h3>' + escapeHtml(m.nome) + '</h3><div class="meta">' + escapeHtml(m.cat || 'Sem categoria') + ' · ' + n + (n === 1 ? ' campo' : ' campos') +
+      (m.alterado ? ' · alterado em ' + fmtData(m.alterado) + (m.por ? ' por ' + escapeHtml(m.por) : '') : '') + '</div></div>' +
+      '<div class="txt-acts"><button type="button" class="btn" data-txtact="fav">' + (txtFav(m) ? '★ Favorito' : '☆ Favorito') + '</button>' +
+      '<button type="button" class="btn" data-txtact="editar">Editar modelo</button>' +
+      '<button type="button" class="btn primary" data-txtact="copiar">Copiar texto</button></div></div>' +
+      '<div class="folha" id="txtFolha" aria-live="polite">' + html + '</div>' +
+      '<p class="field-hint" style="margin:0">Em amarelo: campos ainda vazios. Em verde: já preenchidos. "Copiar texto" leva o texto pronto para colar no PJe.</p>';
+  }
+
+  function renderTxtCampos(){
+    var m = txtAtual();
+    var ks = m ? txtCamposDe(m.texto).filter(function(k){ return !TXT_AUTO[k] && k !== 'processo'; }) : [];
+    var foco = document.activeElement && document.activeElement.getAttribute('data-txtk');
+    T.campos.innerHTML = ks.map(function(k){
+      return '<div class="campo"><label for="txtf_' + k + '">' + escapeHtml(txtRotulo(k)) + '</label>' +
+        '<input class="org-in" id="txtf_' + k + '" data-txtk="' + k + '" type="' + (TXT_DATAS[k] ? 'date' : k === 'hora' ? 'time' : 'text') + '" value="' + escapeHtml(org.txt.valores[k] || '') + '"></div>';
+    }).join('');
+    if (foco){ var el = document.getElementById('txtf_' + foco); if (el) el.focus(); }
+    renderTxtFaltam();
+  }
+  function renderTxtFaltam(){
+    var m = txtAtual();
+    if (!m || org.txt.editando){ T.faltam.textContent = ''; return; }
+    var falta = txtCamposDe(m.texto).filter(function(k){ return !txtValor(k); });
+    var semAss = falta.some(function(k){ return TXT_AUTO[k]; });
+    T.faltam.textContent = falta.length ? 'Faltam ' + falta.length + ': ' + falta.map(txtRotulo).join(', ') + '.' + (semAss ? ' Preencha "Minha assinatura", abaixo.' : '') : '';
+    if (semAss && !org.txt.meus.nome) T.meus.open = true;
+  }
+  // Só a folha e o aviso mudam enquanto se digita nos campos (o foco fica onde está)
+  function renderTxtFolha(){
+    var m = txtAtual(), f = document.getElementById('txtFolha');
+    if (m && f && !org.txt.editando){
+      f.innerHTML = escapeHtml(m.texto).replace(/\{\{(\w+)\}\}/g, function(_, k){
+        var v = txtValor(k);
+        return v ? '<span class="tvar ok" title="' + escapeHtml(txtRotulo(k)) + '">' + escapeHtml(v) + '</span>' : '<span class="tvar">' + escapeHtml(txtRotulo(k)) + '</span>';
+      });
+    }
+    renderTxtFaltam();
+  }
+
+  // ---- preencher pelo nº do processo: audiência (data, hora, tipo) e perícia (autor, perito, especialidade, local) ----
+  function txtPuxar(){
+    var dig = digitsOnly(T.proc.value);
+    org.txt.valores.processo = formatProcesso(T.proc.value);
+    if (dig.length !== 20){ T.achou.innerHTML = ''; renderTxtFolha(); return; }
+    var agora = new Date();
+    var auds = aud.items.filter(function(a){ return digitsOnly(a.processo) === dig; }).sort(function(a, b){
+      var fa = a.date >= agora, fb = b.date >= agora;
+      if (fa !== fb) return fa ? -1 : 1;
+      return fa ? a.date - b.date : b.date - a.date;
+    });
+    var pers = per.items.filter(function(p){ return digitsOnly(p.processo) === dig; });
+    var a = auds[0], p = pers[0], v = org.txt.valores, achou = [];
+    if (a){
+      v.data = dayKey(a.date); v.hora = hhmm(a.date); if (a.tipo) v.tipo_audiencia = a.tipo;
+      achou.push('audiência de ' + fmtDia(a.date) + ' às ' + hhmm(a.date));
+    }
+    if (p){
+      if (p.autor) v.autor = p.autor;
+      if (p.perito) v.perito = p.perito;
+      if (p.especialidade) v.especialidade = p.especialidade;
+      if (!a && p.data){ v.data = dayKey(p.data); v.hora = hhmm(p.data); }
+      if (!a && p.local) v.local = p.local;
+      achou.push('perícia' + (p.perito ? ' com ' + p.perito : ''));
+    }
+    T.achou.innerHTML = achou.length ? '<span class="txt-achou">✓ Encontrado: ' + escapeHtml(achou.join(' e ')) + '.</span>'
+      : '<span class="field-hint">Nada cadastrado com esse processo; preencha os campos à mão.</span>';
+    renderTxtCampos(); renderTxtFolha();
+  }
+  T.proc.addEventListener('input', txtPuxar);
+  T.proc.addEventListener('blur', function(){ T.proc.value = formatProcesso(T.proc.value); });
+  T.campos.addEventListener('input', function(e){
+    var k = e.target.getAttribute('data-txtk'); if (!k) return;
+    org.txt.valores[k] = e.target.value;
+    renderTxtFolha();
+  });
+
+  // ---- biblioteca ----
+  T.busca.addEventListener('input', function(){ org.txt.q = T.busca.value.trim(); renderTxtLista(); });
+  T.cats.addEventListener('click', function(e){
+    if (e.target.closest('[data-txtcat-cad]')){ abrirCadastro('txtcat'); return; }
+    var b = e.target.closest('[data-txtcat]'); if (!b) return;
+    org.txt.cat = b.getAttribute('data-txtcat'); renderTxtLista();
+  });
+  T.lista.addEventListener('click', function(e){
+    var b = e.target.closest('[data-txt]'); if (!b) return;
+    if (org.txt.editando && !confirm('Sair sem salvar as mudanças do modelo?')) return;
+    org.txt.editando = null; org.txt.atual = b.getAttribute('data-txt');
+    renderTxt();
+  });
+  T.novo.addEventListener('click', function(){
+    if (org.txt.editando && !confirm('Sair sem salvar as mudanças do modelo?')) return;
+    var cat = ['Todas', 'Favoritos'].indexOf(org.txt.cat) === -1 ? org.txt.cat : (org.txt.cats[0] ? org.txt.cats[0].nome : '');
+    org.txt.editando = { id: null, nome: 'Novo modelo', cat: cat, texto: TXT_NOVO };
+    T.doc.innerHTML = '';
+    renderTxt();
+    var n = document.getElementById('txtEdNome'); if (n){ n.focus(); n.select(); }
+  });
+
+  // ---- texto: favorito, editar, copiar, salvar ----
+  function txtCopiar(txt, fim){
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) {}
+      ta.remove();
+      if (ok) fim(); else toast('Não foi possível copiar. Selecione o texto e use Ctrl+C.');
+    }
+    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(txt).then(fim, fallback);
+    else fallback();
+  }
+  T.doc.addEventListener('input', function(e){
+    var ed = org.txt.editando; if (!ed) return;
+    if (e.target.id === 'txtEditor'){ ed.texto = e.target.value; renderTxtCampos(); }
+    if (e.target.id === 'txtEdNome') ed.nome = e.target.value;
+  });
+  T.doc.addEventListener('change', function(e){ if (org.txt.editando && e.target.id === 'txtEdCat') org.txt.editando.cat = e.target.value; });
+  T.doc.addEventListener('click', async function(e){
+    var ins = e.target.closest('[data-ins]');
+    if (ins){
+      var ta = document.getElementById('txtEditor'), t = '{{' + ins.getAttribute('data-ins') + '}}', i = ta.selectionStart;
+      ta.value = ta.value.slice(0, i) + t + ta.value.slice(ta.selectionEnd);
+      org.txt.editando.texto = ta.value;
+      ta.focus(); ta.selectionStart = ta.selectionEnd = i + t.length;
+      renderTxtCampos();
+      return;
+    }
+    var b = e.target.closest('[data-txtact]'); if (!b) return;
+    var acao = b.getAttribute('data-txtact'), m = txtAtual(), r;
+    if (acao === 'fav'){
+      var fav = !txtFav(m);
+      r = await orgCall('org_txt_meus_dados', { p_nome: null, p_cargo: null, p_cidade: null, p_favorito: m.id, p_fav: fav });
+      if (!orgOk(r)) return;
+      var fs = org.txt.meus.favoritos.filter(function(x){ return x !== m.id; });
+      if (fav) fs.push(m.id);
+      org.txt.meus.favoritos = fs;
+      renderTxt();
+    }
+    if (acao === 'editar'){
+      org.txt.editando = { id: m.id, nome: m.nome, cat: m.cat, texto: m.texto };
+      T.doc.innerHTML = '';
+      renderTxt();
+      var ta2 = document.getElementById('txtEditor'); if (ta2) ta2.focus();
+    }
+    if (acao === 'copiar'){
+      txtCopiar(txtFinal(m), function(){
+        m.usos++;
+        renderTxtLista();
+        var falta = txtCamposDe(m.texto).filter(function(k){ return !txtValor(k); }).length;
+        toast(falta ? 'Texto copiado, mas ' + falta + (falta === 1 ? ' campo ficou' : ' campos ficaram') + ' em branco entre [colchetes]' : 'Texto copiado. É só colar no PJe');
+        orgCall('org_txt_usar', { p_id: m.id });
+      });
+    }
+    if (acao === 'cancelar'){
+      org.txt.editando = null; renderTxt();
+    }
+    if (acao === 'salvar'){
+      var ed = org.txt.editando;
+      if (!ed.nome.trim()){ toast('Dê um nome ao modelo.'); document.getElementById('txtEdNome').focus(); return; }
+      b.disabled = true;
+      r = await orgCall('org_txt_salvar_modelo', { p_id: ed.id, p_nome: ed.nome.trim(), p_categoria: ed.cat, p_texto: ed.texto });
+      b.disabled = false;
+      if (!orgOk(r)) return;
+      org.txt.editando = null; org.txt.atual = r.id || ed.id;
+      toast('Modelo salvo para todos');
+      await orgLoad();
+    }
+    if (acao === 'excluir'){
+      if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Confirmar: excluir para todos'; return; }
+      r = await orgCall('org_txt_excluir_modelo', { p_id: org.txt.editando.id });
+      if (!orgOk(r)) return;
+      org.txt.editando = null; org.txt.atual = null;
+      toast('Modelo excluído');
+      await orgLoad();
+    }
+  });
+
+  // ---- minha assinatura ----
+  T.meuSalvar.addEventListener('click', async function(){
+    var nome = T.meuNome.value.trim(), cargo = T.meuCargo.value.trim(), cidade = T.meuCidade.value.trim();
+    var r = await orgCall('org_txt_meus_dados', { p_nome: nome, p_cargo: cargo, p_cidade: cidade, p_favorito: null, p_fav: null });
+    if (!orgOk(r)) return;
+    org.txt.meus.nome = nome; org.txt.meus.cargo = cargo; org.txt.meus.cidade = cidade;
+    T.meus.open = false;
+    toast('Assinatura salva');
+    renderTxt();
   });
 
   // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta

@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 30 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 36 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -206,6 +206,16 @@ No **Quadro**:
   - O gestor vê o número de tarefas para conferir na aba **Tarefas da equipe** e no menu. O filtro **Para conferir** lista essas tarefas.
   - No detalhe da tarefa, o gestor clica em **Aprovar** (a tarefa vai para Feito, com o selo "Conferida") ou em **Devolver** (precisa escrever o motivo). A devolvida continua na mesma coluna da pessoa, com o selo "Devolvida" e o motivo, e pode ser enviada de novo.
   - Cada envio, cancelamento, aprovação e devolução fica registrado com data e hora na janela da tarefa.
+- **Modelos de texto** (aba da Organização, para o gestor e para a equipe):
+  - Uma biblioteca só, que todos usam e qualquer pessoa pode editar. Cada modelo mostra quem fez a última alteração.
+  - Nos lugares que mudam a cada caso, o texto tem campos entre chaves, como `{{autor}}`, `{{data}}` e `{{hora}}`. Qualquer nome entre chaves vira campo, por exemplo `{{numero_do_mandado}}`.
+  - Para usar: escolha o modelo, digite o nº do processo e preencha o que faltar. Os campos vazios ficam em amarelo e os preenchidos em verde. Depois clique em **Copiar texto** e cole no PJe.
+  - Com o nº do processo, o portal já completa o que sabe: a data, a hora e o tipo da audiência, e o autor, o perito e a especialidade da perícia. As datas saem por extenso.
+  - **Minha assinatura:** cada pessoa preenche uma vez nome, cargo e cidade, que entram no fim do texto. A data de hoje entra sozinha.
+  - **Favoritos:** cada pessoa marca os seus, que ficam no topo da lista. A lista também mostra quantas vezes cada modelo foi usado.
+  - **Categorias:** começam com Intimação, Citação, Mandado, Ofício e Certidão. Em **+ Categorias** dá para criar, renomear ou excluir; só sai a categoria que não tem modelos.
+  - O site começa com 6 modelos de exemplo, que valem a pena conferir e ajustar ao padrão de redação da vara.
+  - Só os modelos ficam guardados. Os dados preenchidos de cada processo não são gravados.
 - **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:

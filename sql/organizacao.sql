@@ -180,6 +180,45 @@ select d.dono, c.chave, c.nome, c.ordem
  cross join (values ('afazer', 'A fazer', 0), ('fazendo', 'Fazendo', 10), ('feito', 'Feito', 100000)) as c(chave, nome, ordem)
  where not exists (select 1 from org_colunas x where x.dono is not distinct from d.dono and x.chave = c.chave);
 
+-- ---------- modelos de texto (uma biblioteca para todos; qualquer tela edita) ----------
+create table if not exists org_txt_categorias (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default '',
+  ordem int not null default 0,
+  created_at timestamptz not null default now()
+);
+create unique index if not exists org_txt_categorias_nome_idx on org_txt_categorias (lower(nome));
+
+create table if not exists org_txt_modelos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default '',
+  categoria text not null default '',
+  texto text not null default '',          -- campos entre chaves: {{processo}}, {{autor}}, {{data}}...
+  usos int not null default 0,
+  alterado_por text not null default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+-- assinatura (nome, cargo, cidade) e modelos favoritos de cada tela (dono vazio = gestor)
+create table if not exists org_txt_meus (
+  id uuid primary key default gen_random_uuid(),
+  dono uuid references org_pessoas(id) on delete cascade,
+  nome text not null default '',
+  cargo text not null default '',
+  cidade text not null default '',
+  favoritos uuid[] not null default '{}'
+);
+create unique index if not exists org_txt_meus_dono_idx
+  on org_txt_meus ((coalesce(dono, '00000000-0000-0000-0000-000000000000'::uuid)));
+
+alter table org_config add column if not exists txt_semeado boolean not null default false;
+
+alter table org_txt_categorias enable row level security;
+alter table org_txt_modelos    enable row level security;
+alter table org_txt_meus       enable row level security;
+revoke all on org_txt_categorias, org_txt_modelos, org_txt_meus from anon, authenticated;
+
 alter table org_config    enable row level security;
 alter table org_pessoas   enable row level security;
 alter table org_notas     enable row level security;
@@ -196,6 +235,105 @@ revoke all on org_config, org_pessoas, org_notas, org_tarefas, org_lembretes, or
 insert into org_config (id, pin_hash)
 values (1, extensions.crypt('000000', extensions.gen_salt('bf')))   -- <<< SENHA
 on conflict (id) do nothing;
+
+-- ---------- modelos de texto iniciais (só na primeira vez; depois a equipe ajusta pelo site) ----------
+do $$
+begin
+  if exists (select 1 from org_config where id = 1 and not txt_semeado) then
+    insert into org_txt_categorias (nome, ordem)
+    values ('Intimação', 10), ('Citação', 20), ('Mandado', 30), ('Ofício', 40), ('Certidão', 50)
+    on conflict do nothing;
+    insert into org_txt_modelos (nome, categoria, texto) values
+    ('Intimação para audiência', 'Intimação',
+'INTIMAÇÃO
+
+Processo nº {{processo}}
+Autor(a): {{autor}}
+Réu/Ré: {{reu}}
+
+De ordem do(a) MM. Juiz(a) de Direito, fica Vossa Senhoria INTIMADO(A) para comparecer à audiência de {{tipo_audiencia}} designada para o dia {{data}}, às {{hora}}, a realizar-se {{local}}.
+
+Adverte-se que o não comparecimento poderá acarretar as consequências previstas em lei.
+
+{{cidade}}, {{hoje}}.
+
+{{servidor}}
+{{cargo}}'),
+    ('Intimação do perito (aceite do encargo)', 'Intimação',
+'INTIMAÇÃO
+
+Processo nº {{processo}}
+Autor(a): {{autor}}
+
+Ilmo(a). Sr(a). {{perito}},
+
+Fica Vossa Senhoria INTIMADO(A) da nomeação como perito(a) ({{especialidade}}) nos autos em epígrafe, para que, no prazo de {{prazo}} dias, manifeste se aceita o encargo e, em caso positivo, informe data, horário e local para a realização da perícia.
+
+{{cidade}}, {{hoje}}.
+
+{{servidor}}
+{{cargo}}'),
+    ('Citação — procedimento comum', 'Citação',
+'CITAÇÃO
+
+Processo nº {{processo}}
+Autor(a): {{autor}}
+
+Destinatário(a): {{destinatario}}
+Endereço: {{endereco}}
+
+Fica Vossa Senhoria CITADO(A) dos termos da ação em epígrafe para, querendo, apresentar contestação no prazo de {{prazo}} dias, sob pena de revelia.
+
+{{cidade}}, {{hoje}}.
+
+{{servidor}}
+{{cargo}}'),
+    ('Mandado de busca e apreensão', 'Mandado',
+'MANDADO DE BUSCA E APREENSÃO
+
+Processo nº {{processo}}
+Autor(a): {{autor}}
+Réu/Ré: {{reu}}
+
+O(A) Oficial(a) de Justiça a quem este for apresentado, em cumprimento à decisão proferida nos autos, proceda à BUSCA E APREENSÃO de: {{bem}}, no endereço {{endereco}}, depositando-o em mãos do(a) autor(a) ou de quem este(a) indicar, lavrando-se o respectivo auto.
+
+{{cidade}}, {{hoje}}.
+
+{{servidor}}
+{{cargo}}'),
+    ('Ofício — requisição de informações', 'Ofício',
+'OFÍCIO
+
+{{cidade}}, {{hoje}}.
+
+Ao(À) {{orgao}}
+
+Assunto: {{assunto}}
+Processo nº {{processo}}
+
+Senhor(a),
+
+De ordem do(a) MM. Juiz(a) de Direito, solicito a Vossa Senhoria que, no prazo de {{prazo}} dias, encaminhe a este Juízo as informações referentes ao processo em epígrafe.
+
+Atenciosamente,
+
+{{servidor}}
+{{cargo}}'),
+    ('Certidão de decurso de prazo', 'Certidão',
+'CERTIDÃO
+
+Processo nº {{processo}}
+
+Certifico que decorreu o prazo de {{prazo}} dias sem manifestação da parte {{destinatario}}.
+
+{{cidade}}, {{hoje}}.
+
+{{servidor}}
+{{cargo}}');
+    update org_config set txt_semeado = true where id = 1;
+  end if;
+end;
+$$;
 
 -- ---------- versões antigas das funções (sem o parâmetro p_pessoa) ----------
 drop function if exists org_listar(text);
@@ -325,7 +463,10 @@ begin
     'checklist', true,
     'arquivar_livre', true,
     'equipe', true,
-    'conferencia', true
+    'conferencia', true,
+    'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
+    'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
+    'txt_meus', (select to_jsonb(x) from org_txt_meus x where x.dono is not distinct from ac.o_dono)
   );
   if ac.o_gestor then
     res := res || jsonb_build_object(
@@ -1051,6 +1192,178 @@ begin
 end;
 $$;
 
+-- ---------- modelos de texto ----------
+create or replace function org_txt_salvar_modelo(p_pin text, p_pessoa uuid, p_id uuid, p_nome text, p_categoria text, p_texto text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  nome_ok text := left(btrim(coalesce(p_nome, '')), 80);
+  quem text;
+  novo uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Dê um nome ao modelo.');
+  end if;
+  quem := case when ac.o_gestor then 'Gestor' else coalesce((select nome from org_pessoas where id = ac.o_dono), '') end;
+  if p_id is null then
+    insert into org_txt_modelos (nome, categoria, texto, alterado_por)
+    values (nome_ok, left(btrim(coalesce(p_categoria, '')), 40), left(coalesce(p_texto, ''), 20000), quem)
+    returning id into novo;
+  else
+    update org_txt_modelos
+       set nome = nome_ok, categoria = left(btrim(coalesce(p_categoria, categoria)), 40),
+           texto = left(coalesce(p_texto, texto), 20000), alterado_por = quem, updated_at = now()
+     where id = p_id
+    returning id into novo;
+    if novo is null then
+      return jsonb_build_object('status', 'erro', 'message', 'Este modelo não existe mais.');
+    end if;
+  end if;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_txt_excluir_modelo(p_pin text, p_pessoa uuid, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  delete from org_txt_modelos where id = p_id;
+  update org_txt_meus set favoritos = array_remove(favoritos, p_id) where p_id = any(favoritos);
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Conta mais um uso (ao copiar o texto)
+create or replace function org_txt_usar(p_pin text, p_pessoa uuid, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  update org_txt_modelos set usos = usos + 1 where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Assinatura e favoritos da tela em uso (cria a linha na primeira vez)
+create or replace function org_txt_meus_dados(p_pin text, p_pessoa uuid, p_nome text, p_cargo text, p_cidade text, p_favorito uuid, p_fav boolean)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  insert into org_txt_meus (dono)
+  select ac.o_dono where not exists (select 1 from org_txt_meus where dono is not distinct from ac.o_dono);
+  update org_txt_meus
+     set nome = coalesce(left(btrim(p_nome), 80), nome),
+         cargo = coalesce(left(btrim(p_cargo), 120), cargo),
+         cidade = coalesce(left(btrim(p_cidade), 60), cidade),
+         favoritos = case when p_favorito is null then favoritos
+                          when coalesce(p_fav, true) then array_append(array_remove(favoritos, p_favorito), p_favorito)
+                          else array_remove(favoritos, p_favorito) end
+   where dono is not distinct from ac.o_dono;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Cria (p_id vazio) ou renomeia uma categoria; renomear leva os modelos junto
+create or replace function org_txt_salvar_categoria(p_pin text, p_pessoa uuid, p_id uuid, p_nome text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  nome_ok text := left(btrim(regexp_replace(coalesce(p_nome, ''), '\s+', ' ', 'g')), 40);
+  antigo text;
+  novo uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Dê um nome à categoria.');
+  end if;
+  if exists (select 1 from org_txt_categorias where lower(nome) = lower(nome_ok) and id is distinct from p_id) then
+    return jsonb_build_object('status', 'erro', 'message', 'Já existe uma categoria com esse nome.');
+  end if;
+  if p_id is null then
+    insert into org_txt_categorias (nome, ordem)
+    values (nome_ok, (select coalesce(max(ordem), 0) + 10 from org_txt_categorias))
+    returning id into novo;
+  else
+    select nome into antigo from org_txt_categorias where id = p_id;
+    update org_txt_categorias set nome = nome_ok where id = p_id returning id into novo;
+    if antigo is not null then
+      update org_txt_modelos set categoria = nome_ok where categoria = antigo;
+    end if;
+  end if;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_txt_excluir_categoria(p_pin text, p_pessoa uuid, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  n int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  select count(*) into n from org_txt_modelos m join org_txt_categorias c on c.nome = m.categoria where c.id = p_id;
+  if n > 0 then
+    return jsonb_build_object('status', 'erro', 'message', 'Há ' || n || case when n = 1 then ' modelo' else ' modelos' end || ' nesta categoria. Mude a categoria deles antes de excluir.');
+  end if;
+  delete from org_txt_categorias where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+grant execute on function org_txt_salvar_modelo(text, uuid, uuid, text, text, text) to anon, authenticated;
+grant execute on function org_txt_excluir_modelo(text, uuid, uuid) to anon, authenticated;
+grant execute on function org_txt_usar(text, uuid, uuid) to anon, authenticated;
+grant execute on function org_txt_meus_dados(text, uuid, text, text, text, uuid, boolean) to anon, authenticated;
+grant execute on function org_txt_salvar_categoria(text, uuid, uuid, text) to anon, authenticated;
+grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;
