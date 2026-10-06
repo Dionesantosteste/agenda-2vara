@@ -82,6 +82,33 @@
   .setup-banner code{ background:rgba(0,0,0,.08); padding:1px 5px; border-radius:4px; font-family:var(--font-data); }
 
   header{ display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; margin-bottom: 22px; }
+  .head-acts{ display:flex; align-items:center; gap:12px; }
+  .print-btn{ display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px; font-size:14px; }
+  #printArea{ display:none; }
+  @media print{
+    @page{ size:A4 portrait; margin:12mm 11mm 14mm; }
+    html, body{ background:#fff !important; }
+    body > *:not(#printArea){ display:none !important; }
+    #printArea{ display:block !important; color:#000; font-family:var(--font-ui); font-size:9.5pt; line-height:1.35; }
+    .pr-head{ display:flex; gap:12px; align-items:center; border-bottom:1.5pt solid #000; padding-bottom:8px; margin-bottom:10px; }
+    .pr-logo svg{ width:44px; height:auto; display:block; }
+    .pr-org{ font-size:8pt; text-transform:uppercase; letter-spacing:.06em; color:#444; }
+    .pr-head h1{ font-size:16pt; margin:2px 0; }
+    .pr-filtro{ font-size:9pt; color:#222; }
+    .pr-meta{ margin-left:auto; text-align:right; font-size:8.5pt; color:#333; white-space:nowrap; }
+    .pr-tab{ width:100%; border-collapse:collapse; table-layout:fixed; }
+    .pr-tab thead{ display:table-header-group; }
+    .pr-tab th{ text-align:left; font-size:7.5pt; text-transform:uppercase; letter-spacing:.04em; border-bottom:1pt solid #000; padding:4px 5px; }
+    .pr-tab td{ border-bottom:.5pt solid #bbb; padding:4px 5px; vertical-align:top; overflow-wrap:anywhere; }
+    .pr-tab tr{ break-inside:avoid; }
+    .pr-dia td{ font-weight:700; background:#ececec !important; border-bottom:1pt solid #000; padding-top:6px; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    .pr-rel{ font-weight:400; color:#444; }
+    .pr-proc{ font-family:var(--font-data); font-size:8.5pt; white-space:nowrap; }
+    .pr-hora{ font-variant-numeric:tabular-nums; }
+    .pr-st{ font-weight:600; }
+    .pr-sub{ font-weight:400; font-size:8pt; color:#444; }
+    .pr-obs{ white-space:pre-wrap; }
+  }
   h1{
     font-family:var(--font-ui);
     font-weight:600; font-size: clamp(26px, 5vw, 38px);
@@ -534,9 +561,11 @@
   .pst::after{ content:""; position:absolute; right:10px; top:50%; width:5px; height:5px; margin-top:-4px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); pointer-events:none; }
   .pst select option{ color:var(--ink); background:var(--paper); text-transform:none; }
   .pst[data-st="nao_agendada"]{ color:var(--warn); background:var(--warn-soft); }
-  .pst[data-st="agendada"]{ color:var(--accent); background:var(--accent-soft); }
+  .pst[data-st="agendada"]{ color:var(--st-red); background:var(--st-red-soft); }
+  .pst[data-st="intimacoes_feitas"]{ color:var(--st-yellow); background:var(--st-yellow-soft); border-color:var(--st-yellow-line); }
+  .pst[data-st="pronta"]{ color:var(--ok); background:var(--ok-soft); }
   .pst[data-st="realizada"]{ color:var(--info); background:var(--info-soft); }
-  .pst[data-st="laudo_juntado"]{ color:var(--ok); background:var(--ok-soft); }
+  .pst[data-st="laudo_juntado"]{ color:color-mix(in srgb, #7C3AED 72%, var(--ink)); background:color-mix(in srgb, #7C3AED 13%, var(--paper)); }
   .pst[data-st="cancelada"]{ color:var(--muted); background:var(--sunken); border-color:var(--line); }
   .and-btn{ display:inline-flex; align-items:center; gap:6px; white-space:nowrap; font-family:var(--font-ui); font-size:12.5px; font-weight:500; cursor:pointer;
     border:1px solid var(--line); background:transparent; color:var(--muted); border-radius:8px; padding:4px 9px; min-height:30px; }
@@ -1098,7 +1127,8 @@
         <h1 id="perTitle">Perícias</h1>
         <div class="tagline">Da nomeação do perito ao laudo juntado · prazo de 30 dias úteis após a realização</div>
       </div>
-      <div class="count" id="perCount">— perícias</div>
+      <div class="head-acts"><div class="count" id="perCount">— perícias</div>
+        <button type="button" class="btn print-btn" id="perPrint" title="Imprime a lista que está na tela, com os filtros aplicados"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir</button></div>
     </header>
 
     <div class="gtop" id="gTopo">
@@ -1236,6 +1266,8 @@
           <select id="perBatchSt">
             <option value="realizada">Realizada</option>
             <option value="agendada">Agendada</option>
+            <option value="intimacoes_feitas">Intimações feitas</option>
+            <option value="pronta">Pronta para perícia</option>
             <option value="laudo_juntado">Laudo juntado</option>
             <option value="nao_agendada">Não agendada</option>
             <option value="cancelada">Cancelada</option>
@@ -1375,7 +1407,8 @@
         <h1 id="audTitle">Audiências</h1>
         <div class="tagline">Pauta e acompanhamento por processo</div>
       </div>
-      <div class="count" id="audCount">— audiências</div>
+      <div class="head-acts"><div class="count" id="audCount">— audiências</div>
+        <button type="button" class="btn print-btn" id="audPrint" title="Imprime a lista que está na tela, com os filtros aplicados"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir</button></div>
     </header>
 
     <form class="quick" id="quickForm" autocomplete="off" aria-labelledby="quickTitle">
@@ -1746,6 +1779,8 @@
 <div class="busy-bar" aria-hidden="true"></div>
 <div class="busy-pill" role="status" aria-live="polite"><span class="spin" aria-hidden="true"></span><span id="busyTxt">Carregando…</span></div>
 <div class="toast" id="toast"></div>
+
+<div id="printArea" aria-hidden="true"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
@@ -2847,6 +2882,7 @@
     var list = aud.items.filter(function(a){ return audInPeriod(a, now) && audMatches(a); });
     var desc = aud.period === 'anteriores';
     list.sort(function(x, y){ return desc ? y.date - x.date : x.date - y.date; });
+    aud.tela = list;
 
     A.count.textContent = list.length + (list.length === 1 ? " audiência" : " audiências");
     A.groups.innerHTML = "";
@@ -4486,7 +4522,7 @@
     var v = orgVinculos(OC.proc.value), h = '';
     v.pers.slice(0, 3).forEach(function(p){
       h += '<div class="vinc-row"><span class="tag resp">Perícia</span><span>' + escapeHtml(PER_NOME[p.status] || '') +
-        (p.status === 'agendada' && p.data ? ' · ' + fmtData(p.data) + ' às ' + hhmm(p.data) : '') +
+        (perMarcada(p.status) && p.data ? ' · ' + fmtData(p.data) + ' às ' + hhmm(p.data) : '') +
         (p.status === 'realizada' && prazoLaudo(p) ? ' · laudo até ' + fmtData(prazoLaudo(p)) : '') +
         (p.perito ? ' · ' + escapeHtml(p.perito) : '') + '</span>' +
         '<button type="button" class="clear-btn" data-vinc="p" data-id="' + p.id + '">Ver</button></div>';
@@ -4857,11 +4893,13 @@
   // ---------------------------------------------------------------------
 
   var PER_STATUS = [
-    ["nao_agendada", "Não agendada"], ["agendada", "Agendada"], ["realizada", "Realizada"],
+    ["nao_agendada", "Não agendada"], ["agendada", "Agendada"], ["intimacoes_feitas", "Intimações feitas"], ["pronta", "Pronta para perícia"], ["realizada", "Realizada"],
     ["laudo_juntado", "Laudo juntado"], ["cancelada", "Cancelada"]
   ];
   var PER_NOME = {}; PER_STATUS.forEach(function(x){ PER_NOME[x[0]] = x[1]; });
-  var PER_FLUXO = ["nao_agendada", "agendada", "realizada", "laudo_juntado"];
+  var PER_FLUXO = ["nao_agendada", "agendada", "intimacoes_feitas", "pronta", "realizada", "laudo_juntado"];
+  // Situações com data marcada (antes de a perícia acontecer)
+  function perMarcada(s){ return s === 'agendada' || s === 'intimacoes_feitas' || s === 'pronta'; }
   var PER_ESPECIALIDADES = ["", "Médica", "Psicológica", "Social", "Contábil", "Engenharia", "Grafotécnica", "Avaliação de imóveis", "Outra"];
   var PRAZO_LAUDO_DIAS_UTEIS = 30;
   var PRAZO_ALERTA_DIAS_UTEIS = 5;      // destaca o laudo quando faltam até 5 dias úteis
@@ -4967,7 +5005,7 @@
     var pr = prazoLaudo(p); if (p.status !== 'realizada' || !pr || laudoAtrasado(p)) return false;
     return diasUteisEntre(new Date(), pr) <= PRAZO_ALERTA_DIAS_UTEIS;
   }
-  function agendadaProxima(p){ return p.status === 'agendada' && p.data && perDiff(p.data) >= 0 && perDiff(p.data) < 15; }
+  function agendadaProxima(p){ return perMarcada(p.status) && p.data && perDiff(p.data) >= 0 && perDiff(p.data) < 15; }
 
   // Nomes de peritos já usados nas perícias (para sugerir ao digitar)
   function chaveNome(n){ return normalize(n).trim().replace(/\s+/g, ' '); }
@@ -5042,7 +5080,10 @@
 
   // Texto automático do andamento quando a situação muda
   function textoMudanca(p){
-    if (p.status === 'agendada') return 'Perícia agendada' + (p.data ? ' para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '');
+    var dataTxt = p.data ? fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) : '';
+    if (p.status === 'agendada') return 'Perícia agendada' + (dataTxt ? ' para ' + dataTxt : '');
+    if (p.status === 'intimacoes_feitas') return 'Intimações feitas' + (dataTxt ? ' para a perícia de ' + dataTxt : '');
+    if (p.status === 'pronta') return 'Pronta para perícia' + (dataTxt ? ' (' + dataTxt + ')' : '');
     if (p.status === 'realizada') return 'Perícia realizada em ' + fmtData(p.realizadaEm) + '. Prazo do laudo: ' + fmtData(prazoLaudo(p)) + ' (' + PRAZO_LAUDO_DIAS_UTEIS + ' dias úteis)';
     if (p.status === 'laudo_juntado') return 'Laudo juntado em ' + fmtData(p.laudoEm) + '. Perícia concluída';
     return 'Situação alterada para ' + PER_NOME[p.status];
@@ -5063,7 +5104,7 @@
     if (!p.id && id) await addAndamento(id, 'Perícia cadastrada' + (p.status === 'agendada' ? '. ' + textoMudanca(p) : ' (não agendada)'));
     else if (antes && id){
       if (antes.status !== p.status) await addAndamento(id, textoMudanca(p));
-      else if (p.status === 'agendada' && (antes.data ? antes.data.getTime() : 0) !== (p.data ? p.data.getTime() : 0)) await addAndamento(id, 'Data da perícia alterada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()));
+      else if (perMarcada(p.status) && (antes.data ? antes.data.getTime() : 0) !== (p.data ? p.data.getTime() : 0)) await addAndamento(id, 'Data da perícia alterada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()));
       else if (p.status === 'realizada' && antes.realizadaEm && p.realizadaEm && antes.realizadaEm.getTime() !== p.realizadaEm.getTime()) await addAndamento(id, textoMudanca(p));
       else if (p.status === 'laudo_juntado' && antes.laudoEm && p.laudoEm && antes.laudoEm.getTime() !== p.laudoEm.getTime()) await addAndamento(id, textoMudanca(p));
     }
@@ -5077,7 +5118,7 @@
     var hoje = startOfDay(new Date());
     if (novo === 'realizada' && !p.realizadaEm) p.realizadaEm = p.data && startOfDay(p.data) <= hoje ? startOfDay(p.data) : hoje;
     if (novo === 'laudo_juntado' && !p.laudoEm) p.laudoEm = hoje;
-    if (novo === 'nao_agendada' || novo === 'agendada'){ p.realizadaEm = null; p.laudoEm = null; }
+    if (novo === 'nao_agendada' || perMarcada(novo)){ p.realizadaEm = null; p.laudoEm = null; }
     if (novo === 'realizada') p.laudoEm = null;
   }
 
@@ -5149,6 +5190,7 @@
   // ---- filtros ----
   var PER_SITUACOES = [
     ["andamento", "Todas em andamento"], ["nao_agendada", "Não agendadas"], ["agendada", "Agendadas"],
+    ["intimacoes_feitas", "Intimações feitas"], ["pronta", "Prontas para perícia"],
     ["realizada", "Aguardando laudo"], ["atrasado", "Laudo atrasado"]
   ];
   var PER_CONCLUIDAS = [["todas", "Todas"], ["laudo_juntado", "Laudo juntado"], ["cancelada", "Canceladas"]];
@@ -5160,7 +5202,7 @@
       var s = per.situacao;
       if (!aberta(p)) return false;
       if (s === 'atrasado' && !laudoAtrasado(p)) return false;
-      if (['nao_agendada', 'agendada', 'realizada'].indexOf(s) !== -1 && p.status !== s) return false;
+      if (['nao_agendada', 'agendada', 'intimacoes_feitas', 'pronta', 'realizada'].indexOf(s) !== -1 && p.status !== s) return false;
     }
     if (per.perito && chaveNome(p.perito) !== per.perito) return false;
     var q = normalize(per.query).trim();
@@ -5244,7 +5286,7 @@
     else when = '<span class="lbl">sem data marcada</span>';
 
     var meta = [];
-    if (p.status === 'agendada' && p.data) meta.push('<span>Perícia em ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) + '</span>');
+    if (perMarcada(p.status) && p.data) meta.push('<span>Perícia em ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes()) + '</span>');
     if (p.realizadaEm) meta.push('<span>Realizada em ' + fmtData(p.realizadaEm) + '</span>');
     if (p.status === 'realizada' && pr){
       if (atrasado){ var da = diasUteisEntre(pr, new Date()); meta.push('<span class="bad">Laudo atrasado ' + da + (da === 1 ? ' dia útil' : ' dias úteis') + ' (venceu ' + fmtData(pr) + ')</span>'); }
@@ -5318,6 +5360,7 @@
     });
     P.count.textContent = list.length + (list.length === 1 ? ' perícia' : ' perícias');
     P.groups.innerHTML = '';
+    per.tela = [];
     if (!list.length){
       P.empty.hidden = false;
       if (!configured) P.empty.textContent = 'Configure o Supabase (veja o aviso acima) para começar a cadastrar perícias.';
@@ -5352,6 +5395,7 @@
       porChave[titulo].itens.push(p);
     });
     per.grupos = grupos.map(function(g){ return g.itens.map(function(p){ return p.id; }); });
+    per.tela = grupos;
     P.groups.innerHTML = grupos.map(function(g, gi){
       var todos = g.itens.every(function(p){ return per.sel[p.id]; });
       return '<div class="day"><div class="day-label"><span class="d">' + escapeHtml(g.titulo) + '</span>' + (g.rel ? '<span class="rel">' + g.rel + '</span>' : '') +
@@ -5372,7 +5416,7 @@
     return per.items.filter(function(p){ return aberta(p) && p.id !== ignorarId && digitsOnly(p.processo) === k; });
   }
   function descreverPericia(p){
-    var t = p.status === 'agendada' && p.data ? 'agendada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
+    var t = perMarcada(p.status) && p.data ? 'agendada para ' + fmtData(p.data) + ' às ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
       : p.status === 'realizada' && p.realizadaEm ? 'realizada em ' + fmtData(p.realizadaEm) + ' (aguardando laudo)'
       : 'cadastrada como Não agendada';
     return t + (p.perito ? ' com ' + p.perito : '');
@@ -5715,9 +5759,10 @@
     if ((st === 'realizada' || st === 'laudo_juntado' || st === 'agendada') && !data){ toast('Informe a data'); PB.data.focus(); return; }
     if (!st && !texto){ toast('Escreva o andamento a registrar'); PB.and.focus(); return; }
     PB.apply.disabled = true; PB.apply.textContent = 'Aplicando…';
-    var ok = 0;
+    var ok = 0, semData = 0;
     for (var i = 0; i < sel.length; i++){
       var p = sel[i], antes = perCopia(p), novo = perCopia(p), salvou = true;
+      if ((st === 'intimacoes_feitas' || st === 'pronta') && !p.data){ semData++; continue; }
       if (st){
         if (st === 'realizada'){ novo.status = 'realizada'; novo.realizadaEm = data; novo.laudoEm = null; }
         else if (st === 'laudo_juntado'){ novo.status = 'laudo_juntado'; novo.laudoEm = data; }
@@ -5733,7 +5778,8 @@
     PB.and.value = '';
     await loadPericias();
     var quando = data ? ' em ' + fmtData(data) : '';
-    toast(ok + (ok === 1 ? ' perícia alterada' : ' perícias alteradas') + (st ? ': ' + PER_NOME[st] + (st === 'agendada' ? '' : quando) : ' (andamento registrado)'));
+    toast(ok + (ok === 1 ? ' perícia alterada' : ' perícias alteradas') + (st ? ': ' + PER_NOME[st] + (perMarcada(st) ? '' : quando) : ' (andamento registrado)') +
+      (semData ? ' · ' + semData + (semData === 1 ? ' sem data ficou de fora' : ' sem data ficaram de fora') + ' (agende primeiro)' : ''));
   });
 
   function perCopia(p){ return Object.assign({}, p); }
@@ -5744,9 +5790,8 @@
     var p = perFind(sel.getAttribute('data-pst')); if (!p) return;
     var antes = perCopia(p), novo = perCopia(p);
     aplicarStatus(novo, sel.value);
-    if (novo.status === 'agendada' && !novo.data){
+    if (perMarcada(novo.status) && !novo.data){
       toast('Informe a data da perícia');
-      novo.status = 'agendada';
       openPerDialog(novo, antes);
       return;
     }
@@ -5817,7 +5862,7 @@
     P.eDelete.classList.remove('armed'); P.eDelete.textContent = 'Excluir';
     atualizarPrazoInfo();
     P.dialog.showModal();
-    setTimeout(function(){ (p.status === 'agendada' && !p.data ? P.eData : P.eProc).focus(); }, 30);
+    setTimeout(function(){ (perMarcada(p.status) && !p.data ? P.eData : P.eProc).focus(); }, 30);
   }
 
   P.eform.addEventListener('submit', async function(e){
@@ -5830,7 +5875,7 @@
     p.realizadaEm = P.eReal.value ? dataLocal(P.eReal.value) : null;
     p.laudoEm = P.eLaudo.value ? dataLocal(P.eLaudo.value) : null;
     p.status = P.eStatus.value;
-    if (p.status === 'agendada' && !p.data){ toast('Informe a data da perícia'); P.eData.focus(); return; }
+    if (perMarcada(p.status) && !p.data){ toast('Informe a data da perícia'); P.eData.focus(); return; }
     if (p.status === 'realizada' && !p.realizadaEm){ toast('Informe a data em que a perícia foi realizada'); P.eReal.focus(); return; }
     if (p.status === 'laudo_juntado' && !p.laudoEm){ toast('Informe a data em que o laudo foi juntado'); P.eLaudo.focus(); return; }
     var ok = await salvarPericia(p, perEditando.antes);
@@ -5898,6 +5943,92 @@
     G.painel.hidden = true; gAcoes = []; gAtivo = -1;
     if (limpar) G.input.value = '';
   }
+  // ---------------------------------------------------------------------
+  // Impressão (Audiências e Perícias): imprime a lista que está na tela, com os filtros aplicados
+  // ---------------------------------------------------------------------
+  function prData(d){ return capitalize(d.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })); }
+  function prHora(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+  function prIso(k){ var x = (k || '').split('-'); return x.length === 3 ? x[2] + '/' + x[1] + '/' + x[0] : '…'; }
+
+  function imprimir(titulo, filtro, total, corpo){
+    var area = document.getElementById('printArea');
+    var logo = document.querySelector('.brand-logo svg');
+    // copia o brasão com ids próprios (os originais ficam escondidos na impressão)
+    var svg = logo ? logo.outerHTML.replace(/id="([^"]+)"/g, 'id="pr-$1"').replace(/url\(#([^)]+)\)/g, 'url(#pr-$1)').replace(/href="#([^"]+)"/g, 'href="#pr-$1"') : '';
+    var agora = new Date();
+    area.innerHTML = '<div class="pr-head">' + (svg ? '<div class="pr-logo">' + svg + '</div>' : '') +
+      '<div class="pr-tit"><div class="pr-org">2ª Vara · Portal da secretaria</div><h1>' + escapeHtml(titulo) + '</h1>' +
+      (filtro ? '<div class="pr-filtro">' + escapeHtml(filtro) + '</div>' : '') + '</div>' +
+      '<div class="pr-meta">Emitido em ' + fmtDia(agora) + '/' + agora.getFullYear() + ' às ' + prHora(agora) + '<br><b>' + escapeHtml(total) + '</b></div></div>' + corpo;
+    window.print();
+  }
+
+  function audFiltroTexto(){
+    var partes = [], pd = PERIODS.filter(function(x){ return x.key === aud.period; })[0];
+    if (aud.period === 'intervalo') partes.push('De ' + prIso(aud.from) + ' a ' + prIso(aud.to));
+    else if (pd) partes.push(pd.label);
+    if (aud.status !== 'Todos') partes.push('Status: ' + aud.status);
+    if (aud.tipo !== 'Todos') partes.push('Tipo: ' + aud.tipo);
+    var cf = CONF_FILTROS.filter(function(x){ return x.key === aud.conf; })[0];
+    if (aud.conf !== 'todas' && cf) partes.push(cf.label);
+    if ((aud.query || '').trim()) partes.push('Busca: "' + aud.query.trim() + '"');
+    return partes.join(' · ');
+  }
+
+  document.getElementById('audPrint').addEventListener('click', function(){
+    var list = aud.tela || [];
+    if (!list.length){ toast('Nada para imprimir neste filtro.'); return; }
+    var h = '<table class="pr-tab"><thead><tr><th style="width:9%">Hora</th><th style="width:24%">Processo</th><th style="width:22%">Tipo</th><th style="width:17%">Situação</th><th>Observações</th></tr></thead><tbody>';
+    var dia = '';
+    list.forEach(function(a){
+      var k = dayKey(a.date);
+      if (k !== dia){ dia = k; h += '<tr class="pr-dia"><td colspan="5">' + escapeHtml(prData(a.date)) + '</td></tr>'; }
+      h += '<tr><td class="pr-hora">' + prHora(a.date) + '</td><td class="pr-proc">' + escapeHtml(a.processo) + '</td><td>' + escapeHtml(a.tipo || '—') + '</td>' +
+        '<td class="pr-st">' + escapeHtml(a.status) + (a.conferidaEm ? '<div class="pr-sub">conferida em ' + fmtDia(a.conferidaEm) + '</div>' : '') + '</td>' +
+        '<td class="pr-obs">' + escapeHtml(a.observacoes || '') + '</td></tr>';
+    });
+    h += '</tbody></table>';
+    imprimir('Pauta de audiências', audFiltroTexto(), list.length + (list.length === 1 ? ' audiência' : ' audiências'), h);
+  });
+
+  function perFiltroTexto(){
+    var partes = [];
+    if (per.aba === 'concluidas'){
+      var c = PER_CONCLUIDAS.filter(function(x){ return x[0] === per.concl; })[0];
+      partes.push('Concluídas' + (per.concl !== 'todas' && c ? ': ' + c[1] : ''));
+    } else {
+      var s = PER_SITUACOES.filter(function(x){ return x[0] === per.situacao; })[0];
+      partes.push('Em andamento' + (s && per.situacao !== 'andamento' ? ': ' + s[1] : ''));
+    }
+    if (per.perito){ var o = P.filtroPerito.options[P.filtroPerito.selectedIndex]; if (o) partes.push('Perito: ' + o.text); }
+    if ((per.query || '').trim()) partes.push('Busca: "' + per.query.trim() + '"');
+    return partes.join(' · ');
+  }
+
+  document.getElementById('perPrint').addEventListener('click', function(){
+    if (per.aba === 'peritos'){ toast('Abra "Em andamento" ou "Concluídas" para imprimir a lista de perícias.'); return; }
+    var grupos = per.tela || [], n = 0;
+    grupos.forEach(function(g){ n += g.itens.length; });
+    if (!n){ toast('Nada para imprimir neste filtro.'); return; }
+    var h = '<table class="pr-tab"><thead><tr><th style="width:13%">Data e hora</th><th style="width:27%">Autor e processo</th><th style="width:24%">Perito e local</th><th style="width:15%">Situação</th><th>Laudo</th></tr></thead><tbody>';
+    grupos.forEach(function(g){
+      h += '<tr class="pr-dia"><td colspan="5">' + escapeHtml(g.titulo) + (g.rel ? ' <span class="pr-rel">(' + escapeHtml(g.rel) + ')</span>' : '') + '</td></tr>';
+      g.itens.forEach(function(p){
+        var pr = prazoLaudo(p), laudo = '—';
+        if (p.status === 'realizada' && pr) laudo = 'até ' + fmtData(pr) + (laudoAtrasado(p) ? ' <b>(atrasado)</b>' : '');
+        else if (p.status === 'laudo_juntado' && p.laudoEm) laudo = 'juntado em ' + fmtData(p.laudoEm);
+        h += '<tr><td class="pr-hora">' + (p.data ? fmtData(p.data) + '<div class="pr-sub">' + prHora(p.data) + '</div>' : '—') + '</td>' +
+          '<td><b>' + escapeHtml(p.autor || 'Autor não informado') + '</b><div class="pr-proc">' + escapeHtml(p.processo) + '</div></td>' +
+          '<td>' + escapeHtml(p.perito || '—') + (p.especialidade ? ' <span class="pr-sub">(' + escapeHtml(p.especialidade) + ')</span>' : '') +
+          (p.local ? '<div class="pr-sub">' + escapeHtml(p.local) + '</div>' : '') + '</td>' +
+          '<td class="pr-st">' + escapeHtml(PER_NOME[p.status] || '') + (p.realizadaEm ? '<div class="pr-sub">realizada em ' + fmtData(p.realizadaEm) + '</div>' : '') + '</td>' +
+          '<td>' + laudo + '</td></tr>';
+      });
+    });
+    h += '</tbody></table>';
+    imprimir('Perícias', perFiltroTexto(), n + (n === 1 ? ' perícia' : ' perícias'), h);
+  });
+
   function irPara(rota){
     gFechar(true);
     if (location.hash === '#' + rota) applyRoute(); else location.hash = rota;
@@ -5919,7 +6050,7 @@
 
     var pers = per.items.filter(function(p){ return bate([p.autor, p.perito, p.processo, p.local], p.processo); });
     secoes.push({ nome: 'Perícias', itens: pers.map(function(p){
-      var quando = p.status === 'agendada' && p.data ? ' · ' + fmtData(p.data) + ' ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
+      var quando = perMarcada(p.status) && p.data ? ' · ' + fmtData(p.data) + ' ' + pad(p.data.getHours()) + ':' + pad(p.data.getMinutes())
         : p.status === 'realizada' && prazoLaudo(p) ? ' · laudo até ' + fmtData(prazoLaudo(p)) : p.status === 'laudo_juntado' && p.laudoEm ? ' · concluída em ' + fmtData(p.laudoEm) : '';
       return { t: gMarca(p.autor || 'Autor não informado', q), s: '<span class="proc">' + escapeHtml(p.processo) + '</span> · Perito: ' + gMarca(p.perito, q) + quando,
         tag: '<span class="tag resp">' + PER_NOME[p.status] + '</span>',
