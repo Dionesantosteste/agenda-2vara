@@ -93,6 +93,9 @@ on conflict (chave) do nothing;
 
 alter table org_tarefas add column if not exists etiquetas uuid[] not null default '{}';
 
+-- posição do cartão dentro da coluna (vazio = ordem automática por prazo)
+alter table org_tarefas add column if not exists posicao int;
+
 alter table org_config    enable row level security;
 alter table org_notas     enable row level security;
 alter table org_tarefas   enable row level security;
@@ -160,7 +163,8 @@ begin
     'lembretes', coalesce((select jsonb_agg(to_jsonb(l) order by l.data, l.hora nulls first) from org_lembretes l), '[]'::jsonb),
     'rotinas', coalesce((select jsonb_agg(to_jsonb(r) order by r.created_at) from org_rotinas r), '[]'::jsonb),
     'etiquetas', coalesce((select jsonb_agg(to_jsonb(e) order by e.nome) from org_etiquetas e), '[]'::jsonb),
-    'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c), '[]'::jsonb)
+    'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c), '[]'::jsonb),
+    'ordem', true
   );
 end;
 $$;
@@ -238,7 +242,8 @@ begin
     update org_tarefas
        set titulo = coalesce(p_titulo, titulo), prazo = p_prazo, urgente = coalesce(p_urgente, urgente),
            responsavel = coalesce(p_responsavel, responsavel), processo = coalesce(p_processo, processo),
-           feita_em = p_feita_em, etapa = coalesce(p_etapa, etapa), updated_at = now()
+           feita_em = p_feita_em, etapa = coalesce(p_etapa, etapa), updated_at = now(),
+           posicao = case when p_etapa is not null and p_etapa <> etapa then null else posicao end
      where id = p_id
     returning id into novo;
   end if;
@@ -423,6 +428,27 @@ begin
 end;
 $$;
 
+-- Recebe os cartões de uma coluna na ordem em que devem aparecer
+create or replace function org_ordenar_tarefas(p_pin text, p_ids uuid[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_tarefas t
+     set posicao = x.i * 10
+    from unnest(p_ids) with ordinality as x(id, i)
+   where t.id = x.id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- ---------- colunas do quadro ----------
 create or replace function org_salvar_coluna(p_pin text, p_chave text, p_nome text)
 returns jsonb
@@ -509,6 +535,7 @@ grant execute on function org_excluir_rotina(text, uuid) to anon, authenticated;
 grant execute on function org_salvar_etiqueta(text, uuid, text, text) to anon, authenticated;
 grant execute on function org_excluir_etiqueta(text, uuid) to anon, authenticated;
 grant execute on function org_etiquetar_tarefa(text, uuid, uuid[]) to anon, authenticated;
+grant execute on function org_ordenar_tarefas(text, uuid[]) to anon, authenticated;
 grant execute on function org_salvar_coluna(text, text, text) to anon, authenticated;
 grant execute on function org_ordenar_colunas(text, text[]) to anon, authenticated;
 grant execute on function org_excluir_coluna(text, text) to anon, authenticated;
