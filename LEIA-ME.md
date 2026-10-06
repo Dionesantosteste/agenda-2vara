@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 29 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 30 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -200,6 +200,12 @@ No **Quadro**:
   - se teve dificuldade, e qual;
   - se precisa de ação do gestor.
   - As respostas aparecem para o gestor no detalhe da tarefa e na janela da tarefa. As tarefas que a própria pessoa cria vão para Feito sem perguntas.
+- **Conferência:** qualquer tarefa da tela de uma pessoa pode ir para o gestor conferir.
+  - A pessoa clica no ícone de prancheta do cartão (ou em **Enviar para conferência**, na janela da tarefa) e pode deixar um recado.
+  - Enquanto espera, a tarefa fica parada na coluna em que está, com o selo "Em conferência". A pessoa pode **Cancelar envio** na janela da tarefa.
+  - O gestor vê o número de tarefas para conferir na aba **Tarefas da equipe** e no menu. O filtro **Para conferir** lista essas tarefas.
+  - No detalhe da tarefa, o gestor clica em **Aprovar** (a tarefa vai para Feito, com o selo "Conferida") ou em **Devolver** (precisa escrever o motivo). A devolvida continua na mesma coluna da pessoa, com o selo "Devolvida" e o motivo, e pode ser enviada de novo.
+  - Cada envio, cancelamento, aprovação e devolução fica registrado com data e hora na janela da tarefa.
 - **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:

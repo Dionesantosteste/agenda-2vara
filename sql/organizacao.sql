@@ -141,6 +141,11 @@ alter table org_tarefas add column if not exists do_gestor boolean not null defa
 -- {"horas", "minutos", "conformidade": sim|parcialmente|nao, "dificuldade", "dificuldade_desc", "precisa_acao", "em"}
 alter table org_tarefas add column if not exists conclusao jsonb;
 
+-- conferência: a pessoa envia a tarefa para o gestor conferir (enviada, aprovada, devolvida)
+-- conf_hist: [{"a": "enviada|aprovada|devolvida|cancelada", "em": data, "t": recado ou motivo}, ...]
+alter table org_tarefas add column if not exists conferencia text;
+alter table org_tarefas add column if not exists conf_hist jsonb not null default '[]';
+
 -- dono de cada registro: vazio = gestor; preenchido = pessoa da equipe
 alter table org_notas     add column if not exists dono uuid references org_pessoas(id) on delete cascade;
 alter table org_tarefas   add column if not exists dono uuid references org_pessoas(id) on delete cascade;
@@ -319,13 +324,14 @@ begin
     'ordem', true,
     'checklist', true,
     'arquivar_livre', true,
-    'equipe', true
+    'equipe', true,
+    'conferencia', true
   );
   if ac.o_gestor then
     res := res || jsonb_build_object(
       'pessoas', coalesce((select jsonb_agg(jsonb_build_object('id', p.id, 'nome', p.nome, 'ativo', p.ativo) order by lower(p.nome)) from org_pessoas p), '[]'::jsonb),
       'equipe_tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t
-                                   where t.dono is not null and t.do_gestor and t.arquivada_em is null), '[]'::jsonb),
+                                   where t.dono is not null and (t.do_gestor or t.conferencia is not null) and t.arquivada_em is null), '[]'::jsonb),
       'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb)
     );
   end if;
@@ -405,9 +411,15 @@ begin
             coalesce(p_responsavel, ''), coalesce(p_processo, ''), p_feita_em, coalesce(p_etapa, 'afazer'))
     returning id into novo;
   else
+    if not ac.o_gestor and p_etapa is not null and exists (
+         select 1 from org_tarefas where id = p_id and dono is not distinct from ac.o_dono and conferencia = 'enviada' and etapa <> p_etapa) then
+      return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa está em conferência com o gestor. Espere a resposta ou cancele o envio.');
+    end if;
     update org_tarefas
        set titulo = coalesce(p_titulo, titulo), prazo = p_prazo,
            prioridade = coalesce(pr, prioridade), urgente = coalesce(pr, prioridade) = 'urgente',
+           -- o gestor levou para Feito uma tarefa que esperava conferência: conta como aprovada
+           conferencia = case when conferencia = 'enviada' and coalesce(p_etapa, etapa) = 'feito' then 'aprovada' else conferencia end,
            responsavel = coalesce(p_responsavel, responsavel), processo = coalesce(p_processo, processo),
            feita_em = p_feita_em, etapa = coalesce(p_etapa, etapa), updated_at = now(),
            posicao = case when p_etapa is not null and p_etapa <> etapa then null else posicao end
@@ -437,6 +449,9 @@ begin
   if ac.o_st <> 'ok' then
     return jsonb_build_object('status', ac.o_st);
   end if;
+  if not ac.o_gestor and exists (select 1 from org_tarefas where id = p_id and conferencia = 'enviada') then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa está em conferência com o gestor. Espere a resposta ou cancele o envio.');
+  end if;
   update org_tarefas
      set etapa = 'feito', feita_em = coalesce(feita_em, now()), posicao = null, updated_at = now(),
          conclusao = jsonb_build_object(
@@ -453,6 +468,68 @@ begin
     return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não existe mais.');
   end if;
   return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Conferência da tarefa de uma pessoa:
+--   enviar / cancelar: a pessoa (ou o gestor na tela dela) manda para conferir ou desiste do envio
+--   aprovar / devolver: só o gestor; aprovar leva para Feito, devolver deixa a tarefa onde está, com o motivo
+create or replace function org_conferencia(p_pin text, p_pessoa uuid, p_id uuid, p_acao text, p_texto text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  t org_tarefas%rowtype;
+  txt text := left(btrim(coalesce(p_texto, '')), 1000);
+  novo text;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  select * into t from org_tarefas where id = p_id and ac.o_dono is not null and dono = ac.o_dono for update;
+  if not found then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não existe mais.');
+  end if;
+  if p_acao = 'enviar' then
+    if t.conferencia = 'enviada' then
+      return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa já está em conferência.');
+    end if;
+    if t.etapa = 'feito' or t.arquivada_em is not null then
+      return jsonb_build_object('status', 'erro', 'message', 'Tarefa concluída ou arquivada não vai para conferência.');
+    end if;
+    novo := 'enviada';
+  elsif p_acao = 'cancelar' then
+    if t.conferencia is distinct from 'enviada' then
+      return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não está em conferência.');
+    end if;
+    novo := null;
+  elsif p_acao in ('aprovar', 'devolver') then
+    if not ac.o_gestor then
+      return jsonb_build_object('status', 'erro', 'message', 'Só o gestor confere as tarefas.');
+    end if;
+    if t.conferencia is distinct from 'enviada' then
+      return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não está esperando conferência.');
+    end if;
+    if p_acao = 'devolver' and txt = '' then
+      return jsonb_build_object('status', 'erro', 'message', 'Escreva o motivo da devolução.');
+    end if;
+    novo := case p_acao when 'aprovar' then 'aprovada' else 'devolvida' end;
+  else
+    return jsonb_build_object('status', 'erro', 'message', 'Ação desconhecida.');
+  end if;
+  update org_tarefas
+     set conferencia = novo,
+         conf_hist = coalesce(conf_hist, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('a', coalesce(novo, 'cancelada'), 'em', now(), 't', txt)),
+         etapa = case when p_acao = 'aprovar' then 'feito' else etapa end,
+         feita_em = case when p_acao = 'aprovar' then coalesce(feita_em, now()) else feita_em end,
+         posicao = case when p_acao = 'aprovar' then null else posicao end,
+         updated_at = now()
+   where id = p_id;
+  return jsonb_build_object('status', 'ok', 'conferencia', novo);
 end;
 $$;
 
@@ -981,6 +1058,7 @@ grant execute on function org_excluir_nota(text, uuid, uuid) to anon, authentica
 grant execute on function org_salvar_tarefa(text, uuid, uuid, text, date, text, text, text, timestamptz, text) to anon, authenticated;
 grant execute on function org_concluir_tarefa(text, uuid, uuid, jsonb) to anon, authenticated;
 grant execute on function org_excluir_tarefa(text, uuid, uuid) to anon, authenticated;
+grant execute on function org_conferencia(text, uuid, uuid, text, text) to anon, authenticated;
 grant execute on function org_enviar_tarefa(text, uuid, uuid, uuid) to anon, authenticated;
 grant execute on function org_salvar_lembrete(text, uuid, uuid, text, date, time, text, timestamptz) to anon, authenticated;
 grant execute on function org_excluir_lembrete(text, uuid, uuid) to anon, authenticated;

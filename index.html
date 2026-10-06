@@ -825,7 +825,21 @@
     .eq-linha .btn{ padding:0 14px; }
   }
 
-  #orgFechDialog, #orgEqDialog{ width:min(520px, calc(100vw - 32px)); }
+  #orgFechDialog, #orgEqDialog, #orgConfDialog{ width:min(520px, calc(100vw - 32px)); }
+  .tag.conf{ color:var(--warn); background:var(--warn-soft); text-transform:none; letter-spacing:0; }
+  .tag.devolv{ color:var(--danger); background:var(--urgent-bg); text-transform:none; letter-spacing:0; }
+  .tag.conferida{ color:var(--ok); background:var(--ok-soft); text-transform:none; letter-spacing:0; }
+  .kcard.em-conf{ border-style:dashed; border-color:var(--warn); }
+  .kconf-espera{ font-size:12.5px; color:var(--warn); font-weight:500; text-align:center; padding:4px 0 2px; }
+  .eq-st[data-k="conf"]{ background:var(--warn-soft); color:var(--warn); }
+  .eq-flag.devolv{ color:var(--danger); background:var(--urgent-bg); }
+  .conf-box .conf-st{ font-weight:600; }
+  .conf-box .conf-txt{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .conf-acts{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:2px; }
+  .conf-acts .btn{ height:36px; }
+  .conf-hist{ display:flex; flex-direction:column; gap:3px; margin:0; padding:0; list-style:none; font-size:12.5px; color:var(--muted); }
+  .conf-hist b{ color:var(--ink); font-weight:600; }
+  .chip .org-tab-n{ margin-left:4px; }
   .of-radios{ border:0; padding:0; margin:0; display:flex; flex-direction:row; flex-wrap:wrap; gap:6px 18px; }
   .of-radios legend{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:0; margin-bottom:6px; width:100%; }
   .of-radios label{ display:inline-flex; align-items:center; gap:6px; font-size:14.5px; text-transform:none; letter-spacing:0; color:var(--ink); cursor:pointer; }
@@ -1403,6 +1417,7 @@
             <select class="org-in" id="orgEqFPessoa" aria-label="Filtrar por pessoa"></select>
             <div class="kchips" id="orgEqChips" role="group" aria-label="Filtrar por situação">
               <button type="button" class="chip" data-eqf="abertas" aria-pressed="true">Em aberto</button>
+              <button type="button" class="chip" data-eqf="conferir" aria-pressed="false">Para conferir <span class="org-tab-n" id="orgEqConfN"></span></button>
               <button type="button" class="chip" data-eqf="atrasadas" aria-pressed="false">Atrasadas</button>
               <button type="button" class="chip" data-eqf="acao" aria-pressed="false">Pedem ação do gestor</button>
               <button type="button" class="chip" data-eqf="concluidas" aria-pressed="false">Concluídas</button>
@@ -1761,6 +1776,7 @@
       <span class="field-hint">Ao salvar, a tarefa sai do seu quadro e vai para a primeira coluna da pessoa (as etiquetas ficam para trás). Você acompanha em "Tarefas da equipe".</span>
     </div>
     <div class="oc-fech" id="ocFech" hidden></div>
+    <div class="oc-fech conf-box" id="ocConf" hidden></div>
     <div class="field">
       <label for="ocProc">Nº do processo</label>
       <input data-cnj id="ocProc" class="mono" maxlength="40" placeholder="opcional" />
@@ -1875,10 +1891,29 @@
   </form>
 </dialog>
 
+<dialog id="orgConfDialog">
+  <form class="sheet" id="orgConfForm" autocomplete="off">
+    <h2 id="ocfTitulo">Enviar para conferência</h2>
+    <p class="field-hint" id="ocfTarefa" style="margin:-6px 0 0"></p>
+    <div class="field">
+      <label for="ocfTexto" id="ocfRotulo">Recado para o gestor (opcional)</label>
+      <textarea id="ocfTexto" rows="3" maxlength="1000"></textarea>
+    </div>
+    <span class="field-hint" id="ocfDica"></span>
+    <div class="sheet-actions">
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button type="button" class="btn" id="ocfCancelar">Cancelar</button>
+        <button type="submit" class="btn primary" id="ocfOk">Enviar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="orgEqDialog">
   <form class="sheet" id="orgEqDetForm" autocomplete="off">
     <h2 id="oqTitulo">Tarefa</h2>
     <div class="oq-grid" id="oqGrid"></div>
+    <div class="oc-fech conf-box" id="oqConf" hidden></div>
     <div class="oc-fech" id="oqFech" hidden></div>
     <span class="field-hint" id="oqInfo"></span>
     <div class="sheet-actions">
@@ -3478,11 +3513,13 @@
       arquivadaEm: t.arquivada_em ? new Date(t.arquivada_em) : null,
       dono: t.dono || null, doGestor: !!t.do_gestor,
       conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
+      conferencia: t.conferencia || null, confHist: Array.isArray(t.conf_hist) ? t.conf_hist : [],
       criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
   }
 
   function orgParse(r){
     org.temEquipe = r.equipe === true;
+    org.temConf = r.conferencia === true;
     org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqColunas = r.equipe_colunas || [];
@@ -3598,8 +3635,9 @@
     renderOrgLembretes();
     renderOrgRotinas();
     renderOrgEquipe();
-    O.navCount.textContent = orgPendCount() || '';
+    O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
   }
+  function orgParaConferir(){ return org.eqTarefas.filter(orgEmConf).length; }
 
   // ---- de quem é a tela aberta ----
   var OV = {
@@ -3626,7 +3664,9 @@
     O.lockBtn.title = pessoa ? 'Sair da sua tela neste navegador' : 'Trancar a Organização neste navegador';
     if (pessoa){
       OV.h1.textContent = 'Olá, ' + (org.euNome.split(' ')[0] || 'tudo bem') + '!';
-      OV.tagline.textContent = 'Seu quadro, mural e lembretes. Tarefas do gestor chegam na primeira coluna.';
+      var devolv = org.tarefas.filter(function(t){ return t.conferencia === 'devolvida' && t.etapa !== 'feito' && !t.arquivadaEm; }).length;
+      OV.tagline.textContent = 'Seu quadro, mural e lembretes. Tarefas do gestor chegam na primeira coluna.' +
+        (devolv ? ' Você tem ' + devolv + (devolv === 1 ? ' tarefa devolvida' : ' tarefas devolvidas') + ' na conferência.' : '');
     } else {
       OV.h1.textContent = 'Organização';
       OV.tagline.textContent = org.ver ? 'Tela de ' + org.euNome : 'Tarefas, mural, lembretes e rotinas da gestão';
@@ -3692,7 +3732,7 @@
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
-      '<div class="t-side">' + orgPrioTag(t, !t.feitaEm) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+      '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
       (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
   }
@@ -3820,6 +3860,7 @@
     }
     if (act === 'feita'){
       var t = orgFind(org.tarefas, id); if (!t) return;
+      if (orgTravada(t)){ toast('Esta tarefa está em conferência com o gestor. Espere a resposta ou cancele o envio.'); return; }
       if (!t.feitaEm && orgPedeFechamento(t)){ orgAbrirFechamento(t); return; }
       var feitaEm = t.feitaEm ? null : new Date();
       r = await orgSaveTask(Object.assign({}, t, { feitaEm: feitaEm, etapa: feitaEm ? 'feito' : 'afazer' }));
@@ -3965,8 +4006,8 @@
     Object.keys(OT.panes).forEach(function(k){ OT.panes[k].hidden = k !== org.tab; });
     OT.lemN.textContent = lemPendentesAte(0).length || '';
     OT.rotN.textContent = org.rotinas.filter(function(r){ return !rotFeita(r); }).length || '';
-    OT.eqN.textContent = org.eqTarefas.filter(orgEqAtrasada).length || '';
-    OT.eqN.title = OT.eqN.textContent ? 'Tarefas da equipe atrasadas' : '';
+    OT.eqN.textContent = orgParaConferir() || '';
+    OT.eqN.title = OT.eqN.textContent ? 'Tarefas esperando a sua conferência' : '';
   }
 
   OT.tabs.addEventListener('click', function(e){
@@ -4146,28 +4187,30 @@
       if (!items.length && org.kadd !== c[0]) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
       items.forEach(function(t, ii){
         var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
-        var late = selo && selo.cls === 'late';
-        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + '" draggable="true" data-id="' + t.id + '">' +
+        var late = selo && selo.cls === 'late', trava = orgTravada(t);
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + (orgEmConf(t) ? ' em-conf' : '') + '" draggable="' + !trava + '" data-id="' + t.id + '">' +
           '<div class="khead"><div class="kmain">' + orgKLabels(t) +
           '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div></div>' +
           '<span class="kacts">' +
           '<button type="button" class="icon-btn" data-act="abrir-card" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
-          (orgPodeArquivar(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
+          (orgPodeConferir(t) ? '<button type="button" class="icon-btn" data-act="conf-enviar" data-id="' + t.id + '" title="Enviar para conferência do gestor" aria-label="Enviar para conferência">' + ICON_CONF + '</button>' : '') +
+          (orgPodeArquivar(t) && !orgEmConf(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
           '</span></div>' +
-          '<div class="t-meta">' + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
+          '<div class="t-meta">' + orgConfTag(t) + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
           orgPrioTag(t, aberta) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
           (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') +
           orgKBadges(t) + orgKVinc(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
-          '<div class="kmove">' +
+          (trava ? '<div class="kconf-espera">Aguardando o gestor conferir</div></div>' : '') +
+          (trava ? '' : '<div class="kmove">' +
           (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci - 1][1]) + '">← ' + escapeHtml(cols[ci - 1][1]) + '</button>' : '<span></span>') +
           (ordena ? '<span class="kmid">' +
             '<button type="button" class="icon-btn kord" data-act="subir" data-id="' + t.id + '" title="Subir na coluna" aria-label="Subir na coluna"' + (ii === 0 ? ' disabled' : '') + '>↑</button>' +
             '<button type="button" class="icon-btn kord" data-act="descer" data-id="' + t.id + '" title="Descer na coluna" aria-label="Descer na coluna"' + (ii === items.length - 1 ? ' disabled' : '') + '>↓</button></span>' : '') +
           (ci < ultima ? '<button type="button" class="mv" data-act="mover" data-dir="1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci + 1][1]) + '">' + escapeHtml(cols[ci + 1][1]) + ' →</button>' : '<span></span>') +
-          '</div></div>';
+          '</div></div>');
       });
       if (ocultas) h += '<div class="org-empty">+ ' + ocultas + (ocultas === 1 ? ' mais antiga' : ' mais antigas') + '</div>';
       if (c[0] !== 'feito') h += orgKAddHtml(c[0], c[1]);
@@ -4271,6 +4314,7 @@
   // antesDe: id do cartão que fica logo abaixo (null = fim da coluna; undefined = ordem automática)
   async function orgMoverTarefa(t, etapa, antesDe){
     if (!t || t.etapa === etapa || orgChaves().indexOf(etapa) === -1) return;
+    if (orgTravada(t)){ toast('Esta tarefa está em conferência com o gestor. Espere a resposta ou cancele o envio.'); return; }
     if (etapa === 'feito' && orgPedeFechamento(t)){ orgAbrirFechamento(t); return; }
     var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
     var novo = Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm });
@@ -4435,6 +4479,11 @@
     OC.enviar.innerHTML = '<option value="">Ninguém (fica no meu quadro)</option>' + ativos.map(function(p){ return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>'; }).join('');
     OC.fech.hidden = !t.conclusao;
     OC.fech.innerHTML = t.conclusao ? orgFechHtml(t.conclusao) : '';
+    var confHtml = org.temConf && orgAlheia() ? orgConfBoxHtml(t, org.modo === 'gestor') : '';
+    document.getElementById('ocConf').hidden = !confHtml;
+    document.getElementById('ocConf').innerHTML = confHtml;
+    OC.etapa.disabled = orgTravada(t);
+    OC.etapa.title = OC.etapa.disabled ? 'Em conferência com o gestor: a etapa fica parada até a resposta' : '';
     renderOcVinc();
     resetOcModelo();
     var info = [];
@@ -5331,6 +5380,7 @@
   }
   function orgEqPassa(t){
     var f = org.eqf.sit;
+    if (f === 'conferir') return orgEmConf(t);
     if (f === 'abertas') return t.etapa !== 'feito';
     if (f === 'atrasadas') return orgEqAtrasada(t);
     if (f === 'acao') return !!(t.conclusao && t.conclusao.precisa_acao);
@@ -5367,6 +5417,7 @@
       return '<option value="' + escapeHtml(p.id) + '"' + (p.id === org.eqf.pessoa ? ' selected' : '') + '>' + escapeHtml(p.nome) + '</option>';
     }).join('');
     OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
+    document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
 
     var base = org.eqTarefas.filter(function(t){ return !org.eqf.pessoa || t.dono === org.eqf.pessoa; });
     var abertas = base.filter(function(t){ return t.etapa !== 'feito'; }).length, atrasadas = base.filter(orgEqAtrasada).length;
@@ -5375,7 +5426,7 @@
       var fa = a.etapa === 'feito', fb = b.etapa === 'feito';
       if (fa !== fb) return fa ? 1 : -1;
       if (fa) return (b.feitaEm || 0) - (a.feitaEm || 0);
-      return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (orgPrio(b) - orgPrio(a));
+      return (orgEmConf(b) - orgEmConf(a)) || ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (orgPrio(b) - orgPrio(a));
     });
     if (!lista.length){
       OE.lista.innerHTML = '<div class="org-empty">' + (!org.eqTarefas.length
@@ -5387,17 +5438,18 @@
       lista.map(function(t){
         var nome = orgNomePessoa(t.dono) || '—', late = orgEqAtrasada(t), c = t.conclusao;
         var tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
-        var k = t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+        var k = orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
         var sub = (late ? '<span class="late">Atrasada</span>' : '') + (t.processo ? procCopyBtn(t.processo) : '') +
           (tot ? '<span class="kcheck' + (ok === tot ? ' ok' : '') + '">' + ICON_CK + ok + '/' + tot + '</span>' : '') +
           (c && c.precisa_acao ? '<span class="eq-flag acao">Pede ação do gestor</span>' : '') +
-          (c && c.dificuldade ? '<span class="eq-flag dif">Teve dificuldade</span>' : '');
+          (c && c.dificuldade ? '<span class="eq-flag dif">Teve dificuldade</span>' : '') +
+          (t.conferencia === 'devolvida' && t.etapa !== 'feito' ? '<span class="eq-flag devolv">Devolvida</span>' : '');
         return '<tr tabindex="0" data-eq="' + t.id + '">' +
           '<td class="eq-c-t"><div class="eq-t">' + escapeHtml(t.titulo) + '</div>' + (sub ? '<div class="eq-sub">' + sub + '</div>' : '') + '</td>' +
           '<td><span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span></td>' +
           '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
           '<td>' + (orgPrioTag(t, true) || '<span class="field-hint">Normal</span>') + '</td>' +
-          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(orgEqColuna(t)) + '</span></td></tr>';
+          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
       }).join('') + '</tbody></table>';
   }
 
@@ -5510,17 +5562,19 @@
     var t = orgFind(org.eqTarefas, id); if (!t) return;
     orgEqId = id;
     var nome = orgNomePessoa(t.dono) || '—', tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
-    var k = t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+    var k = orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
     function item(rot, val, cheio){ return '<div' + (cheio ? ' class="full"' : '') + '><div class="oq-l">' + rot + '</div><div class="oq-v">' + val + '</div></div>'; }
     OQ.titulo.textContent = t.titulo;
     OQ.grid.innerHTML = item('Responsável', '<span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span>') +
       item('Prazo', t.prazo ? (orgEqAtrasada(t) ? '<span style="color:var(--danger)">' + fmtData(t.prazo) + ' · atrasada</span>' : fmtData(t.prazo)) : 'Sem prazo') +
       item('Prioridade', orgPrioNome(t.prioridade)) +
-      item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(orgEqColuna(t)) + '</span>') +
+      item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span>') +
       (t.processo ? item('Processo', procCopyBtn(t.processo), true) : '') +
       (tot ? item('Checklist', ok + ' de ' + tot + ' itens feitos', true) : '');
     OQ.fech.hidden = !t.conclusao;
     OQ.fech.innerHTML = t.conclusao ? orgFechHtml(t.conclusao) : '';
+    var oqConf = document.getElementById('oqConf'), oqConfHtml = t.conferencia ? orgConfBoxHtml(t, true) : '';
+    oqConf.hidden = !oqConfHtml; oqConf.innerHTML = oqConfHtml;
     var info = [];
     if (t.criada) info.push('Mandada em ' + formatDataHora(t.criada));
     if (t.atualizada) info.push('última mudança em ' + formatDataHora(t.atualizada));
@@ -5541,6 +5595,116 @@
     try { sessionStorage.setItem('orgTab', org.tab); } catch (e) {}
     await orgVerTela(t.dono);
     if (org.unlocked && org.ver === t.dono) orgAbrirCartao(t.id);
+  });
+
+  // ======== Conferência: a pessoa envia a tarefa, o gestor aprova ou devolve ========
+  var ICON_CONF = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 13l2 2 4-4"/></svg>';
+  function orgEmConf(t){ return t.conferencia === 'enviada'; }
+  // A pessoa não muda a etapa enquanto o gestor confere
+  function orgTravada(t){ return org.modo === 'pessoa' && orgEmConf(t); }
+  function orgPodeConferir(t){ return !!org.temConf && org.modo === 'pessoa' && t.etapa !== 'feito' && !t.arquivadaEm && !orgEmConf(t); }
+  function orgConfTag(t){
+    if (orgEmConf(t)) return '<span class="tag conf">Em conferência</span>';
+    if (t.conferencia === 'devolvida' && t.etapa !== 'feito') return '<span class="tag devolv">Devolvida</span>';
+    if (t.conferencia === 'aprovada') return '<span class="tag conferida">Conferida</span>';
+    return '';
+  }
+  function orgConfUlt(t){ return t.confHist.length ? t.confHist[t.confHist.length - 1] : null; }
+  var ORG_CONF_ACAO = { enviada: 'Enviada para conferência', aprovada: 'Aprovada', devolvida: 'Devolvida', cancelada: 'Envio cancelado' };
+  function orgConfHistHtml(t){
+    if (t.confHist.length < 2) return '';
+    return '<ul class="conf-hist">' + t.confHist.slice().reverse().map(function(x){
+      return '<li><b>' + (ORG_CONF_ACAO[x.a] || x.a) + '</b> · ' + formatDataHora(new Date(x.em)) + (x.t ? ' · ' + escapeHtml(x.t) : '') + '</li>';
+    }).join('') + '</ul>';
+  }
+  // Quadro "Conferência" da janela da tarefa e do detalhe da equipe (gestor: Aprovar / Devolver)
+  function orgConfBoxHtml(t, gestor){
+    var u = orgConfUlt(t), quando = u ? formatDataHora(new Date(u.em)) : '', h = '<div class="vinc-t">Conferência</div>';
+    if (orgEmConf(t)){
+      h += '<div class="conf-st" style="color:var(--warn)">Esperando ' + (gestor ? 'a sua conferência' : 'o gestor conferir') + (quando ? ' · enviada em ' + quando : '') + '</div>' +
+        (u && u.t ? '<div class="conf-txt">' + escapeHtml(u.t) + '</div>' : '') +
+        '<div class="conf-acts">' + (gestor
+          ? '<button type="button" class="btn" data-conf="devolver" data-id="' + t.id + '">Devolver</button><button type="button" class="btn primary" data-conf="aprovar" data-id="' + t.id + '">Aprovar</button>'
+          : '<button type="button" class="btn" data-conf="cancelar" data-id="' + t.id + '">Cancelar envio</button>') + '</div>';
+    } else if (t.conferencia === 'devolvida'){
+      h += '<div class="conf-st" style="color:var(--danger)">Devolvida pelo gestor' + (quando ? ' em ' + quando : '') + '</div>' +
+        (u && u.t ? '<div class="conf-txt">' + escapeHtml(u.t) + '</div>' : '') +
+        (orgPodeConferir(t) ? '<div class="conf-acts"><button type="button" class="btn primary" data-conf="enviar" data-id="' + t.id + '">Enviar de novo</button></div>' : '');
+    } else if (t.conferencia === 'aprovada'){
+      h += '<div class="conf-st" style="color:var(--ok)">Conferida e aprovada' + (quando ? ' em ' + quando : '') + '</div>';
+    } else if (orgPodeConferir(t)){
+      h += '<div class="field-hint">Terminou? Envie para o gestor conferir. A tarefa fica parada onde está até a resposta.</div>' +
+        '<div class="conf-acts"><button type="button" class="btn primary" data-conf="enviar" data-id="' + t.id + '">Enviar para conferência</button></div>';
+    } else return '';
+    return h + orgConfHistHtml(t);
+  }
+
+  var OCF = {
+    dialog: document.getElementById('orgConfDialog'),
+    form: document.getElementById('orgConfForm'),
+    titulo: document.getElementById('ocfTitulo'),
+    tarefa: document.getElementById('ocfTarefa'),
+    rotulo: document.getElementById('ocfRotulo'),
+    texto: document.getElementById('ocfTexto'),
+    dica: document.getElementById('ocfDica'),
+    cancelar: document.getElementById('ocfCancelar'),
+    ok: document.getElementById('ocfOk')
+  };
+  var confAlvo = null;
+  function orgConfAbrir(t, modo){
+    confAlvo = { id: t.id, modo: modo, dono: t.dono };
+    var dev = modo === 'devolver';
+    OCF.titulo.textContent = dev ? 'Devolver tarefa' : 'Enviar para conferência';
+    OCF.tarefa.textContent = t.titulo;
+    OCF.rotulo.textContent = dev ? 'Motivo da devolução' : 'Recado para o gestor (opcional)';
+    OCF.texto.placeholder = dev ? 'Ex.: corrigir o nome da parte no mandado' : 'Ex.: minuta pronta, falta só a assinatura';
+    OCF.dica.textContent = dev ? 'A tarefa continua na mesma coluna da pessoa, com o motivo.' : 'A tarefa fica parada na coluna em que está até o gestor aprovar (vai para Feito) ou devolver.';
+    OCF.ok.textContent = dev ? 'Devolver' : 'Enviar';
+    OCF.ok.disabled = false;
+    OCF.texto.value = '';
+    OCF.dialog.showModal();
+    setTimeout(function(){ OCF.texto.focus(); }, 30);
+  }
+  async function orgConfAcao(id, acao, texto, dono){
+    var args = { p_id: id, p_acao: acao, p_texto: texto || '' };
+    if (org.modo === 'gestor' && dono) args.p_pessoa = dono;
+    var r = await orgCall('org_conferencia', args);
+    if (!orgOk(r)) return false;
+    toast({ enviar: 'Enviada para conferência. O gestor vê na aba Tarefas da equipe.', cancelar: 'Envio cancelado',
+      aprovar: 'Tarefa aprovada e concluída', devolver: 'Tarefa devolvida com o motivo' }[acao]);
+    await orgLoad();
+    return true;
+  }
+  OCF.cancelar.addEventListener('click', function(){ OCF.dialog.close(); });
+  OCF.dialog.addEventListener('close', function(){ confAlvo = null; });
+  OCF.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (!confAlvo) return;
+    var txt = OCF.texto.value.trim();
+    if (confAlvo.modo === 'devolver' && !txt){ toast('Escreva o motivo da devolução.'); OCF.texto.focus(); return; }
+    OCF.ok.disabled = true;
+    var ok = await orgConfAcao(confAlvo.id, confAlvo.modo, txt, confAlvo.dono);
+    OCF.ok.disabled = false;
+    if (ok) OCF.dialog.close();
+  });
+
+  // Botões do quadro "Conferência": t vem do quadro aberto ou da lista da equipe
+  async function orgConfClique(b, lista, dialogo){
+    var t = orgFind(lista, b.getAttribute('data-id')); if (!t) return;
+    var acao = b.getAttribute('data-conf');
+    dialogo.close();
+    if (acao === 'enviar' || acao === 'devolver'){ orgConfAbrir(t, acao); return; }
+    await orgConfAcao(t.id, acao, '', t.dono);
+  }
+  document.getElementById('ocConf').addEventListener('click', function(e){
+    var b = e.target.closest('[data-conf]'); if (b) orgConfClique(b, org.tarefas, OC.dialog);
+  });
+  document.getElementById('oqConf').addEventListener('click', function(e){
+    var b = e.target.closest('[data-conf]'); if (b) orgConfClique(b, org.eqTarefas, OQ.dialog);
+  });
+  O.content.addEventListener('click', function(e){
+    var b = e.target.closest('[data-act=conf-enviar]'); if (!b) return;
+    var t = orgFind(org.tarefas, b.getAttribute('data-id')); if (t) orgConfAbrir(t, 'enviar');
   });
 
   // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta
