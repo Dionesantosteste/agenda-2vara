@@ -73,12 +73,34 @@ create table if not exists org_rotinas (
   updated_at timestamptz not null default now()
 );
 
+-- etiquetas e colunas do quadro (cadastráveis pelo site)
+create table if not exists org_etiquetas (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default '',
+  cor text not null default 'azul',             -- vermelho, laranja, amarelo, verde, azul, roxo, rosa, cinza
+  created_at timestamptz not null default now()
+);
+
+create table if not exists org_colunas (
+  chave text primary key,                       -- afazer, fazendo e feito são fixas (podem ser renomeadas)
+  nome text not null default '',
+  ordem int not null default 0,
+  created_at timestamptz not null default now()
+);
+insert into org_colunas (chave, nome, ordem)
+values ('afazer', 'A fazer', 0), ('fazendo', 'Fazendo', 10), ('feito', 'Feito', 100000)
+on conflict (chave) do nothing;
+
+alter table org_tarefas add column if not exists etiquetas uuid[] not null default '{}';
+
 alter table org_config    enable row level security;
 alter table org_notas     enable row level security;
 alter table org_tarefas   enable row level security;
 alter table org_lembretes enable row level security;
 alter table org_rotinas   enable row level security;
-revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas from anon, authenticated;
+alter table org_etiquetas enable row level security;
+alter table org_colunas   enable row level security;
+revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas from anon, authenticated;
 
 -- ---------- senha ----------
 insert into org_config (id, pin_hash)
@@ -136,7 +158,9 @@ begin
     'notas', coalesce((select jsonb_agg(to_jsonb(n) order by n.fixada desc, n.created_at desc) from org_notas n), '[]'::jsonb),
     'tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t), '[]'::jsonb),
     'lembretes', coalesce((select jsonb_agg(to_jsonb(l) order by l.data, l.hora nulls first) from org_lembretes l), '[]'::jsonb),
-    'rotinas', coalesce((select jsonb_agg(to_jsonb(r) order by r.created_at) from org_rotinas r), '[]'::jsonb)
+    'rotinas', coalesce((select jsonb_agg(to_jsonb(r) order by r.created_at) from org_rotinas r), '[]'::jsonb),
+    'etiquetas', coalesce((select jsonb_agg(to_jsonb(e) order by e.nome) from org_etiquetas e), '[]'::jsonb),
+    'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c), '[]'::jsonb)
   );
 end;
 $$;
@@ -333,6 +357,146 @@ begin
 end;
 $$;
 
+-- ---------- etiquetas do quadro ----------
+create or replace function org_salvar_etiqueta(p_pin text, p_id uuid, p_nome text, p_cor text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  nome_ok text := left(btrim(coalesce(p_nome, '')), 40);
+  cor_ok text := case when p_cor in ('vermelho', 'laranja', 'amarelo', 'verde', 'azul', 'roxo', 'rosa', 'cinza') then p_cor else 'azul' end;
+  novo uuid;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Dê um nome à etiqueta.');
+  end if;
+  if p_id is null then
+    insert into org_etiquetas (nome, cor) values (nome_ok, cor_ok) returning id into novo;
+  else
+    update org_etiquetas set nome = nome_ok, cor = cor_ok where id = p_id returning id into novo;
+  end if;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_excluir_etiqueta(p_pin text, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_tarefas set etiquetas = array_remove(etiquetas, p_id) where p_id = any(etiquetas);
+  delete from org_etiquetas where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+create or replace function org_etiquetar_tarefa(p_pin text, p_id uuid, p_etiquetas uuid[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_tarefas
+     set etiquetas = coalesce((select array_agg(e.id) from org_etiquetas e where e.id = any(p_etiquetas)), '{}'),
+         updated_at = now()
+   where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- ---------- colunas do quadro ----------
+create or replace function org_salvar_coluna(p_pin text, p_chave text, p_nome text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  nome_ok text := left(btrim(coalesce(p_nome, '')), 40);
+  chave_ok text := p_chave;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Dê um nome à coluna.');
+  end if;
+  if chave_ok is null then
+    chave_ok := 'c' || replace(gen_random_uuid()::text, '-', '');
+    insert into org_colunas (chave, nome, ordem)
+    values (chave_ok, nome_ok, (select coalesce(max(ordem), 0) + 10 from org_colunas where chave <> 'feito'));
+  else
+    update org_colunas set nome = nome_ok where chave = chave_ok;
+  end if;
+  return jsonb_build_object('status', 'ok', 'chave', chave_ok);
+end;
+$$;
+
+-- Recebe as colunas do meio (entre A fazer e Feito) na nova ordem
+create or replace function org_ordenar_colunas(p_pin text, p_chaves text[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_colunas c
+     set ordem = x.i * 10
+    from unnest(p_chaves) with ordinality as x(chave, i)
+   where c.chave = x.chave and c.chave not in ('afazer', 'feito');
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Exclui uma coluna criada no site; as tarefas dela voltam para A fazer
+create or replace function org_excluir_coluna(p_pin text, p_chave text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  n int;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if p_chave in ('afazer', 'fazendo', 'feito') then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta coluna é fixa: pode ser renomeada, mas não excluída.');
+  end if;
+  update org_tarefas set etapa = 'afazer', updated_at = now() where etapa = p_chave;
+  get diagnostics n = row_count;
+  delete from org_colunas where chave = p_chave;
+  return jsonb_build_object('status', 'ok', 'movidas', n);
+end;
+$$;
+
 grant execute on function org_listar(text) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, text, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_nota(text, uuid) to anon, authenticated;
@@ -342,6 +506,12 @@ grant execute on function org_salvar_lembrete(text, uuid, text, date, time, text
 grant execute on function org_excluir_lembrete(text, uuid) to anon, authenticated;
 grant execute on function org_salvar_rotina(text, uuid, text, text, timestamptz) to anon, authenticated;
 grant execute on function org_excluir_rotina(text, uuid) to anon, authenticated;
+grant execute on function org_salvar_etiqueta(text, uuid, text, text) to anon, authenticated;
+grant execute on function org_excluir_etiqueta(text, uuid) to anon, authenticated;
+grant execute on function org_etiquetar_tarefa(text, uuid, uuid[]) to anon, authenticated;
+grant execute on function org_salvar_coluna(text, text, text) to anon, authenticated;
+grant execute on function org_ordenar_colunas(text, text[]) to anon, authenticated;
+grant execute on function org_excluir_coluna(text, text) to anon, authenticated;
 
 -- =====================================================================
 -- TROCAR A SENHA (ou criar uma nova se esquecer): rode só a linha abaixo,
