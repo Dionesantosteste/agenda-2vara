@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 36 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 37 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -210,8 +210,11 @@ No **Quadro**:
   - Uma biblioteca só, que todos usam e qualquer pessoa pode editar. Cada modelo mostra quem fez a última alteração.
   - Nos lugares que mudam a cada caso, o texto tem campos entre chaves, como `{{autor}}`, `{{data}}` e `{{hora}}`. Qualquer nome entre chaves vira campo, por exemplo `{{numero_do_mandado}}`.
   - Para usar: escolha o modelo, digite o nº do processo e preencha o que faltar. Os campos vazios ficam em amarelo e os preenchidos em verde. Depois clique em **Copiar texto** e cole no PJe.
+  - **Preencher direto no texto:** clique num campo amarelo ou verde e digite ali mesmo (Enter confirma, Esc desfaz). A coluna "Preencher" acompanha.
+  - **Nº do processo é opcional:** se ficar vazio, a linha "Processo nº …" sai do texto copiado. Na tela ela aparece esmaecida.
   - Com o nº do processo, o portal já completa o que sabe: a data, a hora e o tipo da audiência, e o autor, o perito e a especialidade da perícia. As datas saem por extenso.
-  - **Minha assinatura:** cada pessoa preenche uma vez nome, cargo e cidade, que entram no fim do texto. A data de hoje entra sozinha.
+  - **Minha assinatura:** cada pessoa preenche uma vez o nome e o cargo, que entram no fim do texto. A data de hoje entra sozinha.
+  - **Cidade:** é uma só para todos os documentos. O gestor cadastra em "Minha assinatura", na tela dele.
   - **Favoritos:** cada pessoa marca os seus, que ficam no topo da lista. A lista também mostra quantas vezes cada modelo foi usado.
   - **Categorias:** começam com Intimação, Citação, Mandado, Ofício e Certidão. Em **+ Categorias** dá para criar, renomear ou excluir; só sai a categoria que não tem modelos.
   - O site começa com 6 modelos de exemplo, que valem a pena conferir e ajustar ao padrão de redação da vara.

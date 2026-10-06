@@ -213,6 +213,8 @@ create unique index if not exists org_txt_meus_dono_idx
   on org_txt_meus ((coalesce(dono, '00000000-0000-0000-0000-000000000000'::uuid)));
 
 alter table org_config add column if not exists txt_semeado boolean not null default false;
+-- cidade dos documentos: uma só, cadastrada pelo gestor
+alter table org_config add column if not exists txt_cidade text not null default '';
 
 alter table org_txt_categorias enable row level security;
 alter table org_txt_modelos    enable row level security;
@@ -334,6 +336,11 @@ Certifico que decorreu o prazo de {{prazo}} dias sem manifestação da parte {{d
   end if;
 end;
 $$;
+
+-- quem já tinha posto a cidade na assinatura do gestor: ela passa a valer para todos
+update org_config
+   set txt_cidade = coalesce((select cidade from org_txt_meus where dono is null and cidade <> '' limit 1), '')
+ where id = 1 and txt_cidade = '';
 
 -- ---------- versões antigas das funções (sem o parâmetro p_pessoa) ----------
 drop function if exists org_listar(text);
@@ -466,7 +473,8 @@ begin
     'conferencia', true,
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
     'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
-    'txt_meus', (select to_jsonb(x) from org_txt_meus x where x.dono is not distinct from ac.o_dono)
+    'txt_meus', (select to_jsonb(x) from org_txt_meus x where x.dono is not distinct from ac.o_dono),
+    'txt_cidade', (select txt_cidade from org_config where id = 1)
   );
   if ac.o_gestor then
     res := res || jsonb_build_object(
@@ -1297,6 +1305,24 @@ begin
 end;
 $$;
 
+-- Cidade que vai em todos os documentos (só o gestor muda)
+create or replace function org_txt_cidade(p_pin text, p_pessoa uuid, p_cidade text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_config set txt_cidade = left(btrim(coalesce(p_cidade, '')), 60) where id = 1;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- Cria (p_id vazio) ou renomeia uma categoria; renomear leva os modelos junto
 create or replace function org_txt_salvar_categoria(p_pin text, p_pessoa uuid, p_id uuid, p_nome text)
 returns jsonb
@@ -1362,6 +1388,7 @@ grant execute on function org_txt_salvar_modelo(text, uuid, uuid, text, text, te
 grant execute on function org_txt_excluir_modelo(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_txt_usar(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_txt_meus_dados(text, uuid, text, text, text, uuid, boolean) to anon, authenticated;
+grant execute on function org_txt_cidade(text, uuid, text) to anon, authenticated;
 grant execute on function org_txt_salvar_categoria(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_pessoas_publico() to anon, authenticated;

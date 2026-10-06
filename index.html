@@ -909,6 +909,12 @@
   .tvar{ background:var(--st-yellow-soft); color:var(--st-yellow); border:1px dashed var(--st-yellow-line); border-radius:5px; padding:0 4px;
     font-family:var(--font-ui); font-size:13px; font-weight:600; white-space:nowrap; }
   .tvar.ok{ background:var(--ok-soft); color:var(--ok); border-style:solid; border-color:transparent; font-family:inherit; font-size:inherit; white-space:normal; }
+  .folha .tvar[data-campo]{ cursor:pointer; }
+  .folha .tvar[data-campo]:hover{ border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+  .folha .tvar[data-campo]:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .tvar-in{ font-family:var(--font-ui); font-size:14px; border:1px solid var(--accent); border-radius:5px; padding:1px 6px; background:var(--paper); color:var(--ink);
+    min-width:90px; max-width:100%; vertical-align:baseline; }
+  .tl-opc{ opacity:.45; }
   .txt-ed{ display:flex; flex-direction:column; gap:10px; }
   .txt-ed-linha{ display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:10px; }
   .txt-ed label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
@@ -1606,10 +1612,10 @@
             <div class="txt-faltam" id="txtFaltam"></div>
             <details class="txt-meus" id="txtMeus">
               <summary>Minha assinatura</summary>
-              <p class="field-hint">Vai no fim dos textos que você copiar. Fica guardada só para a sua tela.</p>
+              <p class="field-hint">Nome e cargo vão no fim dos textos que você copiar. Ficam guardados só para a sua tela.</p>
               <label>Nome<input class="org-in" id="txtMeuNome" maxlength="80" placeholder="Seu nome completo" /></label>
               <label>Cargo<input class="org-in" id="txtMeuCargo" maxlength="120" placeholder="Ex.: Técnica Judiciária" /></label>
-              <label>Cidade<input class="org-in" id="txtMeuCidade" maxlength="60" placeholder="Ex.: Cuiabá" /></label>
+              <label class="so-gestor">Cidade (vale para todos os documentos)<input class="org-in" id="txtMeuCidade" maxlength="60" placeholder="Ex.: Cuiabá" /></label>
               <button type="button" class="btn primary" id="txtMeuSalvar">Salvar assinatura</button>
             </details>
           </section>
@@ -3655,6 +3661,7 @@
       return { id: m.id, nome: m.nome || 'Sem nome', cat: m.categoria || '', texto: m.texto || '', usos: m.usos || 0,
         por: m.alterado_por || '', alterado: m.updated_at ? new Date(m.updated_at) : null };
     });
+    org.txt.cidade = r.txt_cidade || '';
     org.txt.cats = (r.txt_categorias || []).map(function(c){ return { id: c.id, nome: c.nome || '' }; });
     var mm = r.txt_meus || {};
     org.txt.meus = { nome: mm.nome || '', cargo: mm.cargo || '', cidade: mm.cidade || '', favoritos: Array.isArray(mm.favoritos) ? mm.favoritos : [] };
@@ -5878,6 +5885,7 @@
   };
   var TXT_AUTO = { hoje: true, cidade: true, servidor: true, cargo: true };   // vêm da data de hoje e da "Minha assinatura"
   var TXT_DATAS = { data: true };                                           // saem por extenso
+  var TXT_OPCIONAIS = { processo: true };   // vazio: a linha só com ele sai do texto (ex.: "Processo nº {{processo}}")
   var TXT_NOVO = 'TÍTULO\n\nProcesso nº {{processo}}\n\nEscreva aqui o texto…\n\n{{cidade}}, {{hoje}}.\n\n{{servidor}}\n{{cargo}}';
   var T = {
     novo: document.getElementById('txtNovo'), busca: document.getElementById('txtBusca'), cats: document.getElementById('txtCats'),
@@ -5903,12 +5911,32 @@
     if (k === 'hoje') return txtExtenso(new Date());
     if (k === 'servidor') return me.nome;
     if (k === 'cargo') return me.cargo;
-    if (k === 'cidade') return me.cidade;
+    if (k === 'cidade') return org.txt.cidade;
     var v = org.txt.valores[k]; if (!v) return '';
     if (TXT_DATAS[k] && /^\d{4}-\d{2}-\d{2}$/.test(v)){ var p = v.split('-'); return txtExtenso(new Date(+p[0], +p[1] - 1, +p[2])); }
     return v;
   }
-  function txtFinal(m){ return m.texto.replace(/\{\{(\w+)\}\}/g, function(_, k){ return txtValor(k) || '[' + txtRotulo(k) + ']'; }); }
+  // A linha sai quando todos os campos dela são opcionais e estão vazios
+  function txtLinhaSai(l){
+    var ks = txtCamposDe(l);
+    return ks.length > 0 && ks.every(function(k){ return TXT_OPCIONAIS[k] && !txtValor(k); });
+  }
+  function txtFinal(m){
+    return m.texto.split('\n').filter(function(l){ return !txtLinhaSai(l); }).join('\n')
+      .replace(/\{\{(\w+)\}\}/g, function(_, k){ return txtValor(k) || (TXT_OPCIONAIS[k] ? '' : '[' + txtRotulo(k) + ']'); });
+  }
+  function txtFaltando(m){ return txtCamposDe(m.texto).filter(function(k){ return !TXT_OPCIONAIS[k] && !txtValor(k); }); }
+  // Folha: cada campo é clicável para preencher ali mesmo; linha opcional vazia aparece esmaecida
+  function txtFolhaHtml(m){
+    return m.texto.split('\n').map(function(l){
+      var h = escapeHtml(l).replace(/\{\{(\w+)\}\}/g, function(_, k){
+        var v = txtValor(k), rot = escapeHtml(txtRotulo(k)), clic = k === 'hoje' ? '' : ' data-campo="' + k + '" tabindex="0" role="button"';
+        return v ? '<span class="tvar ok"' + clic + ' title="' + rot + (clic ? ' · clique para alterar' : '') + '">' + escapeHtml(v) + '</span>'
+          : '<span class="tvar"' + clic + ' title="Clique para preencher">' + rot + (TXT_OPCIONAIS[k] ? ' (opcional)' : '') + '</span>';
+      });
+      return txtLinhaSai(l) ? '<span class="tl-opc" title="Esta linha sai do texto se o campo ficar vazio">' + h + '</span>' : h;
+    }).join('\n');
+  }
   function txtOrdenados(){
     return org.txt.modelos.slice().sort(function(a, b){ return (txtFav(b) - txtFav(a)) || (b.usos - a.usos) || a.nome.localeCompare(b.nome, 'pt-BR'); });
   }
@@ -5922,7 +5950,7 @@
     }
     renderTxtLista(); renderTxtDoc(); renderTxtCampos();
     if (document.activeElement && !T.meus.contains(document.activeElement)){
-      T.meuNome.value = org.txt.meus.nome; T.meuCargo.value = org.txt.meus.cargo; T.meuCidade.value = org.txt.meus.cidade;
+      T.meuNome.value = org.txt.meus.nome; T.meuCargo.value = org.txt.meus.cargo; T.meuCidade.value = org.txt.cidade;
     }
   }
 
@@ -5967,18 +5995,14 @@
         '<span style="display:flex;gap:8px"><button type="button" class="btn" data-txtact="cancelar">Cancelar</button><button type="button" class="btn primary" data-txtact="salvar">Salvar modelo</button></span></div></div>';
       return;
     }
-    var n = txtCamposDe(m.texto).length;
-    var html = escapeHtml(m.texto).replace(/\{\{(\w+)\}\}/g, function(_, k){
-      var v = txtValor(k);
-      return v ? '<span class="tvar ok" title="' + escapeHtml(txtRotulo(k)) + '">' + escapeHtml(v) + '</span>' : '<span class="tvar">' + escapeHtml(txtRotulo(k)) + '</span>';
-    });
+    var n = txtCamposDe(m.texto).length, html = txtFolhaHtml(m);
     T.doc.innerHTML = '<div class="txt-head"><div><h3>' + escapeHtml(m.nome) + '</h3><div class="meta">' + escapeHtml(m.cat || 'Sem categoria') + ' · ' + n + (n === 1 ? ' campo' : ' campos') +
       (m.alterado ? ' · alterado em ' + fmtData(m.alterado) + (m.por ? ' por ' + escapeHtml(m.por) : '') : '') + '</div></div>' +
       '<div class="txt-acts"><button type="button" class="btn" data-txtact="fav">' + (txtFav(m) ? '★ Favorito' : '☆ Favorito') + '</button>' +
       '<button type="button" class="btn" data-txtact="editar">Editar modelo</button>' +
       '<button type="button" class="btn primary" data-txtact="copiar">Copiar texto</button></div></div>' +
       '<div class="folha" id="txtFolha" aria-live="polite">' + html + '</div>' +
-      '<p class="field-hint" style="margin:0">Em amarelo: campos ainda vazios. Em verde: já preenchidos. "Copiar texto" leva o texto pronto para colar no PJe.</p>';
+      '<p class="field-hint" style="margin:0">Clique num campo do texto para preencher ali mesmo. Em amarelo: vazios; em verde: preenchidos. O nº do processo é opcional: vazio, a linha dele sai do texto.</p>';
   }
 
   function renderTxtCampos(){
@@ -5995,20 +6019,17 @@
   function renderTxtFaltam(){
     var m = txtAtual();
     if (!m || org.txt.editando){ T.faltam.textContent = ''; return; }
-    var falta = txtCamposDe(m.texto).filter(function(k){ return !txtValor(k); });
-    var semAss = falta.some(function(k){ return TXT_AUTO[k]; });
-    T.faltam.textContent = falta.length ? 'Faltam ' + falta.length + ': ' + falta.map(txtRotulo).join(', ') + '.' + (semAss ? ' Preencha "Minha assinatura", abaixo.' : '') : '';
+    var falta = txtFaltando(m);
+    var semAss = falta.some(function(k){ return k === 'servidor' || k === 'cargo' || (k === 'cidade' && org.modo === 'gestor'); });
+    var semCidade = falta.indexOf('cidade') !== -1 && org.modo === 'pessoa';
+    T.faltam.textContent = falta.length ? 'Faltam ' + falta.length + ': ' + falta.map(txtRotulo).join(', ') + '.' +
+      (semAss ? ' Preencha "Minha assinatura", abaixo.' : '') + (semCidade ? ' A cidade é cadastrada pelo gestor.' : '') : '';
     if (semAss && !org.txt.meus.nome) T.meus.open = true;
   }
   // Só a folha e o aviso mudam enquanto se digita nos campos (o foco fica onde está)
   function renderTxtFolha(){
     var m = txtAtual(), f = document.getElementById('txtFolha');
-    if (m && f && !org.txt.editando){
-      f.innerHTML = escapeHtml(m.texto).replace(/\{\{(\w+)\}\}/g, function(_, k){
-        var v = txtValor(k);
-        return v ? '<span class="tvar ok" title="' + escapeHtml(txtRotulo(k)) + '">' + escapeHtml(v) + '</span>' : '<span class="tvar">' + escapeHtml(txtRotulo(k)) + '</span>';
-      });
-    }
+    if (m && f && !org.txt.editando && !f.querySelector('.tvar-in')) f.innerHTML = txtFolhaHtml(m);
     renderTxtFaltam();
   }
 
@@ -6047,6 +6068,51 @@
     var k = e.target.getAttribute('data-txtk'); if (!k) return;
     org.txt.valores[k] = e.target.value;
     renderTxtFolha();
+  });
+
+  // ---- preencher clicando no campo do texto ----
+  function txtEditarNaFolha(span){
+    var k = span.getAttribute('data-campo');
+    if (k === 'servidor' || k === 'cargo' || k === 'cidade'){
+      if (k === 'cidade' && org.modo !== 'gestor'){ toast('A cidade dos documentos é cadastrada pelo gestor.'); return; }
+      T.meus.open = true;
+      var alvo = k === 'servidor' ? T.meuNome : k === 'cargo' ? T.meuCargo : T.meuCidade;
+      alvo.focus(); alvo.scrollIntoView({ block: 'center' });
+      return;
+    }
+    var inp = document.createElement('input');
+    inp.className = 'tvar-in';
+    inp.type = TXT_DATAS[k] ? 'date' : k === 'hora' ? 'time' : 'text';
+    inp.value = k === 'processo' ? T.proc.value : (org.txt.valores[k] || '');
+    inp.setAttribute('aria-label', txtRotulo(k));
+    if (inp.type === 'text'){ inp.placeholder = txtRotulo(k); inp.size = Math.max(10, Math.min(48, (inp.value || inp.placeholder).length + 2)); }
+    span.replaceWith(inp);
+    inp.focus(); if (inp.select) inp.select();
+    var feito = false;
+    function fim(salvar){
+      if (feito) return; feito = true;
+      if (salvar){
+        var v = inp.value.trim();
+        if (k === 'processo'){ T.proc.value = formatProcesso(v); inp.remove(); txtPuxar(); return; }
+        org.txt.valores[k] = v;
+      }
+      inp.remove();
+      renderTxtCampos(); renderTxtFolha();
+    }
+    inp.addEventListener('input', function(){ if (inp.type === 'text') inp.size = Math.max(10, Math.min(48, inp.value.length + 2)); });
+    inp.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); fim(true); }
+      if (e.key === 'Escape'){ e.preventDefault(); fim(false); }
+    });
+    inp.addEventListener('blur', function(){ fim(true); });
+  }
+  T.doc.addEventListener('click', function(e){
+    var sp = e.target.closest('.folha [data-campo]'); if (sp) txtEditarNaFolha(sp);
+  });
+  T.doc.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var sp = e.target.closest && e.target.closest('.folha [data-campo]'); if (!sp) return;
+    e.preventDefault(); txtEditarNaFolha(sp);
   });
 
   // ---- biblioteca ----
@@ -6122,7 +6188,7 @@
       txtCopiar(txtFinal(m), function(){
         m.usos++;
         renderTxtLista();
-        var falta = txtCamposDe(m.texto).filter(function(k){ return !txtValor(k); }).length;
+        var falta = txtFaltando(m).length;
         toast(falta ? 'Texto copiado, mas ' + falta + (falta === 1 ? ' campo ficou' : ' campos ficaram') + ' em branco entre [colchetes]' : 'Texto copiado. É só colar no PJe');
         orgCall('org_txt_usar', { p_id: m.id });
       });
@@ -6154,9 +6220,14 @@
   // ---- minha assinatura ----
   T.meuSalvar.addEventListener('click', async function(){
     var nome = T.meuNome.value.trim(), cargo = T.meuCargo.value.trim(), cidade = T.meuCidade.value.trim();
-    var r = await orgCall('org_txt_meus_dados', { p_nome: nome, p_cargo: cargo, p_cidade: cidade, p_favorito: null, p_fav: null });
+    var r = await orgCall('org_txt_meus_dados', { p_nome: nome, p_cargo: cargo, p_cidade: null, p_favorito: null, p_fav: null });
     if (!orgOk(r)) return;
-    org.txt.meus.nome = nome; org.txt.meus.cargo = cargo; org.txt.meus.cidade = cidade;
+    if (org.modo === 'gestor' && cidade !== org.txt.cidade){
+      r = await orgCall('org_txt_cidade', { p_cidade: cidade });
+      if (!orgOk(r)) return;
+      org.txt.cidade = cidade;
+    }
+    org.txt.meus.nome = nome; org.txt.meus.cargo = cargo;
     T.meus.open = false;
     toast('Assinatura salva');
     renderTxt();
