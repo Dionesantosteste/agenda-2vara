@@ -188,7 +188,7 @@ Os dados do mural e das tarefas não são apagados ao trocar a senha.
 ## Passo 2.4 — Perícias
 
 A seção **Perícias** acompanha cada perícia da nomeação até o laudo juntado:
-**Não agendada → Agendada → Realizada → Laudo juntado** (ou **Cancelada**).
+**Não agendada → Agendada → Intimações feitas → Pronta para perícia → Realizada → Laudo juntado** (ou **Cancelada**).
 
 1. No GitHub, abra [`sql/pericias.sql`](sql/pericias.sql), clique em **Raw** e copie tudo (Ctrl+A, Ctrl+C).
 2. No Supabase, vá em **SQL Editor → New query**, cole e clique em **Run**.
@@ -203,6 +203,19 @@ Como funciona:
   `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
+- **Cores das situações:**
+  - Não agendada: âmbar.
+  - Agendada: vermelho (falta intimar).
+  - Intimações feitas: amarelo.
+  - Pronta para perícia: verde.
+  - Realizada: azul.
+  - Laudo juntado: roxo.
+  - Cancelada: cinza.
+- "Intimações feitas" e "Pronta para perícia" mantêm a data marcada. Na alteração em lote, as perícias ainda sem data
+  ficam de fora até serem agendadas.
+- **Imprimir:** o botão **Imprimir** (em Perícias e em Audiências) gera uma folha A4 em retrato com a lista que está na
+  tela, respeitando a busca e os filtros. O cabeçalho traz o filtro usado e a data de emissão. Na janela de impressão,
+  dá para escolher "Salvar como PDF".
 - **Peritos:** a aba **Peritos** (dentro de Perícias) tem o cadastro próprio de peritos, separado da Agenda: nome,
   especialidade, telefone, e-mail e observações. No cadastro da perícia, o perito é escolhido numa lista (ou cadastrado
   ali mesmo em "+ Cadastrar novo perito…"), e a especialidade é preenchida sozinha. Ao renomear um perito, as perícias
