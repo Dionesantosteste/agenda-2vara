@@ -108,6 +108,17 @@ create table if not exists org_anotacoes (
 );
 create index if not exists org_anotacoes_tarefa_idx on org_anotacoes (tarefa_id, created_at);
 
+-- tarefa concluída e arquivada (sai do quadro e vai para o histórico)
+alter table org_tarefas add column if not exists arquivada_em timestamptz;
+
+-- modelos de cartão: {"titulo", "etiquetas": [...], "checklist": [...], "responsavel", "urgente"}
+create table if not exists org_modelos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default '',
+  dados jsonb not null default '{}',
+  created_at timestamptz not null default now()
+);
+
 alter table org_config    enable row level security;
 alter table org_notas     enable row level security;
 alter table org_tarefas   enable row level security;
@@ -116,7 +127,8 @@ alter table org_rotinas   enable row level security;
 alter table org_etiquetas enable row level security;
 alter table org_colunas   enable row level security;
 alter table org_anotacoes enable row level security;
-revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas, org_anotacoes from anon, authenticated;
+alter table org_modelos   enable row level security;
+revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas, org_anotacoes, org_modelos from anon, authenticated;
 
 -- ---------- senha ----------
 insert into org_config (id, pin_hash)
@@ -178,6 +190,7 @@ begin
     'etiquetas', coalesce((select jsonb_agg(to_jsonb(e) order by e.nome) from org_etiquetas e), '[]'::jsonb),
     'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c), '[]'::jsonb),
     'anotacoes', coalesce((select jsonb_agg(to_jsonb(a) order by a.created_at desc) from org_anotacoes a), '[]'::jsonb),
+    'modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m), '[]'::jsonb),
     'ordem', true,
     'checklist', true
   );
@@ -532,6 +545,79 @@ begin
 end;
 $$;
 
+-- Arquiva (p_arquivar = true) ou devolve ao quadro as tarefas indicadas; só arquiva as que estão em Feito
+create or replace function org_arquivar_tarefas(p_pin text, p_ids uuid[], p_arquivar boolean)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  n int;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if coalesce(p_arquivar, true) then
+    update org_tarefas set arquivada_em = now() where id = any(p_ids) and etapa = 'feito' and arquivada_em is null;
+  else
+    update org_tarefas set arquivada_em = null where id = any(p_ids);
+  end if;
+  get diagnostics n = row_count;
+  return jsonb_build_object('status', 'ok', 'n', n);
+end;
+$$;
+
+-- ---------- modelos de cartão ----------
+create or replace function org_salvar_modelo(p_pin text, p_id uuid, p_nome text, p_dados jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  nome_ok text := left(btrim(coalesce(p_nome, '')), 60);
+  novo uuid;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Dê um nome ao modelo.');
+  end if;
+  if p_id is null then
+    insert into org_modelos (nome, dados)
+    values (nome_ok, case when jsonb_typeof(p_dados) = 'object' then p_dados else '{}'::jsonb end)
+    returning id into novo;
+  else
+    update org_modelos
+       set nome = nome_ok, dados = case when jsonb_typeof(p_dados) = 'object' then p_dados else dados end
+     where id = p_id
+    returning id into novo;
+  end if;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_excluir_modelo(p_pin text, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  delete from org_modelos where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- ---------- colunas do quadro ----------
 create or replace function org_salvar_coluna(p_pin text, p_chave text, p_nome text)
 returns jsonb
@@ -622,6 +708,9 @@ grant execute on function org_ordenar_tarefas(text, uuid[]) to anon, authenticat
 grant execute on function org_checklist_tarefa(text, uuid, jsonb) to anon, authenticated;
 grant execute on function org_anotar(text, uuid, text) to anon, authenticated;
 grant execute on function org_excluir_anotacao(text, uuid) to anon, authenticated;
+grant execute on function org_arquivar_tarefas(text, uuid[], boolean) to anon, authenticated;
+grant execute on function org_salvar_modelo(text, uuid, text, jsonb) to anon, authenticated;
+grant execute on function org_excluir_modelo(text, uuid) to anon, authenticated;
 grant execute on function org_salvar_coluna(text, text, text) to anon, authenticated;
 grant execute on function org_ordenar_colunas(text, text[]) to anon, authenticated;
 grant execute on function org_excluir_coluna(text, text) to anon, authenticated;
