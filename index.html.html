@@ -6429,7 +6429,21 @@
   });
 
   // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta
-  setInterval(function(){ if (org.unlocked && currentRoute === 'organizacao' && !O.content.contains(document.activeElement)) renderOrg(); }, 60000);
+  // Só o que muda com o relógio: lembretes ("próximo", "horário passou") e os contadores.
+  // Na virada do dia, redesenha tudo (selos de prazo "vence hoje", "atrasada"...).
+  var orgDiaDesenhado = dayKey(new Date());
+  setInterval(function(){
+    if (!org.unlocked) return;
+    var hoje = dayKey(new Date());
+    if (hoje !== orgDiaDesenhado){
+      orgDiaDesenhado = hoje;
+      if (currentRoute === 'organizacao' && !O.content.contains(document.activeElement)) renderOrg();
+      return;
+    }
+    renderOrgTabs();
+    O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
+    if (currentRoute === 'organizacao' && org.tab === 'lembretes' && !O.content.contains(document.activeElement)) renderOrgLembretes();
+  }, 60000);
 
   // ---------------------------------------------------------------------
   // Perícias: nomeação → agendamento → realização → laudo (30 dias úteis)
