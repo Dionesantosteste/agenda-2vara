@@ -124,10 +124,12 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 17 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 20 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
+   - Se o Supabase perguntar sobre RLS, escolha **"Run without RLS"**. O próprio arquivo já liga o RLS em todas as tabelas `org_*`.
+   - A opção "Run and enable RLS" dá o erro `relation "cfg" does not exist`.
 
 **Atualizar** (quando o arquivo ganhar novidades, como as abas Quadro, Lembretes e Rotinas, ou as etiquetas e colunas do Quadro):
 rode o arquivo inteiro de novo do mesmo jeito. Nada é apagado e a senha atual continua valendo;
@@ -155,7 +157,10 @@ No **Quadro**:
   - A primeira coluna (A fazer) e a última (Feito) são fixas, mas podem ser renomeadas.
   - Feito continua marcando a tarefa como feita.
   - Excluir uma coluna devolve as tarefas dela para a primeira.
-- Etiquetas, colunas e a ordem dos cartões precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
+- **Checklist e anotações** ficam na janela da tarefa e são salvos na hora, sem precisar clicar em Salvar.
+  - O cartão mostra o progresso do checklist (ex.: 2/5) e quantas anotações tem.
+  - Cada anotação fica registrada com data e hora.
+- Etiquetas, colunas, ordem dos cartões, checklist e anotações precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 

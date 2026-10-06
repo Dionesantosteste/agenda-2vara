@@ -672,6 +672,27 @@
   .kmove .mv:hover{ color:var(--accent); border-color:var(--accent); }
   .kcard .proc-copy{ white-space:nowrap; }
   .cad-row [data-cad=esq], .cad-row [data-cad=dir]{ font-size:17px; line-height:1; }
+  #orgCardDialog{ width:min(540px, calc(100vw - 32px)); }
+  .oc-n{ text-transform:none; letter-spacing:0; font-weight:600; color:var(--ink); margin-left:4px; }
+  .ck-list{ display:flex; flex-direction:column; gap:4px; }
+  .ck-row{ display:grid; grid-template-columns:22px minmax(0,1fr) 30px; gap:8px; align-items:center; }
+  .ck-row .check{ margin:0; }
+  .field .ck-row input{ padding:6px 8px; font-size:14px; border-color:transparent; background:transparent; }
+  .field .ck-row input:hover{ border-color:var(--line); }
+  .field .ck-row input:focus{ border-color:var(--accent); background:var(--sunken); }
+  .ck-row.ok input{ text-decoration:line-through; color:var(--muted); }
+  .ck-add{ display:flex; gap:8px; align-items:flex-start; }
+  .ck-add input, .ck-add textarea{ flex:1; }
+  .field .ck-add textarea{ min-height:44px; }
+  .ck-add .btn{ height:42px; flex:none; }
+  .anot-list{ display:flex; flex-direction:column; gap:6px; }
+  .anot{ background:var(--sunken); border:1px solid var(--line); border-radius:10px; padding:8px 10px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 8px; }
+  .anot time{ font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums; }
+  .anot p{ margin:0; grid-column:1; white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
+  .anot .icon-btn{ grid-column:2; grid-row:1 / span 2; align-self:start; }
+  .anot .icon-btn.armed{ width:auto; padding:0 8px; font-size:12px; color:var(--danger); }
+  .t-meta .kcheck, .t-meta .knotas{ display:inline-flex; align-items:center; gap:3px; font-variant-numeric:tabular-nums; }
+  .t-meta .kcheck.ok{ color:var(--ok); font-weight:600; }
   .kmid{ display:inline-flex; align-items:center; gap:2px; }
   .kmove .kord{ font-size:17px; line-height:1; width:30px; height:30px; }
   .kmove .kord:disabled{ opacity:.3; cursor:default; }
@@ -1548,6 +1569,24 @@
       <label>Etiquetas</label>
       <div class="kchips" id="ocEtiq" role="group" aria-label="Etiquetas da tarefa"></div>
     </div>
+    <div class="field oc-extra" id="ocCheckWrap" hidden>
+      <label for="ocCheckNovo">Checklist <span class="oc-n" id="ocCheckN"></span></label>
+      <div class="progress" id="ocCheckBar" hidden><i></i></div>
+      <div class="ck-list" id="ocCheckList"></div>
+      <div class="ck-add">
+        <input id="ocCheckNovo" maxlength="200" placeholder="Novo item (Enter para adicionar)" />
+        <button type="button" class="btn" id="ocCheckAdd">Adicionar</button>
+      </div>
+    </div>
+    <div class="field oc-extra" id="ocNotasWrap" hidden>
+      <label for="ocNotaTxt">Anotações <span class="oc-n" id="ocNotasN"></span></label>
+      <div class="ck-add">
+        <textarea id="ocNotaTxt" rows="2" maxlength="2000" placeholder="Ex.: ofício enviado por malote; aguardando resposta"></textarea>
+        <button type="button" class="btn" id="ocNotaAdd">Anotar</button>
+      </div>
+      <div class="anot-list" id="ocNotasList"></div>
+    </div>
+    <span class="field-hint" id="ocExtraDica" hidden>O checklist e as anotações são salvos na hora.</span>
     <span class="field-hint" id="ocInfo"></span>
     <div class="sheet-actions">
       <button type="button" class="btn ghost" id="ocExcluir">Excluir</button>
@@ -3118,6 +3157,7 @@
         responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
         etapa: orgChaves().indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer'),
         etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+        checklist: Array.isArray(t.checklist) ? t.checklist.map(function(i){ return { t: String(i && i.t || ''), ok: !!(i && i.ok) }; }) : [],
         posicao: typeof t.posicao === 'number' ? t.posicao : null,
         criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
     });
@@ -3516,6 +3556,8 @@
   org.colunas = ORG_ETAPAS.map(function(c){ return { chave: c[0], nome: c[1] }; });
   org.etiquetas = [];
   org.temCadastro = false;   // o Supabase já tem as tabelas de etiquetas e colunas?
+  org.temChecklist = false;
+  org.anotacoes = [];
 
   var ORG_ETQ_CORES = [["vermelho", "Vermelho", "#D92D20"], ["laranja", "Laranja", "#E8590C"], ["amarelo", "Amarelo", "#CA8A04"],
     ["verde", "Verde", "#16A34A"], ["azul", "Azul", "#2563EB"], ["roxo", "Roxo", "#7C3AED"], ["rosa", "Rosa", "#DB2777"], ["cinza", "Cinza", "#64748B"]];
@@ -3528,6 +3570,8 @@
   function orgParseQuadro(r){
     org.temCadastro = Array.isArray(r.colunas);
     org.temOrdem = r.ordem === true;   // o Supabase já guarda a posição dos cartões?
+    org.temChecklist = r.checklist === true;   // ... e o checklist e as anotações?
+    org.anotacoes = (r.anotacoes || []).map(function(a){ return { id: a.id, tarefa: a.tarefa_id, texto: a.texto || '', criada: new Date(a.created_at) }; });
     if (!org.temCadastro){
       org.colunas = ORG_ETAPAS.map(function(c){ return { chave: c[0], nome: c[1] }; });
       org.etiquetas = [];
@@ -3539,6 +3583,16 @@
       .map(function(c){ return { chave: c.chave, nome: c.nome || 'Sem nome' }; });
     org.colunas = [{ chave: 'afazer', nome: nome('afazer', 'A fazer') }].concat(meio, [{ chave: 'feito', nome: nome('feito', 'Feito') }]);
     org.etiquetas = (r.etiquetas || []).map(function(e){ return { id: e.id, nome: e.nome || '', cor: e.cor || 'azul' }; });
+  }
+  var ICON_CK = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><polyline points="8 12 11 15 16 9"/></svg>';
+  var ICON_NOTA = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  function orgNotasDe(id){ return org.anotacoes.filter(function(a){ return a.tarefa === id; }); }
+  // Indicadores do cartão: checklist feito/total e quantidade de anotações
+  function orgKBadges(t){
+    var h = '', tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length, n = orgNotasDe(t.id).length;
+    if (tot) h += '<span class="kcheck' + (ok === tot ? ' ok' : '') + '" title="Checklist: ' + ok + ' de ' + tot + ' feitos">' + ICON_CK + ok + '/' + tot + '</span>';
+    if (n) h += '<span class="knotas" title="' + n + (n === 1 ? ' anotação' : ' anotações') + '">' + ICON_NOTA + n + '</span>';
+    return h;
   }
   function orgChaves(){ return org.colunas.map(function(c){ return c.chave; }); }
   function orgNomeColuna(k){ var c = org.colunas.filter(function(x){ return x.chave === k; })[0]; return c ? c.nome : k; }
@@ -3646,6 +3700,7 @@
           (t.urgente && aberta ? '<span class="tag urg">Urgente</span>' : '') +
           (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') +
+          orgKBadges(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
@@ -3832,6 +3887,8 @@
     OC.etapa.innerHTML = org.colunas.map(function(c){ return '<option value="' + escapeHtml(c.chave) + '">' + escapeHtml(c.nome) + '</option>'; }).join('');
     ocEtiqSel = t.etiquetas.slice();
     renderOcEtiq();
+    OCX.checkNovo.value = ''; OCX.notaTxt.value = '';
+    renderOcExtras();
     OC.titulo.value = t.titulo;
     OC.etapa.value = t.etapa;
     OC.prazo.value = t.prazo ? dayKey(t.prazo) : '';
@@ -3902,6 +3959,118 @@
     var id = b.getAttribute('data-etq'), i = ocEtiqSel.indexOf(id);
     if (i === -1) ocEtiqSel.push(id); else ocEtiqSel.splice(i, 1);
     renderOcEtiq();
+  });
+
+  // ---- checklist e anotações na janela da tarefa (salvos na hora, sem precisar de "Salvar") ----
+  var OCX = {
+    checkWrap: document.getElementById('ocCheckWrap'),
+    checkN: document.getElementById('ocCheckN'),
+    checkBar: document.getElementById('ocCheckBar'),
+    checkList: document.getElementById('ocCheckList'),
+    checkNovo: document.getElementById('ocCheckNovo'),
+    checkAdd: document.getElementById('ocCheckAdd'),
+    notasWrap: document.getElementById('ocNotasWrap'),
+    notasN: document.getElementById('ocNotasN'),
+    notaTxt: document.getElementById('ocNotaTxt'),
+    notaAdd: document.getElementById('ocNotaAdd'),
+    notasList: document.getElementById('ocNotasList'),
+    dica: document.getElementById('ocExtraDica')
+  };
+
+  function renderOcExtras(){
+    var t = orgFind(org.tarefas, orgCartaoId), tem = !!t && org.temChecklist;
+    OCX.checkWrap.hidden = OCX.notasWrap.hidden = OCX.dica.hidden = !tem;
+    if (!tem) return;
+    var tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
+    OCX.checkN.textContent = tot ? ok + '/' + tot : '';
+    OCX.checkBar.hidden = !tot;
+    OCX.checkBar.firstChild.style.width = tot ? Math.round(ok / tot * 100) + '%' : '0';
+    OCX.checkList.innerHTML = t.checklist.map(function(it, i){
+      return '<div class="ck-row' + (it.ok ? ' ok' : '') + '">' +
+        '<button type="button" class="check" role="checkbox" aria-checked="' + it.ok + '" data-ck="marcar" data-i="' + i + '" aria-label="Marcar: ' + escapeHtml(it.t) + '">' + ICON_CHECK + '</button>' +
+        '<input data-ck="texto" data-i="' + i + '" maxlength="200" value="' + escapeHtml(it.t) + '" aria-label="Item do checklist">' +
+        '<button type="button" class="icon-btn" data-ck="remover" data-i="' + i + '" title="Remover item" aria-label="Remover: ' + escapeHtml(it.t) + '">' + ICON_X + '</button></div>';
+    }).join('');
+    var notas = orgNotasDe(t.id);
+    OCX.notasN.textContent = notas.length ? String(notas.length) : '';
+    OCX.notasList.innerHTML = notas.map(function(a){
+      return '<div class="anot"><time>' + formatDataHora(a.criada) + '</time><p>' + escapeHtml(a.texto) + '</p>' +
+        '<button type="button" class="icon-btn" data-nota="' + a.id + '" title="Excluir anotação" aria-label="Excluir anotação">' + ICON_X + '</button></div>';
+    }).join('');
+  }
+
+  // Mostra na hora e grava o checklist inteiro no banco
+  async function ocSalvarChecklist(t, lista){
+    t.checklist = lista; t.atualizada = new Date();
+    renderOcExtras(); renderOrgKanban();
+    var r = await orgCall('org_checklist_tarefa', { p_id: t.id, p_itens: lista });
+    if (!orgOk(r) && org.unlocked){ await orgLoad(); renderOcExtras(); }
+  }
+
+  function ocAddItem(){
+    var t = orgFind(org.tarefas, orgCartaoId), txt = OCX.checkNovo.value.trim().replace(/\s+/g, ' ');
+    if (!t || !txt){ OCX.checkNovo.focus(); return; }
+    if (t.checklist.length >= 100){ toast('O checklist aceita até 100 itens.'); return; }
+    OCX.checkNovo.value = '';
+    ocSalvarChecklist(t, t.checklist.concat([{ t: txt, ok: false }]));
+    OCX.checkNovo.focus();
+  }
+  OCX.checkAdd.addEventListener('click', ocAddItem);
+  OCX.checkNovo.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); ocAddItem(); } });
+
+  OCX.checkList.addEventListener('click', function(e){
+    var b = e.target.closest('button[data-ck]'); if (!b) return;
+    var t = orgFind(org.tarefas, orgCartaoId); if (!t) return;
+    var i = Number(b.getAttribute('data-i')), acao = b.getAttribute('data-ck');
+    var lista = t.checklist.map(function(x){ return { t: x.t, ok: x.ok }; });
+    if (!lista[i]) return;
+    if (acao === 'marcar'){
+      lista[i].ok = !lista[i].ok;
+      ocSalvarChecklist(t, lista);
+      var nb = OCX.checkList.querySelector('[data-ck=marcar][data-i="' + i + '"]'); if (nb) nb.focus();
+    }
+    if (acao === 'remover'){ lista.splice(i, 1); ocSalvarChecklist(t, lista); }
+  });
+  OCX.checkList.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && e.target.getAttribute('data-ck') === 'texto'){ e.preventDefault(); e.target.blur(); }
+  });
+  OCX.checkList.addEventListener('change', function(e){
+    if (e.target.getAttribute('data-ck') !== 'texto') return;
+    var t = orgFind(org.tarefas, orgCartaoId); if (!t) return;
+    var i = Number(e.target.getAttribute('data-i')), txt = e.target.value.trim().replace(/\s+/g, ' ');
+    if (!t.checklist[i]) return;
+    if (!txt){ e.target.value = t.checklist[i].t; return; }
+    if (txt === t.checklist[i].t) return;
+    var lista = t.checklist.map(function(x){ return { t: x.t, ok: x.ok }; });
+    lista[i].t = txt;
+    ocSalvarChecklist(t, lista);
+  });
+
+  async function ocAnotar(){
+    var t = orgFind(org.tarefas, orgCartaoId), txt = OCX.notaTxt.value.trim();
+    if (!t || !txt){ OCX.notaTxt.focus(); return; }
+    OCX.notaAdd.disabled = true;
+    var r = await orgCall('org_anotar', { p_tarefa: t.id, p_texto: txt });
+    OCX.notaAdd.disabled = false;
+    if (!orgOk(r)) return;
+    org.anotacoes.unshift({ id: r.id, tarefa: t.id, texto: txt.slice(0, 2000), criada: new Date() });
+    t.atualizada = new Date();
+    OCX.notaTxt.value = '';
+    renderOcExtras(); renderOrgKanban();
+    toast('Anotação registrada');
+  }
+  OCX.notaAdd.addEventListener('click', ocAnotar);
+  OCX.notaTxt.addEventListener('keydown', function(e){ if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); ocAnotar(); } });
+
+  OCX.notasList.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-nota]'); if (!b) return;
+    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Excluir?'; return; }
+    var id = b.getAttribute('data-nota');
+    var r = await orgCall('org_excluir_anotacao', { p_id: id });
+    if (!orgOk(r)) return;
+    org.anotacoes = org.anotacoes.filter(function(a){ return a.id !== id; });
+    renderOcExtras(); renderOrgKanban();
+    toast('Anotação excluída');
   });
 
   // ---- cadastro de etiquetas e colunas ----
