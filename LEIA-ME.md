@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 20 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 23 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -160,7 +160,17 @@ No **Quadro**:
 - **Checklist e anotações** ficam na janela da tarefa e são salvos na hora, sem precisar clicar em Salvar.
   - O cartão mostra o progresso do checklist (ex.: 2/5) e quantas anotações tem.
   - Cada anotação fica registrada com data e hora.
-- Etiquetas, colunas, ordem dos cartões, checklist e anotações precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
+- **Arquivar concluídas:** o botão "Arquivar" na coluna Feito tira as tarefas concluídas do quadro.
+  - Elas ficam no **Histórico**, onde dá para buscar, abrir ou devolver ao quadro.
+- **Modelos:** abra uma tarefa já preenchida (etiquetas, checklist, responsável, prioridade) e clique em **Salvar como modelo**.
+  - Para usar, escolha o modelo ao lado de "Nova tarefa" e clique em Adicionar. A tarefa nasce preenchida e já abre para completar processo e prazo.
+  - O botão **Modelos** renomeia ou exclui.
+- **Calendário:** o botão Quadro / Calendário mostra as tarefas pelo prazo, mês a mês.
+  - Os filtros também valem no calendário.
+  - No celular, vira uma lista por dia.
+- **Mesmo processo:** se a tarefa tem nº de processo com perícia ou audiência cadastrada, o cartão mostra "Perícia" e/ou "Audiência".
+  - A janela da tarefa lista as datas, e "Ver" leva direto para a perícia ou audiência.
+- Etiquetas, colunas, ordem dos cartões, checklist, anotações, arquivo e modelos precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 

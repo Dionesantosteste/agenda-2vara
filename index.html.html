@@ -693,6 +693,53 @@
   .anot .icon-btn.armed{ width:auto; padding:0 8px; font-size:12px; color:var(--danger); }
   .t-meta .kcheck, .t-meta .knotas{ display:inline-flex; align-items:center; gap:3px; font-variant-numeric:tabular-nums; }
   .t-meta .kcheck.ok{ color:var(--ok); font-weight:600; }
+  .kview{ display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); margin-left:auto; }
+  .kview button{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:13.5px; font-weight:500; padding:0 14px; height:38px; cursor:pointer; }
+  .kview button[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); }
+  .karq-row{ display:flex; justify-content:flex-end; margin:-4px 0 0; }
+  .t-meta .kvinc{ font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:0 6px; }
+  .oc-vinc{ border:1px solid var(--line); border-radius:10px; padding:8px 10px; display:flex; flex-direction:column; gap:6px; background:var(--sunken); }
+  .vinc-t{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  .vinc-row{ display:flex; align-items:center; gap:8px; font-size:13.5px; flex-wrap:wrap; }
+  .vinc-row > span:nth-child(2){ flex:1; min-width:0; }
+  .oc-modelo{ align-items:flex-start; }
+  #orgHistDialog{ width:min(620px, calc(100vw - 32px)); }
+  .hist-list{ display:flex; flex-direction:column; gap:8px; max-height:min(58vh, 560px); overflow-y:auto; }
+  .hist-row{ border:1px solid var(--item-line); background:var(--item); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px; }
+  .hist-t{ font-weight:500; overflow-wrap:anywhere; }
+  .hist-acts{ display:flex; gap:6px; justify-content:flex-end; flex-wrap:wrap; }
+  .kcal{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:12px; }
+  .kcal-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+  .kcal-head h3{ margin:0 6px; font-size:17px; font-weight:600; min-width:170px; text-align:center; }
+  .kcal-head .icon-btn{ font-size:20px; }
+  .kcal-head .kbtn{ margin-left:auto; }
+  .kcal-grid{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); border-top:1px solid var(--line); border-left:1px solid var(--line); }
+  .kcal-sem{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:6px 8px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--sunken); }
+  .kcal-dia{ min-height:104px; padding:4px 5px 6px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); display:flex; flex-direction:column; gap:3px; min-width:0; }
+  .kcal-dia.nao-util{ background:color-mix(in srgb, var(--sunken) 70%, transparent); }
+  .kcal-dia.fora .kcal-n{ opacity:.45; }
+  .kcal-n{ font-size:12.5px; font-weight:600; color:var(--muted); padding:1px 3px; align-self:flex-start; border-radius:6px; font-variant-numeric:tabular-nums; }
+  .kcal-dia.hoje .kcal-n{ background:var(--accent); color:var(--accent-ink); }
+  .kcal-dsem, .kcal-mes{ display:none; }
+  .kcal-item{ --lc:var(--accent); all:unset; box-sizing:border-box; cursor:pointer; font-size:12px; line-height:1.3; padding:2px 6px; border-radius:5px; border-left:3px solid var(--lc);
+    background:var(--item); color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; }
+  .kcal-item:hover{ background:var(--accent-soft); }
+  .kcal-item:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .kcal-item.urg{ background:var(--urgent-bg); }
+  .kcal-item.late{ color:var(--danger); font-weight:600; }
+  .kcal-item.feito{ color:var(--muted); text-decoration:line-through; background:transparent; }
+  .kcal-mais{ all:unset; cursor:pointer; font-size:11.5px; color:var(--accent); padding:0 6px; }
+  .kcal-pe{ margin:10px 0 0; }
+  @media (max-width:700px){
+    .kcal{ padding:10px; }
+    .kcal-grid{ display:flex; flex-direction:column; border:0; gap:8px; }
+    .kcal-sem, .kcal-dia.vazio, .kcal-dia.fora{ display:none; }
+    .kcal-dia{ min-height:0; border:1px solid var(--line); border-radius:10px; padding:8px; gap:6px; }
+    .kcal-dsem, .kcal-mes{ display:inline; }
+    .kcal-item{ font-size:14px; padding:6px 8px; white-space:normal; }
+    .kcal-head h3{ min-width:0; flex:1; }
+    .kview{ margin-left:0; }
+  }
   .kmid{ display:inline-flex; align-items:center; gap:2px; }
   .kmove .kord{ font-size:17px; line-height:1; width:30px; height:30px; }
   .kmove .kord:disabled{ opacity:.3; cursor:default; }
@@ -708,6 +755,7 @@
   .kfilters .kbtn{ height:36px; padding:0 12px; font-size:13.5px; }
   .cad-row{ display:grid; grid-template-columns:minmax(0,1fr) 30px 30px 30px; gap:6px; align-items:center; }
   .cad-row.etq{ grid-template-columns:118px minmax(0,1fr) 30px; }
+  .cad-row.mod{ grid-template-columns:minmax(0,1fr) 30px; }
   .cad-row input, .cad-row select{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--sunken); color:var(--ink); font-size:14px; font-family:var(--font-ui); min-width:0; width:100%; }
   .cad-row select{ border-left-width:6px; border-left-color:var(--lc, var(--line)); padding:7px 6px; }
   .cad-row .fixa{ font-size:11px; color:var(--muted); grid-column:span 3; }
@@ -1248,8 +1296,13 @@
 
       <div id="orgPaneQuadro" class="org-pane" hidden>
         <form class="org-add" id="orgKanbanForm" autocomplete="off">
-          <input class="org-in grow" id="orgKanbanTitle" maxlength="160" placeholder="Nova tarefa (entra em A fazer)…" required />
+          <input class="org-in grow" id="orgKanbanTitle" maxlength="160" placeholder="Nova tarefa (entra em A fazer)…" />
+          <select class="org-in" id="orgKModelo" aria-label="Criar a partir de um modelo" hidden></select>
           <button type="submit" class="btn primary">Adicionar</button>
+          <div class="kview" id="orgKView" role="group" aria-label="Visão do quadro">
+            <button type="button" data-kview="quadro" aria-pressed="true">Quadro</button>
+            <button type="button" data-kview="calendario" aria-pressed="false">Calendário</button>
+          </div>
         </form>
         <div class="kfilters" id="orgKFiltros">
           <input class="org-in kbusca" id="orgKBusca" type="search" maxlength="80" placeholder="Filtrar por título ou nº do processo…" aria-label="Filtrar tarefas do quadro" />
@@ -1257,6 +1310,8 @@
           <select class="org-in" id="orgKEtq" aria-label="Filtrar por etiqueta" hidden></select>
           <button type="button" class="btn kbtn" id="orgKCadEtq">Etiquetas</button>
           <button type="button" class="btn kbtn" id="orgKCadCol">Colunas</button>
+          <button type="button" class="btn kbtn" id="orgKCadMod">Modelos</button>
+          <button type="button" class="btn kbtn" id="orgKHist">Histórico</button>
           <div class="kchips" id="orgKChips" role="group" aria-label="Filtrar por prazo">
             <button type="button" class="chip" data-kprazo="" aria-pressed="true">Todas</button>
             <button type="button" class="chip" data-kprazo="atrasadas" aria-pressed="false">Atrasadas</button>
@@ -1268,6 +1323,7 @@
           <button type="button" class="clear-btn" id="orgKLimpar" hidden>Limpar filtros</button>
         </div>
         <div class="kanban" id="orgKanban"></div>
+        <div class="kcal" id="orgKCal" hidden></div>
       </div>
 
       <div id="orgPaneLembretes" class="org-pane" hidden>
@@ -1565,6 +1621,7 @@
       <label for="ocProc">Nº do processo</label>
       <input data-cnj id="ocProc" class="mono" maxlength="40" placeholder="opcional" />
     </div>
+    <div class="oc-vinc" id="ocVinc" hidden></div>
     <div class="field" id="ocEtiqWrap">
       <label>Etiquetas</label>
       <div class="kchips" id="ocEtiq" role="group" aria-label="Etiquetas da tarefa"></div>
@@ -1586,6 +1643,13 @@
       </div>
       <div class="anot-list" id="ocNotasList"></div>
     </div>
+    <div class="field oc-modelo" id="ocModeloWrap" hidden>
+      <button type="button" class="clear-btn" id="ocModeloAbrir">Salvar como modelo…</button>
+      <div class="ck-add" id="ocModeloForm" hidden>
+        <input id="ocModeloNome" maxlength="60" placeholder="Nome do modelo (ex.: Novo mandado)" aria-label="Nome do modelo" />
+        <button type="button" class="btn" id="ocModeloSalvar">Criar modelo</button>
+      </div>
+    </div>
     <span class="field-hint" id="ocExtraDica" hidden>O checklist e as anotações são salvos na hora.</span>
     <span class="field-hint" id="ocInfo"></span>
     <div class="sheet-actions">
@@ -1593,6 +1657,20 @@
       <div style="display:flex; gap:8px; margin-left:auto;">
         <button type="button" class="btn" id="ocCancelar">Cancelar</button>
         <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="orgHistDialog">
+  <form class="sheet" id="orgHistForm" autocomplete="off">
+    <h2>Histórico</h2>
+    <p class="field-hint" id="orgHistInfo" style="margin:-6px 0 0"></p>
+    <div class="field"><input id="orgHistBusca" type="search" maxlength="80" placeholder="Buscar por título, responsável ou nº do processo…" aria-label="Buscar no histórico" /></div>
+    <div class="hist-list" id="orgHistLista"></div>
+    <div class="sheet-actions">
+      <div style="margin-left:auto;">
+        <button type="button" class="btn" id="orgHistFechar">Fechar</button>
       </div>
     </div>
   </form>
@@ -3159,6 +3237,7 @@
         etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
         checklist: Array.isArray(t.checklist) ? t.checklist.map(function(i){ return { t: String(i && i.t || ''), ok: !!(i && i.ok) }; }) : [],
         posicao: typeof t.posicao === 'number' ? t.posicao : null,
+        arquivadaEm: t.arquivada_em ? new Date(t.arquivada_em) : null,
         criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
     });
     org.lembretes = (r.lembretes || []).map(function(l){
@@ -3323,7 +3402,7 @@
       { k: 'Hoje', f: function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) === 0; } },
       { k: 'Próximas', f: function(t){ return !t.feitaEm && t.prazo && orgDiff(t.prazo) > 0; } },
       { k: 'Sem prazo', f: function(t){ return !t.feitaEm && !t.prazo; } },
-      { k: 'Concluídas', f: function(t){ return !!t.feitaEm; }, desc: true }
+      { k: 'Concluídas', f: function(t){ return !!t.feitaEm && !orgArquivada(t); }, desc: true }
     ];
     var abertas = org.tarefas.filter(function(t){ return !t.feitaEm; }).length;
     O.tasksInfo.textContent = org.tarefas.length ? abertas + (abertas === 1 ? ' em aberto' : ' em aberto') + ' · clique no título ou no lápis para editar' : '';
@@ -3501,6 +3580,11 @@
     kEtq: document.getElementById('orgKEtq'),
     kCadEtq: document.getElementById('orgKCadEtq'),
     kCadCol: document.getElementById('orgKCadCol'),
+    kCadMod: document.getElementById('orgKCadMod'),
+    kHist: document.getElementById('orgKHist'),
+    kModelo: document.getElementById('orgKModelo'),
+    kview: document.getElementById('orgKView'),
+    kcal: document.getElementById('orgKCal'),
     lemStats: document.getElementById('orgLemStats'),
     lemForm: document.getElementById('orgLemForm'),
     lemTexto: document.getElementById('orgLemTexto'),
@@ -3558,6 +3642,8 @@
   org.temCadastro = false;   // o Supabase já tem as tabelas de etiquetas e colunas?
   org.temChecklist = false;
   org.anotacoes = [];
+  org.temExtras = false;
+  org.modelos = [];
 
   var ORG_ETQ_CORES = [["vermelho", "Vermelho", "#D92D20"], ["laranja", "Laranja", "#E8590C"], ["amarelo", "Amarelo", "#CA8A04"],
     ["verde", "Verde", "#16A34A"], ["azul", "Azul", "#2563EB"], ["roxo", "Roxo", "#7C3AED"], ["rosa", "Rosa", "#DB2777"], ["cinza", "Cinza", "#64748B"]];
@@ -3571,6 +3657,8 @@
     org.temCadastro = Array.isArray(r.colunas);
     org.temOrdem = r.ordem === true;   // o Supabase já guarda a posição dos cartões?
     org.temChecklist = r.checklist === true;   // ... e o checklist e as anotações?
+    org.temExtras = Array.isArray(r.modelos);   // ... e os modelos e o arquivo de concluídas?
+    org.modelos = (r.modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.anotacoes = (r.anotacoes || []).map(function(a){ return { id: a.id, tarefa: a.tarefa_id, texto: a.texto || '', criada: new Date(a.created_at) }; });
     if (!org.temCadastro){
       org.colunas = ORG_ETAPAS.map(function(c){ return { chave: c[0], nome: c[1] }; });
@@ -3673,13 +3761,14 @@
 
   function renderOrgKanban(){
     orgKRespOpcoes();
+    orgKModeloOpcoes();
     orgKEtqOpcoes();
     var filtro = orgKFiltroAtivo(), h = '';
     OT.kChips.querySelectorAll('[data-kprazo]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-kprazo') === org.kf.prazo)); });
     OT.kLimpar.hidden = !filtro;
     var cols = org.colunas.map(function(c){ return [c.chave, c.nome]; }), ultima = cols.length - 1;
     cols.forEach(function(c, ci){
-      var all = org.tarefas.filter(function(t){ return t.etapa === c[0]; });
+      var all = org.tarefas.filter(function(t){ return t.etapa === c[0] && !orgArquivada(t); });
       var vis = filtro ? all.filter(orgKPassa) : all;
       var items = orgOrdenaColuna(vis, c[0]), ordena = orgPodeOrdenar(c[0]);
       var ocultas = 0;
@@ -3688,6 +3777,7 @@
       var n = filtro ? vis.length + ' de ' + all.length : (c[0] === 'fazendo' ? all.length + ' / ' + ORG_LIMITE_FAZENDO : String(all.length));
       h += '<section class="col' + (over ? ' over' : '') + '" data-etapa="' + escapeHtml(c[0]) + '" aria-label="' + escapeHtml(c[1]) + '"><h3>' + escapeHtml(c[1]) +
         ' <span' + (c[0] === 'fazendo' ? ' title="Limite de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento"' : '') + '>' + n + '</span></h3>';
+      if (c[0] === 'feito' && org.temExtras && all.length) h += '<div class="karq-row"><button type="button" class="clear-btn" data-act="arquivar-feitas" title="Tira as concluídas do quadro e guarda no Histórico">Arquivar ' + all.length + (all.length === 1 ? ' concluída' : ' concluídas') + '</button></div>';
       if (over) h += '<div class="wip-aviso">Mais de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento. Vale terminar algumas antes de puxar novas.</div>';
       if (!items.length) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
       items.forEach(function(t, ii){
@@ -3700,7 +3790,7 @@
           (t.urgente && aberta ? '<span class="tag urg">Urgente</span>' : '') +
           (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') +
-          orgKBadges(t) +
+          orgKBadges(t) + orgKVinc(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
@@ -3717,6 +3807,11 @@
       h += '</section>';
     });
     OT.kanban.innerHTML = h;
+    var cal = org.kview === 'calendario';
+    OT.kanban.hidden = cal; OT.kcal.hidden = !cal;
+    OT.kview.querySelectorAll('[data-kview]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-kview') === org.kview)); });
+    if (cal) renderOrgCal();
+    if (HD.dialog.open) renderHist();
   }
 
   // ---- filtros do quadro ----
@@ -3894,6 +3989,8 @@
     OC.prazo.value = t.prazo ? dayKey(t.prazo) : '';
     OC.urg.value = t.urgente ? '1' : '';
     OC.proc.value = t.processo;
+    renderOcVinc();
+    resetOcModelo();
     var info = [];
     if (t.criada) info.push('Criada em ' + formatDataHora(t.criada));
     if (t.atualizada) info.push('última mudança em ' + formatDataHora(t.atualizada));
@@ -4094,6 +4191,7 @@
   function renderCadastro(){
     if (!cadModo) return;
     var h = '';
+    CAD.novo.hidden = cadModo === 'mod';
     if (cadModo === 'etq'){
       CAD.titulo.textContent = 'Etiquetas';
       CAD.dica.textContent = 'Dê nome e cor às etiquetas. Excluir uma etiqueta tira ela das tarefas que a usam.';
@@ -4109,6 +4207,16 @@
       CAD.novo.innerHTML = '<select id="cadNovaCor" aria-label="Cor da nova etiqueta" style="--lc:' + orgCorEtq('azul') + '">' + cadCorOpts('azul') + '</select>' +
         '<input id="cadNovoNome" maxlength="40" placeholder="Nova etiqueta (ex.: Mandado)">' +
         '<button type="button" class="icon-btn" data-cad="add" title="Adicionar etiqueta" aria-label="Adicionar etiqueta">' + ICON_MAIS + '</button>';
+    } else if (cadModo === 'mod'){
+      CAD.titulo.textContent = 'Modelos de tarefa';
+      CAD.dica.textContent = 'Para criar um modelo, abra uma tarefa já preenchida (etiquetas, checklist, responsável) e clique em "Salvar como modelo". Aqui você renomeia ou exclui.';
+      if (!org.modelos.length) h = '<div class="cat-empty">Nenhum modelo ainda.</div>';
+      org.modelos.forEach(function(m){
+        var d = m.dados || {}, n = Array.isArray(d.checklist) ? d.checklist.length : 0;
+        h += '<div class="cad-row mod" data-id="' + m.id + '" title="' + escapeHtml((d.titulo || '') + (n ? ' · checklist com ' + n + (n === 1 ? ' item' : ' itens') : '')) + '">' +
+          '<input data-cad="nome" maxlength="60" value="' + escapeHtml(m.nome) + '" aria-label="Nome do modelo">' +
+          '<button type="button" class="icon-btn danger" data-cad="excluir" data-usos="0" title="Excluir modelo" aria-label="Excluir o modelo ' + escapeHtml(m.nome) + '">' + ICON_LIXO + '</button></div>';
+      });
     } else {
       var primeira = orgNomeColuna('afazer'), ultimaNome = orgNomeColuna('feito'), ult = org.colunas.length - 1;
       CAD.titulo.textContent = 'Colunas do quadro';
@@ -4141,6 +4249,10 @@
   }
   OT.kCadEtq.addEventListener('click', function(){ abrirCadastro('etq'); });
   OT.kCadCol.addEventListener('click', function(){ abrirCadastro('col'); });
+  OT.kCadMod.addEventListener('click', function(){
+    if (!org.temExtras){ toast('Rode o arquivo sql/organizacao.sql atualizado no Supabase para usar modelos (veja o LEIA-ME.md).'); return; }
+    abrirCadastro('mod');
+  });
   CAD.fechar.addEventListener('click', function(){ CAD.dialog.close(); });
   CAD.dialog.addEventListener('close', function(){ cadModo = null; });
   CAD.form.addEventListener('submit', function(e){ e.preventDefault(); });
@@ -4177,6 +4289,13 @@
       r = await orgCall('org_salvar_etiqueta', { p_id: et.id, p_nome: nome, p_cor: cor });
       if (!orgOk(r)) return;
       toast(campo === 'cor' ? 'Cor da etiqueta alterada' : 'Etiqueta renomeada');
+    } else if (cadModo === 'mod'){
+      var mo = orgModelo(row.getAttribute('data-id')); if (!mo) return;
+      var nm = e.target.value.trim().replace(/\s+/g, ' ');
+      if (!nm || nm === mo.nome){ e.target.value = mo.nome; return; }
+      r = await orgCall('org_salvar_modelo', { p_id: mo.id, p_nome: nm, p_dados: mo.dados });
+      if (!orgOk(r)) return;
+      toast('Modelo renomeado');
     } else {
       var chave = row.getAttribute('data-chave'), atual = orgNomeColuna(chave);
       var novo = e.target.value.trim().replace(/\s+/g, ' ');
@@ -4201,11 +4320,11 @@
           : '') + '</span>';
         return;
       }
-      r = cadModo === 'etq'
-        ? await orgCall('org_excluir_etiqueta', { p_id: row.getAttribute('data-id') })
+      r = cadModo === 'etq' ? await orgCall('org_excluir_etiqueta', { p_id: row.getAttribute('data-id') })
+        : cadModo === 'mod' ? await orgCall('org_excluir_modelo', { p_id: row.getAttribute('data-id') })
         : await orgCall('org_excluir_coluna', { p_chave: row.getAttribute('data-chave') });
       if (!orgOk(r)) return;
-      toast(cadModo === 'etq' ? 'Etiqueta excluída' : 'Coluna excluída');
+      toast(cadModo === 'etq' ? 'Etiqueta excluída' : cadModo === 'mod' ? 'Modelo excluído' : 'Coluna excluída');
       await cadRecarregar(false);
       return;
     }
@@ -4221,15 +4340,245 @@
     }
   });
 
+  // ======== arquivo, modelos, calendário e perícias/audiências do mesmo processo ========
+  function orgArquivada(t){ return !!t.arquivadaEm && t.etapa === 'feito'; }
+  function orgModelo(id){ return org.modelos.filter(function(m){ return m.id === id; })[0] || null; }
+
+  function orgKModeloOpcoes(){
+    var atual = OT.kModelo.value;
+    OT.kModelo.hidden = !org.modelos.length;
+    OT.kModelo.innerHTML = '<option value="">Sem modelo</option>' + org.modelos.map(function(m){
+      return '<option value="' + m.id + '"' + (m.id === atual ? ' selected' : '') + '>Modelo: ' + escapeHtml(m.nome) + '</option>';
+    }).join('');
+    var n = org.tarefas.filter(orgArquivada).length;
+    OT.kHist.textContent = 'Histórico' + (n ? ' (' + n + ')' : '');
+  }
+
+  // ---- perícias e audiências do mesmo processo ----
+  function orgVinculos(proc){
+    var dig = digitsOnly(proc);
+    if (dig.length < 10) return { pers: [], auds: [] };
+    var agora = new Date();
+    var auds = aud.items.filter(function(a){ return digitsOnly(a.processo) === dig; }).sort(function(a, b){
+      var fa = a.date >= agora, fb = b.date >= agora;
+      if (fa !== fb) return fa ? -1 : 1;
+      return fa ? a.date - b.date : b.date - a.date;
+    });
+    return { pers: per.items.filter(function(p){ return digitsOnly(p.processo) === dig; }), auds: auds };
+  }
+  function orgKVinc(t){
+    if (!t.processo) return '';
+    var v = orgVinculos(t.processo), h = '';
+    if (v.pers.length) h += '<span class="kvinc" title="Há perícia cadastrada para este processo">Perícia</span>';
+    if (v.auds.length) h += '<span class="kvinc" title="Há audiência cadastrada para este processo">Audiência</span>';
+    return h;
+  }
+  function hhmm(d){ return pad(d.getHours()) + ':' + pad(d.getMinutes()); }
+
+  var ocVinc = document.getElementById('ocVinc');
+  function renderOcVinc(){
+    var v = orgVinculos(OC.proc.value), h = '';
+    v.pers.slice(0, 3).forEach(function(p){
+      h += '<div class="vinc-row"><span class="tag resp">Perícia</span><span>' + escapeHtml(PER_NOME[p.status] || '') +
+        (p.status === 'agendada' && p.data ? ' · ' + fmtData(p.data) + ' às ' + hhmm(p.data) : '') +
+        (p.status === 'realizada' && prazoLaudo(p) ? ' · laudo até ' + fmtData(prazoLaudo(p)) : '') +
+        (p.perito ? ' · ' + escapeHtml(p.perito) : '') + '</span>' +
+        '<button type="button" class="clear-btn" data-vinc="p" data-id="' + p.id + '">Ver</button></div>';
+    });
+    v.auds.slice(0, 3).forEach(function(a){
+      h += '<div class="vinc-row"><span class="tag resp">Audiência</span><span>' + escapeHtml(a.tipo || 'Audiência') + ' · ' + fmtData(a.date) + ' às ' + hhmm(a.date) +
+        ' · ' + escapeHtml(a.status) + '</span>' +
+        '<button type="button" class="clear-btn" data-vinc="a" data-id="' + a.id + '">Ver</button></div>';
+    });
+    var mais = Math.max(0, v.pers.length - 3) + Math.max(0, v.auds.length - 3);
+    if (mais) h += '<div class="field-hint">e mais ' + mais + ' no mesmo processo</div>';
+    ocVinc.hidden = !h;
+    ocVinc.innerHTML = h ? '<div class="vinc-t">Neste processo</div>' + h : '';
+  }
+  OC.proc.addEventListener('change', renderOcVinc);
+  OC.proc.addEventListener('blur', renderOcVinc);
+  ocVinc.addEventListener('click', function(e){
+    var b = e.target.closest('[data-vinc]'); if (!b) return;
+    var id = b.getAttribute('data-id');
+    OC.dialog.close();
+    if (HD.dialog.open) HD.dialog.close();
+    if (b.getAttribute('data-vinc') === 'p'){
+      var p = per.items.filter(function(x){ return x.id === id; })[0]; if (!p) return;
+      per.aba = aberta(p) ? 'andamento' : 'concluidas'; per.situacao = 'andamento'; per.concl = 'todas'; per.perito = '';
+      per.query = p.processo; P.search.value = p.processo; P.clearSearch.hidden = false; irPara('pericias');
+    } else {
+      var a = aud.items.filter(function(x){ return x.id === id; })[0]; if (!a) return;
+      aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas';
+      aud.query = a.processo; A.search.value = a.processo; A.clearSearch.hidden = false; irPara('audiencias');
+    }
+  });
+
+  // ---- salvar a tarefa aberta como modelo ----
+  var OM = {
+    wrap: document.getElementById('ocModeloWrap'),
+    abrir: document.getElementById('ocModeloAbrir'),
+    form: document.getElementById('ocModeloForm'),
+    nome: document.getElementById('ocModeloNome'),
+    salvar: document.getElementById('ocModeloSalvar')
+  };
+  function resetOcModelo(){
+    OM.wrap.hidden = !org.temExtras;
+    OM.form.hidden = true; OM.abrir.hidden = false; OM.nome.value = '';
+  }
+  OM.abrir.addEventListener('click', function(){
+    OM.abrir.hidden = true; OM.form.hidden = false;
+    OM.nome.value = OC.titulo.value.trim().slice(0, 60);
+    OM.nome.focus(); OM.nome.select();
+  });
+  async function ocCriarModelo(){
+    var t = orgFind(org.tarefas, orgCartaoId), nome = OM.nome.value.trim().replace(/\s+/g, ' ');
+    if (!t || !nome){ OM.nome.focus(); return; }
+    var dados = { titulo: OC.titulo.value.trim() || t.titulo, etiquetas: ocEtiqSel.slice(),
+      checklist: t.checklist.map(function(i){ return { t: i.t, ok: false }; }),
+      responsavel: OC.resp.value, urgente: !!OC.urg.value };
+    var r = await orgCall('org_salvar_modelo', { p_id: null, p_nome: nome, p_dados: dados });
+    if (!orgOk(r)) return;
+    toast('Modelo "' + nome + '" criado. Escolha-o ao lado de "Nova tarefa".');
+    await orgLoad();
+    resetOcModelo();
+  }
+  OM.salvar.addEventListener('click', ocCriarModelo);
+  OM.nome.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); ocCriarModelo(); } });
+
+  // ---- nova tarefa (com ou sem modelo) ----
   OT.kanbanForm.addEventListener('submit', async function(e){
     e.preventDefault();
-    var titulo = OT.kanbanTitle.value.trim(); if (!titulo) return;
-    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: false, responsavel: '', processo: '', feitaEm: null, etapa: 'afazer' });
+    var mod = orgModelo(OT.kModelo.value), d = mod ? (mod.dados || {}) : {};
+    var titulo = OT.kanbanTitle.value.trim() || (mod ? (d.titulo || mod.nome) : '');
+    if (!titulo){ OT.kanbanTitle.focus(); return; }
+    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: !!d.urgente, responsavel: d.responsavel || '', processo: '', feitaEm: null, etapa: 'afazer' });
     if (!orgOk(r)) return;
-    OT.kanbanTitle.value = '';
-    toast('Tarefa adicionada em A fazer');
+    if (mod && r.id){
+      var etq = (Array.isArray(d.etiquetas) ? d.etiquetas : []).filter(orgEtq), r2;
+      if (etq.length && org.temCadastro){ r2 = await orgCall('org_etiquetar_tarefa', { p_id: r.id, p_etiquetas: etq }); if (!orgOk(r2)) return; }
+      var ck = (Array.isArray(d.checklist) ? d.checklist : []).map(function(i){ return { t: String(i && i.t || '').trim(), ok: false }; }).filter(function(i){ return i.t; });
+      if (ck.length && org.temChecklist){ r2 = await orgCall('org_checklist_tarefa', { p_id: r.id, p_itens: ck }); if (!orgOk(r2)) return; }
+    }
+    OT.kanbanTitle.value = ''; OT.kModelo.value = '';
+    toast(mod ? 'Tarefa criada pelo modelo "' + mod.nome + '"' : 'Tarefa adicionada em ' + orgNomeColuna('afazer'));
     await orgLoad();
-    OT.kanbanTitle.focus();
+    if (mod && r.id) orgAbrirCartao(r.id); else OT.kanbanTitle.focus();
+  });
+
+  // ---- arquivar concluídas e histórico ----
+  async function orgArquivar(ids, arquivar){
+    var r = await orgCall('org_arquivar_tarefas', { p_ids: ids, p_arquivar: arquivar });
+    if (!orgOk(r)) return false;
+    toast(arquivar ? (r.n === 1 ? '1 tarefa arquivada' : (r.n || ids.length) + ' tarefas arquivadas') + ' · veja em Histórico' : 'Tarefa devolvida para ' + orgNomeColuna('feito'));
+    await orgLoad();
+    return true;
+  }
+
+  var HD = {
+    dialog: document.getElementById('orgHistDialog'),
+    form: document.getElementById('orgHistForm'),
+    busca: document.getElementById('orgHistBusca'),
+    lista: document.getElementById('orgHistLista'),
+    info: document.getElementById('orgHistInfo'),
+    fechar: document.getElementById('orgHistFechar')
+  };
+  function renderHist(){
+    var q = normalize(HD.busca.value.trim()), qd = digitsOnly(HD.busca.value);
+    var todas = org.tarefas.filter(orgArquivada).sort(function(a, b){ return (b.feitaEm || 0) - (a.feitaEm || 0); });
+    var lista = todas.filter(function(t){
+      if (!q) return true;
+      return normalize(t.titulo + ' ' + t.responsavel).indexOf(q) !== -1 || (qd.length >= 3 && digitsOnly(t.processo).indexOf(qd) !== -1);
+    });
+    HD.info.textContent = todas.length ? (q ? lista.length + ' de ' + todas.length : todas.length) + (todas.length === 1 ? ' tarefa arquivada' : ' tarefas arquivadas') : '';
+    if (!lista.length){ HD.lista.innerHTML = '<div class="cat-empty">' + (todas.length ? 'Nada encontrado.' : 'Nenhuma tarefa arquivada ainda. Use "Arquivar" na coluna ' + escapeHtml(orgNomeColuna('feito')) + '.') + '</div>'; return; }
+    HD.lista.innerHTML = lista.slice(0, 200).map(function(t){
+      return '<div class="hist-row">' + orgKLabels(t) +
+        '<div class="hist-t">' + escapeHtml(t.titulo) + '</div>' +
+        '<div class="t-meta">' + (t.feitaEm ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') +
+        (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+        (t.processo ? procCopyBtn(t.processo) : '') + orgKBadges(t) + '</div>' +
+        '<div class="hist-acts"><button type="button" class="btn kbtn" data-hist="abrir" data-id="' + t.id + '">Abrir</button>' +
+        '<button type="button" class="btn kbtn" data-hist="voltar" data-id="' + t.id + '">Devolver ao quadro</button></div></div>';
+    }).join('') + (lista.length > 200 ? '<div class="field-hint">Mostrando as 200 mais recentes. Use a busca para achar as outras.</div>' : '');
+  }
+  OT.kHist.addEventListener('click', function(){
+    if (!org.temExtras){ toast('Rode o arquivo sql/organizacao.sql atualizado no Supabase para usar o histórico (veja o LEIA-ME.md).'); return; }
+    HD.busca.value = ''; renderHist(); HD.dialog.showModal();
+    setTimeout(function(){ HD.busca.focus(); }, 30);
+  });
+  HD.fechar.addEventListener('click', function(){ HD.dialog.close(); });
+  HD.form.addEventListener('submit', function(e){ e.preventDefault(); });
+  HD.busca.addEventListener('input', renderHist);
+  HD.lista.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-hist]');
+    if (!b){ var c = e.target.closest('[data-act=copiar]'); if (c) copiarTexto(c.getAttribute('data-proc'), c); return; }
+    var id = b.getAttribute('data-id');
+    if (b.getAttribute('data-hist') === 'abrir') orgAbrirCartao(id);
+    else if (await orgArquivar([id], false)) renderHist();
+  });
+
+  // ---- calendário ----
+  org.kview = 'quadro';
+  try { if (sessionStorage.getItem('orgKView') === 'calendario') org.kview = 'calendario'; } catch (e) {}
+  org.kmes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  org.kcalAberto = {};
+  var ORG_MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+  var ORG_DSEM = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+  function renderOrgCal(){
+    var filtro = orgKFiltroAtivo(), hoje = startOfDay(new Date()), hojeK = dayKey(hoje);
+    var lista = org.tarefas.filter(function(t){ return t.prazo && !orgArquivada(t) && (!filtro || orgKPassa(t)); });
+    var porDia = {};
+    lista.forEach(function(t){ var k = dayKey(t.prazo); (porDia[k] = porDia[k] || []).push(t); });
+    Object.keys(porDia).forEach(function(k){
+      porDia[k].sort(function(a, b){ return ((a.etapa === 'feito') - (b.etapa === 'feito')) || (b.urgente - a.urgente) || a.titulo.localeCompare(b.titulo, 'pt-BR'); });
+    });
+    var ano = org.kmes.getFullYear(), mes = org.kmes.getMonth();
+    var d = new Date(ano, mes, 1 - new Date(ano, mes, 1).getDay());
+    var fim = new Date(ano, mes + 1, 0); fim.setDate(fim.getDate() + 6 - fim.getDay());
+    var noMes = 0;
+    var h = '<div class="kcal-head"><button type="button" class="icon-btn" data-kcal="-1" title="Mês anterior" aria-label="Mês anterior">‹</button>' +
+      '<h3>' + ORG_MESES[mes] + ' de ' + ano + '</h3>' +
+      '<button type="button" class="icon-btn" data-kcal="1" title="Próximo mês" aria-label="Próximo mês">›</button>' +
+      '<button type="button" class="btn kbtn" data-kcal="0">Hoje</button></div><div class="kcal-grid">' +
+      ORG_DSEM.map(function(s){ return '<div class="kcal-sem">' + s + '</div>'; }).join('');
+    for (; d <= fim; d.setDate(d.getDate() + 1)){
+      var k = dayKey(d), itens = porDia[k] || [], fora = d.getMonth() !== mes;
+      if (!fora) noMes += itens.length;
+      var lim = org.kcalAberto[k] ? itens.length : 3;
+      h += '<div class="kcal-dia' + (fora ? ' fora' : '') + (k === hojeK ? ' hoje' : '') + (ehDiaUtil(d) ? '' : ' nao-util') + (itens.length ? '' : ' vazio') + '">' +
+        '<div class="kcal-n"><span class="kcal-dsem">' + ORG_DSEM[d.getDay()] + ', </span>' + d.getDate() + '<span class="kcal-mes">/' + pad(d.getMonth() + 1) + '</span></div>';
+      itens.slice(0, lim).forEach(function(t){
+        var feito = t.etapa === 'feito', late = !feito && t.prazo < hoje;
+        var et = org.etiquetas.filter(function(e){ return t.etiquetas.indexOf(e.id) !== -1; })[0];
+        h += '<button type="button" class="kcal-item' + (feito ? ' feito' : '') + (late ? ' late' : '') + (t.urgente && !feito ? ' urg' : '') + '"' +
+          (et ? ' style="--lc:' + orgCorEtq(et.cor) + '"' : '') + ' data-act="abrir-card" data-id="' + t.id + '" title="' + escapeHtml(t.titulo) + ' · ' + escapeHtml(orgNomeColuna(t.etapa)) + '">' + escapeHtml(t.titulo) + '</button>';
+      });
+      if (itens.length > lim) h += '<button type="button" class="kcal-mais" data-kcal-dia="' + k + '">+' + (itens.length - lim) + ' mais</button>';
+      h += '</div>';
+    }
+    h += '</div>';
+    var semPrazo = org.tarefas.filter(function(t){ return !t.prazo && t.etapa !== 'feito' && (!filtro || orgKPassa(t)); }).length;
+    h += '<p class="field-hint kcal-pe">' + (noMes ? '' : 'Nenhuma tarefa com prazo neste mês. ') +
+      (semPrazo ? semPrazo + (semPrazo === 1 ? ' tarefa em aberto sem prazo não aparece' : ' tarefas em aberto sem prazo não aparecem') + ' no calendário.' : '') + '</p>';
+    OT.kcal.innerHTML = h;
+  }
+
+  OT.kcal.addEventListener('click', function(e){
+    var b = e.target.closest('[data-kcal]');
+    if (b){
+      var dir = Number(b.getAttribute('data-kcal'));
+      org.kmes = dir === 0 ? new Date(new Date().getFullYear(), new Date().getMonth(), 1) : new Date(org.kmes.getFullYear(), org.kmes.getMonth() + dir, 1);
+      renderOrgCal(); return;
+    }
+    var m = e.target.closest('[data-kcal-dia]');
+    if (m){ org.kcalAberto[m.getAttribute('data-kcal-dia')] = true; renderOrgCal(); }
+  });
+  OT.kview.addEventListener('click', function(e){
+    var b = e.target.closest('[data-kview]'); if (!b) return;
+    org.kview = b.getAttribute('data-kview');
+    try { sessionStorage.setItem('orgKView', org.kview); } catch (e2) {}
+    renderOrgKanban();
   });
 
   // ---- lembretes ----
@@ -4351,6 +4700,12 @@
       await orgMoverTarefa(t, etapa);
     }
     if (act === 'abrir-card'){ orgAbrirCartao(id); return; }
+    if (act === 'arquivar-feitas'){
+      var feitas = org.tarefas.filter(function(x){ return x.etapa === 'feito' && !orgArquivada(x); });
+      if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Confirmar: arquivar ' + feitas.length + '?'; return; }
+      await orgArquivar(feitas.map(function(x){ return x.id; }), true);
+      return;
+    }
     if (act === 'subir' || act === 'descer'){ await orgSubirDescer(id, act === 'subir' ? -1 : 1); return; }
     if (act === 'lem-feito'){
       var l = orgFind(org.lembretes, id); if (!l) return;
