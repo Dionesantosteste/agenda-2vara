@@ -3848,13 +3848,16 @@
     if (!org.unlocked) return;
     renderOrgModo();
     renderOrgTabs();
-    renderOrgNotes();
-    renderOrgTasks();
-    renderOrgKanban();
-    renderOrgLembretes();
-    renderOrgRotinas();
-    renderOrgEquipe();
-    renderTxt();
+    // Só a aba aberta é desenhada; as outras são desenhadas quando forem abertas (o clique na aba chama renderOrg)
+    var aba = {
+      lista: function(){ renderOrgNotes(); renderOrgTasks(); },
+      quadro: renderOrgKanban,
+      lembretes: renderOrgLembretes,
+      rotinas: renderOrgRotinas,
+      equipe: renderOrgEquipe,
+      modelos: renderTxt
+    }[org.tab];
+    if (aba) aba();
     O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
   }
   function orgParaConferir(){ return org.eqTarefas.filter(orgEmConf).length; }
