@@ -116,7 +116,7 @@ Se a tabela `audiencias` foi criada antes da opção **Conferir**, rode também:
 alter table audiencias add column if not exists conferida_em timestamptz;
 ```
 
-## Passo 2.3 — Organização (tarefas, mural, quadro, lembretes e rotinas) com senha
+## Passo 2.3 — Organização (tarefas, mural, quadro, lembretes, rotinas e equipe) com senha
 
 A seção **Organização** fica protegida por uma senha de 6 números. Quem confere a senha é o
 próprio Supabase: sem ela, o banco não entrega nem grava nada da Organização, mesmo para quem
@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 23 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 30 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -176,6 +176,37 @@ No **Quadro**:
 - **Mesmo processo:** se a tarefa tem nº de processo com perícia ou audiência cadastrada, o cartão mostra "Perícia" e/ou "Audiência".
   - A janela da tarefa lista as datas, e "Ver" leva direto para a perícia ou audiência.
 - Etiquetas, colunas, ordem dos cartões, checklist, anotações, arquivo e modelos precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
+
+**Telas da equipe** (precisa do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo):
+- **Cadastrar pessoas:** na Organização do gestor, clique em **Pessoas** e digite o nome. Cada pessoa ganha a própria tela, com quadro, mural e lembretes. As colunas, etiquetas e modelos são só dela.
+- **Como a pessoa entra:** na tela de senha da Organização aparece "É da equipe? Entre na sua tela" com os nomes. Ela clica no nome e entra, **sem senha**.
+  - O navegador lembra da pessoa até ela clicar em **Sair**.
+  - Rotinas e a aba da equipe não aparecem para ela.
+- **Atenção:** como não há senha, qualquer pessoa com o link do site pode escolher um nome e abrir a tela dessa pessoa. A tela do gestor continua protegida pela senha.
+- **Desativar** tira o nome da lista de entrada sem apagar nada. **Excluir** apaga a tela inteira da pessoa: quadro, mural, lembretes, etiquetas, colunas e modelos.
+- **Ver a tela de alguém:** no alto da Organização do gestor, escolha "Tela de …". Uma faixa amarela avisa de quem é a tela aberta. O que o gestor mudar ali aparece para a pessoa.
+- **Aba Tarefas da equipe** (só para o gestor):
+  - **Mandar tarefa:** escreva como numa mensagem, separando por vírgula. Exemplo: `Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã`.
+    - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
+    - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
+    - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+  - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
+    - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
+    - Clique na linha para ver os detalhes e o fechamento. "Abrir no quadro" leva para a tela da pessoa com a tarefa aberta.
+- **Mandar uma tarefa que já está no quadro do gestor:** abra a tarefa, escolha a pessoa em "Mandar para a tela de" e clique em Salvar. A tarefa sai do quadro do gestor e vai para a primeira coluna da pessoa (as etiquetas ficam para trás).
+- **Fechamento:** quando a pessoa move para a última coluna (Feito) uma tarefa que veio do gestor, abre a janela **Concluir tarefa**. Ela responde:
+  - quanto tempo levou;
+  - se concluiu conforme o pedido (sim, parcialmente ou não);
+  - se teve dificuldade, e qual;
+  - se precisa de ação do gestor.
+  - As respostas aparecem para o gestor no detalhe da tarefa e na janela da tarefa. As tarefas que a própria pessoa cria vão para Feito sem perguntas.
+- **Conferência:** qualquer tarefa da tela de uma pessoa pode ir para o gestor conferir.
+  - A pessoa clica no ícone de prancheta do cartão (ou em **Enviar para conferência**, na janela da tarefa) e pode deixar um recado.
+  - Enquanto espera, a tarefa fica parada na coluna em que está, com o selo "Em conferência". A pessoa pode **Cancelar envio** na janela da tarefa.
+  - O gestor vê o número de tarefas para conferir na aba **Tarefas da equipe** e no menu. O filtro **Para conferir** lista essas tarefas.
+  - No detalhe da tarefa, o gestor clica em **Aprovar** (a tarefa vai para Feito, com o selo "Conferida") ou em **Devolver** (precisa escrever o motivo). A devolvida continua na mesma coluna da pessoa, com o selo "Devolvida" e o motivo, e pode ser enviada de novo.
+  - Cada envio, cancelamento, aprovação e devolução fica registrado com data e hora na janela da tarefa.
+- **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 
