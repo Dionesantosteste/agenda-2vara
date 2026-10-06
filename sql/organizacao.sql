@@ -443,7 +443,9 @@ as $$
     '[]'::jsonb));
 $$;
 
-create or replace function org_listar(p_pin text, p_pessoa uuid)
+-- Carrega a tela. p_equipe (só para o gestor) diz quanto da aba "Tarefas da equipe" vem junto:
+--   0 = nada (só o número de tarefas esperando conferência), 1 = em aberto + concluídas nos últimos 30 dias, 2 = todas
+create or replace function org_carregar(p_pin text, p_pessoa uuid, p_equipe int)
 returns jsonb
 language plpgsql
 security definer
@@ -482,8 +484,16 @@ begin
   if ac.o_gestor then
     res := res || jsonb_build_object(
       'pessoas', coalesce((select jsonb_agg(jsonb_build_object('id', p.id, 'nome', p.nome, 'ativo', p.ativo) order by lower(p.nome)) from org_pessoas p), '[]'::jsonb),
+      'equipe_conferir', (select count(*) from org_tarefas t where t.dono is not null and t.conferencia = 'enviada' and t.arquivada_em is null)
+    );
+  end if;
+  if ac.o_gestor and coalesce(p_equipe, 2) > 0 then
+    res := res || jsonb_build_object(
+      'equipe_completa', coalesce(p_equipe, 2) >= 2,
       'equipe_tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t
-                                   where t.dono is not null and (t.do_gestor or t.conferencia is not null) and t.arquivada_em is null), '[]'::jsonb),
+                                   where t.dono is not null and (t.do_gestor or t.conferencia is not null) and t.arquivada_em is null
+                                     and (coalesce(p_equipe, 2) >= 2 or t.etapa <> 'feito' or t.conferencia = 'enviada'
+                                          or coalesce(t.feita_em, t.updated_at) >= now() - interval '30 days')), '[]'::jsonb),
       'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb),
       -- modelos de cartão do próprio gestor, para o "passo a passo" ao mandar tarefa
       'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb)
@@ -491,6 +501,16 @@ begin
   end if;
   return res;
 end;
+$$;
+
+-- Versão de antes (o site antigo ainda chama esta): tela + aba da equipe completa
+create or replace function org_listar(p_pin text, p_pessoa uuid)
+returns jsonb
+language sql
+security definer
+set search_path = public, extensions
+as $$
+  select org_carregar(p_pin, p_pessoa, 2);
 $$;
 
 create or replace function org_salvar_nota(p_pin text, p_pessoa uuid, p_id uuid, p_texto text, p_cor text, p_fixada boolean)
@@ -1420,6 +1440,7 @@ grant execute on function org_txt_salvar_categoria(text, uuid, uuid, text) to an
 grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
+grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_nota(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_salvar_tarefa(text, uuid, uuid, text, date, text, text, text, timestamptz, text) to anon, authenticated;

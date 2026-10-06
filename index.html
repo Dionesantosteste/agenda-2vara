@@ -2177,7 +2177,7 @@
       var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
       var grava = metodo !== 'GET' && metodo !== 'HEAD';
       var url = String((input && input.url) || input || '');
-      if (grava && /\/rpc\/org_(listar|pessoas_publico)/.test(url)) grava = false;   // listar a Organização é leitura
+      if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico)/.test(url)) grava = false;   // listar a Organização é leitura
       if (grava) ocupado.gravacoes++; else ocupado.leituras++;
       atualizarOcupado();
       var fim = function(){ if (grava) ocupado.gravacoes--; else ocupado.leituras--; atualizarOcupado(); };
@@ -3671,7 +3671,7 @@
     var res = await supabase.rpc(fn, Object.assign(base, args || {}));
     if (res.error){
       var m = (res.error.code || '') + ' ' + (res.error.message || '');
-      return { status: 'erro', message: /PGRST202|org_|function/i.test(m)
+      return { status: 'erro', codigo: res.error.code || '', message: /PGRST202|org_|function/i.test(m)
         ? 'A Organização no Supabase está desatualizada ou não foi instalada. Rode o arquivo sql/organizacao.sql inteiro de novo (veja o LEIA-ME.md).'
         : 'Erro no banco de dados: ' + res.error.message };
     }
@@ -3696,6 +3696,7 @@
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
     org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
     org.txt.valores = {}; org.txt.editando = null; org.txt.atual = null;
+    org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0;
     document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
@@ -3741,6 +3742,9 @@
     org.txt.meus = { nome: mm.nome || '', cargo: mm.cargo || '', cidade: mm.cidade || '', favoritos: Array.isArray(mm.favoritos) ? mm.favoritos : [] };
     org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
+    org.eqCarregado = Array.isArray(r.equipe_tarefas);
+    org.eqCompleta = r.equipe_completa !== false;
+    org.eqConferir = typeof r.equipe_conferir === 'number' ? r.equipe_conferir : 0;
     org.eqColunas = r.equipe_colunas || [];
     org.eqModelos = (r.equipe_modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.eqTarefas = (r.equipe_tarefas || []).map(function(t){ return orgTarefaDe(t, null); });
@@ -3758,8 +3762,19 @@
     });
   }
 
+  // A lista da aba "Tarefas da equipe" só vem quando a aba está aberta (é a parte mais pesada).
+  // Se o Supabase ainda não tem org_carregar (SQL não atualizado), usa org_listar, que traz tudo.
+  async function orgBuscar(){
+    var nivel = org.modo === 'gestor' && org.tab === 'equipe' ? (org.eqTodas ? 2 : 1) : 0;
+    var r = org.semCarregar ? { status: 'erro', codigo: 'PGRST202' } : await orgCall('org_carregar', { p_equipe: nivel });
+    if (r.status === 'erro' && r.codigo === 'PGRST202'){
+      org.semCarregar = true;
+      r = await orgCall('org_listar');
+    }
+    return r;
+  }
   async function orgLoad(){
-    var r = await orgCall('org_listar');
+    var r = await orgBuscar();
     if (!orgOk(r)) return false;
     orgParse(r);
     org.unlocked = true;
@@ -3815,7 +3830,7 @@
     O.enter.disabled = true;
     O.enter.textContent = 'Conferindo…';
     org.pin = O.pin.value; org.modo = 'gestor'; org.eu = null; org.ver = null;
-    var r = await orgCall('org_listar');
+    var r = await orgBuscar();
     O.enter.disabled = false;
     O.enter.textContent = 'Entrar';
     if (r.status === 'ok'){
@@ -3861,7 +3876,7 @@
     if (aba) aba();
     O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
   }
-  function orgParaConferir(){ return org.eqTarefas.filter(orgEmConf).length; }
+  function orgParaConferir(){ return org.eqCarregado ? org.eqTarefas.filter(orgEmConf).length : org.eqConferir; }
 
   // ---- de quem é a tela aberta ----
   var OV = {
@@ -4240,6 +4255,13 @@
     org.tab = b.getAttribute('data-tab');
     try { sessionStorage.setItem('orgTab', org.tab); } catch (e2) {}
     org.editing = null;
+    // a aba da equipe busca a lista dela ao ser aberta
+    if (org.tab === 'equipe' && org.modo === 'gestor' && !org.eqCarregado){
+      renderOrgTabs();
+      OE.lista.innerHTML = '<div class="org-empty">Carregando as tarefas da equipe…</div>';
+      orgLoad();
+      return;
+    }
     renderOrg();
   });
 
@@ -5697,8 +5719,10 @@
       if (fa) return (b.feitaEm || 0) - (a.feitaEm || 0);
       return (orgEmConf(b) - orgEmConf(a)) || ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (orgPrio(b) - orgPrio(a));
     });
+    var antigas = !org.eqCompleta && (org.eqf.sit === 'concluidas' || org.eqf.sit === 'todas')
+      ? '<div class="eq-mais"><button type="button" class="btn" data-eqantigas="1">Mostrar também as concluídas há mais de 30 dias</button></div>' : '';
     if (!lista.length){
-      OE.lista.innerHTML = '<div class="org-empty">' + (!org.eqTarefas.length
+      OE.lista.innerHTML = antigas + '<div class="org-empty">' + (!org.eqTarefas.length
         ? (org.pessoas.length ? 'Nenhuma tarefa mandada ainda. Escreva acima e clique em "Enviar".' : 'Cadastre a equipe no botão "Pessoas" para começar a mandar tarefas.')
         : 'Nenhuma tarefa com este filtro.') + '</div>';
       return;
@@ -5724,7 +5748,7 @@
           '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
       }).join('') + '</tbody></table>' +
       (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
-        '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '');
+        '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '') + antigas;
   }
 
   // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"
@@ -5824,6 +5848,7 @@
   });
   OE.lista.addEventListener('click', function(e){
     if (e.target.closest('[data-eqmais]')){ org.eqLimite += ORG_EQ_PAGINA; renderOrgEquipe(); return; }
+    if (e.target.closest('[data-eqantigas]')){ org.eqTodas = true; orgLoad(); return; }
     if (e.target.closest('[data-act], button, a')) return;
     var tr = e.target.closest('[data-eq]'); if (tr) orgEqAbrir(tr.getAttribute('data-eq'));
   });
