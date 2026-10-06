@@ -192,7 +192,8 @@ begin
     'anotacoes', coalesce((select jsonb_agg(to_jsonb(a) order by a.created_at desc) from org_anotacoes a), '[]'::jsonb),
     'modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m), '[]'::jsonb),
     'ordem', true,
-    'checklist', true
+    'checklist', true,
+    'arquivar_livre', true
   );
 end;
 $$;
@@ -545,7 +546,7 @@ begin
 end;
 $$;
 
--- Arquiva (p_arquivar = true) ou devolve ao quadro as tarefas indicadas; só arquiva as que estão em Feito
+-- Arquiva (p_arquivar = true) ou devolve ao quadro as tarefas indicadas (de qualquer coluna)
 create or replace function org_arquivar_tarefas(p_pin text, p_ids uuid[], p_arquivar boolean)
 returns jsonb
 language plpgsql
@@ -560,7 +561,7 @@ begin
     return jsonb_build_object('status', st);
   end if;
   if coalesce(p_arquivar, true) then
-    update org_tarefas set arquivada_em = now() where id = any(p_ids) and etapa = 'feito' and arquivada_em is null;
+    update org_tarefas set arquivada_em = now() where id = any(p_ids) and arquivada_em is null;
   else
     update org_tarefas set arquivada_em = null where id = any(p_ids);
   end if;

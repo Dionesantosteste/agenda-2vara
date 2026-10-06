@@ -693,8 +693,23 @@
   .anot .icon-btn.armed{ width:auto; padding:0 8px; font-size:12px; color:var(--danger); }
   .t-meta .kcheck, .t-meta .knotas{ display:inline-flex; align-items:center; gap:3px; font-variant-numeric:tabular-nums; }
   .t-meta .kcheck.ok{ color:var(--ok); font-weight:600; }
-  .kview{ display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); margin-left:auto; }
-  .kview button{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:13.5px; font-weight:500; padding:0 14px; height:38px; cursor:pointer; }
+  .kview{ display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); flex:none; }
+  .kview button{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:13.5px; font-weight:500; padding:0 14px; height:34px; cursor:pointer; }
+  .khead{ display:flex; align-items:flex-start; gap:6px; }
+  .kmain{ flex:1; min-width:0; display:flex; flex-direction:column; gap:6px; }
+  .kacts{ display:inline-flex; gap:2px; margin:-4px -4px 0 0; flex:none; }
+  .kacts .icon-btn{ width:30px; height:30px; }
+  .kadd-btn{ all:unset; box-sizing:border-box; cursor:pointer; color:var(--muted); font-size:13.5px; font-weight:500; padding:8px 10px; border-radius:10px; }
+  .kadd-btn:hover{ background:var(--sunken); color:var(--accent); }
+  .kadd-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .kadd{ display:flex; flex-direction:column; gap:6px; background:var(--item); border:1px solid var(--accent); border-radius:10px; padding:8px; }
+  .kadd .org-in{ width:100%; height:38px; }
+  .kadd-acts{ display:flex; align-items:center; gap:6px; }
+  .kadd-acts .btn{ height:34px; padding:0 14px; }
+  .col-nome[data-coluna]{ cursor:text; }
+  .col-nome-in{ font:inherit; font-size:13px; letter-spacing:0; text-transform:none; color:var(--ink); border:1px solid var(--accent); border-radius:6px; padding:2px 6px; background:var(--paper); min-width:0; width:70%; }
+  .toast.com-acao{ pointer-events:auto; display:flex; align-items:center; gap:14px; }
+  .toast-acao{ border:0; background:transparent; color:inherit; font:inherit; font-weight:700; text-decoration:underline; cursor:pointer; padding:2px 0; }
   .kview button[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); }
   .karq-row{ display:flex; justify-content:flex-end; margin:-4px 0 0; }
   .t-meta .kvinc{ font-size:11px; font-weight:600; color:var(--accent); background:var(--accent-soft); border-radius:6px; padding:0 6px; }
@@ -738,10 +753,10 @@
     .kcal-dsem, .kcal-mes{ display:inline; }
     .kcal-item{ font-size:14px; padding:6px 8px; white-space:normal; }
     .kcal-head h3{ min-width:0; flex:1; }
-    .kview{ margin-left:0; }
   }
   .kmid{ display:inline-flex; align-items:center; gap:2px; }
   .kmove .kord{ font-size:17px; line-height:1; width:30px; height:30px; }
+  @media (hover:hover) and (pointer:fine){ .kmove .kmid{ display:none; } }
   .kmove .kord:disabled{ opacity:.3; cursor:default; }
   @media (hover:hover) and (pointer:fine){ .kmove .kord{ display:none; } }
   .kdrop-line{ height:4px; border-radius:2px; background:var(--accent); margin:-2px 4px; }
@@ -1295,16 +1310,11 @@
       </div>
 
       <div id="orgPaneQuadro" class="org-pane" hidden>
-        <form class="org-add" id="orgKanbanForm" autocomplete="off">
-          <input class="org-in grow" id="orgKanbanTitle" maxlength="160" placeholder="Nova tarefa (entra em A fazer)…" />
-          <select class="org-in" id="orgKModelo" aria-label="Criar a partir de um modelo" hidden></select>
-          <button type="submit" class="btn primary">Adicionar</button>
+        <div class="kfilters" id="orgKFiltros">
           <div class="kview" id="orgKView" role="group" aria-label="Visão do quadro">
             <button type="button" data-kview="quadro" aria-pressed="true">Quadro</button>
             <button type="button" data-kview="calendario" aria-pressed="false">Calendário</button>
           </div>
-        </form>
-        <div class="kfilters" id="orgKFiltros">
           <input class="org-in kbusca" id="orgKBusca" type="search" maxlength="80" placeholder="Filtrar por título ou nº do processo…" aria-label="Filtrar tarefas do quadro" />
           <select class="org-in" id="orgKResp" aria-label="Filtrar por responsável"></select>
           <select class="org-in" id="orgKEtq" aria-label="Filtrar por etiqueta" hidden></select>
@@ -1835,9 +1845,20 @@
 
   function toast(msg){
     els.toast.textContent = msg;
+    els.toast.classList.remove('com-acao');
     els.toast.classList.add('show');
     clearTimeout(toast._t);
     toast._t = setTimeout(function(){ els.toast.classList.remove('show'); }, 2200);
+  }
+
+  // Aviso com um botão (ex.: "Desfazer"), visível por 6 segundos
+  function toastAcao(msg, rotulo, fn){
+    els.toast.innerHTML = escapeHtml(msg) + '<button type="button" class="toast-acao">' + escapeHtml(rotulo) + '</button>';
+    els.toast.classList.add('show', 'com-acao');
+    function esconder(){ els.toast.classList.remove('show', 'com-acao'); }
+    els.toast.querySelector('button').addEventListener('click', function(){ clearTimeout(toast._t); esconder(); fn(); });
+    clearTimeout(toast._t);
+    toast._t = setTimeout(esconder, 6000);
   }
 
   function normalize(s){
@@ -3404,7 +3425,7 @@
       { k: 'Sem prazo', f: function(t){ return !t.feitaEm && !t.prazo; } },
       { k: 'Concluídas', f: function(t){ return !!t.feitaEm && !orgArquivada(t); }, desc: true }
     ];
-    var abertas = org.tarefas.filter(function(t){ return !t.feitaEm; }).length;
+    var abertas = org.tarefas.filter(function(t){ return !t.feitaEm && !t.arquivadaEm; }).length;
     O.tasksInfo.textContent = org.tarefas.length ? abertas + (abertas === 1 ? ' em aberto' : ' em aberto') + ' · clique no título ou no lápis para editar' : '';
     if (!org.tarefas.length){
       O.tasks.innerHTML = '<div class="org-empty">Nenhuma tarefa ainda. Escreva acima e clique em "Adicionar".</div>';
@@ -3412,7 +3433,7 @@
     }
     var h = '';
     groups.forEach(function(g){
-      var items = org.tarefas.filter(g.f).sort(function(a, b){
+      var items = org.tarefas.filter(function(t){ return !t.arquivadaEm && g.f(t); }).sort(function(a, b){
         if (g.desc) return b.feitaEm - a.feitaEm;
         return ((a.prazo || 0) - (b.prazo || 0)) || (b.urgente - a.urgente);
       });
@@ -3571,8 +3592,6 @@
     panes: { lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
       lembretes: document.getElementById('orgPaneLembretes'), rotinas: document.getElementById('orgPaneRotinas') },
     kanban: document.getElementById('orgKanban'),
-    kanbanForm: document.getElementById('orgKanbanForm'),
-    kanbanTitle: document.getElementById('orgKanbanTitle'),
     kBusca: document.getElementById('orgKBusca'),
     kResp: document.getElementById('orgKResp'),
     kChips: document.getElementById('orgKChips'),
@@ -3582,7 +3601,6 @@
     kCadCol: document.getElementById('orgKCadCol'),
     kCadMod: document.getElementById('orgKCadMod'),
     kHist: document.getElementById('orgKHist'),
-    kModelo: document.getElementById('orgKModelo'),
     kview: document.getElementById('orgKView'),
     kcal: document.getElementById('orgKCal'),
     lemStats: document.getElementById('orgLemStats'),
@@ -3604,7 +3622,7 @@
   function lemPendentesAte(dias){ return org.lembretes.filter(function(l){ return !l.feitoEm && orgDiff(l.data) <= dias; }); }
 
   function orgPendCount(){
-    var t = org.tarefas.filter(function(x){ return !x.feitaEm && x.prazo && orgDiff(x.prazo) <= 0; }).length;
+    var t = org.tarefas.filter(function(x){ return !x.feitaEm && !x.arquivadaEm && x.prazo && orgDiff(x.prazo) <= 0; }).length;
     return t + lemPendentesAte(0).length;
   }
 
@@ -3658,6 +3676,7 @@
     org.temOrdem = r.ordem === true;   // o Supabase já guarda a posição dos cartões?
     org.temChecklist = r.checklist === true;   // ... e o checklist e as anotações?
     org.temExtras = Array.isArray(r.modelos);   // ... e os modelos e o arquivo de concluídas?
+    org.arqLivre = r.arquivar_livre === true;   // ... e já arquiva tarefas de qualquer coluna?
     org.modelos = (r.modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.anotacoes = (r.anotacoes || []).map(function(a){ return { id: a.id, tarefa: a.tarefa_id, texto: a.texto || '', criada: new Date(a.created_at) }; });
     if (!org.temCadastro){
@@ -3759,6 +3778,22 @@
   }
   function orgPodeOrdenar(chave){ return org.temOrdem && chave !== 'feito'; }
 
+  var ICON_ARQ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>';
+  org.kadd = null; org.kaddTxt = ''; org.kaddMod = '';
+
+  function orgPodeArquivar(t){ return org.temExtras && (t.etapa === 'feito' || org.arqLivre); }
+
+  // Campo "Adicionar tarefa" no fim da coluna
+  function orgKAddHtml(chave, nome){
+    if (org.kadd !== chave) return '<button type="button" class="kadd-btn" data-act="kadd" data-etapa="' + escapeHtml(chave) + '">+ Adicionar tarefa</button>';
+    return '<form class="kadd" data-kadd="' + escapeHtml(chave) + '" autocomplete="off">' +
+      '<input class="org-in kadd-in" maxlength="160" placeholder="Título da tarefa (Enter para adicionar)" aria-label="Nova tarefa em ' + escapeHtml(nome) + '" value="' + escapeHtml(org.kaddTxt) + '">' +
+      (org.modelos.length ? '<select class="org-in kadd-mod" aria-label="Criar a partir de um modelo"><option value="">Sem modelo</option>' + org.modelos.map(function(m){
+        return '<option value="' + m.id + '"' + (m.id === org.kaddMod ? ' selected' : '') + '>Modelo: ' + escapeHtml(m.nome) + '</option>'; }).join('') + '</select>' : '') +
+      '<div class="kadd-acts"><button type="submit" class="btn primary">Adicionar</button>' +
+      '<button type="button" class="icon-btn" data-act="kadd-fechar" title="Fechar (Esc)" aria-label="Fechar">' + ICON_X + '</button></div></form>';
+  }
+
   function renderOrgKanban(){
     orgKRespOpcoes();
     orgKModeloOpcoes();
@@ -3767,6 +3802,7 @@
     OT.kChips.querySelectorAll('[data-kprazo]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-kprazo') === org.kf.prazo)); });
     OT.kLimpar.hidden = !filtro;
     var cols = org.colunas.map(function(c){ return [c.chave, c.nome]; }), ultima = cols.length - 1;
+    var addFocado = document.activeElement && document.activeElement.classList.contains('kadd-in');
     cols.forEach(function(c, ci){
       var all = org.tarefas.filter(function(t){ return t.etapa === c[0] && !orgArquivada(t); });
       var vis = filtro ? all.filter(orgKPassa) : all;
@@ -3775,17 +3811,23 @@
       if (c[0] === 'feito' && items.length > 20){ ocultas = items.length - 20; items = items.slice(0, 20); }
       var over = c[0] === 'fazendo' && all.length > ORG_LIMITE_FAZENDO;
       var n = filtro ? vis.length + ' de ' + all.length : (c[0] === 'fazendo' ? all.length + ' / ' + ORG_LIMITE_FAZENDO : String(all.length));
-      h += '<section class="col' + (over ? ' over' : '') + '" data-etapa="' + escapeHtml(c[0]) + '" aria-label="' + escapeHtml(c[1]) + '"><h3>' + escapeHtml(c[1]) +
+      var renomeia = org.temCadastro && c[0] !== 'afazer' && c[0] !== 'feito';
+      h += '<section class="col' + (over ? ' over' : '') + '" data-etapa="' + escapeHtml(c[0]) + '" aria-label="' + escapeHtml(c[1]) + '"><h3>' +
+        '<span class="col-nome"' + (renomeia ? ' data-coluna="' + escapeHtml(c[0]) + '" title="Clique duas vezes para renomear"' : '') + '>' + escapeHtml(c[1]) + '</span>' +
         ' <span' + (c[0] === 'fazendo' ? ' title="Limite de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento"' : '') + '>' + n + '</span></h3>';
       if (c[0] === 'feito' && org.temExtras && all.length) h += '<div class="karq-row"><button type="button" class="clear-btn" data-act="arquivar-feitas" title="Tira as concluídas do quadro e guarda no Histórico">Arquivar ' + all.length + (all.length === 1 ? ' concluída' : ' concluídas') + '</button></div>';
       if (over) h += '<div class="wip-aviso">Mais de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento. Vale terminar algumas antes de puxar novas.</div>';
-      if (!items.length) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
+      if (!items.length && org.kadd !== c[0]) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
       items.forEach(function(t, ii){
         var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
         var late = selo && selo.cls === 'late';
         h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + '" draggable="true" data-id="' + t.id + '">' +
-          orgKLabels(t) +
-          '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div>' +
+          '<div class="khead"><div class="kmain">' + orgKLabels(t) +
+          '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div></div>' +
+          '<span class="kacts">' +
+          '<button type="button" class="icon-btn" data-act="abrir-card" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
+          (orgPodeArquivar(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
+          '</span></div>' +
           '<div class="t-meta">' + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
           (t.urgente && aberta ? '<span class="tag urg">Urgente</span>' : '') +
           (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
@@ -3795,24 +3837,93 @@
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
           (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci - 1][1]) + '">← ' + escapeHtml(cols[ci - 1][1]) + '</button>' : '<span></span>') +
-          '<span class="kmid">' +
-          (ordena ? '<button type="button" class="icon-btn kord" data-act="subir" data-id="' + t.id + '" title="Subir na coluna" aria-label="Subir na coluna"' + (ii === 0 ? ' disabled' : '') + '>↑</button>' : '') +
-          '<button type="button" class="icon-btn" data-act="abrir-card" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
-          (ordena ? '<button type="button" class="icon-btn kord" data-act="descer" data-id="' + t.id + '" title="Descer na coluna" aria-label="Descer na coluna"' + (ii === items.length - 1 ? ' disabled' : '') + '>↓</button>' : '') +
-          '</span>' +
+          (ordena ? '<span class="kmid">' +
+            '<button type="button" class="icon-btn kord" data-act="subir" data-id="' + t.id + '" title="Subir na coluna" aria-label="Subir na coluna"' + (ii === 0 ? ' disabled' : '') + '>↑</button>' +
+            '<button type="button" class="icon-btn kord" data-act="descer" data-id="' + t.id + '" title="Descer na coluna" aria-label="Descer na coluna"' + (ii === items.length - 1 ? ' disabled' : '') + '>↓</button></span>' : '') +
           (ci < ultima ? '<button type="button" class="mv" data-act="mover" data-dir="1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci + 1][1]) + '">' + escapeHtml(cols[ci + 1][1]) + ' →</button>' : '<span></span>') +
           '</div></div>';
       });
       if (ocultas) h += '<div class="org-empty">+ ' + ocultas + (ocultas === 1 ? ' mais antiga' : ' mais antigas') + '</div>';
+      if (c[0] !== 'feito') h += orgKAddHtml(c[0], c[1]);
       h += '</section>';
     });
     OT.kanban.innerHTML = h;
+    if (addFocado || orgKAddFocar){
+      orgKAddFocar = false;
+      var inp = OT.kanban.querySelector('.kadd-in');
+      if (inp){ inp.focus(); inp.setSelectionRange(inp.value.length, inp.value.length); }
+    }
     var cal = org.kview === 'calendario';
     OT.kanban.hidden = cal; OT.kcal.hidden = !cal;
     OT.kview.querySelectorAll('[data-kview]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-kview') === org.kview)); });
     if (cal) renderOrgCal();
     if (HD.dialog.open) renderHist();
   }
+  var orgKAddFocar = false;
+
+  // ---- adicionar tarefa direto na coluna ----
+  function orgKAddAbrir(chave){
+    org.kadd = chave; org.kaddTxt = ''; org.kaddMod = ''; orgKAddFocar = true;
+    renderOrgKanban();
+  }
+  function orgKAddFechar(){ org.kadd = null; org.kaddTxt = ''; org.kaddMod = ''; renderOrgKanban(); }
+  OT.kanban.addEventListener('input', function(e){
+    if (e.target.classList.contains('kadd-in')) org.kaddTxt = e.target.value;
+  });
+  OT.kanban.addEventListener('change', function(e){
+    if (e.target.classList.contains('kadd-mod')) org.kaddMod = e.target.value;
+  });
+  OT.kanban.addEventListener('keydown', function(e){
+    if (e.key === 'Escape' && e.target.closest('.kadd')){ e.preventDefault(); orgKAddFechar(); }
+  });
+  OT.kanban.addEventListener('submit', async function(e){
+    var f = e.target.closest('.kadd'); if (!f) return;
+    e.preventDefault();
+    var etapa = f.getAttribute('data-kadd'), inp = f.querySelector('.kadd-in'), sel = f.querySelector('.kadd-mod');
+    var mod = sel ? orgModelo(sel.value) : null;
+    var titulo = inp.value.trim() || (mod ? ((mod.dados || {}).titulo || mod.nome) : '');
+    if (!titulo){ inp.focus(); return; }
+    var btn = f.querySelector('[type=submit]'); btn.disabled = true;
+    var id = await orgCriarTarefa(titulo, etapa, mod);
+    btn.disabled = false;
+    if (!id) return;
+    org.kaddTxt = ''; org.kaddMod = '';
+    if (mod) orgAbrirCartao(id);
+    else { orgKAddFocar = true; renderOrgKanban(); }
+  });
+  // Fecha o campo vazio quando o foco sai dele
+  OT.kanban.addEventListener('focusout', function(e){
+    var f = e.target.closest && e.target.closest('.kadd'); if (!f) return;
+    setTimeout(function(){
+      if (org.kadd && !org.kaddTxt.trim() && !OT.kanban.contains(document.activeElement && document.activeElement.closest('.kadd'))) orgKAddFechar();
+    }, 150);
+  });
+
+  // ---- renomear coluna com dois cliques no nome ----
+  OT.kanban.addEventListener('dblclick', function(e){
+    var span = e.target.closest('[data-coluna]'); if (!span) return;
+    var chave = span.getAttribute('data-coluna'), atual = orgNomeColuna(chave);
+    var inp = document.createElement('input');
+    inp.className = 'col-nome-in'; inp.maxLength = 40; inp.value = atual;
+    inp.setAttribute('aria-label', 'Novo nome da coluna');
+    span.replaceWith(inp);
+    inp.focus(); inp.select();
+    var feito = false;
+    async function fim(salvar){
+      if (feito) return; feito = true;
+      var novo = inp.value.trim().replace(/\s+/g, ' ');
+      if (!salvar || !novo || novo === atual){ renderOrgKanban(); return; }
+      var r = await orgCall('org_salvar_coluna', { p_chave: chave, p_nome: novo });
+      if (!orgOk(r)){ renderOrgKanban(); return; }
+      toast('Coluna renomeada');
+      await orgLoad();
+    }
+    inp.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter'){ ev.preventDefault(); fim(true); }
+      if (ev.key === 'Escape'){ ev.preventDefault(); fim(false); }
+    });
+    inp.addEventListener('blur', function(){ fim(true); });
+  });
 
   // ---- filtros do quadro ----
   OT.kBusca.addEventListener('input', function(){ org.kf.q = OT.kBusca.value.trim(); renderOrgKanban(); });
@@ -4220,12 +4331,12 @@
     } else {
       var primeira = orgNomeColuna('afazer'), ultimaNome = orgNomeColuna('feito'), ult = org.colunas.length - 1;
       CAD.titulo.textContent = 'Colunas do quadro';
-      CAD.dica.textContent = '"' + primeira + '" é sempre a primeira e "' + ultimaNome + '" a última (marca a tarefa como feita). As outras mudam de lugar com ← →. Excluir uma coluna devolve as tarefas dela para "' + primeira + '".';
+      CAD.dica.textContent = '"' + primeira + '" (a primeira) e "' + ultimaNome + '" (a última, marca a tarefa como feita) são fixas. As outras podem ser renomeadas aqui ou com dois cliques no nome da coluna, e mudam de lugar com ← →. Excluir uma coluna devolve as tarefas dela para "' + primeira + '".';
       org.colunas.forEach(function(c, i){
         var fixa = c.chave === 'afazer' || c.chave === 'feito', padrao = c.chave === 'fazendo';
         var n = org.tarefas.filter(function(t){ return t.etapa === c.chave; }).length;
         h += '<div class="cad-row" data-chave="' + escapeHtml(c.chave) + '">' +
-          '<input data-cad="nome" maxlength="40" value="' + escapeHtml(c.nome) + '" aria-label="Nome da coluna">' +
+          '<input data-cad="nome" maxlength="40" value="' + escapeHtml(c.nome) + '" aria-label="Nome da coluna"' + (fixa ? ' readonly title="Coluna fixa: não muda de nome"' : '') + '>' +
           (fixa ? '<span class="fixa">' + (c.chave === 'afazer' ? 'primeira, fixa' : 'última, fixa') + '</span>' :
             '<button type="button" class="icon-btn" data-cad="esq" title="Mover para a esquerda" aria-label="Mover ' + escapeHtml(c.nome) + ' para a esquerda"' + (i <= 1 ? ' disabled' : '') + '>←</button>' +
             '<button type="button" class="icon-btn" data-cad="dir" title="Mover para a direita" aria-label="Mover ' + escapeHtml(c.nome) + ' para a direita"' + (i >= ult - 1 ? ' disabled' : '') + '>→</button>' +
@@ -4341,15 +4452,10 @@
   });
 
   // ======== arquivo, modelos, calendário e perícias/audiências do mesmo processo ========
-  function orgArquivada(t){ return !!t.arquivadaEm && t.etapa === 'feito'; }
+  function orgArquivada(t){ return !!t.arquivadaEm; }
   function orgModelo(id){ return org.modelos.filter(function(m){ return m.id === id; })[0] || null; }
 
   function orgKModeloOpcoes(){
-    var atual = OT.kModelo.value;
-    OT.kModelo.hidden = !org.modelos.length;
-    OT.kModelo.innerHTML = '<option value="">Sem modelo</option>' + org.modelos.map(function(m){
-      return '<option value="' + m.id + '"' + (m.id === atual ? ' selected' : '') + '>Modelo: ' + escapeHtml(m.nome) + '</option>';
-    }).join('');
     var n = org.tarefas.filter(orgArquivada).length;
     OT.kHist.textContent = 'Histórico' + (n ? ' (' + n + ')' : '');
   }
@@ -4438,38 +4544,46 @@
       responsavel: OC.resp.value, urgente: !!OC.urg.value };
     var r = await orgCall('org_salvar_modelo', { p_id: null, p_nome: nome, p_dados: dados });
     if (!orgOk(r)) return;
-    toast('Modelo "' + nome + '" criado. Escolha-o ao lado de "Nova tarefa".');
+    toast('Modelo "' + nome + '" criado. Escolha-o em "+ Adicionar tarefa".');
     await orgLoad();
     resetOcModelo();
   }
   OM.salvar.addEventListener('click', ocCriarModelo);
   OM.nome.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); ocCriarModelo(); } });
 
-  // ---- nova tarefa (com ou sem modelo) ----
-  OT.kanbanForm.addEventListener('submit', async function(e){
-    e.preventDefault();
-    var mod = orgModelo(OT.kModelo.value), d = mod ? (mod.dados || {}) : {};
-    var titulo = OT.kanbanTitle.value.trim() || (mod ? (d.titulo || mod.nome) : '');
-    if (!titulo){ OT.kanbanTitle.focus(); return; }
-    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: !!d.urgente, responsavel: d.responsavel || '', processo: '', feitaEm: null, etapa: 'afazer' });
-    if (!orgOk(r)) return;
+  // ---- nova tarefa (com ou sem modelo); devolve o id ou null ----
+  async function orgCriarTarefa(titulo, etapa, mod){
+    var d = mod ? (mod.dados || {}) : {};
+    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: !!d.urgente, responsavel: d.responsavel || '', processo: '', feitaEm: null, etapa: etapa });
+    if (!orgOk(r)) return null;
     if (mod && r.id){
       var etq = (Array.isArray(d.etiquetas) ? d.etiquetas : []).filter(orgEtq), r2;
-      if (etq.length && org.temCadastro){ r2 = await orgCall('org_etiquetar_tarefa', { p_id: r.id, p_etiquetas: etq }); if (!orgOk(r2)) return; }
+      if (etq.length && org.temCadastro){ r2 = await orgCall('org_etiquetar_tarefa', { p_id: r.id, p_etiquetas: etq }); if (!orgOk(r2)) return null; }
       var ck = (Array.isArray(d.checklist) ? d.checklist : []).map(function(i){ return { t: String(i && i.t || '').trim(), ok: false }; }).filter(function(i){ return i.t; });
-      if (ck.length && org.temChecklist){ r2 = await orgCall('org_checklist_tarefa', { p_id: r.id, p_itens: ck }); if (!orgOk(r2)) return; }
+      if (ck.length && org.temChecklist){ r2 = await orgCall('org_checklist_tarefa', { p_id: r.id, p_itens: ck }); if (!orgOk(r2)) return null; }
     }
-    OT.kanbanTitle.value = ''; OT.kModelo.value = '';
-    toast(mod ? 'Tarefa criada pelo modelo "' + mod.nome + '"' : 'Tarefa adicionada em ' + orgNomeColuna('afazer'));
+    toast(mod ? 'Tarefa criada pelo modelo "' + mod.nome + '"' : 'Tarefa adicionada em ' + orgNomeColuna(etapa));
     await orgLoad();
-    if (mod && r.id) orgAbrirCartao(r.id); else OT.kanbanTitle.focus();
-  });
+    return r.id || null;
+  }
+
+  // Arquivar um cartão (de qualquer coluna), com "Desfazer"
+  async function orgArquivarCartao(id){
+    var r = await orgCall('org_arquivar_tarefas', { p_ids: [id], p_arquivar: true });
+    if (!orgOk(r)) return;
+    if (!r.n){ toast('Para arquivar tarefas não concluídas, rode o arquivo sql/organizacao.sql atualizado (veja o LEIA-ME.md).'); return; }
+    await orgLoad();
+    toastAcao('Tarefa arquivada', 'Desfazer', async function(){
+      var r2 = await orgCall('org_arquivar_tarefas', { p_ids: [id], p_arquivar: false });
+      if (orgOk(r2)){ toast('Tarefa de volta ao quadro'); await orgLoad(); }
+    });
+  }
 
   // ---- arquivar concluídas e histórico ----
   async function orgArquivar(ids, arquivar){
     var r = await orgCall('org_arquivar_tarefas', { p_ids: ids, p_arquivar: arquivar });
     if (!orgOk(r)) return false;
-    toast(arquivar ? (r.n === 1 ? '1 tarefa arquivada' : (r.n || ids.length) + ' tarefas arquivadas') + ' · veja em Histórico' : 'Tarefa devolvida para ' + orgNomeColuna('feito'));
+    toast(arquivar ? (r.n === 1 ? '1 tarefa arquivada' : (r.n || ids.length) + ' tarefas arquivadas') + ' · veja em Histórico' : 'Tarefa devolvida ao quadro');
     await orgLoad();
     return true;
   }
@@ -4494,7 +4608,7 @@
     HD.lista.innerHTML = lista.slice(0, 200).map(function(t){
       return '<div class="hist-row">' + orgKLabels(t) +
         '<div class="hist-t">' + escapeHtml(t.titulo) + '</div>' +
-        '<div class="t-meta">' + (t.feitaEm ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') +
+        '<div class="t-meta">' + (t.feitaEm ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '<span class="kparado">Arquivada sem concluir · estava em ' + escapeHtml(orgNomeColuna(t.etapa)) + '</span>') +
         (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
         (t.processo ? procCopyBtn(t.processo) : '') + orgKBadges(t) + '</div>' +
         '<div class="hist-acts"><button type="button" class="btn kbtn" data-hist="abrir" data-id="' + t.id + '">Abrir</button>' +
@@ -4558,7 +4672,7 @@
       h += '</div>';
     }
     h += '</div>';
-    var semPrazo = org.tarefas.filter(function(t){ return !t.prazo && t.etapa !== 'feito' && (!filtro || orgKPassa(t)); }).length;
+    var semPrazo = org.tarefas.filter(function(t){ return !t.prazo && t.etapa !== 'feito' && !orgArquivada(t) && (!filtro || orgKPassa(t)); }).length;
     h += '<p class="field-hint kcal-pe">' + (noMes ? '' : 'Nenhuma tarefa com prazo neste mês. ') +
       (semPrazo ? semPrazo + (semPrazo === 1 ? ' tarefa em aberto sem prazo não aparece' : ' tarefas em aberto sem prazo não aparecem') + ' no calendário.' : '') + '</p>';
     OT.kcal.innerHTML = h;
@@ -4700,6 +4814,9 @@
       await orgMoverTarefa(t, etapa);
     }
     if (act === 'abrir-card'){ orgAbrirCartao(id); return; }
+    if (act === 'arquivar-card'){ await orgArquivarCartao(id); return; }
+    if (act === 'kadd'){ orgKAddAbrir(b.getAttribute('data-etapa')); return; }
+    if (act === 'kadd-fechar'){ orgKAddFechar(); return; }
     if (act === 'arquivar-feitas'){
       var feitas = org.tarefas.filter(function(x){ return x.etapa === 'feito' && !orgArquivada(x); });
       if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Confirmar: arquivar ' + feitas.length + '?'; return; }

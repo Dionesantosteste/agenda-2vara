@@ -141,6 +141,11 @@ Detalhes:
 - A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
 
 No **Quadro**:
+- **Nova tarefa:** clique em **+ Adicionar tarefa** no fim da coluna (todas, menos Feito). Digite o título e aperte Enter; o campo continua aberto para a próxima.
+  - Esc fecha o campo.
+  - Se houver modelos, dá para escolher um ali mesmo.
+- O **lápis** (editar) e o ícone de **arquivar** ficam no canto superior direito de cada cartão.
+  - Arquivar funciona em qualquer coluna e mostra "Desfazer" por alguns segundos.
 - Arraste o cartão para outra coluna. No celular, use os botões ← →.
 - **Ordem dentro da coluna:** arraste o cartão para cima ou para baixo. Uma linha azul mostra onde ele vai entrar. No celular, use os botões ↑ ↓.
   - A ordem fica salva para todos.
@@ -153,17 +158,17 @@ No **Quadro**:
 - Cartão sem mudança há 7 dias ou mais fica esmaecido, com "Parada há X dias".
 - Mais de 8 tarefas em Fazendo deixa a coluna vermelha. Os números ficam em `ORG_LIMITE_FAZENDO` e `ORG_DIAS_PARADO`, no `index.html`.
 - **Etiquetas:** o botão **Etiquetas** cria, renomeia, troca a cor e exclui etiquetas. Elas são marcadas na janela da tarefa e podem ser usadas no filtro.
-- **Colunas:** o botão **Colunas** cria colunas com qualquer nome, renomeia e muda a ordem com ← →.
-  - A primeira coluna (A fazer) e a última (Feito) são fixas, mas podem ser renomeadas.
+- **Colunas:** o botão **Colunas** cria colunas com qualquer nome, renomeia e muda a ordem com ← →. Também dá para renomear com **dois cliques no nome da coluna**.
+  - A primeira coluna (A fazer) e a última (Feito) são fixas: não mudam de lugar nem de nome.
   - Feito continua marcando a tarefa como feita.
   - Excluir uma coluna devolve as tarefas dela para a primeira.
 - **Checklist e anotações** ficam na janela da tarefa e são salvos na hora, sem precisar clicar em Salvar.
   - O cartão mostra o progresso do checklist (ex.: 2/5) e quantas anotações tem.
   - Cada anotação fica registrada com data e hora.
-- **Arquivar concluídas:** o botão "Arquivar" na coluna Feito tira as tarefas concluídas do quadro.
+- **Arquivar concluídas:** o botão "Arquivar" na coluna Feito tira todas as tarefas concluídas do quadro de uma vez.
   - Elas ficam no **Histórico**, onde dá para buscar, abrir ou devolver ao quadro.
 - **Modelos:** abra uma tarefa já preenchida (etiquetas, checklist, responsável, prioridade) e clique em **Salvar como modelo**.
-  - Para usar, escolha o modelo ao lado de "Nova tarefa" e clique em Adicionar. A tarefa nasce preenchida e já abre para completar processo e prazo.
+  - Para usar, abra **+ Adicionar tarefa**, escolha o modelo e clique em Adicionar. A tarefa nasce preenchida e já abre para completar processo e prazo.
   - O botão **Modelos** renomeia ou exclui.
 - **Calendário:** o botão Quadro / Calendário mostra as tarefas pelo prazo, mês a mês.
   - Os filtros também valem no calendário.
