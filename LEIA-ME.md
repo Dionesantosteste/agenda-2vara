@@ -138,6 +138,15 @@ Detalhes:
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
 - A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
 
+No **Quadro**:
+- Arraste o cartão para outra coluna. No celular, use os botões ← →.
+- Clique no cartão para abrir a janela da tarefa: título, etapa, prazo, prioridade, responsável e processo.
+- Filtros no topo: texto ou nº do processo, responsável, Atrasadas, Vence hoje, Próximos 7 dias, Urgentes e Paradas.
+- Selos de prazo: vermelho (atrasada), laranja (vence hoje) e amarelo (vence em até 2 dias úteis).
+- Cartão sem mudança há 7 dias ou mais fica esmaecido, com "Parada há X dias".
+- Mais de 8 tarefas em Fazendo deixa a coluna vermelha. Os números ficam em `ORG_LIMITE_FAZENDO` e `ORG_DIAS_PARADO`, no `index.html`.
+- Não precisa rodar SQL novo para isso.
+
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 
 ```sql

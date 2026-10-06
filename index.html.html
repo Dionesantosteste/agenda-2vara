@@ -670,6 +670,24 @@
   .kmove{ display:flex; justify-content:space-between; align-items:center; gap:6px; }
   .kmove .mv{ border:1px solid var(--line); background:var(--paper); border-radius:8px; height:30px; padding:0 9px; cursor:pointer; color:var(--muted); font-family:var(--font-ui); font-size:12.5px; }
   .kmove .mv:hover{ color:var(--accent); border-color:var(--accent); }
+  .kfilters{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  .kfilters .org-in{ height:36px; }
+  .kfilters .kbusca{ flex:1 1 220px; }
+  .kchips{ display:flex; flex-wrap:wrap; gap:6px; }
+  .kcard{ cursor:grab; }
+  .kcard.dragging{ opacity:.45; }
+  .kanban.arrastando .col{ border-style:dashed; }
+  .col.drop-over{ border-color:var(--accent); border-style:solid; background:var(--accent-soft); }
+  .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
+  .ktitle:hover{ color:var(--accent); text-decoration:underline; }
+  .ktitle:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .t-meta .kprazo.hoje{ color:var(--st-orange); background:var(--st-orange-soft); font-weight:600; border-radius:6px; padding:0 6px; }
+  .t-meta .kprazo.breve{ color:var(--st-yellow); background:var(--st-yellow-soft); font-weight:600; border-radius:6px; padding:0 6px; }
+  .kcard.stale{ opacity:.72; }
+  .kcard.stale:hover, .kcard.stale:focus-within{ opacity:1; }
+  .t-meta .kparado{ font-style:italic; }
+  .col[data-etapa="fazendo"].over h3{ color:var(--danger); }
+  .wip-aviso{ font-size:12.5px; color:var(--danger); background:var(--st-red-soft); border-radius:8px; padding:6px 8px; }
 
   .org-stats{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
   .ostat{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:12px 14px; display:flex; flex-direction:column; gap:2px; }
@@ -1189,6 +1207,19 @@
           <input class="org-in grow" id="orgKanbanTitle" maxlength="160" placeholder="Nova tarefa (entra em A fazer)…" required />
           <button type="submit" class="btn primary">Adicionar</button>
         </form>
+        <div class="kfilters" id="orgKFiltros">
+          <input class="org-in kbusca" id="orgKBusca" type="search" maxlength="80" placeholder="Filtrar por título ou nº do processo…" aria-label="Filtrar tarefas do quadro" />
+          <select class="org-in" id="orgKResp" aria-label="Filtrar por responsável"></select>
+          <div class="kchips" id="orgKChips" role="group" aria-label="Filtrar por prazo">
+            <button type="button" class="chip" data-kprazo="" aria-pressed="true">Todas</button>
+            <button type="button" class="chip" data-kprazo="atrasadas" aria-pressed="false">Atrasadas</button>
+            <button type="button" class="chip" data-kprazo="hoje" aria-pressed="false">Vence hoje</button>
+            <button type="button" class="chip" data-kprazo="semana" aria-pressed="false">Próximos 7 dias</button>
+            <button type="button" class="chip" data-kprazo="urgentes" aria-pressed="false">Urgentes</button>
+            <button type="button" class="chip" data-kprazo="parados" aria-pressed="false">Paradas</button>
+          </div>
+          <button type="button" class="clear-btn" id="orgKLimpar" hidden>Limpar filtros</button>
+        </div>
         <div class="kanban" id="orgKanban"></div>
       </div>
 
@@ -1450,6 +1481,48 @@
       <button type="button" class="btn ghost" id="peDelete">Excluir</button>
       <div style="display:flex; gap:8px; margin-left:auto;">
         <button type="button" class="btn" id="peCancel">Cancelar</button>
+        <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="orgCardDialog">
+  <form class="sheet" id="orgCardForm" autocomplete="off">
+    <h2>Tarefa do quadro</h2>
+    <div class="field">
+      <label for="ocTitulo">Tarefa</label>
+      <input id="ocTitulo" maxlength="160" required />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="ocEtapa">Etapa</label>
+        <select id="ocEtapa"></select>
+      </div>
+      <div class="field">
+        <label for="ocPrazo">Prazo</label>
+        <input id="ocPrazo" type="date" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="ocUrg">Prioridade</label>
+        <select id="ocUrg"><option value="">Normal</option><option value="1">Urgente</option></select>
+      </div>
+      <div class="field">
+        <label for="ocResp">Responsável</label>
+        <select id="ocResp"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label for="ocProc">Nº do processo</label>
+      <input data-cnj id="ocProc" class="mono" maxlength="40" placeholder="opcional" />
+    </div>
+    <span class="field-hint" id="ocInfo"></span>
+    <div class="sheet-actions">
+      <button type="button" class="btn ghost" id="ocExcluir">Excluir</button>
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button type="button" class="btn" id="ocCancelar">Cancelar</button>
         <button type="submit" class="btn primary">Salvar</button>
       </div>
     </div>
@@ -2981,6 +3054,7 @@
 
   function orgLock(msg){
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
+    var ocd = document.getElementById('orgCardDialog'); if (ocd && ocd.open) ocd.close();
     try { sessionStorage.removeItem('orgPin'); } catch (e) {}
     O.content.hidden = true;
     O.lock.hidden = false;
@@ -2997,7 +3071,8 @@
     org.tarefas = (r.tarefas || []).map(function(t){
       return { id: t.id, titulo: t.titulo || '', prazo: t.prazo ? new Date(t.prazo + 'T00:00') : null, urgente: !!t.urgente,
         responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
-        etapa: ORG_ETAPAS_KEYS.indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer') };
+        etapa: ORG_ETAPAS_KEYS.indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer'),
+        criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
     });
     org.lembretes = (r.lembretes || []).map(function(l){
       return { id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
@@ -3332,6 +3407,10 @@
     kanban: document.getElementById('orgKanban'),
     kanbanForm: document.getElementById('orgKanbanForm'),
     kanbanTitle: document.getElementById('orgKanbanTitle'),
+    kBusca: document.getElementById('orgKBusca'),
+    kResp: document.getElementById('orgKResp'),
+    kChips: document.getElementById('orgKChips'),
+    kLimpar: document.getElementById('orgKLimpar'),
     lemStats: document.getElementById('orgLemStats'),
     lemForm: document.getElementById('orgLemForm'),
     lemTexto: document.getElementById('orgLemTexto'),
@@ -3381,36 +3460,240 @@
   });
 
   // ---- quadro ----
+  var ORG_LIMITE_FAZENDO = 8;   // acima disso a coluna Fazendo fica vermelha
+  var ORG_DIAS_PARADO = 7;      // cartão aberto sem mudança há tantos dias fica esmaecido
+  org.kf = { q: '', resp: '', prazo: '' };
+
+  function orgDiasParado(t){
+    if (t.etapa === 'feito' || !t.atualizada) return 0;
+    var d = Math.floor((startOfDay(new Date()) - startOfDay(t.atualizada)) / 86400000);
+    return d >= ORG_DIAS_PARADO ? d : 0;
+  }
+
+  // Selo do prazo: atrasada (vermelho), vence hoje (laranja), vence em até 2 dias úteis (amarelo)
+  function orgSeloPrazo(t){
+    if (!t.prazo) return null;
+    var df = orgDiff(t.prazo);
+    if (t.etapa === 'feito') return { cls: '', txt: 'Prazo ' + fmtDia(t.prazo) };
+    if (df < 0) return { cls: 'late', txt: 'Atrasada · ' + fmtDia(t.prazo) };
+    if (df === 0) return { cls: 'hoje', txt: 'Vence hoje' };
+    if (diasUteisEntre(new Date(), t.prazo) <= 2) return { cls: 'breve', txt: df === 1 ? 'Vence amanhã' : 'Vence ' + fmtDia(t.prazo) };
+    return { cls: '', txt: 'Prazo ' + fmtDia(t.prazo) };
+  }
+
+  function orgKFiltroAtivo(){ return !!(org.kf.q || org.kf.resp || org.kf.prazo); }
+
+  function orgKPassa(t){
+    var f = org.kf, aberta = t.etapa !== 'feito', df = t.prazo ? orgDiff(t.prazo) : null;
+    if (f.resp === '-' ? !!t.responsavel : (f.resp && t.responsavel !== f.resp)) return false;
+    if (f.prazo === 'atrasadas' && !(aberta && df !== null && df < 0)) return false;
+    if (f.prazo === 'hoje' && !(aberta && df === 0)) return false;
+    if (f.prazo === 'semana' && !(aberta && df !== null && df >= 0 && df <= 7)) return false;
+    if (f.prazo === 'urgentes' && !(aberta && t.urgente)) return false;
+    if (f.prazo === 'parados' && !orgDiasParado(t)) return false;
+    if (f.q){
+      var dig = f.q.replace(/\D/g, '');
+      var noTitulo = normalize(t.titulo).indexOf(normalize(f.q)) !== -1;
+      var noProc = dig.length >= 3 && t.processo.replace(/\D/g, '').indexOf(dig) !== -1;
+      if (!noTitulo && !noProc) return false;
+    }
+    return true;
+  }
+
+  function orgKRespOpcoes(){
+    var lista = ORG_RESPS.slice();
+    org.tarefas.forEach(function(t){ if (t.responsavel && lista.indexOf(t.responsavel) === -1) lista.push(t.responsavel); });
+    OT.kResp.innerHTML = '<option value="">Todos os responsáveis</option>' +
+      lista.map(function(r){ return '<option' + (r === org.kf.resp ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') +
+      '<option value="-"' + (org.kf.resp === '-' ? ' selected' : '') + '>Sem responsável</option>';
+  }
+
   function renderOrgKanban(){
-    var h = '';
+    orgKRespOpcoes();
+    var filtro = orgKFiltroAtivo(), h = '';
+    OT.kChips.querySelectorAll('[data-kprazo]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-kprazo') === org.kf.prazo)); });
+    OT.kLimpar.hidden = !filtro;
     ORG_ETAPAS.forEach(function(c, ci){
       var all = org.tarefas.filter(function(t){ return t.etapa === c[0]; });
-      var items = all.slice().sort(function(a, b){
+      var vis = filtro ? all.filter(orgKPassa) : all;
+      var items = vis.slice().sort(function(a, b){
         if (c[0] === 'feito') return (b.feitaEm || 0) - (a.feitaEm || 0);
         return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (b.urgente - a.urgente);
       });
-      if (c[0] === 'feito') items = items.slice(0, 20);
-      h += '<section class="col" data-etapa="' + c[0] + '" aria-label="' + c[1] + '"><h3>' + c[1] + ' <span>' + all.length + '</span></h3>';
-      if (!items.length) h += '<div class="org-empty">Nada aqui.</div>';
+      var ocultas = 0;
+      if (c[0] === 'feito' && items.length > 20){ ocultas = items.length - 20; items = items.slice(0, 20); }
+      var over = c[0] === 'fazendo' && all.length > ORG_LIMITE_FAZENDO;
+      var n = filtro ? vis.length + ' de ' + all.length : (c[0] === 'fazendo' ? all.length + ' / ' + ORG_LIMITE_FAZENDO : String(all.length));
+      h += '<section class="col' + (over ? ' over' : '') + '" data-etapa="' + c[0] + '" aria-label="' + c[1] + '"><h3>' + c[1] +
+        ' <span' + (c[0] === 'fazendo' ? ' title="Limite de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento"' : '') + '>' + n + '</span></h3>';
+      if (over) h += '<div class="wip-aviso">Mais de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento. Vale terminar algumas antes de puxar novas.</div>';
+      if (!items.length) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
       items.forEach(function(t){
-        var late = c[0] !== 'feito' && t.prazo && orgDiff(t.prazo) < 0;
-        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && c[0] !== 'feito' ? ' urgent' : '') + '">' +
-          '<div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar">' + escapeHtml(t.titulo) + '</span></div>' +
-          '<div class="t-meta">' + (t.prazo ? '<span' + (late ? ' class="late"' : '') + '>' + (late ? 'Atrasada · ' : 'Prazo ') + fmtDia(t.prazo) + '</span>' : '') +
-          (t.urgente && c[0] !== 'feito' ? '<span class="tag urg">Urgente</span>' : '') +
+        var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
+        var late = selo && selo.cls === 'late';
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + '" draggable="true" data-id="' + t.id + '">' +
+          '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div>' +
+          '<div class="t-meta">' + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
+          (t.urgente && aberta ? '<span class="tag urg">Urgente</span>' : '') +
           (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') +
-          (t.feitaEm && c[0] === 'feito' ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
+          (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
+          (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
           (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '">← ' + ORG_ETAPAS[ci - 1][1] + '</button>' : '<span></span>') +
-          '<button type="button" class="icon-btn" data-act="editar-quadro" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
+          '<button type="button" class="icon-btn" data-act="abrir-card" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
           (ci < 2 ? '<button type="button" class="mv" data-act="mover" data-dir="1" data-id="' + t.id + '">' + ORG_ETAPAS[ci + 1][1] + ' →</button>' : '<span></span>') +
           '</div></div>';
       });
+      if (ocultas) h += '<div class="org-empty">+ ' + ocultas + (ocultas === 1 ? ' mais antiga' : ' mais antigas') + '</div>';
       h += '</section>';
     });
     OT.kanban.innerHTML = h;
   }
+
+  // ---- filtros do quadro ----
+  OT.kBusca.addEventListener('input', function(){ org.kf.q = OT.kBusca.value.trim(); renderOrgKanban(); });
+  OT.kResp.addEventListener('change', function(){ org.kf.resp = OT.kResp.value; renderOrgKanban(); });
+  OT.kChips.addEventListener('click', function(e){
+    var b = e.target.closest('[data-kprazo]'); if (!b) return;
+    var v = b.getAttribute('data-kprazo');
+    org.kf.prazo = org.kf.prazo === v ? '' : v;
+    renderOrgKanban();
+  });
+  OT.kLimpar.addEventListener('click', function(){
+    org.kf = { q: '', resp: '', prazo: '' };
+    OT.kBusca.value = '';
+    renderOrgKanban();
+  });
+
+  // Muda a etapa já na tela e depois confirma no banco
+  async function orgMoverTarefa(t, etapa){
+    if (!t || t.etapa === etapa || ORG_ETAPAS_KEYS.indexOf(etapa) === -1) return;
+    var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
+    var novo = Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm });
+    t.etapa = etapa; t.feitaEm = feitaEm; t.atualizada = new Date();
+    renderOrgKanban();
+    var r = await orgSaveTask(novo);
+    if (!orgOk(r)){ if (org.unlocked) await orgLoad(); return; }
+    var fazendo = org.tarefas.filter(function(x){ return x.etapa === 'fazendo'; }).length;
+    if (etapa === 'feito') toast('Feita em ' + formatDataHora(feitaEm));
+    else if (etapa === 'fazendo' && fazendo > ORG_LIMITE_FAZENDO) toast('Fazendo passou do limite de ' + ORG_LIMITE_FAZENDO + ' tarefas');
+    await orgLoad();
+  }
+
+  // ---- arrastar e soltar (no celular continuam os botões ← →) ----
+  var orgArrastando = null;
+  function orgFimArraste(){
+    orgArrastando = null;
+    OT.kanban.classList.remove('arrastando');
+    OT.kanban.querySelectorAll('.dragging, .drop-over').forEach(function(el){ el.classList.remove('dragging', 'drop-over'); });
+  }
+  OT.kanban.addEventListener('dragstart', function(e){
+    var card = e.target.closest && e.target.closest('.kcard'); if (!card) return;
+    orgArrastando = card.getAttribute('data-id');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', orgArrastando); } catch (e2) {}
+    card.classList.add('dragging');
+    OT.kanban.classList.add('arrastando');
+  });
+  OT.kanban.addEventListener('dragend', orgFimArraste);
+  OT.kanban.addEventListener('dragover', function(e){
+    if (!orgArrastando) return;
+    var col = e.target.closest && e.target.closest('.col'); if (!col) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    OT.kanban.querySelectorAll('.col.drop-over').forEach(function(x){ if (x !== col) x.classList.remove('drop-over'); });
+    col.classList.add('drop-over');
+  });
+  OT.kanban.addEventListener('dragleave', function(e){
+    var col = e.target.closest && e.target.closest('.col');
+    if (col && !col.contains(e.relatedTarget)) col.classList.remove('drop-over');
+  });
+  OT.kanban.addEventListener('drop', function(e){
+    if (!orgArrastando) return;
+    var col = e.target.closest && e.target.closest('.col'); if (!col) return;
+    e.preventDefault();
+    var t = orgFind(org.tarefas, orgArrastando);
+    orgFimArraste();
+    orgMoverTarefa(t, col.getAttribute('data-etapa'));
+  });
+
+  // Clicar em qualquer parte livre do cartão abre a tarefa
+  OT.kanban.addEventListener('click', function(e){
+    if (e.target.closest('button, a, input, [data-act]')) return;
+    var card = e.target.closest('.kcard'); if (card) orgAbrirCartao(card.getAttribute('data-id'));
+  });
+
+  // ---- janela da tarefa ----
+  var OC = {
+    dialog: document.getElementById('orgCardDialog'),
+    form: document.getElementById('orgCardForm'),
+    titulo: document.getElementById('ocTitulo'),
+    etapa: document.getElementById('ocEtapa'),
+    prazo: document.getElementById('ocPrazo'),
+    urg: document.getElementById('ocUrg'),
+    resp: document.getElementById('ocResp'),
+    proc: document.getElementById('ocProc'),
+    info: document.getElementById('ocInfo'),
+    excluir: document.getElementById('ocExcluir'),
+    cancelar: document.getElementById('ocCancelar')
+  };
+  OC.etapa.innerHTML = ORG_ETAPAS.map(function(c){ return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('');
+  var orgCartaoId = null;
+
+  function orgAbrirCartao(id){
+    var t = orgFind(org.tarefas, id); if (!t) return;
+    orgCartaoId = id;
+    var resps = ORG_RESPS.slice();
+    if (t.responsavel && resps.indexOf(t.responsavel) === -1) resps.push(t.responsavel);
+    OC.resp.innerHTML = '<option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('');
+    OC.titulo.value = t.titulo;
+    OC.etapa.value = t.etapa;
+    OC.prazo.value = t.prazo ? dayKey(t.prazo) : '';
+    OC.urg.value = t.urgente ? '1' : '';
+    OC.proc.value = t.processo;
+    var info = [];
+    if (t.criada) info.push('Criada em ' + formatDataHora(t.criada));
+    if (t.atualizada) info.push('última mudança em ' + formatDataHora(t.atualizada));
+    if (t.feitaEm) info.push('feita em ' + formatDataHora(t.feitaEm));
+    OC.info.textContent = info.join(' · ');
+    OC.excluir.classList.remove('armed'); OC.excluir.textContent = 'Excluir';
+    OC.dialog.showModal();
+    setTimeout(function(){ OC.titulo.focus(); }, 30);
+  }
+
+  OC.cancelar.addEventListener('click', function(){ OC.dialog.close(); });
+  OC.dialog.addEventListener('close', function(){ orgCartaoId = null; });
+  OC.proc.addEventListener('blur', function(){ OC.proc.value = formatProcesso(OC.proc.value); });
+
+  OC.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var t = orgFind(org.tarefas, orgCartaoId); if (!t){ OC.dialog.close(); return; }
+    var etapa = OC.etapa.value;
+    var r = await orgSaveTask(Object.assign({}, t, {
+      titulo: OC.titulo.value.trim() || t.titulo,
+      prazo: OC.prazo.value ? new Date(OC.prazo.value + 'T00:00') : null,
+      urgente: !!OC.urg.value,
+      responsavel: OC.resp.value,
+      processo: formatProcesso(OC.proc.value),
+      etapa: etapa,
+      feitaEm: etapa === 'feito' ? (t.feitaEm || new Date()) : null
+    }));
+    if (!orgOk(r)) return;
+    OC.dialog.close();
+    toast('Tarefa atualizada');
+    await orgLoad();
+  });
+
+  OC.excluir.addEventListener('click', async function(){
+    if (!orgCartaoId) return;
+    if (!OC.excluir.classList.contains('armed')){ OC.excluir.classList.add('armed'); OC.excluir.textContent = 'Confirmar exclusão'; return; }
+    var r = await orgCall('org_excluir_tarefa', { p_id: orgCartaoId });
+    if (!orgOk(r)) return;
+    OC.dialog.close();
+    toast('Tarefa excluída');
+    await orgLoad();
+  });
 
   OT.kanbanForm.addEventListener('submit', async function(e){
     e.preventDefault();
@@ -3539,16 +3822,9 @@
     if (act === 'mover'){
       var t = orgFind(org.tarefas, id); if (!t) return;
       var etapa = ORG_ETAPAS_KEYS[ORG_ETAPAS_KEYS.indexOf(t.etapa) + Number(b.getAttribute('data-dir'))]; if (!etapa) return;
-      var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
-      r = await orgSaveTask(Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm }));
-      if (orgOk(r)){ if (etapa === 'feito') toast('Feita em ' + formatDataHora(feitaEm)); await orgLoad(); }
+      await orgMoverTarefa(t, etapa);
     }
-    if (act === 'editar-quadro'){
-      org.tab = 'lista'; org.editing = id;
-      try { sessionStorage.setItem('orgTab', 'lista'); } catch (e2) {}
-      renderOrg();
-      var el = document.getElementById('oeTitulo'); if (el){ el.focus(); el.scrollIntoView({ block: 'center' }); }
-    }
+    if (act === 'abrir-card'){ orgAbrirCartao(id); return; }
     if (act === 'lem-feito'){
       var l = orgFind(org.lembretes, id); if (!l) return;
       r = await orgSaveLembrete(Object.assign({}, l, { feitoEm: l.feitoEm ? null : new Date() }));
