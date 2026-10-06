@@ -916,6 +916,12 @@
   .tvar-in{ font-family:var(--font-ui); font-size:14px; border:1px solid var(--accent); border-radius:5px; padding:1px 6px; background:var(--paper); color:var(--ink);
     min-width:90px; max-width:100%; vertical-align:baseline; }
   .tl-opc{ opacity:.45; }
+  .kmodelo{ display:inline-flex; align-items:center; gap:4px; border:1px solid var(--item-line); background:var(--paper); color:var(--accent);
+    border-radius:6px; padding:1px 7px; font-size:12px; font-weight:600; cursor:pointer; font-family:var(--font-ui); line-height:1.5; }
+  .kmodelo:hover{ border-color:var(--accent); }
+  .oq-edit{ display:flex; flex-direction:column; gap:12px; }
+  .oq-edit-acts{ display:flex; gap:8px; justify-content:flex-end; }
+  #oqExcluir.armed{ color:var(--danger); border-color:var(--danger); }
   .txt-ed{ display:flex; flex-direction:column; gap:10px; }
   .txt-ed-linha{ display:grid; grid-template-columns:minmax(0,1fr) 200px; gap:10px; }
   .txt-ed label{ display:flex; flex-direction:column; gap:4px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); min-width:0; }
@@ -1506,6 +1512,10 @@
               <label class="eq-ctrl">Prazo<input class="org-in" type="date" id="orgEqPrazo" /></label>
               <div class="eq-ctrl">Prioridade<div class="kchips" id="orgEqPrio" role="group" aria-label="Prioridade"></div></div>
             </div>
+            <div class="eq-ctrls">
+              <label class="eq-ctrl">Modelo de texto (opcional)<select class="org-in" id="orgEqModTxt"></select></label>
+              <label class="eq-ctrl">Passo a passo (opcional)<select class="org-in" id="orgEqModCard"></select></label>
+            </div>
             <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
           </form>
           <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
@@ -1901,6 +1911,13 @@
         <select id="ocResp"></select>
       </div>
     </div>
+    <div class="field" id="ocModTxtWrap">
+      <label for="ocModTxt">Modelo de texto</label>
+      <div class="ck-add">
+        <select id="ocModTxt"></select>
+        <button type="button" class="btn" id="ocModTxtAbrir">Abrir modelo</button>
+      </div>
+    </div>
     <div class="field" id="ocEnviarWrap" hidden>
       <label for="ocEnviar">Mandar para a tela de</label>
       <select id="ocEnviar"></select>
@@ -2044,11 +2061,28 @@
   <form class="sheet" id="orgEqDetForm" autocomplete="off">
     <h2 id="oqTitulo">Tarefa</h2>
     <div class="oq-grid" id="oqGrid"></div>
+    <div class="oq-edit" id="oqEdit" hidden>
+      <div class="field"><label for="oqeTitulo">Tarefa</label><input id="oqeTitulo" maxlength="160" /></div>
+      <div class="field-row">
+        <div class="field"><label for="oqePrazo">Prazo</label><input id="oqePrazo" type="date" /></div>
+        <div class="field"><label for="oqePrio">Prioridade</label><select id="oqePrio"><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></div>
+      </div>
+      <div class="field"><label for="oqeProc">Nº do processo</label><input data-cnj id="oqeProc" class="mono" maxlength="40" placeholder="opcional" /></div>
+      <div class="field"><label for="oqeModTxt">Modelo de texto</label><select id="oqeModTxt"></select></div>
+      <div class="oq-edit-acts">
+        <button type="button" class="btn" id="oqeCancelar">Cancelar</button>
+        <button type="button" class="btn primary" id="oqeSalvar">Salvar</button>
+      </div>
+    </div>
     <div class="oc-fech conf-box" id="oqConf" hidden></div>
     <div class="oc-fech" id="oqFech" hidden></div>
     <span class="field-hint" id="oqInfo"></span>
-    <div class="sheet-actions">
-      <button type="button" class="btn" id="oqAbrir">Abrir no quadro</button>
+    <div class="sheet-actions" id="oqAcoes">
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn" id="oqEditar">Editar</button>
+        <button type="button" class="btn ghost" id="oqExcluir">Excluir</button>
+        <button type="button" class="btn" id="oqAbrir">Abrir no quadro</button>
+      </div>
       <div style="margin-left:auto;">
         <button type="button" class="btn" id="oqFechar">Fechar</button>
       </div>
@@ -3571,6 +3605,43 @@
 
   O.taskResp.innerHTML = '<option value="">Responsável</option>' + ORG_RESPS.map(function(r){ return '<option>' + r + '</option>'; }).join('');
 
+  // ---- correção ao salvar: primeira letra maiúscula e acento das palavras comuns da vara ----
+  // Só entram palavras que SEM acento não existem (ou quase não se usam); acrescente outras aqui: "sem acento": "com acento"
+  var ORG_ACENTOS = {
+    intimacao: 'intimação', intimacoes: 'intimações', citacao: 'citação', citacoes: 'citações', notificacao: 'notificação', notificacoes: 'notificações',
+    audiencia: 'audiência', audiencias: 'audiências', pericia: 'perícia', pericias: 'perícias', certidao: 'certidão', certidoes: 'certidões',
+    oficio: 'ofício', oficios: 'ofícios', peticao: 'petição', peticoes: 'petições', decisao: 'decisão', decisoes: 'decisões',
+    sentenca: 'sentença', sentencas: 'sentenças', acordao: 'acórdão', acordaos: 'acórdãos', juizo: 'juízo', reu: 'réu', reus: 'réus',
+    manifestacao: 'manifestação', manifestacoes: 'manifestações', contestacao: 'contestação', publicacao: 'publicação', distribuicao: 'distribuição',
+    conclusao: 'conclusão', execucao: 'execução', avaliacao: 'avaliação', precatoria: 'precatória', precatorias: 'precatórias', precatorio: 'precatório',
+    requisicao: 'requisição', informacao: 'informação', informacoes: 'informações', documentacao: 'documentação', comunicacao: 'comunicação',
+    expedicao: 'expedição', apreensao: 'apreensão', orgao: 'órgão', orgaos: 'órgãos', acao: 'ação', acoes: 'ações',
+    conciliacao: 'conciliação', mediacao: 'mediação', instrucao: 'instrução', designacao: 'designação', redesignacao: 'redesignação',
+    habilitacao: 'habilitação', procuracao: 'procuração', honorarios: 'honorários', alvara: 'alvará', alvaras: 'alvarás',
+    cartorio: 'cartório', relatorio: 'relatório', relatorios: 'relatórios', estatistica: 'estatística', correicao: 'correição', plantao: 'plantão',
+    reuniao: 'reunião', diligencia: 'diligência', diligencias: 'diligências', ciencia: 'ciência', pendencia: 'pendência', pendencias: 'pendências',
+    urgencia: 'urgência', conferencia: 'conferência', eletronico: 'eletrônico', eletronica: 'eletrônica', endereco: 'endereço', enderecos: 'endereços',
+    materia: 'matéria', codigo: 'código', periodo: 'período', medico: 'médico', medica: 'médica', psicologico: 'psicológico', psicologica: 'psicológica',
+    transito: 'trânsito', previdenciario: 'previdenciário', previdenciaria: 'previdenciária', indenizacao: 'indenização', pensao: 'pensão',
+    alimenticia: 'alimentícia', uniao: 'união', divorcio: 'divórcio', inventario: 'inventário', usucapiao: 'usucapião',
+    impugnacao: 'impugnação', apelacao: 'apelação',
+    nao: 'não', tambem: 'também', voce: 'você', proximo: 'próximo', proxima: 'próxima',
+    numero: 'número', numeros: 'números', titulo: 'título', responsavel: 'responsável', disponivel: 'disponível', possivel: 'possível',
+    edicao: 'edição', revisao: 'revisão', situacao: 'situação', solicitacao: 'solicitação', atualizacao: 'atualização', organizacao: 'organização'
+  };
+  function orgCaixa(orig, nova){
+    if (orig === orig.toUpperCase() && orig.length > 1) return nova.toUpperCase();
+    if (orig.charAt(0) === orig.charAt(0).toUpperCase()) return nova.charAt(0).toUpperCase() + nova.slice(1);
+    return nova;
+  }
+  function orgCorrige(txt){
+    var t = String(txt || '').replace(/[A-Za-z]+/g, function(w){
+      var c = ORG_ACENTOS[w.toLowerCase()];
+      return c ? orgCaixa(w, c) : w;
+    }).trim();
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }
+
   // Prioridade em 4 níveis; "urgente" continua valendo para os filtros e cores de sempre
   var ORG_PRIO = [["baixa", "Baixa"], ["normal", "Normal"], ["alta", "Alta"], ["urgente", "Urgente"]];
   var ORG_PRIO_N = { baixa: 0, normal: 1, alta: 2, urgente: 3 };
@@ -3651,6 +3722,7 @@
       dono: t.dono || null, doGestor: !!t.do_gestor,
       conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
       conferencia: t.conferencia || null, confHist: Array.isArray(t.conf_hist) ? t.conf_hist : [],
+      modeloTexto: t.modelo_texto || null,
       criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
   }
 
@@ -3669,6 +3741,7 @@
     org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqColunas = r.equipe_colunas || [];
+    org.eqModelos = (r.equipe_modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.eqTarefas = (r.equipe_tarefas || []).map(function(t){ return orgTarefaDe(t, null); });
     org.notas = (r.notas || []).map(function(n){
       return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
@@ -3874,6 +3947,7 @@
         : dd === 0 ? '<span>Vence hoje</span>' : dd === 1 ? '<span>Vence amanhã</span>' : '<span>Prazo ' + fmtDia(t.prazo) + '</span>');
     }
     if (t.processo) meta.push(procCopyBtn(t.processo));
+    if (orgModeloBtn(t)) meta.push(orgModeloBtn(t));
     if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
     return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '">' +
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
@@ -3952,13 +4026,13 @@
 
   function orgSaveTask(t){
     return orgCall('org_salvar_tarefa', {
-      p_id: t.id || null, p_titulo: t.titulo, p_prazo: t.prazo ? dayKey(t.prazo) : null, p_prioridade: orgPrioOk(t.prioridade),
+      p_id: t.id || null, p_titulo: orgCorrige(t.titulo), p_prazo: t.prazo ? dayKey(t.prazo) : null, p_prioridade: orgPrioOk(t.prioridade),
       p_responsavel: t.responsavel || '', p_processo: t.processo || '', p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null,
       p_etapa: t.etapa || (t.feitaEm ? 'feito' : 'afazer')
     });
   }
   function orgSaveNote(n){
-    return orgCall('org_salvar_nota', { p_id: n.id || null, p_texto: n.texto, p_cor: n.cor, p_fixada: !!n.fixada });
+    return orgCall('org_salvar_nota', { p_id: n.id || null, p_texto: orgCorrige(n.texto), p_cor: n.cor, p_fixada: !!n.fixada });
   }
 
   // ---- ações ----
@@ -4060,22 +4134,22 @@
     var r;
     if (el.getAttribute('data-edit') === 'nota'){
       var n = orgFind(org.notas, id); if (!n) return;
-      n.texto = txt;
+      n.texto = orgCorrige(txt); el.innerText = n.texto;
       r = await orgSaveNote(n);
       if (orgOk(r)) toast('Nota atualizada'); else await orgLoad();
     } else if (el.getAttribute('data-edit') === 'lembrete'){
       var l = orgFind(org.lembretes, id); if (!l) return;
-      l.texto = txt;
+      l.texto = orgCorrige(txt); el.innerText = l.texto;
       r = await orgSaveLembrete(l);
       if (orgOk(r)) toast('Lembrete atualizado'); else await orgLoad();
     } else if (el.getAttribute('data-edit') === 'rotina'){
       var ro = orgFind(org.rotinas, id); if (!ro) return;
-      ro.titulo = txt;
+      ro.titulo = orgCorrige(txt); el.innerText = ro.titulo;
       r = await orgSaveRotina(ro);
       if (orgOk(r)) toast('Rotina atualizada'); else await orgLoad();
     } else {
       var t = orgFind(org.tarefas, id); if (!t) return;
-      t.titulo = txt;
+      t.titulo = orgCorrige(txt);
       r = await orgSaveTask(t);
       if (orgOk(r)){ toast('Tarefa atualizada'); renderOrg(); } else await orgLoad();
     }
@@ -4346,7 +4420,7 @@
           '<div class="t-meta">' + orgConfTag(t) + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
           orgPrioTag(t, aberta) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
           (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
-          (t.processo ? procCopyBtn(t.processo) : '') +
+          (t.processo ? procCopyBtn(t.processo) : '') + orgModeloBtn(t) +
           orgKBadges(t) + orgKVinc(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
@@ -4597,6 +4671,9 @@
     resp: document.getElementById('ocResp'),
     proc: document.getElementById('ocProc'),
     info: document.getElementById('ocInfo'),
+    modTxt: document.getElementById('ocModTxt'),
+    modTxtWrap: document.getElementById('ocModTxtWrap'),
+    modTxtAbrir: document.getElementById('ocModTxtAbrir'),
     enviarWrap: document.getElementById('ocEnviarWrap'),
     enviar: document.getElementById('ocEnviar'),
     fech: document.getElementById('ocFech'),
@@ -4621,6 +4698,9 @@
     OC.prazo.value = t.prazo ? dayKey(t.prazo) : '';
     OC.urg.value = t.prioridade;
     OC.proc.value = t.processo;
+    OC.modTxtWrap.hidden = !org.txt.tem;
+    OC.modTxt.innerHTML = orgModTxtOpcoes(t.modeloTexto);
+    OC.modTxtAbrir.disabled = !OC.modTxt.value;
     var ativos = org.modo === 'gestor' && !org.ver && org.temEquipe ? org.pessoas.filter(function(p){ return p.ativo; }) : [];
     OC.enviarWrap.hidden = !ativos.length;
     OC.enviar.innerHTML = '<option value="">Ninguém (fica no meu quadro)</option>' + ativos.map(function(p){ return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>'; }).join('');
@@ -4667,6 +4747,10 @@
     if (!orgOk(r)) return;
     if (org.temCadastro && ocEtiqSel.slice().sort().join() !== t.etiquetas.slice().sort().join()){
       r = await orgCall('org_etiquetar_tarefa', { p_id: t.id, p_etiquetas: ocEtiqSel });
+      if (!orgOk(r)) return;
+    }
+    if (!OC.modTxtWrap.hidden && (OC.modTxt.value || null) !== t.modeloTexto){
+      r = await orgCall('org_tarefa_modelo_texto', { p_id: t.id, p_modelo: OC.modTxt.value || null });
       if (!orgOk(r)) return;
     }
     var destino = !OC.enviarWrap.hidden && OC.enviar.value;
@@ -5298,7 +5382,7 @@
 
   // ---- lembretes ----
   function orgSaveLembrete(l){
-    return orgCall('org_salvar_lembrete', { p_id: l.id || null, p_texto: l.texto, p_data: dayKey(l.data), p_hora: l.hora || null,
+    return orgCall('org_salvar_lembrete', { p_id: l.id || null, p_texto: orgCorrige(l.texto), p_data: dayKey(l.data), p_hora: l.hora || null,
       p_processo: l.processo || '', p_feito_em: l.feitoEm ? l.feitoEm.toISOString() : null });
   }
   function lemOrdem(a, b){ return (a.data - b.data) || (a.hora < b.hora ? -1 : a.hora > b.hora ? 1 : 0); }
@@ -5363,7 +5447,7 @@
 
   // ---- rotinas ----
   function orgSaveRotina(x){
-    return orgCall('org_salvar_rotina', { p_id: x.id || null, p_titulo: x.titulo, p_frequencia: x.frequencia, p_feita_em: x.feitaEm ? x.feitaEm.toISOString() : null });
+    return orgCall('org_salvar_rotina', { p_id: x.id || null, p_titulo: orgCorrige(x.titulo), p_frequencia: x.frequencia, p_feita_em: x.feitaEm ? x.feitaEm.toISOString() : null });
   }
 
   function renderOrgRotinas(){
@@ -5415,6 +5499,7 @@
       await orgMoverTarefa(t, etapa);
     }
     if (act === 'abrir-card'){ orgAbrirCartao(id); return; }
+    if (act === 'abrir-modelo'){ var tm = orgFind(org.tarefas, id); if (tm) orgAbrirModeloTexto(tm.modeloTexto, tm.processo); return; }
     if (act === 'arquivar-card'){ await orgArquivarCartao(id); return; }
     if (act === 'kadd'){ orgKAddAbrir(b.getAttribute('data-etapa')); return; }
     if (act === 'kadd-fechar'){ orgKAddFechar(); return; }
@@ -5539,7 +5624,9 @@
     info: document.getElementById('orgEqInfo'),
     fPessoa: document.getElementById('orgEqFPessoa'),
     chips: document.getElementById('orgEqChips'),
-    lista: document.getElementById('orgEqLista')
+    lista: document.getElementById('orgEqLista'),
+    modTxt: document.getElementById('orgEqModTxt'),
+    modCard: document.getElementById('orgEqModCard')
   };
 
   function orgEqColuna(t){
@@ -5581,6 +5668,12 @@
     }).join('');
     if (para && ativos.some(function(p){ return p.id === para; })) OE.para.value = para;
     orgEqPrioChips();
+    var mt = OE.modTxt.value, mc = OE.modCard.value;
+    OE.modTxt.innerHTML = orgModTxtOpcoes(mt);
+    OE.modCard.innerHTML = '<option value="">Nenhum</option>' + org.eqModelos.map(function(m){
+      var n = Array.isArray(m.dados.checklist) ? m.dados.checklist.length : 0;
+      return '<option value="' + escapeHtml(m.id) + '"' + (m.id === mc ? ' selected' : '') + '>' + escapeHtml(m.nome) + (n ? ' (' + n + (n === 1 ? ' passo)' : ' passos)') : '') + '</option>';
+    }).join('') + (org.eqModelos.length ? '' : '<option value="" disabled>Crie em Quadro → Modelos</option>');
 
     if (org.eqf.pessoa && !orgPessoa(org.eqf.pessoa)) org.eqf.pessoa = '';
     OE.fPessoa.innerHTML = '<option value="">Todas as pessoas</option>' + org.pessoas.map(function(p){
@@ -5685,16 +5778,27 @@
   });
   OE.form.addEventListener('submit', async function(e){
     e.preventDefault();
-    var r = orgEqLer(OE.texto.value), titulo = r.titulo.trim().slice(0, 160);
+    var r = orgEqLer(OE.texto.value), titulo = orgCorrige(r.titulo.trim()).slice(0, 160);
     if (!titulo){ toast('Escreva a tarefa.'); OE.texto.focus(); return; }
     var para = OE.para.value;
     if (!para){ toast('Escolha para quem vai a tarefa.'); OE.para.focus(); return; }
     OE.enviar.disabled = true;
     var res = await orgCall('org_salvar_tarefa', { p_pessoa: para, p_id: null, p_titulo: titulo, p_prazo: OE.prazo.value || null,
       p_prioridade: org.eqPrio, p_responsavel: '', p_processo: r.processo, p_feita_em: null, p_etapa: 'afazer' });
+    if (orgOk(res) && res.id && OE.modTxt.value){
+      var r2 = await orgCall('org_tarefa_modelo_texto', { p_pessoa: para, p_id: res.id, p_modelo: OE.modTxt.value });
+      if (!orgOk(r2)) res = r2;
+    }
+    var passo = org.eqModelos.filter(function(m){ return m.id === OE.modCard.value; })[0];
+    var ck = passo && Array.isArray(passo.dados.checklist) ? passo.dados.checklist.map(function(i){ return { t: String(i && i.t || '').trim(), ok: false }; }).filter(function(i){ return i.t; }) : [];
+    if (res.status === 'ok' && res.id && ck.length){
+      var r3 = await orgCall('org_checklist_tarefa', { p_pessoa: para, p_id: res.id, p_itens: ck });
+      if (!orgOk(r3)) res = r3;
+    }
     OE.enviar.disabled = false;
-    if (!orgOk(res)) return;
-    toast('Tarefa enviada para ' + orgNomePessoa(para));
+    if (res.status !== 'ok') return;
+    toast('Tarefa enviada para ' + orgNomePessoa(para) + (ck.length ? ' com ' + ck.length + (ck.length === 1 ? ' passo' : ' passos') : ''));
+    OE.modTxt.value = ''; OE.modCard.value = '';
     OE.texto.value = ''; OE.prev.innerHTML = ''; OE.prazo.value = '';
     eqToque = { para: false, prazo: false, prio: false };
     org.eqPrio = 'normal';
@@ -5741,7 +5845,8 @@
       item('Prioridade', orgPrioNome(t.prioridade)) +
       item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span>') +
       (t.processo ? item('Processo', procCopyBtn(t.processo), true) : '') +
-      (tot ? item('Checklist', ok + ' de ' + tot + ' itens feitos', true) : '');
+      (tot ? item('Checklist', ok + ' de ' + tot + ' itens feitos', true) : '') +
+      (t.modeloTexto && txtModelo(t.modeloTexto) ? item('Modelo de texto', '<button type="button" class="kmodelo" data-oqmodelo="1">' + ICON_DOC + escapeHtml(txtModelo(t.modeloTexto).nome) + '</button>', true) : '');
     OQ.fech.hidden = !t.conclusao;
     OQ.fech.innerHTML = t.conclusao ? orgFechHtml(t.conclusao) : '';
     var oqConf = document.getElementById('oqConf'), oqConfHtml = t.conferencia ? orgConfBoxHtml(t, true) : '';
@@ -5758,6 +5863,7 @@
   OQ.dialog.addEventListener('close', function(){ orgEqId = null; });
   OQ.grid.addEventListener('click', function(e){
     var c = e.target.closest('[data-act=copiar]'); if (c) copiarTexto(c.getAttribute('data-proc'), c);
+    if (e.target.closest('[data-oqmodelo]')){ var t = orgFind(org.eqTarefas, orgEqId); if (t) orgAbrirModeloTexto(t.modeloTexto, t.processo); }
   });
   OQ.abrir.addEventListener('click', async function(){
     var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
@@ -6235,6 +6341,91 @@
     T.meus.open = false;
     toast('Assinatura salva');
     renderTxt();
+  });
+
+  // ======== Modelo de texto ligado à tarefa e edição na aba da equipe ========
+  var ICON_DOC = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>';
+  function orgModeloBtn(t){
+    var m = t.modeloTexto && org.txt.tem ? txtModelo(t.modeloTexto) : null;
+    return m ? '<button type="button" class="kmodelo" data-act="abrir-modelo" data-id="' + t.id + '" title="Abrir o modelo de texto: ' + escapeHtml(m.nome) + '">' + ICON_DOC + 'Modelo</button>' : '';
+  }
+  function orgModTxtOpcoes(sel){
+    return '<option value="">Nenhum</option>' + org.txt.modelos.slice().sort(function(a, b){ return a.nome.localeCompare(b.nome, 'pt-BR'); }).map(function(m){
+      return '<option value="' + escapeHtml(m.id) + '"' + (m.id === sel ? ' selected' : '') + '>' + escapeHtml(m.nome) + '</option>';
+    }).join('');
+  }
+  // Vai para a aba Modelos de texto com o modelo aberto e o processo da tarefa já puxado
+  function orgAbrirModeloTexto(id, processo){
+    var m = txtModelo(id);
+    if (!m){ toast('O modelo de texto desta tarefa foi excluído.'); return; }
+    [OC.dialog, OQ.dialog].forEach(function(d){ if (d.open) d.close(); });
+    org.txt.editando = null; org.txt.atual = m.id; org.txt.valores = {};
+    org.txt.cat = 'Todas'; org.txt.q = ''; T.busca.value = '';
+    T.proc.value = processo || '';
+    org.tab = 'modelos';
+    try { sessionStorage.setItem('orgTab', org.tab); } catch (e) {}
+    renderOrg();
+    txtPuxar();
+    T.doc.scrollIntoView({ block: 'start' });
+  }
+  OC.modTxt.addEventListener('change', function(){ OC.modTxtAbrir.disabled = !OC.modTxt.value; });
+  OC.modTxtAbrir.addEventListener('click', function(){
+    if (OC.modTxt.value) orgAbrirModeloTexto(OC.modTxt.value, formatProcesso(OC.proc.value));
+  });
+
+  // ---- editar e excluir pela janela da aba "Tarefas da equipe" ----
+  var OQE = {
+    box: document.getElementById('oqEdit'), titulo: document.getElementById('oqeTitulo'), prazo: document.getElementById('oqePrazo'),
+    prio: document.getElementById('oqePrio'), proc: document.getElementById('oqeProc'), modTxt: document.getElementById('oqeModTxt'),
+    salvar: document.getElementById('oqeSalvar'), cancelar: document.getElementById('oqeCancelar'),
+    acoes: document.getElementById('oqAcoes'), editar: document.getElementById('oqEditar'), excluir: document.getElementById('oqExcluir')
+  };
+  function oqModoEditar(on){
+    OQE.box.hidden = !on;
+    OQ.grid.hidden = on;
+    OQE.acoes.hidden = on;
+    OQE.excluir.classList.remove('armed'); OQE.excluir.textContent = 'Excluir';
+  }
+  OQ.dialog.addEventListener('close', function(){ oqModoEditar(false); });
+  OQE.editar.addEventListener('click', function(){
+    var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
+    OQE.titulo.value = t.titulo;
+    OQE.prazo.value = t.prazo ? dayKey(t.prazo) : '';
+    OQE.prio.value = t.prioridade;
+    OQE.proc.value = t.processo;
+    OQE.modTxt.innerHTML = orgModTxtOpcoes(t.modeloTexto);
+    OQE.modTxt.closest('.field').hidden = !org.txt.tem;
+    oqModoEditar(true);
+    OQE.titulo.focus();
+  });
+  OQE.cancelar.addEventListener('click', function(){ oqModoEditar(false); });
+  OQE.proc.addEventListener('blur', function(){ OQE.proc.value = formatProcesso(OQE.proc.value); });
+  OQE.salvar.addEventListener('click', async function(){
+    var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
+    var titulo = OQE.titulo.value.trim();
+    if (!titulo){ toast('Escreva a tarefa.'); OQE.titulo.focus(); return; }
+    OQE.salvar.disabled = true;
+    var r = await orgCall('org_salvar_tarefa', { p_pessoa: t.dono, p_id: t.id, p_titulo: orgCorrige(titulo), p_prazo: OQE.prazo.value || null,
+      p_prioridade: OQE.prio.value, p_responsavel: t.responsavel || '', p_processo: formatProcesso(OQE.proc.value),
+      p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null, p_etapa: t.etapa });
+    if (orgOk(r) && org.txt.tem && (OQE.modTxt.value || null) !== t.modeloTexto){
+      r = await orgCall('org_tarefa_modelo_texto', { p_pessoa: t.dono, p_id: t.id, p_modelo: OQE.modTxt.value || null });
+      orgOk(r);
+    }
+    OQE.salvar.disabled = false;
+    if (r.status !== 'ok') return;
+    OQ.dialog.close();
+    toast('Tarefa de ' + orgNomePessoa(t.dono) + ' atualizada');
+    await orgLoad();
+  });
+  OQE.excluir.addEventListener('click', async function(){
+    var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
+    if (!OQE.excluir.classList.contains('armed')){ OQE.excluir.classList.add('armed'); OQE.excluir.textContent = 'Confirmar exclusão'; return; }
+    var r = await orgCall('org_excluir_tarefa', { p_pessoa: t.dono, p_id: t.id });
+    if (!orgOk(r)) return;
+    OQ.dialog.close();
+    toast('Tarefa excluída do quadro de ' + orgNomePessoa(t.dono));
+    await orgLoad();
   });
 
   // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta

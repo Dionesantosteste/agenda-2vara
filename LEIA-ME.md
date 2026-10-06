@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 37 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 38 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -190,6 +190,10 @@ No **Quadro**:
     - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
     - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
     - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+  - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
+    - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
+    - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
+  - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
     - Clique na linha para ver os detalhes e o fechamento. "Abrir no quadro" leva para a tela da pessoa com a tarefa aberta.
@@ -220,6 +224,8 @@ No **Quadro**:
   - O site começa com 6 modelos de exemplo, que valem a pena conferir e ajustar ao padrão de redação da vara.
   - Só os modelos ficam guardados. Os dados preenchidos de cada processo não são gravados.
 - **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
+
+**Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 
