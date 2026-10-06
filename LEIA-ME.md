@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 16 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 17 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -140,6 +140,11 @@ Detalhes:
 
 No **Quadro**:
 - Arraste o cartão para outra coluna. No celular, use os botões ← →.
+- **Ordem dentro da coluna:** arraste o cartão para cima ou para baixo. Uma linha azul mostra onde ele vai entrar. No celular, use os botões ↑ ↓.
+  - A ordem fica salva para todos.
+  - Enquanto ninguém mexe na ordem de uma coluna, ela segue por prazo.
+  - Cartões novos, ou que chegam pelos botões ← →, entram no fim da coluna.
+  - A coluna Feito continua mostrando as mais recentes primeiro.
 - Clique no cartão para abrir a janela da tarefa: título, etapa, prazo, prioridade, responsável e processo.
 - Filtros no topo: texto ou nº do processo, responsável, Atrasadas, Vence hoje, Próximos 7 dias, Urgentes e Paradas.
 - Selos de prazo: vermelho (atrasada), laranja (vence hoje) e amarelo (vence em até 2 dias úteis).
@@ -150,7 +155,7 @@ No **Quadro**:
   - A primeira coluna (A fazer) e a última (Feito) são fixas, mas podem ser renomeadas.
   - Feito continua marcando a tarefa como feita.
   - Excluir uma coluna devolve as tarefas dela para a primeira.
-- Etiquetas e colunas precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre e sem etiquetas.
+- Etiquetas, colunas e a ordem dos cartões precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre, sem etiquetas e em ordem de prazo.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 

@@ -672,6 +672,11 @@
   .kmove .mv:hover{ color:var(--accent); border-color:var(--accent); }
   .kcard .proc-copy{ white-space:nowrap; }
   .cad-row [data-cad=esq], .cad-row [data-cad=dir]{ font-size:17px; line-height:1; }
+  .kmid{ display:inline-flex; align-items:center; gap:2px; }
+  .kmove .kord{ font-size:17px; line-height:1; width:30px; height:30px; }
+  .kmove .kord:disabled{ opacity:.3; cursor:default; }
+  @media (hover:hover) and (pointer:fine){ .kmove .kord{ display:none; } }
+  .kdrop-line{ height:4px; border-radius:2px; background:var(--accent); margin:-2px 4px; }
   .kmove .mv{ max-width:44%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .klabels{ display:flex; flex-wrap:wrap; gap:4px; }
   .klabel{ --lc:#64748B; font-size:11.5px; font-weight:600; border-radius:6px; padding:1px 8px; line-height:18px; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis;
@@ -3113,6 +3118,7 @@
         responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
         etapa: orgChaves().indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer'),
         etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+        posicao: typeof t.posicao === 'number' ? t.posicao : null,
         criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
     });
     org.lembretes = (r.lembretes || []).map(function(l){
@@ -3521,6 +3527,7 @@
   // Colunas: A fazer sempre primeiro, Feito sempre por último, as outras na ordem cadastrada
   function orgParseQuadro(r){
     org.temCadastro = Array.isArray(r.colunas);
+    org.temOrdem = r.ordem === true;   // o Supabase já guarda a posição dos cartões?
     if (!org.temCadastro){
       org.colunas = ORG_ETAPAS.map(function(c){ return { chave: c[0], nome: c[1] }; });
       org.etiquetas = [];
@@ -3598,6 +3605,18 @@
       '<option value="-"' + (org.kf.resp === '-' ? ' selected' : '') + '>Sem responsável</option>';
   }
 
+  // Ordem dos cartões na coluna: primeiro os que têm posição definida (arrastados),
+  // depois os demais por prazo e urgência. Em Feito, as mais recentes primeiro.
+  function orgOrdenaColuna(lista, chave){
+    return lista.slice().sort(function(a, b){
+      if (chave === 'feito') return (b.feitaEm || 0) - (a.feitaEm || 0);
+      var pa = a.posicao === null ? Infinity : a.posicao, pb = b.posicao === null ? Infinity : b.posicao;
+      if (pa !== pb) return pa < pb ? -1 : 1;
+      return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (b.urgente - a.urgente);
+    });
+  }
+  function orgPodeOrdenar(chave){ return org.temOrdem && chave !== 'feito'; }
+
   function renderOrgKanban(){
     orgKRespOpcoes();
     orgKEtqOpcoes();
@@ -3608,10 +3627,7 @@
     cols.forEach(function(c, ci){
       var all = org.tarefas.filter(function(t){ return t.etapa === c[0]; });
       var vis = filtro ? all.filter(orgKPassa) : all;
-      var items = vis.slice().sort(function(a, b){
-        if (c[0] === 'feito') return (b.feitaEm || 0) - (a.feitaEm || 0);
-        return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (b.urgente - a.urgente);
-      });
+      var items = orgOrdenaColuna(vis, c[0]), ordena = orgPodeOrdenar(c[0]);
       var ocultas = 0;
       if (c[0] === 'feito' && items.length > 20){ ocultas = items.length - 20; items = items.slice(0, 20); }
       var over = c[0] === 'fazendo' && all.length > ORG_LIMITE_FAZENDO;
@@ -3620,7 +3636,7 @@
         ' <span' + (c[0] === 'fazendo' ? ' title="Limite de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento"' : '') + '>' + n + '</span></h3>';
       if (over) h += '<div class="wip-aviso">Mais de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento. Vale terminar algumas antes de puxar novas.</div>';
       if (!items.length) h += '<div class="org-empty">' + (filtro && all.length ? 'Nenhuma com este filtro.' : 'Nada aqui.') + '</div>';
-      items.forEach(function(t){
+      items.forEach(function(t, ii){
         var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
         var late = selo && selo.cls === 'late';
         h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + '" draggable="true" data-id="' + t.id + '">' +
@@ -3634,7 +3650,11 @@
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           '<div class="kmove">' +
           (ci > 0 ? '<button type="button" class="mv" data-act="mover" data-dir="-1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci - 1][1]) + '">← ' + escapeHtml(cols[ci - 1][1]) + '</button>' : '<span></span>') +
+          '<span class="kmid">' +
+          (ordena ? '<button type="button" class="icon-btn kord" data-act="subir" data-id="' + t.id + '" title="Subir na coluna" aria-label="Subir na coluna"' + (ii === 0 ? ' disabled' : '') + '>↑</button>' : '') +
           '<button type="button" class="icon-btn" data-act="abrir-card" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
+          (ordena ? '<button type="button" class="icon-btn kord" data-act="descer" data-id="' + t.id + '" title="Descer na coluna" aria-label="Descer na coluna"' + (ii === items.length - 1 ? ' disabled' : '') + '>↓</button>' : '') +
+          '</span>' +
           (ci < ultima ? '<button type="button" class="mv" data-act="mover" data-dir="1" data-id="' + t.id + '" title="Mover para ' + escapeHtml(cols[ci + 1][1]) + '">' + escapeHtml(cols[ci + 1][1]) + ' →</button>' : '<span></span>') +
           '</div></div>';
       });
@@ -3661,24 +3681,73 @@
   });
 
   // Muda a etapa já na tela e depois confirma no banco
-  async function orgMoverTarefa(t, etapa){
+  // antesDe: id do cartão que fica logo abaixo (null = fim da coluna; undefined = ordem automática)
+  async function orgMoverTarefa(t, etapa, antesDe){
     if (!t || t.etapa === etapa || orgChaves().indexOf(etapa) === -1) return;
     var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
     var novo = Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm });
-    t.etapa = etapa; t.feitaEm = feitaEm; t.atualizada = new Date();
+    t.etapa = etapa; t.feitaEm = feitaEm; t.atualizada = new Date(); t.posicao = null;
+    var ids = antesDe !== undefined && orgPodeOrdenar(etapa) ? orgNovaOrdem(t, antesDe) : null;
     renderOrgKanban();
     var r = await orgSaveTask(novo);
     if (!orgOk(r)){ if (org.unlocked) await orgLoad(); return; }
+    if (ids){
+      r = await orgCall('org_ordenar_tarefas', { p_ids: ids });
+      if (!orgOk(r)) return;
+    }
     var fazendo = org.tarefas.filter(function(x){ return x.etapa === 'fazendo'; }).length;
     if (etapa === 'feito') toast('Feita em ' + formatDataHora(feitaEm));
     else if (etapa === 'fazendo' && fazendo > ORG_LIMITE_FAZENDO) toast(orgNomeColuna('fazendo') + ' passou do limite de ' + ORG_LIMITE_FAZENDO + ' tarefas');
     await orgLoad();
   }
 
-  // ---- arrastar e soltar (no celular continuam os botões ← →) ----
-  var orgArrastando = null;
+  // Põe o cartão antes de "antesDe" na coluna dele, numera a coluna e devolve os ids na nova ordem
+  function orgNovaOrdem(t, antesDe){
+    var lista = orgOrdenaColuna(org.tarefas.filter(function(x){ return x.etapa === t.etapa && x !== t; }), t.etapa);
+    var i = -1;
+    lista.forEach(function(x, k){ if (x.id === antesDe) i = k; });
+    lista.splice(i === -1 ? lista.length : i, 0, t);
+    lista.forEach(function(x, k){ x.posicao = (k + 1) * 10; });
+    return lista.map(function(x){ return x.id; });
+  }
+
+  // Muda a posição do cartão dentro da mesma coluna
+  async function orgReordenar(t, antesDe){
+    if (!t || !orgPodeOrdenar(t.etapa)) return;
+    var antes = orgOrdenaColuna(org.tarefas.filter(function(x){ return x.etapa === t.etapa; }), t.etapa).map(function(x){ return x.id; }).join();
+    var ids = orgNovaOrdem(t, antesDe);
+    if (ids.join() === antes) return;
+    renderOrgKanban();
+    var r = await orgCall('org_ordenar_tarefas', { p_ids: ids });
+    if (!orgOk(r)){ if (org.unlocked) await orgLoad(); return; }
+    await orgLoad();
+  }
+
+  // Botões ↑ ↓ (no celular): troca de lugar com o cartão vizinho que está à vista
+  async function orgSubirDescer(id, dir){
+    var t = orgFind(org.tarefas, id); if (!t) return;
+    var filtro = orgKFiltroAtivo();
+    var todos = orgOrdenaColuna(org.tarefas.filter(function(x){ return x.etapa === t.etapa; }), t.etapa);
+    var vis = filtro ? todos.filter(orgKPassa) : todos;
+    var i = vis.indexOf(t), viz = vis[i + dir]; if (!viz) return;
+    var antesDe;
+    if (dir < 0) antesDe = viz.id;
+    else {
+      var semT = todos.filter(function(x){ return x !== t; }), j = semT.indexOf(viz);
+      antesDe = semT[j + 1] ? semT[j + 1].id : null;
+    }
+    await orgReordenar(t, antesDe);
+    var b = OT.kanban.querySelector('.kcard[data-id="' + id + '"] [data-act=' + (dir < 0 ? 'subir' : 'descer') + ']');
+    if (b && !b.disabled) b.focus();
+  }
+
+  // ---- arrastar e soltar (no celular continuam os botões ← → e ↑ ↓) ----
+  var orgArrastando = null, orgDropAntes = null;
+  var orgLinha = document.createElement('div');
+  orgLinha.className = 'kdrop-line';
   function orgFimArraste(){
-    orgArrastando = null;
+    orgArrastando = null; orgDropAntes = null;
+    if (orgLinha.parentNode) orgLinha.parentNode.removeChild(orgLinha);
     OT.kanban.classList.remove('arrastando');
     OT.kanban.querySelectorAll('.dragging, .drop-over').forEach(function(el){ el.classList.remove('dragging', 'drop-over'); });
   }
@@ -3698,18 +3767,38 @@
     e.dataTransfer.dropEffect = 'move';
     OT.kanban.querySelectorAll('.col.drop-over').forEach(function(x){ if (x !== col) x.classList.remove('drop-over'); });
     col.classList.add('drop-over');
+    // linha que mostra onde o cartão vai entrar
+    if (!orgPodeOrdenar(col.getAttribute('data-etapa'))){ orgDropAntes = null; if (orgLinha.parentNode) orgLinha.parentNode.removeChild(orgLinha); return; }
+    var cards = Array.prototype.slice.call(col.querySelectorAll('.kcard:not(.dragging)')), alvo = null;
+    for (var i = 0; i < cards.length; i++){
+      var rc = cards[i].getBoundingClientRect();
+      if (e.clientY < rc.top + rc.height / 2){ alvo = cards[i]; break; }
+    }
+    orgDropAntes = alvo ? alvo.getAttribute('data-id') : null;
+    if (alvo){ if (orgLinha.nextSibling !== alvo) col.insertBefore(orgLinha, alvo); }
+    else {
+      var ultimo = cards[cards.length - 1];
+      if (ultimo){ if (ultimo.nextSibling !== orgLinha) col.insertBefore(orgLinha, ultimo.nextSibling); }
+      else if (orgLinha.parentNode !== col) col.appendChild(orgLinha);
+    }
   });
   OT.kanban.addEventListener('dragleave', function(e){
     var col = e.target.closest && e.target.closest('.col');
-    if (col && !col.contains(e.relatedTarget)) col.classList.remove('drop-over');
+    if (col && !col.contains(e.relatedTarget)){
+      col.classList.remove('drop-over');
+      if (orgLinha.parentNode === col) col.removeChild(orgLinha);
+    }
   });
   OT.kanban.addEventListener('drop', function(e){
     if (!orgArrastando) return;
     var col = e.target.closest && e.target.closest('.col'); if (!col) return;
     e.preventDefault();
-    var t = orgFind(org.tarefas, orgArrastando);
+    var t = orgFind(org.tarefas, orgArrastando), etapa = col.getAttribute('data-etapa');
+    var antesDe = orgLinha.parentNode === col ? orgDropAntes : undefined;
     orgFimArraste();
-    orgMoverTarefa(t, col.getAttribute('data-etapa'));
+    if (!t) return;
+    if (t.etapa === etapa){ if (antesDe !== undefined) orgReordenar(t, antesDe); }
+    else orgMoverTarefa(t, etapa, antesDe);
   });
 
   // Clicar em qualquer parte livre do cartão abre a tarefa
@@ -4093,6 +4182,7 @@
       await orgMoverTarefa(t, etapa);
     }
     if (act === 'abrir-card'){ orgAbrirCartao(id); return; }
+    if (act === 'subir' || act === 'descer'){ await orgSubirDescer(id, act === 'subir' ? -1 : 1); return; }
     if (act === 'lem-feito'){
       var l = orgFind(org.lembretes, id); if (!l) return;
       r = await orgSaveLembrete(Object.assign({}, l, { feitoEm: l.feitoEm ? null : new Date() }));
