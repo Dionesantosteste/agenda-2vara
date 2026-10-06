@@ -96,6 +96,18 @@ alter table org_tarefas add column if not exists etiquetas uuid[] not null defau
 -- posição do cartão dentro da coluna (vazio = ordem automática por prazo)
 alter table org_tarefas add column if not exists posicao int;
 
+-- checklist do cartão: [{"t": "texto do item", "ok": true/false}, ...]
+alter table org_tarefas add column if not exists checklist jsonb not null default '[]';
+
+-- anotações com data dentro do cartão
+create table if not exists org_anotacoes (
+  id uuid primary key default gen_random_uuid(),
+  tarefa_id uuid not null references org_tarefas(id) on delete cascade,
+  texto text not null default '',
+  created_at timestamptz not null default now()
+);
+create index if not exists org_anotacoes_tarefa_idx on org_anotacoes (tarefa_id, created_at);
+
 alter table org_config    enable row level security;
 alter table org_notas     enable row level security;
 alter table org_tarefas   enable row level security;
@@ -103,7 +115,8 @@ alter table org_lembretes enable row level security;
 alter table org_rotinas   enable row level security;
 alter table org_etiquetas enable row level security;
 alter table org_colunas   enable row level security;
-revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas from anon, authenticated;
+alter table org_anotacoes enable row level security;
+revoke all on org_config, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas, org_anotacoes from anon, authenticated;
 
 -- ---------- senha ----------
 insert into org_config (id, pin_hash)
@@ -164,7 +177,9 @@ begin
     'rotinas', coalesce((select jsonb_agg(to_jsonb(r) order by r.created_at) from org_rotinas r), '[]'::jsonb),
     'etiquetas', coalesce((select jsonb_agg(to_jsonb(e) order by e.nome) from org_etiquetas e), '[]'::jsonb),
     'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c), '[]'::jsonb),
-    'ordem', true
+    'anotacoes', coalesce((select jsonb_agg(to_jsonb(a) order by a.created_at desc) from org_anotacoes a), '[]'::jsonb),
+    'ordem', true,
+    'checklist', true
   );
 end;
 $$;
@@ -449,6 +464,74 @@ begin
 end;
 $$;
 
+-- Grava o checklist inteiro do cartão (até 100 itens, 200 letras cada)
+create or replace function org_checklist_tarefa(p_pin text, p_id uuid, p_itens jsonb)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  update org_tarefas
+     set checklist = coalesce((
+           select jsonb_agg(jsonb_build_object('t', left(btrim(e.x->>'t'), 200), 'ok', coalesce(e.x->>'ok', 'false') = 'true') order by e.i)
+             from jsonb_array_elements(case when jsonb_typeof(p_itens) = 'array' then p_itens else '[]'::jsonb end) with ordinality as e(x, i)
+            where e.i <= 100 and btrim(coalesce(e.x->>'t', '')) <> ''
+         ), '[]'::jsonb),
+         updated_at = now()
+   where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+create or replace function org_anotar(p_pin text, p_tarefa uuid, p_texto text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+  txt text := left(btrim(coalesce(p_texto, '')), 2000);
+  novo uuid;
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  if txt = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Escreva a anotação.');
+  end if;
+  if not exists (select 1 from org_tarefas where id = p_tarefa) then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não existe mais.');
+  end if;
+  insert into org_anotacoes (tarefa_id, texto) values (p_tarefa, txt) returning id into novo;
+  update org_tarefas set updated_at = now() where id = p_tarefa;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_excluir_anotacao(p_pin text, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  st text := org_verifica(p_pin);
+begin
+  if st <> 'ok' then
+    return jsonb_build_object('status', st);
+  end if;
+  delete from org_anotacoes where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- ---------- colunas do quadro ----------
 create or replace function org_salvar_coluna(p_pin text, p_chave text, p_nome text)
 returns jsonb
@@ -536,6 +619,9 @@ grant execute on function org_salvar_etiqueta(text, uuid, text, text) to anon, a
 grant execute on function org_excluir_etiqueta(text, uuid) to anon, authenticated;
 grant execute on function org_etiquetar_tarefa(text, uuid, uuid[]) to anon, authenticated;
 grant execute on function org_ordenar_tarefas(text, uuid[]) to anon, authenticated;
+grant execute on function org_checklist_tarefa(text, uuid, jsonb) to anon, authenticated;
+grant execute on function org_anotar(text, uuid, text) to anon, authenticated;
+grant execute on function org_excluir_anotacao(text, uuid) to anon, authenticated;
 grant execute on function org_salvar_coluna(text, text, text) to anon, authenticated;
 grant execute on function org_ordenar_colunas(text, text[]) to anon, authenticated;
 grant execute on function org_excluir_coluna(text, text) to anon, authenticated;
