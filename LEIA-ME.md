@@ -124,12 +124,12 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 10 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 16 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
 
-**Atualizar** (quando o arquivo ganhar novidades, como as abas Quadro, Lembretes e Rotinas):
+**Atualizar** (quando o arquivo ganhar novidades, como as abas Quadro, Lembretes e Rotinas, ou as etiquetas e colunas do Quadro):
 rode o arquivo inteiro de novo do mesmo jeito. Nada é apagado e a senha atual continua valendo;
 não precisa mexer na linha `<<< SENHA`.
 
@@ -137,6 +137,20 @@ Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
 - A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
+
+No **Quadro**:
+- Arraste o cartão para outra coluna. No celular, use os botões ← →.
+- Clique no cartão para abrir a janela da tarefa: título, etapa, prazo, prioridade, responsável e processo.
+- Filtros no topo: texto ou nº do processo, responsável, Atrasadas, Vence hoje, Próximos 7 dias, Urgentes e Paradas.
+- Selos de prazo: vermelho (atrasada), laranja (vence hoje) e amarelo (vence em até 2 dias úteis).
+- Cartão sem mudança há 7 dias ou mais fica esmaecido, com "Parada há X dias".
+- Mais de 8 tarefas em Fazendo deixa a coluna vermelha. Os números ficam em `ORG_LIMITE_FAZENDO` e `ORG_DIAS_PARADO`, no `index.html`.
+- **Etiquetas:** o botão **Etiquetas** cria, renomeia, troca a cor e exclui etiquetas. Elas são marcadas na janela da tarefa e podem ser usadas no filtro.
+- **Colunas:** o botão **Colunas** cria colunas com qualquer nome, renomeia e muda a ordem com ← →.
+  - A primeira coluna (A fazer) e a última (Feito) são fixas, mas podem ser renomeadas.
+  - Feito continua marcando a tarefa como feita.
+  - Excluir uma coluna devolve as tarefas dela para a primeira.
+- Etiquetas e colunas precisam do `sql/organizacao.sql` atualizado: rode o arquivo inteiro de novo (veja **Atualizar** acima). Sem isso, o Quadro funciona com as 3 colunas de sempre e sem etiquetas.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 
