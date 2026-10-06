@@ -863,6 +863,7 @@
   .eq-st[data-k="conf"]{ background:var(--warn-soft); color:var(--warn); }
   .eq-flag.devolv{ color:var(--danger); background:var(--urgent-bg); }
   .eq-flag.conferida{ color:var(--ok); background:var(--ok-soft); }
+  .eq-mais{ display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0 2px; flex-wrap:wrap; }
   .conf-box .conf-st{ font-weight:600; }
   .conf-box .conf-txt{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
   .conf-acts{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:2px; }
@@ -5613,6 +5614,8 @@
 
   // ---- aba "Tarefas da equipe" ----
   org.eqf = { pessoa: '', sit: 'abertas' };
+  var ORG_EQ_PAGINA = 100;          // linhas da tabela da equipe desenhadas por vez
+  org.eqLimite = ORG_EQ_PAGINA;
   org.eqPrio = 'normal';
   var eqToque = { para: false, prazo: false, prio: false };   // o que o gestor escolheu à mão não é trocado pela leitura do texto
   var OE = {
@@ -5700,6 +5703,8 @@
         : 'Nenhuma tarefa com este filtro.') + '</div>';
       return;
     }
+    var total = lista.length;
+    lista = lista.slice(0, org.eqLimite);
     OE.lista.innerHTML = '<table class="eq-tab"><thead><tr><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Situação</th></tr></thead><tbody>' +
       lista.map(function(t){
         var nome = orgNomePessoa(t.dono) || '—', late = orgEqAtrasada(t), c = t.conclusao;
@@ -5717,7 +5722,9 @@
           '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
           '<td>' + (orgPrioTag(t, true) || '<span class="field-hint">Normal</span>') + '</td>' +
           '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
-      }).join('') + '</tbody></table>';
+      }).join('') + '</tbody></table>' +
+      (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
+        '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '');
   }
 
   // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"
@@ -5808,13 +5815,15 @@
     await orgLoad();
     OE.texto.focus();
   });
-  OE.fPessoa.addEventListener('change', function(){ org.eqf.pessoa = OE.fPessoa.value; renderOrgEquipe(); });
+  OE.fPessoa.addEventListener('change', function(){ org.eqf.pessoa = OE.fPessoa.value; org.eqLimite = ORG_EQ_PAGINA; renderOrgEquipe(); });
   OE.chips.addEventListener('click', function(e){
     var b = e.target.closest('[data-eqf]'); if (!b) return;
     org.eqf.sit = b.getAttribute('data-eqf');
+    org.eqLimite = ORG_EQ_PAGINA;
     renderOrgEquipe();
   });
   OE.lista.addEventListener('click', function(e){
+    if (e.target.closest('[data-eqmais]')){ org.eqLimite += ORG_EQ_PAGINA; renderOrgEquipe(); return; }
     if (e.target.closest('[data-act], button, a')) return;
     var tr = e.target.closest('[data-eq]'); if (tr) orgEqAbrir(tr.getAttribute('data-eq'));
   });
