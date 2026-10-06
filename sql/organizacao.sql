@@ -213,6 +213,9 @@ create unique index if not exists org_txt_meus_dono_idx
   on org_txt_meus ((coalesce(dono, '00000000-0000-0000-0000-000000000000'::uuid)));
 
 alter table org_config add column if not exists txt_semeado boolean not null default false;
+
+-- modelo de texto ligado à tarefa (botão "Abrir modelo" no cartão)
+alter table org_tarefas add column if not exists modelo_texto uuid references org_txt_modelos(id) on delete set null;
 -- cidade dos documentos: uma só, cadastrada pelo gestor
 alter table org_config add column if not exists txt_cidade text not null default '';
 
@@ -481,7 +484,9 @@ begin
       'pessoas', coalesce((select jsonb_agg(jsonb_build_object('id', p.id, 'nome', p.nome, 'ativo', p.ativo) order by lower(p.nome)) from org_pessoas p), '[]'::jsonb),
       'equipe_tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t
                                    where t.dono is not null and (t.do_gestor or t.conferencia is not null) and t.arquivada_em is null), '[]'::jsonb),
-      'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb)
+      'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb),
+      -- modelos de cartão do próprio gestor, para o "passo a passo" ao mandar tarefa
+      'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb)
     );
   end if;
   return res;
@@ -622,7 +627,8 @@ $$;
 
 -- Conferência da tarefa de uma pessoa:
 --   enviar / cancelar: a pessoa (ou o gestor na tela dela) manda para conferir ou desiste do envio
---   aprovar / devolver: só o gestor; aprovar leva para Feito, devolver deixa a tarefa onde está, com o motivo
+--   aprovar / devolver: só o gestor; nos dois casos a tarefa continua na coluna em que estava
+--   (aprovada ganha o selo "Conferida"; devolvida leva o motivo)
 create or replace function org_conferencia(p_pin text, p_pessoa uuid, p_id uuid, p_acao text, p_texto text)
 returns jsonb
 language plpgsql
@@ -673,9 +679,6 @@ begin
   update org_tarefas
      set conferencia = novo,
          conf_hist = coalesce(conf_hist, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('a', coalesce(novo, 'cancelada'), 'em', now(), 't', txt)),
-         etapa = case when p_acao = 'aprovar' then 'feito' else etapa end,
-         feita_em = case when p_acao = 'aprovar' then coalesce(feita_em, now()) else feita_em end,
-         posicao = case when p_acao = 'aprovar' then null else posicao end,
          updated_at = now()
    where id = p_id;
   return jsonb_build_object('status', 'ok', 'conferencia', novo);
@@ -1305,6 +1308,29 @@ begin
 end;
 $$;
 
+-- Liga (ou desliga, com p_modelo vazio) um modelo de texto à tarefa
+create or replace function org_tarefa_modelo_texto(p_pin text, p_pessoa uuid, p_id uuid, p_modelo uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if p_modelo is not null and not exists (select 1 from org_txt_modelos where id = p_modelo) then
+    return jsonb_build_object('status', 'erro', 'message', 'Este modelo de texto não existe mais.');
+  end if;
+  update org_tarefas set modelo_texto = p_modelo, updated_at = now()
+   where id = p_id and dono is not distinct from ac.o_dono;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- Cidade que vai em todos os documentos (só o gestor muda)
 create or replace function org_txt_cidade(p_pin text, p_pessoa uuid, p_cidade text)
 returns jsonb
@@ -1389,6 +1415,7 @@ grant execute on function org_txt_excluir_modelo(text, uuid, uuid) to anon, auth
 grant execute on function org_txt_usar(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_txt_meus_dados(text, uuid, text, text, text, uuid, boolean) to anon, authenticated;
 grant execute on function org_txt_cidade(text, uuid, text) to anon, authenticated;
+grant execute on function org_tarefa_modelo_texto(text, uuid, uuid, uuid) to anon, authenticated;
 grant execute on function org_txt_salvar_categoria(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_pessoas_publico() to anon, authenticated;
