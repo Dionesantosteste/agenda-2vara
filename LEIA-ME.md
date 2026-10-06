@@ -204,7 +204,7 @@ No **Quadro**:
   - A pessoa clica no ícone de prancheta do cartão (ou em **Enviar para conferência**, na janela da tarefa) e pode deixar um recado.
   - Enquanto espera, a tarefa fica parada na coluna em que está, com o selo "Em conferência". A pessoa pode **Cancelar envio** na janela da tarefa.
   - O gestor vê o número de tarefas para conferir na aba **Tarefas da equipe** e no menu. O filtro **Para conferir** lista essas tarefas.
-  - No detalhe da tarefa, o gestor clica em **Aprovar** (a tarefa vai para Feito, com o selo "Conferida") ou em **Devolver** (precisa escrever o motivo). A devolvida continua na mesma coluna da pessoa, com o selo "Devolvida" e o motivo, e pode ser enviada de novo.
+  - No detalhe da tarefa, o gestor clica em **Aprovar** ou em **Devolver** (precisa escrever o motivo). Nos dois casos a tarefa continua na coluna da pessoa em que estava quando foi enviada: a aprovada com o selo "Conferida ✓", a devolvida com o selo "Devolvida" e o motivo. Quem leva para Feito é a própria pessoa.
   - Cada envio, cancelamento, aprovação e devolução fica registrado com data e hora na janela da tarefa.
 - **Modelos de texto** (aba da Organização, para o gestor e para a equipe):
   - Uma biblioteca só, que todos usam e qualquer pessoa pode editar. Cada modelo mostra quem fez a última alteração.

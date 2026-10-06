@@ -622,7 +622,8 @@ $$;
 
 -- Conferência da tarefa de uma pessoa:
 --   enviar / cancelar: a pessoa (ou o gestor na tela dela) manda para conferir ou desiste do envio
---   aprovar / devolver: só o gestor; aprovar leva para Feito, devolver deixa a tarefa onde está, com o motivo
+--   aprovar / devolver: só o gestor; nos dois casos a tarefa continua na coluna em que estava
+--   (aprovada ganha o selo "Conferida"; devolvida leva o motivo)
 create or replace function org_conferencia(p_pin text, p_pessoa uuid, p_id uuid, p_acao text, p_texto text)
 returns jsonb
 language plpgsql
@@ -673,9 +674,6 @@ begin
   update org_tarefas
      set conferencia = novo,
          conf_hist = coalesce(conf_hist, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('a', coalesce(novo, 'cancelada'), 'em', now(), 't', txt)),
-         etapa = case when p_acao = 'aprovar' then 'feito' else etapa end,
-         feita_em = case when p_acao = 'aprovar' then coalesce(feita_em, now()) else feita_em end,
-         posicao = case when p_acao = 'aprovar' then null else posicao end,
          updated_at = now()
    where id = p_id;
   return jsonb_build_object('status', 'ok', 'conferencia', novo);
