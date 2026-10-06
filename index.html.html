@@ -758,6 +758,90 @@
   .kmove .kord{ font-size:17px; line-height:1; width:30px; height:30px; }
   @media (hover:hover) and (pointer:fine){ .kmove .kmid{ display:none; } }
   .kmove .kord:disabled{ opacity:.3; cursor:default; }
+
+  /* ---- telas da equipe: entrar pelo nome, ver a tela de alguém, tarefas da equipe ---- */
+  .lock-pessoas{ width:100%; display:flex; flex-direction:column; gap:10px; margin-top:4px; }
+  .lock-sep{ font-size:13px; color:var(--muted); display:flex; align-items:center; gap:10px; }
+  .lock-sep::before, .lock-sep::after{ content:""; flex:1; border-top:1px solid var(--line); }
+  .lock-lista{ display:flex; flex-direction:column; gap:6px; max-height:300px; overflow-y:auto; }
+  .pessoa-btn{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; border:1px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:10px; padding:8px 10px; cursor:pointer; font-family:var(--font-ui); font-size:14.5px; font-weight:500; }
+  .pessoa-btn:hover{ border-color:var(--accent); background:var(--accent-soft); }
+  .avatar{ width:30px; height:30px; border-radius:50%; flex:none; display:inline-flex; align-items:center; justify-content:center;
+    background:var(--accent-soft); color:var(--accent); font-size:12px; font-weight:700; letter-spacing:.02em; }
+  .avatar.sm{ width:24px; height:24px; font-size:10.5px; }
+  .org-head-actions{ flex-wrap:wrap; justify-content:flex-end; }
+  .org-head-actions select.org-in{ height:38px; max-width:220px; }
+  .org-head-actions .btn{ height:38px; }
+  .org-modo-pessoa .so-gestor, .org-alheia .so-proprio{ display:none !important; }
+  .org-ver-aviso{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 14px;
+    border:1px solid var(--warn); background:var(--warn-soft); color:var(--ink); border-radius:12px; padding:10px 14px; font-size:14px; }
+  .org-ver-aviso b{ color:var(--warn); }
+  .org-ver-aviso .btn{ height:34px; }
+
+  .tag.alta{ color:var(--warn); border:1px solid var(--warn); background:transparent; }
+  .tag.baixa{ color:var(--muted); border:1px dashed var(--item-line); background:transparent; }
+  .tag.gestor{ color:var(--accent); background:var(--accent-soft); text-transform:none; letter-spacing:0; }
+
+  .eq-form{ display:flex; flex-direction:column; gap:12px; }
+  .eq-linha{ display:flex; gap:8px; }
+  .eq-linha .eq-in{ flex:1; min-width:0; height:46px; font-size:15px; }
+  .eq-linha .btn{ height:46px; padding:0 20px; }
+  .eq-ctrls{ display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end; }
+  .eq-ctrl{ display:flex; flex-direction:column; gap:5px; font-size:11.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .eq-ctrl .org-in{ height:36px; text-transform:none; letter-spacing:0; }
+  .eq-ctrl .kchips{ text-transform:none; letter-spacing:0; }
+  .eq-prev{ font-size:13px; color:var(--muted); min-height:1.4em; display:flex; flex-wrap:wrap; gap:6px 12px; align-items:center; }
+  .eq-prev:empty{ display:none; }
+  .eq-prev b{ color:var(--ink); font-weight:600; }
+  .eq-prev .aviso{ color:var(--warn); font-weight:500; }
+
+  .eq-tab{ width:100%; border-collapse:collapse; font-size:14px; }
+  .eq-tab th{ text-align:left; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted);
+    padding:8px 10px; border-bottom:1px solid var(--line); background:var(--sunken); }
+  .eq-tab td{ padding:10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .eq-tab tbody tr{ cursor:pointer; }
+  .eq-tab tbody tr:hover{ background:var(--sunken); }
+  .eq-tab tbody tr:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .eq-tab .eq-t{ font-weight:500; overflow-wrap:anywhere; }
+  .eq-tab .eq-sub{ display:flex; gap:6px 10px; flex-wrap:wrap; margin-top:4px; font-size:12.5px; color:var(--muted); align-items:center; }
+  .eq-tab .late{ color:var(--danger); font-weight:600; }
+  .eq-quem{ display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+  .eq-prazo{ font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .eq-st{ display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:600; border-radius:999px; padding:2px 9px; white-space:nowrap;
+    background:var(--accent-soft); color:var(--accent); }
+  .eq-st[data-k="afazer"]{ background:var(--sunken); color:var(--muted); border:1px solid var(--line); }
+  .eq-st[data-k="feito"]{ background:var(--ok-soft); color:var(--ok); }
+  .eq-flag{ font-size:11.5px; font-weight:600; border-radius:6px; padding:1px 7px; }
+  .eq-flag.acao{ color:var(--danger); background:var(--urgent-bg); }
+  .eq-flag.dif{ color:var(--warn); background:var(--warn-soft); }
+  @media (max-width:760px){
+    .eq-tab thead{ display:none; }
+    .eq-tab, .eq-tab tbody{ display:block; }
+    .eq-tab tbody{ display:flex; flex-direction:column; gap:8px; }
+    .eq-tab tr{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:6px 10px; border:1px solid var(--item-line); background:var(--item); border-radius:10px; padding:10px; }
+    .eq-tab td{ display:block; padding:0; border:0; }
+    .eq-tab td.eq-c-t{ grid-column:1 / -1; }
+    .eq-linha .btn{ padding:0 14px; }
+  }
+
+  #orgFechDialog, #orgEqDialog{ width:min(520px, calc(100vw - 32px)); }
+  .of-radios{ border:0; padding:0; margin:0; display:flex; flex-direction:row; flex-wrap:wrap; gap:6px 18px; }
+  .of-radios legend{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); padding:0; margin-bottom:6px; width:100%; }
+  .of-radios label{ display:inline-flex; align-items:center; gap:6px; font-size:14.5px; text-transform:none; letter-spacing:0; color:var(--ink); cursor:pointer; }
+  .of-radios label input{ width:auto; margin:0; padding:0; accent-color:var(--accent); }
+  .oc-fech{ border:1px solid var(--line); background:var(--sunken); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:6px; font-size:13.5px; }
+  .oc-fech .vinc-t{ margin-bottom:2px; }
+  .fech-l{ display:flex; justify-content:space-between; gap:12px; }
+  .fech-l b{ font-weight:600; text-align:right; }
+  .fech-dif{ color:var(--ink); background:var(--warn-soft); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
+  .oq-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px 18px; }
+  .oq-grid .full{ grid-column:1 / -1; }
+  .oq-l{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:3px; }
+  .oq-v{ font-size:14.5px; font-weight:500; }
+  .cad-row.pes{ grid-template-columns:minmax(0,1fr) auto auto auto; }
+  .cad-row.pes.inativa input{ color:var(--muted); text-decoration:line-through; }
+  .cad-row .btn.mini{ height:32px; padding:0 10px; font-size:12.5px; }
   @media (hover:hover) and (pointer:fine){ .kmove .kord{ display:none; } }
   .kdrop-line{ height:4px; border-radius:2px; background:var(--accent); margin:-2px 4px; }
   .kmove .mv{ max-width:44%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
@@ -1264,24 +1348,68 @@
         <div class="lock-msg" id="orgMsg" role="alert"></div>
         <button type="submit" class="btn primary" id="orgEnter">Entrar</button>
       </form>
+      <div class="lock-pessoas" id="orgEntrarPessoas" hidden>
+        <div class="lock-sep">É da equipe? Entre na sua tela</div>
+        <div class="lock-lista" id="orgEntrarLista"></div>
+      </div>
     </div>
 
     <div id="orgContent" hidden>
       <header>
         <div>
-          <h1>Organização</h1>
-          <div class="tagline">Tarefas, mural, lembretes e rotinas da gestão</div>
+          <h1 id="orgH1">Organização</h1>
+          <div class="tagline" id="orgTagline">Tarefas, mural, lembretes e rotinas da gestão</div>
         </div>
         <div class="org-head-actions">
+          <select class="org-in so-gestor" id="orgVer" aria-label="Ver a tela de"></select>
+          <button type="button" class="btn so-gestor" id="orgPessoasBtn" title="Cadastrar as pessoas da equipe">Pessoas</button>
           <button type="button" class="btn" id="orgLockBtn" title="Trancar a Organização neste navegador">Trancar</button>
         </div>
       </header>
+      <div class="org-ver-aviso" id="orgVerAviso" hidden>
+        <span id="orgVerAvisoTxt"></span>
+        <button type="button" class="btn" id="orgVerVoltar">Voltar para a minha tela</button>
+      </div>
       <div class="org-tabs-scroll">
         <div class="org-tabs" id="orgTabs" role="tablist" aria-label="Partes da Organização">
+          <button type="button" class="org-tab so-gestor" role="tab" data-tab="equipe">Tarefas da equipe <span class="org-tab-n" id="orgTabEqN"></span></button>
           <button type="button" class="org-tab" role="tab" data-tab="lista">Tarefas e mural</button>
           <button type="button" class="org-tab" role="tab" data-tab="quadro">Quadro</button>
           <button type="button" class="org-tab" role="tab" data-tab="lembretes">Lembretes <span class="org-tab-n" id="orgTabLemN"></span></button>
-          <button type="button" class="org-tab" role="tab" data-tab="rotinas">Rotinas <span class="org-tab-n" id="orgTabRotN"></span></button>
+          <button type="button" class="org-tab so-proprio" role="tab" data-tab="rotinas">Rotinas <span class="org-tab-n" id="orgTabRotN"></span></button>
+        </div>
+      </div>
+
+      <div id="orgPaneEquipe" class="org-pane" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Mandar tarefa</h2><span>Escreva como numa mensagem, separando por vírgula: tarefa, nº do processo, prioridade, nome da pessoa e prazo (hoje, amanhã, sexta…)</span></div>
+          <form class="eq-form" id="orgEqForm" autocomplete="off">
+            <div class="eq-linha">
+              <input class="org-in eq-in" id="orgEqTexto" maxlength="300" placeholder="Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã" aria-label="Nova tarefa para a equipe" />
+              <button type="submit" class="btn primary" id="orgEqEnviar">Enviar</button>
+            </div>
+            <div class="eq-ctrls">
+              <label class="eq-ctrl">Para<select class="org-in" id="orgEqPara"></select></label>
+              <label class="eq-ctrl">Prazo<input class="org-in" type="date" id="orgEqPrazo" /></label>
+              <div class="eq-ctrl">Prioridade<div class="kchips" id="orgEqPrio" role="group" aria-label="Prioridade"></div></div>
+            </div>
+            <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
+          </form>
+          <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h2>Tarefas da equipe</h2><span id="orgEqInfo"></span></div>
+          <div class="kfilters">
+            <select class="org-in" id="orgEqFPessoa" aria-label="Filtrar por pessoa"></select>
+            <div class="kchips" id="orgEqChips" role="group" aria-label="Filtrar por situação">
+              <button type="button" class="chip" data-eqf="abertas" aria-pressed="true">Em aberto</button>
+              <button type="button" class="chip" data-eqf="atrasadas" aria-pressed="false">Atrasadas</button>
+              <button type="button" class="chip" data-eqf="acao" aria-pressed="false">Pedem ação do gestor</button>
+              <button type="button" class="chip" data-eqf="concluidas" aria-pressed="false">Concluídas</button>
+              <button type="button" class="chip" data-eqf="todas" aria-pressed="false">Todas</button>
+            </div>
+          </div>
+          <div id="orgEqLista"></div>
         </div>
       </div>
 
@@ -1292,8 +1420,8 @@
             <input class="org-in grow full" id="orgTaskTitle" maxlength="160" placeholder="Nova tarefa…" required />
             <input data-cnj class="org-in grow proc-in" id="orgTaskProc" maxlength="40" placeholder="Nº do processo (opcional)" aria-label="Número do processo" />
             <input class="org-in" id="orgTaskDue" type="date" aria-label="Prazo" />
-            <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="">Normal</option><option value="1">Urgente</option></select>
-            <select class="org-in" id="orgTaskResp" aria-label="Responsável"></select>
+            <select class="org-in" id="orgTaskUrg" aria-label="Prioridade"><option value="baixa">Baixa</option><option value="normal" selected>Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select>
+            <select class="org-in so-proprio" id="orgTaskResp" aria-label="Responsável"></select>
             <button type="submit" class="btn primary">Adicionar</button>
           </form>
           <div id="orgTasks" class="tgroup"></div>
@@ -1316,7 +1444,7 @@
             <button type="button" data-kview="calendario" aria-pressed="false">Calendário</button>
           </div>
           <input class="org-in kbusca" id="orgKBusca" type="search" maxlength="80" placeholder="Filtrar por título ou nº do processo…" aria-label="Filtrar tarefas do quadro" />
-          <select class="org-in" id="orgKResp" aria-label="Filtrar por responsável"></select>
+          <select class="org-in so-proprio" id="orgKResp" aria-label="Filtrar por responsável"></select>
           <select class="org-in" id="orgKEtq" aria-label="Filtrar por etiqueta" hidden></select>
           <button type="button" class="btn kbtn" id="orgKCadEtq">Etiquetas</button>
           <button type="button" class="btn kbtn" id="orgKCadCol">Colunas</button>
@@ -1620,13 +1748,19 @@
     <div class="field-row">
       <div class="field">
         <label for="ocUrg">Prioridade</label>
-        <select id="ocUrg"><option value="">Normal</option><option value="1">Urgente</option></select>
+        <select id="ocUrg"><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select>
       </div>
-      <div class="field">
+      <div class="field so-proprio">
         <label for="ocResp">Responsável</label>
         <select id="ocResp"></select>
       </div>
     </div>
+    <div class="field" id="ocEnviarWrap" hidden>
+      <label for="ocEnviar">Mandar para a tela de</label>
+      <select id="ocEnviar"></select>
+      <span class="field-hint">Ao salvar, a tarefa sai do seu quadro e vai para a primeira coluna da pessoa (as etiquetas ficam para trás). Você acompanha em "Tarefas da equipe".</span>
+    </div>
+    <div class="oc-fech" id="ocFech" hidden></div>
     <div class="field">
       <label for="ocProc">Nº do processo</label>
       <input data-cnj id="ocProc" class="mono" maxlength="40" placeholder="opcional" />
@@ -1695,6 +1829,62 @@
     <div class="sheet-actions">
       <div style="margin-left:auto;">
         <button type="button" class="btn" id="orgCadFechar">Fechar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="orgFechDialog">
+  <form class="sheet" id="orgFechForm" autocomplete="off">
+    <h2>Concluir tarefa</h2>
+    <p class="field-hint" id="orgFechTitulo" style="margin:-6px 0 0"></p>
+    <div class="field">
+      <label>Quanto tempo você levou?</label>
+      <div class="field-row">
+        <input id="ofHoras" type="number" min="0" max="999" inputmode="numeric" value="0" aria-label="Horas" />
+        <input id="ofMinutos" type="number" min="0" max="59" inputmode="numeric" value="0" aria-label="Minutos" />
+      </div>
+      <span class="field-hint">horas e minutos</span>
+    </div>
+    <fieldset class="field of-radios">
+      <legend>Conseguiu concluir conforme o pedido?</legend>
+      <label><input type="radio" name="ofConf" value="sim" checked /> Sim</label>
+      <label><input type="radio" name="ofConf" value="parcialmente" /> Parcialmente</label>
+      <label><input type="radio" name="ofConf" value="nao" /> Não</label>
+    </fieldset>
+    <fieldset class="field of-radios">
+      <legend>Teve alguma dificuldade?</legend>
+      <label><input type="radio" name="ofDif" value="nao" checked /> Não</label>
+      <label><input type="radio" name="ofDif" value="sim" /> Sim</label>
+    </fieldset>
+    <div class="field" id="ofDifWrap" hidden>
+      <label for="ofDifDesc">O que aconteceu?</label>
+      <textarea id="ofDifDesc" rows="3" maxlength="1000" placeholder="Ex.: faltou uma informação para concluir…"></textarea>
+    </div>
+    <fieldset class="field of-radios">
+      <legend>Precisa de alguma ação do gestor?</legend>
+      <label><input type="radio" name="ofAcao" value="nao" checked /> Não</label>
+      <label><input type="radio" name="ofAcao" value="sim" /> Sim</label>
+    </fieldset>
+    <div class="sheet-actions">
+      <div style="display:flex; gap:8px; margin-left:auto;">
+        <button type="button" class="btn" id="ofCancelar">Cancelar</button>
+        <button type="submit" class="btn primary" id="ofConcluir">Concluir tarefa</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="orgEqDialog">
+  <form class="sheet" id="orgEqDetForm" autocomplete="off">
+    <h2 id="oqTitulo">Tarefa</h2>
+    <div class="oq-grid" id="oqGrid"></div>
+    <div class="oc-fech" id="oqFech" hidden></div>
+    <span class="field-hint" id="oqInfo"></span>
+    <div class="sheet-actions">
+      <button type="button" class="btn" id="oqAbrir">Abrir no quadro</button>
+      <div style="margin-left:auto;">
+        <button type="button" class="btn" id="oqFechar">Fechar</button>
       </div>
     </div>
   </form>
@@ -1784,7 +1974,7 @@
       var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
       var grava = metodo !== 'GET' && metodo !== 'HEAD';
       var url = String((input && input.url) || input || '');
-      if (grava && /\/rpc\/org_listar/.test(url)) grava = false;   // listar a Organização é leitura
+      if (grava && /\/rpc\/org_(listar|pessoas_publico)/.test(url)) grava = false;   // listar a Organização é leitura
       if (grava) ocupado.gravacoes++; else ocupado.leituras++;
       atualizarOcupado();
       var fim = function(){ if (grava) ocupado.gravacoes--; else ocupado.leituras--; atualizarOcupado(); };
@@ -3179,8 +3369,12 @@
   var ICON_X = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
   var ICON_PENCIL = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
 
-  var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false };
+  // modo: 'gestor' (senha) ou 'pessoa' (entrou pelo nome). ver: no modo gestor, id da pessoa cuja tela está aberta (null = a do gestor)
+  var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false,
+    modo: 'gestor', eu: null, euNome: '', ver: null, pessoas: [], eqTarefas: [], eqColunas: [], temEquipe: false };
   try { org.pin = sessionStorage.getItem('orgPin'); } catch (e) {}
+  try { org.ver = sessionStorage.getItem('orgVer') || null; } catch (e) {}
+  try { if (!org.pin){ org.eu = localStorage.getItem('orgPessoa') || null; if (org.eu) org.modo = 'pessoa'; } } catch (e) {}
 
   var O = {
     lock: document.getElementById('orgLock'),
@@ -3207,20 +3401,36 @@
 
   O.taskResp.innerHTML = '<option value="">Responsável</option>' + ORG_RESPS.map(function(r){ return '<option>' + r + '</option>'; }).join('');
 
+  // Prioridade em 4 níveis; "urgente" continua valendo para os filtros e cores de sempre
+  var ORG_PRIO = [["baixa", "Baixa"], ["normal", "Normal"], ["alta", "Alta"], ["urgente", "Urgente"]];
+  var ORG_PRIO_N = { baixa: 0, normal: 1, alta: 2, urgente: 3 };
+  function orgPrioOk(p){ return ORG_PRIO_N.hasOwnProperty(p) ? p : 'normal'; }
+  function orgPrio(t){ return ORG_PRIO_N[t.prioridade] || 0; }
+  function orgPrioNome(p){ return (ORG_PRIO.filter(function(x){ return x[0] === p; })[0] || ORG_PRIO[1])[1]; }
+  // Selo da prioridade nas tarefas em aberto (Normal não ganha selo)
+  function orgPrioTag(t, aberta){
+    if (!aberta || t.prioridade === 'normal') return '';
+    var cls = t.prioridade === 'urgente' ? 'urg' : t.prioridade;
+    return '<span class="tag ' + cls + '">' + orgPrioNome(t.prioridade) + '</span>';
+  }
+
   function orgStatusMsg(st){
-    if (st === 'senha') return 'Senha incorreta.';
+    if (st === 'senha') return org.modo === 'pessoa' ? '' : 'Senha incorreta.';
     if (st === 'bloqueado') return 'Muitas tentativas erradas. Aguarde 5 minutos e tente de novo.';
     if (st === 'sem_config') return 'A senha ainda não foi configurada no Supabase (veja o LEIA-ME.md).';
+    if (st === 'sem_pessoa') return 'Este nome não está mais liberado. Fale com o gestor.';
     return '';
   }
 
+  // Toda chamada leva a senha (gestor) e a tela em uso: a da pessoa que entrou ou a que o gestor escolheu
   async function orgCall(fn, args){
     if (!supabase) return { status: 'erro', message: 'Configure o Supabase primeiro (veja LEIA-ME.md).' };
-    var res = await supabase.rpc(fn, Object.assign({ p_pin: org.pin }, args || {}));
+    var base = { p_pin: org.modo === 'pessoa' ? null : org.pin, p_pessoa: org.modo === 'pessoa' ? org.eu : org.ver };
+    var res = await supabase.rpc(fn, Object.assign(base, args || {}));
     if (res.error){
       var m = (res.error.code || '') + ' ' + (res.error.message || '');
       return { status: 'erro', message: /PGRST202|org_|function/i.test(m)
-        ? 'A Organização ainda não foi instalada no Supabase. Rode o arquivo sql/organizacao.sql (veja o LEIA-ME.md).'
+        ? 'A Organização no Supabase está desatualizada ou não foi instalada. Rode o arquivo sql/organizacao.sql inteiro de novo (veja o LEIA-ME.md).'
         : 'Erro no banco de dados: ' + res.error.message };
     }
     return res.data || { status: 'erro', message: 'O banco não respondeu.' };
@@ -3230,37 +3440,58 @@
   function orgOk(r){
     if (r.status === 'ok') return true;
     if (r.status === 'erro'){ toast(r.message); return false; }
+    // o gestor estava vendo a tela de alguém que foi excluído: volta para a dele
+    if (r.status === 'sem_pessoa' && org.modo === 'gestor' && org.ver){
+      orgVerTela(null);
+      toast('Essa pessoa não está mais cadastrada.');
+      return false;
+    }
     orgLock(orgStatusMsg(r.status));
     return false;
   }
 
   function orgLock(msg){
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
-    ['orgCardDialog', 'orgCadDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
-    try { sessionStorage.removeItem('orgPin'); } catch (e) {}
+    org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
+    ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
+    try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
+    try { localStorage.removeItem('orgPessoa'); } catch (e) {}
     O.content.hidden = true;
     O.lock.hidden = false;
     O.msg.textContent = msg || '';
     O.pin.value = '';
     O.navCount.textContent = '';
+    orgCarregarEntrada();
     if (currentRoute === 'organizacao') setTimeout(function(){ O.pin.focus(); }, 30);
   }
 
+  // Tarefa vinda do banco (do quadro aberto ou da lista da equipe)
+  function orgTarefaDe(t, chaves){
+    var pr = orgPrioOk(t.prioridade || (t.urgente ? 'urgente' : 'normal'));
+    return { id: t.id, titulo: t.titulo || '', prazo: t.prazo ? new Date(t.prazo + 'T00:00') : null,
+      prioridade: pr, urgente: pr === 'urgente',
+      responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
+      etapa: !chaves || chaves.indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer'),
+      etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
+      checklist: Array.isArray(t.checklist) ? t.checklist.map(function(i){ return { t: String(i && i.t || ''), ok: !!(i && i.ok) }; }) : [],
+      posicao: typeof t.posicao === 'number' ? t.posicao : null,
+      arquivadaEm: t.arquivada_em ? new Date(t.arquivada_em) : null,
+      dono: t.dono || null, doGestor: !!t.do_gestor,
+      conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
+      criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
+  }
+
   function orgParse(r){
+    org.temEquipe = r.equipe === true;
+    org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
+    org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
+    org.eqColunas = r.equipe_colunas || [];
+    org.eqTarefas = (r.equipe_tarefas || []).map(function(t){ return orgTarefaDe(t, null); });
     org.notas = (r.notas || []).map(function(n){
       return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
     });
     orgParseQuadro(r);
-    org.tarefas = (r.tarefas || []).map(function(t){
-      return { id: t.id, titulo: t.titulo || '', prazo: t.prazo ? new Date(t.prazo + 'T00:00') : null, urgente: !!t.urgente,
-        responsavel: t.responsavel || '', processo: t.processo || '', feitaEm: t.feita_em ? new Date(t.feita_em) : null,
-        etapa: orgChaves().indexOf(t.etapa) !== -1 ? t.etapa : (t.feita_em ? 'feito' : 'afazer'),
-        etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
-        checklist: Array.isArray(t.checklist) ? t.checklist.map(function(i){ return { t: String(i && i.t || ''), ok: !!(i && i.ok) }; }) : [],
-        posicao: typeof t.posicao === 'number' ? t.posicao : null,
-        arquivadaEm: t.arquivada_em ? new Date(t.arquivada_em) : null,
-        criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
-    });
+    org.tarefas = (r.tarefas || []).map(function(t){ return orgTarefaDe(t, orgChaves()); });
     org.lembretes = (r.lembretes || []).map(function(l){
       return { id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
         processo: l.processo || '', feitoEm: l.feito_em ? new Date(l.feito_em) : null };
@@ -3285,9 +3516,35 @@
     if (org.unlocked){ renderOrg(); return; }
     O.content.hidden = true;
     O.lock.hidden = false;
-    if (org.pin) orgLoad();
-    else setTimeout(function(){ O.pin.focus(); }, 30);
+    if (org.pin || org.eu) orgLoad();
+    else { orgCarregarEntrada(); setTimeout(function(){ O.pin.focus(); }, 30); }
   }
+
+  // ---- entrar pelo nome (pessoas da equipe, sem senha) ----
+  var orgEntrar = { box: document.getElementById('orgEntrarPessoas'), lista: document.getElementById('orgEntrarLista') };
+  function orgIniciais(nome){
+    var p = String(nome || '').trim().split(/\s+/).filter(Boolean);
+    if (!p.length) return '?';
+    return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[p.length - 1][0]).toUpperCase();
+  }
+  function orgAvatar(nome, sm){ return '<span class="avatar' + (sm ? ' sm' : '') + '" aria-hidden="true">' + escapeHtml(orgIniciais(nome)) + '</span>'; }
+  async function orgCarregarEntrada(){
+    if (!supabase) return;
+    var res = await supabase.rpc('org_pessoas_publico');
+    var lista = !res.error && res.data && Array.isArray(res.data.pessoas) ? res.data.pessoas : [];
+    orgEntrar.box.hidden = !lista.length;
+    orgEntrar.lista.innerHTML = lista.map(function(p){
+      return '<button type="button" class="pessoa-btn" data-entrar="' + escapeHtml(p.id) + '">' + orgAvatar(p.nome) + '<span>' + escapeHtml(p.nome) + '</span></button>';
+    }).join('');
+  }
+  orgEntrar.lista.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-entrar]'); if (!b) return;
+    org.modo = 'pessoa'; org.eu = b.getAttribute('data-entrar'); org.pin = null; org.ver = null;
+    var ok = await orgLoad();
+    if (!ok) return;
+    try { localStorage.setItem('orgPessoa', org.eu); } catch (e2) {}
+    toast('Olá, ' + (org.euNome.split(' ')[0] || org.euNome) + '!');
+  });
 
   O.pin.addEventListener('input', function(){
     O.pin.value = O.pin.value.replace(/\D/g, '').slice(0, 6);
@@ -3300,7 +3557,7 @@
     if (!/^\d{6}$/.test(O.pin.value)){ O.msg.textContent = 'A senha tem 6 números.'; return; }
     O.enter.disabled = true;
     O.enter.textContent = 'Conferindo…';
-    org.pin = O.pin.value;
+    org.pin = O.pin.value; org.modo = 'gestor'; org.eu = null; org.ver = null;
     var r = await orgCall('org_listar');
     O.enter.disabled = false;
     O.enter.textContent = 'Entrar';
@@ -3320,7 +3577,11 @@
     O.pin.focus();
   });
 
-  O.lockBtn.addEventListener('click', function(){ orgLock(''); toast('Organização trancada'); });
+  O.lockBtn.addEventListener('click', function(){
+    var pessoa = org.modo === 'pessoa';
+    orgLock('');
+    toast(pessoa ? 'Você saiu da sua tela' : 'Organização trancada');
+  });
 
   // ---- render ----
 
@@ -3329,14 +3590,70 @@
 
   function renderOrg(){
     if (!org.unlocked) return;
+    renderOrgModo();
     renderOrgTabs();
     renderOrgNotes();
     renderOrgTasks();
     renderOrgKanban();
     renderOrgLembretes();
     renderOrgRotinas();
+    renderOrgEquipe();
     O.navCount.textContent = orgPendCount() || '';
   }
+
+  // ---- de quem é a tela aberta ----
+  var OV = {
+    h1: document.getElementById('orgH1'),
+    tagline: document.getElementById('orgTagline'),
+    ver: document.getElementById('orgVer'),
+    pessoasBtn: document.getElementById('orgPessoasBtn'),
+    aviso: document.getElementById('orgVerAviso'),
+    avisoTxt: document.getElementById('orgVerAvisoTxt'),
+    voltar: document.getElementById('orgVerVoltar')
+  };
+  function orgPessoa(id){ return org.pessoas.filter(function(p){ return p.id === id; })[0] || null; }
+  function orgNomePessoa(id){ var p = orgPessoa(id); return p ? p.nome : ''; }
+  // Tela que não é a do próprio gestor (a pessoa que entrou ou o gestor vendo a de alguém)
+  function orgAlheia(){ return org.modo === 'pessoa' || !!org.ver; }
+
+  function renderOrgModo(){
+    var pessoa = org.modo === 'pessoa';
+    [O.content, document.getElementById('orgCardDialog')].forEach(function(el){
+      el.classList.toggle('org-modo-pessoa', pessoa);
+      el.classList.toggle('org-alheia', orgAlheia());
+    });
+    O.lockBtn.textContent = pessoa ? 'Sair' : 'Trancar';
+    O.lockBtn.title = pessoa ? 'Sair da sua tela neste navegador' : 'Trancar a Organização neste navegador';
+    if (pessoa){
+      OV.h1.textContent = 'Olá, ' + (org.euNome.split(' ')[0] || 'tudo bem') + '!';
+      OV.tagline.textContent = 'Seu quadro, mural e lembretes. Tarefas do gestor chegam na primeira coluna.';
+    } else {
+      OV.h1.textContent = 'Organização';
+      OV.tagline.textContent = org.ver ? 'Tela de ' + org.euNome : 'Tarefas, mural, lembretes e rotinas da gestão';
+    }
+    OV.aviso.hidden = pessoa || !org.ver;
+    if (org.ver) OV.avisoTxt.innerHTML = 'Você está na tela de <b>' + escapeHtml(org.euNome) + '</b>. O que mudar aqui aparece para essa pessoa.';
+    var opts = org.temEquipe && !pessoa ? org.pessoas : [];
+    OV.ver.hidden = !opts.length;
+    OV.pessoasBtn.hidden = pessoa || !org.temEquipe;
+    OV.ver.innerHTML = '<option value="">Minha tela (gestor)</option>' + opts.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '"' + (p.id === org.ver ? ' selected' : '') + '>Tela de ' + escapeHtml(p.nome) + (p.ativo ? '' : ' (desativada)') + '</option>';
+    }).join('');
+  }
+
+  // O gestor troca a tela aberta (null = a dele)
+  async function orgVerTela(id){
+    org.ver = id || null;
+    try { if (org.ver) sessionStorage.setItem('orgVer', org.ver); else sessionStorage.removeItem('orgVer'); } catch (e) {}
+    org.editing = null; org.kadd = null;
+    org.kf = { q: '', resp: '', prazo: '', etq: '' };
+    OT.kBusca.value = '';
+    if (org.tab === 'rotinas' && org.ver) org.tab = 'quadro';
+    await orgLoad();
+  }
+  OV.ver.addEventListener('change', function(){ orgVerTela(OV.ver.value); });
+  OV.voltar.addEventListener('click', function(){ orgVerTela(null); });
+  OV.pessoasBtn.addEventListener('click', function(){ abrirCadastro('pes'); });
 
   function renderOrgNotes(){
     O.swatches.innerHTML = ORG_CORES.map(function(c){
@@ -3375,8 +3692,8 @@
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
-      '<div class="t-side">' + (t.urgente && !t.feitaEm ? '<span class="tag urg">Urgente</span>' : '') +
-      (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+      '<div class="t-side">' + orgPrioTag(t, !t.feitaEm) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+      (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
   }
 
@@ -3409,8 +3726,8 @@
     return '<form class="task editing" data-form="editar" data-id="' + t.id + '"><div class="task-edit">' +
       '<label class="ttl">Tarefa<input class="org-in" id="oeTitulo" value="' + escapeHtml(t.titulo) + '" maxlength="160" required></label>' +
       '<label>Prazo<input class="org-in" type="date" id="oePrazo" value="' + (t.prazo ? dayKey(t.prazo) : '') + '"></label>' +
-      '<label>Prioridade<select class="org-in" id="oeUrg"><option value="">Normal</option><option value="1"' + (t.urgente ? ' selected' : '') + '>Urgente</option></select></label>' +
-      '<label>Responsável<select class="org-in" id="oeResp"><option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Prioridade<select class="org-in" id="oeUrg">' + ORG_PRIO.map(function(p){ return '<option value="' + p[0] + '"' + (p[0] === t.prioridade ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select></label>' +
+      '<label class="so-proprio">Responsável<select class="org-in" id="oeResp"><option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') + '</select></label>' +
       '<label>Nº do processo<input data-cnj class="org-in mono-in" id="oeProc" value="' + escapeHtml(t.processo) + '" maxlength="40" placeholder="opcional" style="font-family:var(--font-data)"></label>' +
       '<div class="row-btns"><button type="button" class="btn danger-text" data-act="excluir-tarefa" data-id="' + t.id + '">Excluir</button>' +
       '<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="cancelar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></span></div>' +
@@ -3435,7 +3752,7 @@
     groups.forEach(function(g){
       var items = org.tarefas.filter(function(t){ return !t.arquivadaEm && g.f(t); }).sort(function(a, b){
         if (g.desc) return b.feitaEm - a.feitaEm;
-        return ((a.prazo || 0) - (b.prazo || 0)) || (b.urgente - a.urgente);
+        return ((a.prazo || 0) - (b.prazo || 0)) || (orgPrio(b) - orgPrio(a));
       });
       if (!items.length) return;
       if (g.desc && items.length > 15) items = items.slice(0, 15);
@@ -3448,7 +3765,7 @@
 
   function orgSaveTask(t){
     return orgCall('org_salvar_tarefa', {
-      p_id: t.id || null, p_titulo: t.titulo, p_prazo: t.prazo ? dayKey(t.prazo) : null, p_urgente: !!t.urgente,
+      p_id: t.id || null, p_titulo: t.titulo, p_prazo: t.prazo ? dayKey(t.prazo) : null, p_prioridade: orgPrioOk(t.prioridade),
       p_responsavel: t.responsavel || '', p_processo: t.processo || '', p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null,
       p_etapa: t.etapa || (t.feitaEm ? 'feito' : 'afazer')
     });
@@ -3481,9 +3798,9 @@
     e.preventDefault();
     var titulo = O.taskTitle.value.trim(); if (!titulo) return;
     var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
-      urgente: !!O.taskUrg.value, responsavel: O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
+      prioridade: O.taskUrg.value, responsavel: orgAlheia() ? '' : O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
     if (!orgOk(r)) return;
-    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = ''; document.getElementById('orgTaskProc').value = '';
+    O.taskTitle.value = ''; O.taskDue.value = ''; O.taskUrg.value = 'normal'; document.getElementById('orgTaskProc').value = '';
     toast('Tarefa adicionada');
     await orgLoad();
     O.taskTitle.focus();
@@ -3503,6 +3820,7 @@
     }
     if (act === 'feita'){
       var t = orgFind(org.tarefas, id); if (!t) return;
+      if (!t.feitaEm && orgPedeFechamento(t)){ orgAbrirFechamento(t); return; }
       var feitaEm = t.feitaEm ? null : new Date();
       r = await orgSaveTask(Object.assign({}, t, { feitaEm: feitaEm, etapa: feitaEm ? 'feito' : 'afazer' }));
       if (orgOk(r)){ if (feitaEm) toast('Feita em ' + formatDataHora(feitaEm)); await orgLoad(); }
@@ -3527,7 +3845,7 @@
     var r = await orgSaveTask(Object.assign({}, t, {
       titulo: document.getElementById('oeTitulo').value.trim() || t.titulo,
       prazo: dv ? new Date(dv + 'T00:00') : null,
-      urgente: !!document.getElementById('oeUrg').value,
+      prioridade: document.getElementById('oeUrg').value,
       responsavel: document.getElementById('oeResp').value,
       processo: formatProcesso(document.getElementById('oeProc').value)
     }));
@@ -3589,8 +3907,9 @@
     tabs: document.getElementById('orgTabs'),
     lemN: document.getElementById('orgTabLemN'),
     rotN: document.getElementById('orgTabRotN'),
-    panes: { lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
+    panes: { equipe: document.getElementById('orgPaneEquipe'), lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
       lembretes: document.getElementById('orgPaneLembretes'), rotinas: document.getElementById('orgPaneRotinas') },
+    eqN: document.getElementById('orgTabEqN'),
     kanban: document.getElementById('orgKanban'),
     kBusca: document.getElementById('orgKBusca'),
     kResp: document.getElementById('orgKResp'),
@@ -3635,12 +3954,19 @@
   }
   function rotFeita(r){ return !!(r.feitaEm && r.feitaEm >= periodoInicio(r.frequencia)); }
 
+  function orgTabVisivel(k){
+    if (k === 'equipe') return org.modo === 'gestor' && org.temEquipe;
+    if (k === 'rotinas') return !orgAlheia();
+    return !!OT.panes[k];
+  }
   function renderOrgTabs(){
-    if (!OT.panes[org.tab]) org.tab = 'lista';
+    if (!orgTabVisivel(org.tab)) org.tab = 'lista';
     OT.tabs.querySelectorAll('.org-tab').forEach(function(b){ b.setAttribute('aria-selected', String(b.getAttribute('data-tab') === org.tab)); });
     Object.keys(OT.panes).forEach(function(k){ OT.panes[k].hidden = k !== org.tab; });
     OT.lemN.textContent = lemPendentesAte(0).length || '';
     OT.rotN.textContent = org.rotinas.filter(function(r){ return !rotFeita(r); }).length || '';
+    OT.eqN.textContent = org.eqTarefas.filter(orgEqAtrasada).length || '';
+    OT.eqN.title = OT.eqN.textContent ? 'Tarefas da equipe atrasadas' : '';
   }
 
   OT.tabs.addEventListener('click', function(e){
@@ -3773,7 +4099,7 @@
       if (chave === 'feito') return (b.feitaEm || 0) - (a.feitaEm || 0);
       var pa = a.posicao === null ? Infinity : a.posicao, pb = b.posicao === null ? Infinity : b.posicao;
       if (pa !== pb) return pa < pb ? -1 : 1;
-      return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (b.urgente - a.urgente);
+      return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (orgPrio(b) - orgPrio(a));
     });
   }
   function orgPodeOrdenar(chave){ return org.temOrdem && chave !== 'feito'; }
@@ -3829,8 +4155,8 @@
           (orgPodeArquivar(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
           '</span></div>' +
           '<div class="t-meta">' + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
-          (t.urgente && aberta ? '<span class="tag urg">Urgente</span>' : '') +
-          (t.responsavel ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
+          orgPrioTag(t, aberta) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+          (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') +
           orgKBadges(t) + orgKVinc(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
@@ -3945,6 +4271,7 @@
   // antesDe: id do cartão que fica logo abaixo (null = fim da coluna; undefined = ordem automática)
   async function orgMoverTarefa(t, etapa, antesDe){
     if (!t || t.etapa === etapa || orgChaves().indexOf(etapa) === -1) return;
+    if (etapa === 'feito' && orgPedeFechamento(t)){ orgAbrirFechamento(t); return; }
     var feitaEm = etapa === 'feito' ? (t.feitaEm || new Date()) : null;
     var novo = Object.assign({}, t, { etapa: etapa, feitaEm: feitaEm });
     t.etapa = etapa; t.feitaEm = feitaEm; t.atualizada = new Date(); t.posicao = null;
@@ -4079,6 +4406,9 @@
     resp: document.getElementById('ocResp'),
     proc: document.getElementById('ocProc'),
     info: document.getElementById('ocInfo'),
+    enviarWrap: document.getElementById('ocEnviarWrap'),
+    enviar: document.getElementById('ocEnviar'),
+    fech: document.getElementById('ocFech'),
     excluir: document.getElementById('ocExcluir'),
     cancelar: document.getElementById('ocCancelar')
   };
@@ -4098,14 +4428,20 @@
     OC.titulo.value = t.titulo;
     OC.etapa.value = t.etapa;
     OC.prazo.value = t.prazo ? dayKey(t.prazo) : '';
-    OC.urg.value = t.urgente ? '1' : '';
+    OC.urg.value = t.prioridade;
     OC.proc.value = t.processo;
+    var ativos = org.modo === 'gestor' && !org.ver && org.temEquipe ? org.pessoas.filter(function(p){ return p.ativo; }) : [];
+    OC.enviarWrap.hidden = !ativos.length;
+    OC.enviar.innerHTML = '<option value="">Ninguém (fica no meu quadro)</option>' + ativos.map(function(p){ return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>'; }).join('');
+    OC.fech.hidden = !t.conclusao;
+    OC.fech.innerHTML = t.conclusao ? orgFechHtml(t.conclusao) : '';
     renderOcVinc();
     resetOcModelo();
     var info = [];
     if (t.criada) info.push('Criada em ' + formatDataHora(t.criada));
     if (t.atualizada) info.push('última mudança em ' + formatDataHora(t.atualizada));
     if (t.feitaEm) info.push('feita em ' + formatDataHora(t.feitaEm));
+    if (t.doGestor) info.unshift('Mandada pelo gestor');
     OC.info.textContent = info.join(' · ');
     OC.excluir.classList.remove('armed'); OC.excluir.textContent = 'Excluir';
     OC.dialog.showModal();
@@ -4120,10 +4456,13 @@
     e.preventDefault();
     var t = orgFind(org.tarefas, orgCartaoId); if (!t){ OC.dialog.close(); return; }
     var etapa = OC.etapa.value;
+    // tarefa do gestor indo para Feito: grava o resto e pede o fechamento antes de concluir
+    var fechar = etapa === 'feito' && t.etapa !== 'feito' && orgPedeFechamento(t);
+    if (fechar) etapa = t.etapa;
     var r = await orgSaveTask(Object.assign({}, t, {
       titulo: OC.titulo.value.trim() || t.titulo,
       prazo: OC.prazo.value ? new Date(OC.prazo.value + 'T00:00') : null,
-      urgente: !!OC.urg.value,
+      prioridade: OC.urg.value,
       responsavel: OC.resp.value,
       processo: formatProcesso(OC.proc.value),
       etapa: etapa,
@@ -4134,9 +4473,15 @@
       r = await orgCall('org_etiquetar_tarefa', { p_id: t.id, p_etiquetas: ocEtiqSel });
       if (!orgOk(r)) return;
     }
+    var destino = !OC.enviarWrap.hidden && OC.enviar.value;
+    if (destino){
+      r = await orgCall('org_enviar_tarefa', { p_id: t.id, p_destino: destino });
+      if (!orgOk(r)) return;
+    }
     OC.dialog.close();
-    toast('Tarefa atualizada');
+    toast(destino ? 'Tarefa mandada para ' + orgNomePessoa(destino) : 'Tarefa atualizada');
     await orgLoad();
+    if (fechar) orgAbrirFechamento(orgFind(org.tarefas, t.id) || t);
   });
 
   OC.excluir.addEventListener('click', async function(){
@@ -4318,6 +4663,20 @@
       CAD.novo.innerHTML = '<select id="cadNovaCor" aria-label="Cor da nova etiqueta" style="--lc:' + orgCorEtq('azul') + '">' + cadCorOpts('azul') + '</select>' +
         '<input id="cadNovoNome" maxlength="40" placeholder="Nova etiqueta (ex.: Mandado)">' +
         '<button type="button" class="icon-btn" data-cad="add" title="Adicionar etiqueta" aria-label="Adicionar etiqueta">' + ICON_MAIS + '</button>';
+    } else if (cadModo === 'pes'){
+      CAD.titulo.textContent = 'Pessoas da equipe';
+      CAD.dica.textContent = 'Cada pessoa cadastrada ganha a própria tela (quadro, mural e lembretes) e entra nela escolhendo o nome na Organização, sem senha. Desativar tira o nome da lista de entrada sem apagar nada; excluir apaga a tela inteira da pessoa.';
+      if (!org.pessoas.length) h = '<div class="cat-empty">Ninguém cadastrado ainda.</div>';
+      org.pessoas.forEach(function(p){
+        h += '<div class="cad-row pes' + (p.ativo ? '' : ' inativa') + '" data-id="' + escapeHtml(p.id) + '">' +
+          '<input data-cad="nome" maxlength="60" value="' + escapeHtml(p.nome) + '" aria-label="Nome da pessoa">' +
+          '<button type="button" class="btn mini" data-cad="ver" title="Abrir a tela desta pessoa">Ver tela</button>' +
+          '<button type="button" class="btn mini" data-cad="ativo" title="' + (p.ativo ? 'Tira o nome da lista de entrada, sem apagar nada' : 'Volta a liberar a entrada pelo nome') + '">' + (p.ativo ? 'Desativar' : 'Reativar') + '</button>' +
+          '<button type="button" class="icon-btn danger" data-cad="excluir" data-usos="0" title="Excluir pessoa" aria-label="Excluir ' + escapeHtml(p.nome) + '">' + ICON_LIXO + '</button></div>';
+      });
+      CAD.novo.className = 'cad-row mod';
+      CAD.novo.innerHTML = '<input id="cadNovoNome" maxlength="60" placeholder="Nome da pessoa (ex.: Maria Souza)">' +
+        '<button type="button" class="icon-btn" data-cad="add" title="Cadastrar pessoa" aria-label="Cadastrar pessoa">' + ICON_MAIS + '</button>';
     } else if (cadModo === 'mod'){
       CAD.titulo.textContent = 'Modelos de tarefa';
       CAD.dica.textContent = 'Para criar um modelo, abra uma tarefa já preenchida (etiquetas, checklist, responsável) e clique em "Salvar como modelo". Aqui você renomeia ou exclui.';
@@ -4379,9 +4738,10 @@
     if (!nome){ input.focus(); return; }
     var r = cadModo === 'etq'
       ? await orgCall('org_salvar_etiqueta', { p_id: null, p_nome: nome, p_cor: document.getElementById('cadNovaCor').value })
+      : cadModo === 'pes' ? await orgCall('org_salvar_pessoa', { p_id: null, p_nome: nome, p_ativo: true })
       : await orgCall('org_salvar_coluna', { p_chave: null, p_nome: nome });
     if (!orgOk(r)) return;
-    toast(cadModo === 'etq' ? 'Etiqueta criada' : 'Coluna criada');
+    toast(cadModo === 'etq' ? 'Etiqueta criada' : cadModo === 'pes' ? 'Cadastro feito. ' + nome + ' já pode entrar pela lista de nomes da Organização.' : 'Coluna criada');
     await cadRecarregar(true);
   }
 
@@ -4400,6 +4760,13 @@
       r = await orgCall('org_salvar_etiqueta', { p_id: et.id, p_nome: nome, p_cor: cor });
       if (!orgOk(r)) return;
       toast(campo === 'cor' ? 'Cor da etiqueta alterada' : 'Etiqueta renomeada');
+    } else if (cadModo === 'pes'){
+      var pe = orgPessoa(row.getAttribute('data-id')); if (!pe) return;
+      var np = e.target.value.trim().replace(/\s+/g, ' ');
+      if (!np || np === pe.nome){ e.target.value = pe.nome; return; }
+      r = await orgCall('org_salvar_pessoa', { p_id: pe.id, p_nome: np, p_ativo: null });
+      if (!orgOk(r)){ e.target.value = pe.nome; return; }
+      toast('Nome alterado');
     } else if (cadModo === 'mod'){
       var mo = orgModelo(row.getAttribute('data-id')); if (!mo) return;
       var nm = e.target.value.trim().replace(/\s+/g, ' ');
@@ -4426,16 +4793,30 @@
         var usos = Number(b.getAttribute('data-usos')) || 0;
         row.classList.add('confirmando');
         b.classList.add('armed');
-        b.innerHTML = '<span style="font-size:12px;padding:0 6px;color:var(--danger);white-space:nowrap">Excluir?' + (usos
+        b.innerHTML = '<span style="font-size:12px;padding:0 6px;color:var(--danger);white-space:nowrap">Excluir?' + (cadModo === 'pes' ? ' (apaga a tela inteira)' : usos
           ? (cadModo === 'etq' ? ' (sai de ' + usos + (usos === 1 ? ' tarefa)' : ' tarefas)') : ' (' + usos + (usos === 1 ? ' tarefa volta' : ' tarefas voltam') + ' para "' + escapeHtml(orgNomeColuna('afazer')) + '")')
           : '') + '</span>';
         return;
       }
       r = cadModo === 'etq' ? await orgCall('org_excluir_etiqueta', { p_id: row.getAttribute('data-id') })
         : cadModo === 'mod' ? await orgCall('org_excluir_modelo', { p_id: row.getAttribute('data-id') })
+        : cadModo === 'pes' ? await orgCall('org_excluir_pessoa', { p_id: row.getAttribute('data-id') })
         : await orgCall('org_excluir_coluna', { p_chave: row.getAttribute('data-chave') });
       if (!orgOk(r)) return;
-      toast(cadModo === 'etq' ? 'Etiqueta excluída' : cadModo === 'mod' ? 'Modelo excluído' : 'Coluna excluída');
+      if (cadModo === 'pes' && org.ver === row.getAttribute('data-id')){
+        org.ver = null;
+        try { sessionStorage.removeItem('orgVer'); } catch (e2) {}
+      }
+      toast(cadModo === 'etq' ? 'Etiqueta excluída' : cadModo === 'mod' ? 'Modelo excluído' : cadModo === 'pes' ? 'Pessoa excluída' : 'Coluna excluída');
+      await cadRecarregar(false);
+      return;
+    }
+    if (cadModo === 'pes' && (acao === 'ativo' || acao === 'ver')){
+      var pp = orgPessoa(row.getAttribute('data-id')); if (!pp) return;
+      if (acao === 'ver'){ CAD.dialog.close(); await orgVerTela(pp.id); return; }
+      r = await orgCall('org_salvar_pessoa', { p_id: pp.id, p_nome: pp.nome, p_ativo: !pp.ativo });
+      if (!orgOk(r)) return;
+      toast(pp.ativo ? 'Acesso de ' + pp.nome + ' desativado: o nome sai da lista de entrada' : 'Acesso de ' + pp.nome + ' reativado');
       await cadRecarregar(false);
       return;
     }
@@ -4541,7 +4922,7 @@
     if (!t || !nome){ OM.nome.focus(); return; }
     var dados = { titulo: OC.titulo.value.trim() || t.titulo, etiquetas: ocEtiqSel.slice(),
       checklist: t.checklist.map(function(i){ return { t: i.t, ok: false }; }),
-      responsavel: OC.resp.value, urgente: !!OC.urg.value };
+      responsavel: OC.resp.value, prioridade: OC.urg.value, urgente: OC.urg.value === 'urgente' };
     var r = await orgCall('org_salvar_modelo', { p_id: null, p_nome: nome, p_dados: dados });
     if (!orgOk(r)) return;
     toast('Modelo "' + nome + '" criado. Escolha-o em "+ Adicionar tarefa".');
@@ -4554,7 +4935,8 @@
   // ---- nova tarefa (com ou sem modelo); devolve o id ou null ----
   async function orgCriarTarefa(titulo, etapa, mod){
     var d = mod ? (mod.dados || {}) : {};
-    var r = await orgSaveTask({ titulo: titulo, prazo: null, urgente: !!d.urgente, responsavel: d.responsavel || '', processo: '', feitaEm: null, etapa: etapa });
+    var r = await orgSaveTask({ titulo: titulo, prazo: null, prioridade: orgPrioOk(d.prioridade || (d.urgente ? 'urgente' : 'normal')),
+      responsavel: orgAlheia() ? '' : d.responsavel || '', processo: '', feitaEm: null, etapa: etapa });
     if (!orgOk(r)) return null;
     if (mod && r.id){
       var etq = (Array.isArray(d.etiquetas) ? d.etiquetas : []).filter(orgEtq), r2;
@@ -4645,7 +5027,7 @@
     var porDia = {};
     lista.forEach(function(t){ var k = dayKey(t.prazo); (porDia[k] = porDia[k] || []).push(t); });
     Object.keys(porDia).forEach(function(k){
-      porDia[k].sort(function(a, b){ return ((a.etapa === 'feito') - (b.etapa === 'feito')) || (b.urgente - a.urgente) || a.titulo.localeCompare(b.titulo, 'pt-BR'); });
+      porDia[k].sort(function(a, b){ return ((a.etapa === 'feito') - (b.etapa === 'feito')) || (orgPrio(b) - orgPrio(a)) || a.titulo.localeCompare(b.titulo, 'pt-BR'); });
     });
     var ano = org.kmes.getFullYear(), mes = org.kmes.getMonth();
     var d = new Date(ano, mes, 1 - new Date(ano, mes, 1).getDay());
@@ -4847,6 +5229,318 @@
       r = await orgCall('org_excluir_rotina', { p_id: id });
       if (orgOk(r)){ toast('Rotina excluída'); await orgLoad(); }
     }
+  });
+
+  // ======== Tarefas da equipe (gestor) e fechamento da tarefa (pessoa) ========
+  function orgEqAtrasada(t){ return t.etapa !== 'feito' && !!t.prazo && orgDiff(t.prazo) < 0; }
+  // Tarefa mandada pelo gestor: ao ir para a última coluna, a pessoa responde o fechamento
+  function orgPedeFechamento(t){ return org.modo === 'pessoa' && t.doGestor && !t.conclusao; }
+
+  var ORG_CONF = { sim: 'Sim', parcialmente: 'Parcialmente', nao: 'Não' };
+  function orgFechHtml(c){
+    var h = Number(c.horas) || 0, m = Number(c.minutos) || 0;
+    return '<div class="vinc-t">Fechamento da tarefa' + (c.em ? ' · ' + formatDataHora(new Date(c.em)) : '') + '</div>' +
+      '<div class="fech-l"><span>Tempo levado</span><b>' + h + 'h ' + pad(m) + 'min</b></div>' +
+      '<div class="fech-l"><span>Concluiu conforme o pedido?</span><b>' + (ORG_CONF[c.conformidade] || 'Sim') + '</b></div>' +
+      '<div class="fech-l"><span>Precisa de ação do gestor?</span><b' + (c.precisa_acao ? ' style="color:var(--danger)"' : '') + '>' + (c.precisa_acao ? 'Sim' : 'Não') + '</b></div>' +
+      (c.dificuldade ? '<div class="fech-dif"><b>Dificuldade:</b> ' + escapeHtml(c.dificuldade_desc || 'não descreveu') + '</div>'
+        : '<div class="fech-l"><span>Teve dificuldade?</span><b>Não</b></div>');
+  }
+
+  // ---- janela "Concluir tarefa" ----
+  var OF = {
+    dialog: document.getElementById('orgFechDialog'),
+    form: document.getElementById('orgFechForm'),
+    titulo: document.getElementById('orgFechTitulo'),
+    horas: document.getElementById('ofHoras'),
+    minutos: document.getElementById('ofMinutos'),
+    difWrap: document.getElementById('ofDifWrap'),
+    difDesc: document.getElementById('ofDifDesc'),
+    cancelar: document.getElementById('ofCancelar'),
+    concluir: document.getElementById('ofConcluir')
+  };
+  var orgFechId = null;
+  function ofMarcar(nome, valor){ var el = OF.form.querySelector('[name=' + nome + '][value=' + valor + ']'); if (el) el.checked = true; }
+  function ofValor(nome){ var el = OF.form.querySelector('[name=' + nome + ']:checked'); return el ? el.value : ''; }
+
+  function orgAbrirFechamento(t){
+    orgFechId = t.id;
+    OF.titulo.textContent = t.titulo;
+    OF.horas.value = '0'; OF.minutos.value = '0';
+    ofMarcar('ofConf', 'sim'); ofMarcar('ofDif', 'nao'); ofMarcar('ofAcao', 'nao');
+    OF.difDesc.value = ''; OF.difWrap.hidden = true;
+    OF.concluir.disabled = false;
+    renderOrgKanban();
+    OF.dialog.showModal();
+    setTimeout(function(){ OF.horas.select(); }, 30);
+  }
+  OF.form.addEventListener('change', function(e){
+    if (e.target.name === 'ofDif'){
+      OF.difWrap.hidden = e.target.value !== 'sim';
+      if (!OF.difWrap.hidden) OF.difDesc.focus();
+    }
+  });
+  OF.cancelar.addEventListener('click', function(){ OF.dialog.close(); });
+  OF.dialog.addEventListener('close', function(){ orgFechId = null; });
+  OF.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    if (!orgFechId) return;
+    var dif = ofValor('ofDif') === 'sim';
+    if (dif && !OF.difDesc.value.trim()){ toast('Conte rapidamente qual foi a dificuldade.'); OF.difDesc.focus(); return; }
+    var conclusao = {
+      horas: Math.max(0, Math.min(999, parseInt(OF.horas.value, 10) || 0)),
+      minutos: Math.max(0, Math.min(59, parseInt(OF.minutos.value, 10) || 0)),
+      conformidade: ofValor('ofConf') || 'sim',
+      dificuldade: dif,
+      dificuldade_desc: dif ? OF.difDesc.value.trim() : '',
+      precisa_acao: ofValor('ofAcao') === 'sim'
+    };
+    OF.concluir.disabled = true;
+    var r = await orgCall('org_concluir_tarefa', { p_id: orgFechId, p_conclusao: conclusao });
+    OF.concluir.disabled = false;
+    if (!orgOk(r)) return;
+    OF.dialog.close();
+    toast('Tarefa concluída. O gestor já vê o fechamento.');
+    await orgLoad();
+  });
+
+  // ---- aba "Tarefas da equipe" ----
+  org.eqf = { pessoa: '', sit: 'abertas' };
+  org.eqPrio = 'normal';
+  var eqToque = { para: false, prazo: false, prio: false };   // o que o gestor escolheu à mão não é trocado pela leitura do texto
+  var OE = {
+    form: document.getElementById('orgEqForm'),
+    texto: document.getElementById('orgEqTexto'),
+    enviar: document.getElementById('orgEqEnviar'),
+    para: document.getElementById('orgEqPara'),
+    prazo: document.getElementById('orgEqPrazo'),
+    prio: document.getElementById('orgEqPrio'),
+    prev: document.getElementById('orgEqPrev'),
+    sem: document.getElementById('orgEqSemPessoas'),
+    info: document.getElementById('orgEqInfo'),
+    fPessoa: document.getElementById('orgEqFPessoa'),
+    chips: document.getElementById('orgEqChips'),
+    lista: document.getElementById('orgEqLista')
+  };
+
+  function orgEqColuna(t){
+    if (t.etapa === 'feito') return 'Concluída';
+    var c = org.eqColunas.filter(function(x){ return x.dono === t.dono && x.chave === t.etapa; })[0];
+    if (c && c.nome) return c.nome;
+    return t.etapa === 'afazer' ? 'A fazer' : t.etapa === 'fazendo' ? 'Fazendo' : 'Em andamento';
+  }
+  function orgEqPassa(t){
+    var f = org.eqf.sit;
+    if (f === 'abertas') return t.etapa !== 'feito';
+    if (f === 'atrasadas') return orgEqAtrasada(t);
+    if (f === 'acao') return !!(t.conclusao && t.conclusao.precisa_acao);
+    if (f === 'concluidas') return t.etapa === 'feito';
+    return true;
+  }
+  function orgEqPrazoTxt(t){
+    if (t.etapa === 'feito') return t.feitaEm ? 'Feita ' + fmtDia(t.feitaEm) : 'Feita';
+    if (!t.prazo) return '<span class="field-hint">Sem prazo</span>';
+    var dd = orgDiff(t.prazo);
+    if (dd < 0) return '<span class="late">' + fmtDia(t.prazo) + '</span>';
+    return dd === 0 ? 'Hoje' : dd === 1 ? 'Amanhã' : fmtDia(t.prazo);
+  }
+  function orgEqPrioChips(){
+    OE.prio.innerHTML = ORG_PRIO.map(function(p){
+      return '<button type="button" class="chip" data-eqprio="' + p[0] + '" aria-pressed="' + (p[0] === org.eqPrio) + '">' + p[1] + '</button>';
+    }).join('');
+  }
+
+  function renderOrgEquipe(){
+    if (org.modo !== 'gestor' || !org.temEquipe) return;
+    var ativos = org.pessoas.filter(function(p){ return p.ativo; });
+    OE.form.hidden = !ativos.length;
+    OE.sem.hidden = !!ativos.length;
+    var para = OE.para.value;
+    OE.para.innerHTML = '<option value="">Escolha a pessoa…</option>' + ativos.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>';
+    }).join('');
+    if (para && ativos.some(function(p){ return p.id === para; })) OE.para.value = para;
+    orgEqPrioChips();
+
+    if (org.eqf.pessoa && !orgPessoa(org.eqf.pessoa)) org.eqf.pessoa = '';
+    OE.fPessoa.innerHTML = '<option value="">Todas as pessoas</option>' + org.pessoas.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '"' + (p.id === org.eqf.pessoa ? ' selected' : '') + '>' + escapeHtml(p.nome) + '</option>';
+    }).join('');
+    OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
+
+    var base = org.eqTarefas.filter(function(t){ return !org.eqf.pessoa || t.dono === org.eqf.pessoa; });
+    var abertas = base.filter(function(t){ return t.etapa !== 'feito'; }).length, atrasadas = base.filter(orgEqAtrasada).length;
+    OE.info.textContent = base.length ? abertas + ' em aberto' + (atrasadas ? ' · ' + atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : '') + ' · clique na linha para ver os detalhes' : '';
+    var lista = base.filter(orgEqPassa).sort(function(a, b){
+      var fa = a.etapa === 'feito', fb = b.etapa === 'feito';
+      if (fa !== fb) return fa ? 1 : -1;
+      if (fa) return (b.feitaEm || 0) - (a.feitaEm || 0);
+      return ((a.prazo || 8.64e15) - (b.prazo || 8.64e15)) || (orgPrio(b) - orgPrio(a));
+    });
+    if (!lista.length){
+      OE.lista.innerHTML = '<div class="org-empty">' + (!org.eqTarefas.length
+        ? (org.pessoas.length ? 'Nenhuma tarefa mandada ainda. Escreva acima e clique em "Enviar".' : 'Cadastre a equipe no botão "Pessoas" para começar a mandar tarefas.')
+        : 'Nenhuma tarefa com este filtro.') + '</div>';
+      return;
+    }
+    OE.lista.innerHTML = '<table class="eq-tab"><thead><tr><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Situação</th></tr></thead><tbody>' +
+      lista.map(function(t){
+        var nome = orgNomePessoa(t.dono) || '—', late = orgEqAtrasada(t), c = t.conclusao;
+        var tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
+        var k = t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+        var sub = (late ? '<span class="late">Atrasada</span>' : '') + (t.processo ? procCopyBtn(t.processo) : '') +
+          (tot ? '<span class="kcheck' + (ok === tot ? ' ok' : '') + '">' + ICON_CK + ok + '/' + tot + '</span>' : '') +
+          (c && c.precisa_acao ? '<span class="eq-flag acao">Pede ação do gestor</span>' : '') +
+          (c && c.dificuldade ? '<span class="eq-flag dif">Teve dificuldade</span>' : '');
+        return '<tr tabindex="0" data-eq="' + t.id + '">' +
+          '<td class="eq-c-t"><div class="eq-t">' + escapeHtml(t.titulo) + '</div>' + (sub ? '<div class="eq-sub">' + sub + '</div>' : '') + '</td>' +
+          '<td><span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span></td>' +
+          '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
+          '<td>' + (orgPrioTag(t, true) || '<span class="field-hint">Normal</span>') + '</td>' +
+          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(orgEqColuna(t)) + '</span></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+
+  // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"
+  var ORG_DSEM_NOMES = { domingo: 0, segunda: 1, 'segunda-feira': 1, terca: 2, 'terca-feira': 2, quarta: 3, 'quarta-feira': 3,
+    quinta: 4, 'quinta-feira': 4, sexta: 5, 'sexta-feira': 5, sabado: 6 };
+  function orgEqLer(txt){
+    var r = { titulo: [], processo: '', prio: '', para: '', prazo: '' };
+    var ativos = org.pessoas.filter(function(p){ return p.ativo; });
+    var hoje = startOfDay(new Date());
+    String(txt || '').split(',').map(function(p){ return p.trim(); }).filter(Boolean).forEach(function(raw){
+      var n = normalize(raw).replace(/\.$/, '').trim(), dig = digitsOnly(raw), d;
+      if (dig.length === 20 && !r.processo){ r.processo = formatProcesso(dig); return; }
+      if (ORG_PRIO_N.hasOwnProperty(n) && !r.prio){ r.prio = n; return; }
+      if (!r.para){
+        var p = ativos.filter(function(x){ return normalize(x.nome) === n; })[0] ||
+          ativos.filter(function(x){ return normalize(x.nome).split(/\s+/)[0] === n; })[0];
+        if (p){ r.para = p.id; return; }
+      }
+      if (!r.prazo){
+        if (n === 'hoje'){ r.prazo = dayKey(hoje); return; }
+        if (n === 'amanha'){ d = new Date(hoje); d.setDate(d.getDate() + 1); r.prazo = dayKey(d); return; }
+        if (ORG_DSEM_NOMES.hasOwnProperty(n)){
+          d = new Date(hoje); d.setDate(d.getDate() + (ORG_DSEM_NOMES[n] - hoje.getDay() + 7) % 7); r.prazo = dayKey(d); return;
+        }
+        var m = n.match(/^(?:ate |prazo )?(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/);
+        if (m){
+          var ano = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : hoje.getFullYear();
+          d = new Date(ano, Number(m[2]) - 1, Number(m[1]));
+          if (d.getDate() === Number(m[1]) && d.getMonth() === Number(m[2]) - 1){
+            if (!m[3] && d < hoje) d.setFullYear(d.getFullYear() + 1);
+            r.prazo = dayKey(d); return;
+          }
+        }
+      }
+      r.titulo.push(raw);
+    });
+    r.titulo = r.titulo.join(', ');
+    return r;
+  }
+
+  function orgEqPrevia(){
+    var txt = OE.texto.value;
+    if (!txt.trim()){ OE.prev.innerHTML = ''; return; }
+    var r = orgEqLer(txt);
+    if (!eqToque.para && r.para) OE.para.value = r.para;
+    if (!eqToque.prazo && r.prazo) OE.prazo.value = r.prazo;
+    if (!eqToque.prio && r.prio && r.prio !== org.eqPrio){ org.eqPrio = r.prio; orgEqPrioChips(); }
+    var bits = ['<span>Tarefa: <b>' + escapeHtml(r.titulo || '—') + '</b></span>'];
+    if (r.processo) bits.push('<span>Processo: <b>' + escapeHtml(r.processo) + '</b></span>');
+    bits.push(OE.para.value ? '<span>Para: <b>' + escapeHtml(orgNomePessoa(OE.para.value)) + '</b></span>' : '<span class="aviso">Escolha para quem vai</span>');
+    if (OE.prazo.value) bits.push('<span>Prazo: <b>' + fmtDia(new Date(OE.prazo.value + 'T00:00')) + '</b></span>');
+    OE.prev.innerHTML = bits.join('');
+  }
+  OE.texto.addEventListener('input', orgEqPrevia);
+  OE.para.addEventListener('change', function(){ eqToque.para = true; orgEqPrevia(); });
+  OE.prazo.addEventListener('change', function(){ eqToque.prazo = true; orgEqPrevia(); });
+  OE.prio.addEventListener('click', function(e){
+    var b = e.target.closest('[data-eqprio]'); if (!b) return;
+    org.eqPrio = b.getAttribute('data-eqprio'); eqToque.prio = true;
+    orgEqPrioChips();
+  });
+  OE.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var r = orgEqLer(OE.texto.value), titulo = r.titulo.trim().slice(0, 160);
+    if (!titulo){ toast('Escreva a tarefa.'); OE.texto.focus(); return; }
+    var para = OE.para.value;
+    if (!para){ toast('Escolha para quem vai a tarefa.'); OE.para.focus(); return; }
+    OE.enviar.disabled = true;
+    var res = await orgCall('org_salvar_tarefa', { p_pessoa: para, p_id: null, p_titulo: titulo, p_prazo: OE.prazo.value || null,
+      p_prioridade: org.eqPrio, p_responsavel: '', p_processo: r.processo, p_feita_em: null, p_etapa: 'afazer' });
+    OE.enviar.disabled = false;
+    if (!orgOk(res)) return;
+    toast('Tarefa enviada para ' + orgNomePessoa(para));
+    OE.texto.value = ''; OE.prev.innerHTML = ''; OE.prazo.value = '';
+    eqToque = { para: false, prazo: false, prio: false };
+    org.eqPrio = 'normal';
+    await orgLoad();
+    OE.texto.focus();
+  });
+  OE.fPessoa.addEventListener('change', function(){ org.eqf.pessoa = OE.fPessoa.value; renderOrgEquipe(); });
+  OE.chips.addEventListener('click', function(e){
+    var b = e.target.closest('[data-eqf]'); if (!b) return;
+    org.eqf.sit = b.getAttribute('data-eqf');
+    renderOrgEquipe();
+  });
+  OE.lista.addEventListener('click', function(e){
+    if (e.target.closest('[data-act], button, a')) return;
+    var tr = e.target.closest('[data-eq]'); if (tr) orgEqAbrir(tr.getAttribute('data-eq'));
+  });
+  OE.lista.addEventListener('keydown', function(e){
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var tr = e.target.closest('[data-eq]'); if (!tr || e.target !== tr) return;
+    e.preventDefault(); orgEqAbrir(tr.getAttribute('data-eq'));
+  });
+
+  // ---- detalhe da tarefa da equipe ----
+  var OQ = {
+    dialog: document.getElementById('orgEqDialog'),
+    form: document.getElementById('orgEqDetForm'),
+    titulo: document.getElementById('oqTitulo'),
+    grid: document.getElementById('oqGrid'),
+    fech: document.getElementById('oqFech'),
+    info: document.getElementById('oqInfo'),
+    abrir: document.getElementById('oqAbrir'),
+    fechar: document.getElementById('oqFechar')
+  };
+  var orgEqId = null;
+  function orgEqAbrir(id){
+    var t = orgFind(org.eqTarefas, id); if (!t) return;
+    orgEqId = id;
+    var nome = orgNomePessoa(t.dono) || '—', tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
+    var k = t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+    function item(rot, val, cheio){ return '<div' + (cheio ? ' class="full"' : '') + '><div class="oq-l">' + rot + '</div><div class="oq-v">' + val + '</div></div>'; }
+    OQ.titulo.textContent = t.titulo;
+    OQ.grid.innerHTML = item('Responsável', '<span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span>') +
+      item('Prazo', t.prazo ? (orgEqAtrasada(t) ? '<span style="color:var(--danger)">' + fmtData(t.prazo) + ' · atrasada</span>' : fmtData(t.prazo)) : 'Sem prazo') +
+      item('Prioridade', orgPrioNome(t.prioridade)) +
+      item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(orgEqColuna(t)) + '</span>') +
+      (t.processo ? item('Processo', procCopyBtn(t.processo), true) : '') +
+      (tot ? item('Checklist', ok + ' de ' + tot + ' itens feitos', true) : '');
+    OQ.fech.hidden = !t.conclusao;
+    OQ.fech.innerHTML = t.conclusao ? orgFechHtml(t.conclusao) : '';
+    var info = [];
+    if (t.criada) info.push('Mandada em ' + formatDataHora(t.criada));
+    if (t.atualizada) info.push('última mudança em ' + formatDataHora(t.atualizada));
+    OQ.info.textContent = info.join(' · ');
+    OQ.abrir.textContent = 'Abrir no quadro de ' + (nome.split(' ')[0] || nome);
+    OQ.dialog.showModal();
+  }
+  OQ.fechar.addEventListener('click', function(){ OQ.dialog.close(); });
+  OQ.form.addEventListener('submit', function(e){ e.preventDefault(); });
+  OQ.dialog.addEventListener('close', function(){ orgEqId = null; });
+  OQ.grid.addEventListener('click', function(e){
+    var c = e.target.closest('[data-act=copiar]'); if (c) copiarTexto(c.getAttribute('data-proc'), c);
+  });
+  OQ.abrir.addEventListener('click', async function(){
+    var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
+    OQ.dialog.close();
+    org.tab = 'quadro';
+    try { sessionStorage.setItem('orgTab', org.tab); } catch (e) {}
+    await orgVerTela(t.dono);
+    if (org.unlocked && org.ver === t.dono) orgAbrirCartao(t.id);
   });
 
   // Atualiza "próximo" e "horário passou" dos lembretes com a página aberta
