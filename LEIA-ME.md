@@ -214,7 +214,7 @@ No **Quadro**:
     - Conta **todas** as tarefas do quadro de cada pessoa, inclusive as que ela mesma criou. A tabela abaixo continua mostrando só as que o gestor mandou.
     - Ficam sempre à vista os números do topo e a carga por pessoa. **Atenção**, **Paradas**, **Prazos dos próximos 7 dias** e **Desempenho** abrem e fecham ao clicar (sanfona), e cada linha mostra um resumo mesmo fechada. **Recolher** deixa só os números. O que fica aberto é lembrado neste navegador.
     - **Números do topo:** em aberto, atrasadas, vencem hoje, esperando conferência e concluídas no período. Clicar em "em aberto", "atrasadas" ou "esperando conferência" aplica o mesmo filtro na tabela.
-    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes e próximo prazo. Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
+    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes, próximo prazo e **feitas hoje** (concluídas hoje, no horário de Cuiabá, contando também as já arquivadas). Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
     - **Atenção:** quem tem tarefa atrasada, quem está acima da média, quantas esperam conferência e quem está com menos tarefas.
     - **Paradas:** tarefas em aberto sem nenhuma mudança há 7 dias ou mais (até 15).
     - **Prazos dos próximos 7 dias:** quantas tarefas vencem em cada dia, por pessoa.

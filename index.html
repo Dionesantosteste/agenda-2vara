@@ -6229,6 +6229,7 @@
     var media = cargas.length ? tot.aberto / cargas.length : 0;
     var maxAb = Math.max.apply(null, cargas.map(function(x){ return x.c.total; }).concat([1]));
     var temAg = Array.isArray(P.agendadas);
+    function orgPnFeitasHoje(id){ var f = (P.feitas || []).filter(function(z){ return z.dono === id; })[0]; return f && f.hoje ? f.hoje : 0; }
     function orgPnAg(id){
       var a = P.agendadas.filter(function(z){ return z.dono === id; })[0], px = a ? orgPnDia(a.proxima) : null;
       return a && a.n ? '<span title="A próxima aparece em ' + (px ? fmtDia(px) : '') + '">' + a.n + (px ? ' <span class="pn-dt">(' + fmtDia(px) + ')</span>' : '') + '</span>' : '<span class="pn-z">0</span>';
@@ -6237,7 +6238,7 @@
     if (!cargas.length){
       OP.carga.innerHTML = '<div class="pn-vazio">Cadastre a equipe no botão "Pessoas" para ver a carga de cada um.</div>';
     } else {
-      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
+      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th><th title="Tarefas concluídas hoje">Feitas hoje</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
         cargas.map(function(x){
           var c = x.c, w = function(n){ return (n / maxAb * 100).toFixed(1) + '%'; };
           var pill = !x.p.ativo ? '<span class="pn-pill">desativada</span>' : c.total === 0 ? '<span class="pn-pill livre">livre</span>' : cheia(c) ? '<span class="pn-pill cheia">sobrecarregada</span>' : '';
@@ -6249,6 +6250,7 @@
               '<span style="width:' + w(c.afazer) + '"></span><span data-k="and" style="width:' + w(c.andamento) + '"></span><span data-k="conf" style="width:' + w(c.conferir) + '"></span></div></td>' +
             '<td><b>' + orgPnN(c.afazer) + '</b></td><td>' + orgPnN(c.andamento) + '</td><td>' + orgPnN(c.conferir) + '</td>' +
             '<td>' + orgPnN(c.atrasadas, 'pn-red') + '</td><td>' + orgPnN(c.urgentes, 'pn-red') + '</td><td>' + prox + '</td>' +
+            '<td>' + orgPnN(orgPnFeitasHoje(x.p.id), 'pn-ok') + '</td>' +
             (temAg ? '<td>' + orgPnAg(x.p.id) + '</td>' : '') + '</tr>';
         }).join('') + '</tbody></table>';
     }

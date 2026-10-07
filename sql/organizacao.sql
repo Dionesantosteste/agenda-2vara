@@ -519,6 +519,7 @@ as $$
     -- desempenho: concluídas nos últimos 7 e 30 dias, no prazo, tempo médio e devolvidas na conferência
     'feitas', coalesce((select jsonb_agg(x) from (
         select f.dono,
+               count(*) filter (where f.dia_feita = org_hoje()) as hoje,
                count(*) filter (where f.feita_em >= now() - interval '7 days') as n7,
                count(*) filter (where f.feita_em >= now() - interval '30 days') as n30,
                count(*) filter (where f.feita_em >= now() - interval '7 days' and f.prazo is not null) as cp7,
