@@ -190,9 +190,26 @@ No **Quadro**:
     - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
     - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
     - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+    - **Tarefa agendada:** preencha **Aparece para a pessoa em** (ou escreva na mensagem "a partir de 29/10", "aparece em 29/10" ou "agendar para 29/10"). A tarefa só aparece na tela da pessoa a partir desse dia, e o prazo continua separado.
+      - Até lá ela fica no filtro **Agendadas** da tabela, com o selo "Aparece para a pessoa em…", e fica fora da carga, dos prazos e das paradas do painel (que mostra quantas cada pessoa tem agendadas).
+      - Para mudar ou tirar a data, clique na linha, em **Editar**, e mude **Aparece para a pessoa em**. Vazio ou hoje: a pessoa já vê.
+      - Quando o gestor abre a tela da pessoa, as agendadas aparecem no quadro dela com o selo "Aparece em…"; a pessoa não as vê.
+      - "Hoje" segue o horário de Cuiabá. Lembre que a tela da pessoa não tem senha: "não aparece" quer dizer que não aparece na tela dela.
+      - Precisa do `sql/organizacao.sql` atualizado; sem ele o campo não aparece.
+    - **Processo repetido:** se o nº do processo já estiver numa tarefa não concluída de alguém (inclusive no quadro do próprio gestor), aparece um aviso amarelo dizendo com quem está, em que coluna e qual o prazo. Clique em **Mandar mesmo assim** para enviar ou em **Cancelar** para desistir. Tarefas concluídas ou arquivadas não contam. Precisa do `sql/organizacao.sql` atualizado; sem ele, a tarefa é enviada sem o aviso.
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
     - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
     - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
+  - **Painel da equipe** (entre "Mandar tarefa" e a tabela; precisa do `sql/organizacao.sql` atualizado, sem ele o painel não aparece):
+    - Conta **todas** as tarefas do quadro de cada pessoa, inclusive as que ela mesma criou. A tabela abaixo continua mostrando só as que o gestor mandou.
+    - **Números do topo:** em aberto, atrasadas, vencem hoje, esperando conferência e concluídas no período. Clicar em "em aberto", "atrasadas" ou "esperando conferência" aplica o mesmo filtro na tabela.
+    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes e próximo prazo. Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
+    - **Atenção:** quem tem tarefa atrasada, quem está acima da média, quantas esperam conferência e quem está com menos tarefas.
+    - **Paradas:** tarefas em aberto sem nenhuma mudança há 7 dias ou mais (até 15).
+    - **Prazos dos próximos 7 dias:** quantas tarefas vencem em cada dia, por pessoa.
+    - **Desempenho** (7 ou 30 dias): concluídas, % entregue no prazo (entre as que tinham prazo), tempo médio entre criar e concluir, devolvidas na conferência e as concluídas de cada uma das últimas 8 semanas.
+    - Na lista **Para**, ao lado de cada nome, aparece quantas tarefas a pessoa tem em A fazer e quantas atrasadas.
+    - "Hoje" segue o horário de Cuiabá.
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
@@ -226,6 +243,17 @@ No **Quadro**:
   - O site começa com 6 modelos de exemplo, que valem a pena conferir e ajustar ao padrão de redação da vara.
   - Só os modelos ficam guardados. Os dados preenchidos de cada processo não são gravados.
 - **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
+
+**Atualização automática e aviso de tarefa urgente** (precisa do `sql/organizacao.sql` atualizado; sem ele tudo funciona como antes, só sem isso):
+- Com a Organização aberta (em qualquer aba do site), a cada minuto o site pergunta ao banco se algo mudou na tela. É uma consulta de poucos bytes e não acende a faixa "Carregando…".
+- Se mudou (tarefa nova, editada, movida ou excluída, nota do mural, virada do dia), a tela se atualiza sozinha. Se a pessoa estiver digitando, arrastando um cartão ou com uma janela aberta, a atualização espera ela terminar.
+- Na tela do gestor, a aba Tarefas da equipe e o painel também se atualizam quando alguém da equipe mexe nas tarefas.
+- **Tarefa urgente nova do gestor** (só na tela da pessoa): toca um som curto de dois tons, aparece o aviso "Chegou tarefa urgente" e o cartão pisca uma vez no quadro. A urgente que a própria pessoa cria não toca.
+  - **Som: ligado/desligado:** botão no alto da tela da pessoa. Fica guardado neste navegador.
+  - O navegador só libera som depois de um clique na página. Como a pessoa entra clicando no nome, isso já acontece. Se a página for recarregada e ficar parada sem clique, o primeiro aviso pode sair sem som.
+  - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
+  - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
+- O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
 
 **Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 

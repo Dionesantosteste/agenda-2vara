@@ -37,6 +37,9 @@
     --warn: #A35A00; --warn-soft: #FDF0DC;
     --note-amarelo: #FFF3B0; --note-verde: #D9F2DF; --note-rosa: #FCE0E6; --note-azul: #DCE9FF; --note-ink: #2A2A1E;
     --note-shadow: 0 2px 6px rgba(20,32,51,.12);
+    /* painel da equipe: partes da barra de carga e tons da grade de prazos */
+    --pn-afazer: #9DB8E0; --pn-and: #1D5BB8; --pn-conf: #D08A1E;
+    --pn-heat1: #D7E4F7; --pn-heat2: #9DB8E0; --pn-heat3: #4F7FC9; --pn-heat3-ink: #FFFFFF;
     --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
@@ -50,6 +53,8 @@
       --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
       --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
       --note-shadow: 0 2px 8px rgba(0,0,0,.4);
+      --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
+      --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
     }
   }
   :root[data-theme="dark"]{
@@ -62,6 +67,8 @@
     --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
     --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
     --note-shadow: 0 2px 8px rgba(0,0,0,.4);
+    --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
+    --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
   }
 
   *{box-sizing:border-box;}
@@ -415,6 +422,9 @@
   .achado{ animation:achado 2s ease-out; }
   @keyframes achado{ 0%, 40%{ box-shadow:0 0 0 3px var(--accent); } 100%{ box-shadow:var(--shadow); } }
   @media (prefers-reduced-motion: reduce){ .achado{ animation:none; outline:3px solid var(--accent); } }
+  .k-chegou{ animation:chegou 2.6s ease-out; }
+  @keyframes chegou{ 0%, 55%{ box-shadow:0 0 0 3px var(--danger); } 100%{ box-shadow:var(--shadow); } }
+  @media (prefers-reduced-motion: reduce){ .k-chegou{ animation:none; outline:3px solid var(--danger); } }
 
   /* ================= Indicador de carregamento ================= */
   .busy-bar{ position:fixed; top:0; left:0; right:0; height:3px; z-index:200; overflow:hidden; pointer-events:none; opacity:0; transition:opacity .2s; background:var(--accent-soft); }
@@ -811,6 +821,7 @@
   .tag.alta{ color:var(--warn); border:1px solid var(--warn); background:transparent; }
   .tag.baixa{ color:var(--muted); border:1px dashed var(--item-line); background:transparent; }
   .tag.gestor{ color:var(--accent); background:var(--accent-soft); text-transform:none; letter-spacing:0; }
+  .tag.agend{ color:var(--accent); background:var(--accent-soft); text-transform:none; letter-spacing:0; border:1px dashed var(--accent); }
 
   .eq-form{ display:flex; flex-direction:column; gap:12px; }
   .eq-linha{ display:flex; gap:8px; }
@@ -824,6 +835,9 @@
   .eq-prev:empty{ display:none; }
   .eq-prev b{ color:var(--ink); font-weight:600; }
   .eq-prev .aviso{ color:var(--warn); font-weight:500; }
+  .eq-dup{ flex-direction:column; align-items:stretch; gap:8px; }
+  .eq-dup ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:3px; font-size:13.5px; }
+  .eq-dup .btns{ margin-left:0; flex-wrap:wrap; }
 
   .eq-tab{ width:100%; border-collapse:collapse; font-size:14px; }
   .eq-tab th{ text-align:left; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted);
@@ -863,7 +877,73 @@
   .eq-st[data-k="conf"]{ background:var(--warn-soft); color:var(--warn); }
   .eq-flag.devolv{ color:var(--danger); background:var(--urgent-bg); }
   .eq-flag.conferida{ color:var(--ok); background:var(--ok-soft); }
+  .eq-flag.agend{ color:var(--accent); background:var(--accent-soft); }
+  .eq-st[data-k="agend"]{ background:var(--accent-soft); color:var(--accent); border:1px dashed var(--accent); }
   .eq-mais{ display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0 2px; flex-wrap:wrap; }
+
+  /* ---- Painel da equipe (aba Tarefas da equipe) ---- */
+  .pn-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px; }
+  .pn-kpi{ text-align:left; background:var(--sunken); border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--ink); display:flex; flex-direction:column; gap:2px; font-family:var(--font-ui); }
+  button.pn-kpi{ cursor:pointer; }
+  button.pn-kpi:hover{ border-color:var(--accent); }
+  .pn-kpi[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .pn-kpi .n{ font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .pn-kpi .l{ font-size:12.5px; color:var(--muted); }
+  .pn-kpi.alerta .n{ color:var(--danger); }
+  .pn-kpi.conf .n{ color:var(--warn); }
+  .pn-kpi.ok .n{ color:var(--ok); }
+  .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .pn-bloco{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .pn-bloco h3{ margin:0; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pn-bloco h3 .kchips{ text-transform:none; letter-spacing:0; }
+  .pn-leg{ text-transform:none; letter-spacing:0; font-weight:400; font-size:12px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pn-sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; background:var(--pn-afazer); }
+  .pn-sw[data-k="and"]{ background:var(--pn-and); } .pn-sw[data-k="conf"]{ background:var(--pn-conf); }
+  .pn-scroll{ overflow-x:auto; }
+  .pn-tab{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  .pn-tab th{ font-size:11.5px; font-weight:500; color:var(--muted); text-align:right; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .pn-tab th:first-child, .pn-tab th.pn-c-barra{ text-align:left; }
+  .pn-tab td{ padding:8px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  .pn-tab td:first-child{ text-align:left; }
+  .pn-tab tbody tr{ cursor:pointer; }
+  .pn-tab tbody tr:hover{ background:var(--sunken); }
+  .pn-tab tbody tr[aria-selected="true"]{ background:var(--accent-soft); }
+  .pn-tab tbody tr:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .pn-c-barra{ width:36%; min-width:130px; }
+  .pn-barra{ display:flex; height:12px; border-radius:6px; overflow:hidden; background:var(--sunken); }
+  .pn-barra span{ display:block; height:100%; background:var(--pn-afazer); }
+  .pn-barra span[data-k="and"]{ background:var(--pn-and); } .pn-barra span[data-k="conf"]{ background:var(--pn-conf); }
+  .pn-z{ color:var(--muted); opacity:.55; }
+  .pn-red{ color:var(--danger); font-weight:600; }
+  .pn-pill{ font-size:11px; font-weight:600; border-radius:999px; padding:1px 8px; margin-left:4px; }
+  .pn-pill.cheia{ color:var(--danger); background:var(--urgent-bg); }
+  .pn-pill.livre{ color:var(--ok); background:var(--ok-soft); }
+  .pn-dt{ font-family:var(--font-data); font-size:12.5px; }
+  .pn-dt.hoje{ color:var(--danger); font-weight:500; }
+  .pn-alertas{ display:flex; flex-direction:column; gap:6px; }
+  .pn-alerta{ font-size:13px; border-radius:10px; padding:8px 10px; background:var(--sunken); }
+  .pn-alerta b{ font-weight:600; }
+  .pn-alerta.r{ background:var(--urgent-bg); } .pn-alerta.a{ background:var(--warn-soft); } .pn-alerta.v{ background:var(--ok-soft); }
+  .pn-heat{ display:grid; grid-template-columns:auto repeat(7, minmax(30px,1fr)); gap:3px; max-width:760px; font-variant-numeric:tabular-nums; font-size:12px; min-width:320px; }
+  .pn-heat .hd{ color:var(--muted); text-align:center; font-size:11px; line-height:1.25; padding-bottom:2px; }
+  .pn-heat .hd.fds{ opacity:.6; }
+  .pn-heat .nm{ padding-right:6px; display:flex; align-items:center; white-space:nowrap; }
+  .pn-heat .c{ height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--sunken); color:transparent; }
+  .pn-heat .c[data-n="1"]{ background:var(--pn-heat1); color:var(--ink); }
+  .pn-heat .c[data-n="2"]{ background:var(--pn-heat2); color:var(--ink); }
+  .pn-heat .c[data-n="3"]{ background:var(--pn-heat3); color:var(--pn-heat3-ink); font-weight:600; }
+  .pn-paradas{ display:flex; flex-direction:column; gap:6px; }
+  .pn-parada{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; background:var(--item); border:1px solid var(--item-line); border-radius:10px; padding:8px 10px; }
+  .pn-parada .t{ font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pn-parada .m{ font-size:12px; color:var(--muted); }
+  .pn-parada .d{ grid-row:1 / span 2; grid-column:2; align-self:center; font-size:12px; color:var(--warn); font-weight:600; }
+  .pn-vazio{ color:var(--muted); font-size:13px; padding:6px 0; }
+  .pn-spark{ display:inline-flex; align-items:flex-end; gap:2px; height:22px; vertical-align:middle; }
+  .pn-spark i{ display:block; width:6px; background:var(--pn-afazer); border-radius:2px 2px 0 0; }
+  .pn-spark i:last-child{ background:var(--pn-and); }
+  .pn-ok{ color:var(--ok); } .pn-mid{ color:var(--warn); }
+  @media (max-width:900px){ .pn-grid{ grid-template-columns:minmax(0,1fr); } .pn-kpis{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+  @media (max-width:520px){ .pn-kpis{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
   .conf-box .conf-st{ font-weight:600; }
   .conf-box .conf-txt{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
   .conf-acts{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:2px; }
@@ -1482,6 +1562,8 @@
         <div class="org-head-actions">
           <select class="org-in so-gestor" id="orgVer" aria-label="Ver a tela de"></select>
           <button type="button" class="btn so-gestor" id="orgPessoasBtn" title="Cadastrar as pessoas da equipe">Pessoas</button>
+          <button type="button" class="btn" id="orgSomBtn" hidden aria-pressed="true" title="Toca um aviso quando chega tarefa urgente do gestor">Som: ligado</button>
+          <button type="button" class="btn" id="orgNotifBtn" hidden title="Mostra um aviso do Windows quando chega tarefa urgente, mesmo com outra janela na frente">Avisar no Windows</button>
           <button type="button" class="btn" id="orgLockBtn" title="Trancar a Organização neste navegador">Trancar</button>
         </div>
       </header>
@@ -1511,6 +1593,7 @@
             <div class="eq-ctrls">
               <label class="eq-ctrl">Para<select class="org-in" id="orgEqPara"></select></label>
               <label class="eq-ctrl">Prazo<input class="org-in" type="date" id="orgEqPrazo" /></label>
+              <label class="eq-ctrl" id="orgEqApareceBox" hidden title="A tarefa só aparece na tela da pessoa a partir deste dia. Vazio: aparece já.">Aparece para a pessoa em<input class="org-in" type="date" id="orgEqAparece" /></label>
               <div class="eq-ctrl">Prioridade<div class="kchips" id="orgEqPrio" role="group" aria-label="Prioridade"></div></div>
             </div>
             <div class="eq-ctrls">
@@ -1518,8 +1601,45 @@
               <label class="eq-ctrl">Passo a passo (opcional)<select class="org-in" id="orgEqModCard"></select></label>
             </div>
             <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
+            <div class="dup-aviso eq-dup" id="orgEqDup" hidden role="alert"></div>
           </form>
           <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
+        </div>
+        <div class="panel" id="orgPainel" hidden>
+          <div class="panel-head">
+            <h2>Painel da equipe</h2>
+            <span>Conta todas as tarefas do quadro de cada pessoa. A lista abaixo mostra as que você mandou.</span>
+          </div>
+          <div class="pn-kpis" id="orgPnKpis"></div>
+          <div class="pn-bloco">
+            <h3>Carga por pessoa
+              <span class="pn-leg"><span><i class="pn-sw" data-k="afazer"></i>A fazer</span><span><i class="pn-sw" data-k="and"></i>Em andamento</span><span><i class="pn-sw" data-k="conf"></i>Para conferir</span></span>
+            </h3>
+            <div class="pn-scroll" id="orgPnCarga"></div>
+          </div>
+          <div class="pn-grid">
+            <div class="pn-bloco">
+              <h3>Atenção</h3>
+              <div class="pn-alertas" id="orgPnAlertas"></div>
+            </div>
+            <div class="pn-bloco">
+              <h3>Paradas <span class="pn-leg">em aberto e sem mudança há 7 dias ou mais</span></h3>
+              <div class="pn-paradas" id="orgPnParadas"></div>
+            </div>
+          </div>
+          <div class="pn-bloco">
+            <h3>Prazos dos próximos 7 dias <span class="pn-leg">tarefas em aberto que vencem em cada dia</span></h3>
+            <div class="pn-scroll"><div class="pn-heat" id="orgPnPrazos"></div></div>
+          </div>
+          <div class="pn-bloco">
+            <h3>Desempenho
+              <span class="kchips" id="orgPnPer" role="group" aria-label="Período do desempenho">
+                <button type="button" class="chip" data-pnper="7" aria-pressed="true">Últimos 7 dias</button>
+                <button type="button" class="chip" data-pnper="30" aria-pressed="false">Últimos 30 dias</button>
+              </span>
+            </h3>
+            <div class="pn-scroll" id="orgPnDesemp"></div>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-head"><h2>Tarefas da equipe</h2><span id="orgEqInfo"></span></div>
@@ -1530,6 +1650,7 @@
               <button type="button" class="chip" data-eqf="conferir" aria-pressed="false">Para conferir <span class="org-tab-n" id="orgEqConfN"></span></button>
               <button type="button" class="chip" data-eqf="atrasadas" aria-pressed="false">Atrasadas</button>
               <button type="button" class="chip" data-eqf="acao" aria-pressed="false">Pedem ação do gestor</button>
+              <button type="button" class="chip" data-eqf="agendadas" aria-pressed="false" hidden>Agendadas <span class="org-tab-n" id="orgEqAgN"></span></button>
               <button type="button" class="chip" data-eqf="concluidas" aria-pressed="false">Concluídas</button>
               <button type="button" class="chip" data-eqf="todas" aria-pressed="false">Todas</button>
             </div>
@@ -2069,6 +2190,7 @@
         <div class="field"><label for="oqePrio">Prioridade</label><select id="oqePrio"><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select></div>
       </div>
       <div class="field"><label for="oqeProc">Nº do processo</label><input data-cnj id="oqeProc" class="mono" maxlength="40" placeholder="opcional" /></div>
+      <div class="field" id="oqeApareceBox" hidden><label for="oqeAparece">Aparece para a pessoa em</label><input id="oqeAparece" type="date" /><span class="field-hint">Vazio ou hoje: a pessoa já vê a tarefa.</span></div>
       <div class="field"><label for="oqeModTxt">Modelo de texto</label><select id="oqeModTxt"></select></div>
       <div class="oq-edit-acts">
         <button type="button" class="btn" id="oqeCancelar">Cancelar</button>
@@ -2157,7 +2279,7 @@
   var configured = SUPABASE_URL.indexOf("http") === 0 && SUPABASE_ANON_KEY.length > 20;
   // Indicador "trabalhando": conta as chamadas ao banco em andamento e mostra a faixa e o aviso
   // (só aparece se a operação passar de 250 ms, para não piscar à toa)
-  var ocupado = { leituras: 0, gravacoes: 0, timer: null };
+  var ocupado = { leituras: 0, gravacoes: 0, timer: null, silencio: 0 };   // silencio > 0: leituras em segundo plano (não mostram a faixa)
   function atualizarOcupado(){
     var total = ocupado.leituras + ocupado.gravacoes, root = document.documentElement;
     var txt = document.getElementById('busyTxt');
@@ -2177,7 +2299,9 @@
       var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
       var grava = metodo !== 'GET' && metodo !== 'HEAD';
       var url = String((input && input.url) || input || '');
-      if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico)/.test(url)) grava = false;   // listar a Organização é leitura
+      if (/\/rpc\/org_novidades/.test(url)) return fetchOriginal(input, init);              // consulta de cada minuto: sem faixa
+      if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico|processo_em_uso)/.test(url)) grava = false;   // listar a Organização é leitura
+      if (!grava && ocupado.silencio > 0) return fetchOriginal(input, init);
       if (grava) ocupado.gravacoes++; else ocupado.leituras++;
       atualizarOcupado();
       var fim = function(){ if (grava) ocupado.gravacoes--; else ocupado.leituras--; atualizarOcupado(); };
@@ -3577,6 +3701,8 @@
   var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false,
     modo: 'gestor', eu: null, euNome: '', ver: null, pessoas: [], eqTarefas: [], eqColunas: [], temEquipe: false,
     txt: { tem: false, modelos: [], cats: [], meus: { nome: '', cargo: '', cidade: '', favoritos: [] }, atual: null, cat: 'Todas', q: '', valores: {}, editando: null } };
+  var orgUrgVistos = {};      // ids das urgentes do gestor que a pessoa já tem na tela (atualização automática, mais abaixo)
+  var orgChegou = {};         // cartões que acabaram de chegar (piscam uma vez)
   try { org.pin = sessionStorage.getItem('orgPin'); } catch (e) {}
   try { org.ver = sessionStorage.getItem('orgVer') || null; } catch (e) {}
   try { if (!org.pin){ org.eu = localStorage.getItem('orgPessoa') || null; if (org.eu) org.modo = 'pessoa'; } } catch (e) {}
@@ -3696,7 +3822,7 @@
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
     org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
     org.txt.valores = {}; org.txt.editando = null; org.txt.atual = null;
-    org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0;
+    org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0; org.painel = null;
     document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
@@ -3725,12 +3851,15 @@
       conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
       conferencia: t.conferencia || null, confHist: Array.isArray(t.conf_hist) ? t.conf_hist : [],
       modeloTexto: t.modelo_texto || null,
+      apareceEm: t.aparece_em ? new Date(String(t.aparece_em).slice(0, 10) + 'T00:00') : null,
       criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
   }
 
   function orgParse(r){
     org.temEquipe = r.equipe === true;
     org.temConf = r.conferencia === true;
+    org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
+    org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
     org.txt.tem = Array.isArray(r.txt_modelos);
     org.txt.modelos = (r.txt_modelos || []).map(function(m){
       return { id: m.id, nome: m.nome || 'Sem nome', cat: m.categoria || '', texto: m.texto || '', usos: m.usos || 0,
@@ -3748,11 +3877,15 @@
     org.eqColunas = r.equipe_colunas || [];
     org.eqModelos = (r.equipe_modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.eqTarefas = (r.equipe_tarefas || []).map(function(t){ return orgTarefaDe(t, null); });
+    // Painel da equipe: só vem com o SQL atualizado (sem ele, o painel fica escondido)
+    org.painel = r.equipe_painel && typeof r.equipe_painel === 'object' && Array.isArray(r.equipe_painel.abertas) ? r.equipe_painel : null;
     org.notas = (r.notas || []).map(function(n){
       return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
     });
     orgParseQuadro(r);
     org.tarefas = (r.tarefas || []).map(function(t){ return orgTarefaDe(t, orgChaves()); });
+    // urgentes do gestor já na tela: não tocam aviso (só as que chegarem depois)
+    org.tarefas.forEach(function(t){ if (t.doGestor && t.prioridade === 'urgente') orgUrgVistos[t.id] = true; });
     org.lembretes = (r.lembretes || []).map(function(l){
       return { id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
         processo: l.processo || '', feitoEm: l.feito_em ? new Date(l.feito_em) : null };
@@ -3900,6 +4033,7 @@
       el.classList.toggle('org-alheia', orgAlheia());
     });
     O.lockBtn.textContent = pessoa ? 'Sair' : 'Trancar';
+    orgSomBotoes();
     O.lockBtn.title = pessoa ? 'Sair da sua tela neste navegador' : 'Trancar a Organização neste navegador';
     if (pessoa){
       OV.h1.textContent = 'Olá, ' + (org.euNome.split(' ')[0] || 'tudo bem') + '!';
@@ -3972,7 +4106,7 @@
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
-      '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+      '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
       (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
   }
@@ -4435,7 +4569,7 @@
       items.forEach(function(t, ii){
         var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
         var late = selo && selo.cls === 'late', trava = orgTravada(t);
-        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + (orgEmConf(t) ? ' em-conf' : '') + '" draggable="' + !trava + '" data-id="' + t.id + '">' +
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + (orgEmConf(t) ? ' em-conf' : '') + (orgChegou[t.id] ? ' k-chegou' : '') + '" draggable="' + !trava + '" data-id="' + t.id + '">' +
           '<div class="khead"><div class="kmain">' + orgKLabels(t) +
           '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div></div>' +
           '<span class="kacts">' +
@@ -4444,7 +4578,7 @@
           (orgPodeArquivar(t) && !orgEmConf(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
           '</span></div>' +
           '<div class="t-meta">' + orgConfTag(t) + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
-          orgPrioTag(t, aberta) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+          orgPrioTag(t, aberta) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
           (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') + orgModeloBtn(t) +
           orgKBadges(t) + orgKVinc(t) +
@@ -5639,13 +5773,14 @@
   var ORG_EQ_PAGINA = 100;          // linhas da tabela da equipe desenhadas por vez
   org.eqLimite = ORG_EQ_PAGINA;
   org.eqPrio = 'normal';
-  var eqToque = { para: false, prazo: false, prio: false };   // o que o gestor escolheu à mão não é trocado pela leitura do texto
+  var eqToque = { para: false, prazo: false, prio: false, aparece: false };   // o que o gestor escolheu à mão não é trocado pela leitura do texto
   var OE = {
     form: document.getElementById('orgEqForm'),
     texto: document.getElementById('orgEqTexto'),
     enviar: document.getElementById('orgEqEnviar'),
     para: document.getElementById('orgEqPara'),
     prazo: document.getElementById('orgEqPrazo'),
+    aparece: document.getElementById('orgEqAparece'),
     prio: document.getElementById('orgEqPrio'),
     prev: document.getElementById('orgEqPrev'),
     sem: document.getElementById('orgEqSemPessoas'),
@@ -5666,8 +5801,9 @@
   function orgEqPassa(t){
     var f = org.eqf.sit;
     if (f === 'conferir') return orgEmConf(t);
-    if (f === 'abertas') return t.etapa !== 'feito';
-    if (f === 'atrasadas') return orgEqAtrasada(t);
+    if (f === 'abertas') return t.etapa !== 'feito' && !orgAgendada(t);
+    if (f === 'atrasadas') return orgEqAtrasada(t) && !orgAgendada(t);
+    if (f === 'agendadas') return orgAgendada(t);
     if (f === 'acao') return !!(t.conclusao && t.conclusao.precisa_acao);
     if (f === 'concluidas') return t.etapa === 'feito';
     return true;
@@ -5692,7 +5828,7 @@
     OE.sem.hidden = !!ativos.length;
     var para = OE.para.value;
     OE.para.innerHTML = '<option value="">Escolha a pessoa…</option>' + ativos.map(function(p){
-      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>';
+      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + orgPnParaTxt(p.id) + '</option>';
     }).join('');
     if (para && ativos.some(function(p){ return p.id === para; })) OE.para.value = para;
     orgEqPrioChips();
@@ -5709,10 +5845,18 @@
     }).join('');
     OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
     document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
+    renderOrgPainel();
 
     var base = org.eqTarefas.filter(function(t){ return !org.eqf.pessoa || t.dono === org.eqf.pessoa; });
-    var abertas = base.filter(function(t){ return t.etapa !== 'feito'; }).length, atrasadas = base.filter(orgEqAtrasada).length;
-    OE.info.textContent = base.length ? abertas + ' em aberto' + (atrasadas ? ' · ' + atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : '') + ' · clique na linha para ver os detalhes' : '';
+    var abertas = base.filter(function(t){ return t.etapa !== 'feito' && !orgAgendada(t); }).length;
+    var atrasadas = base.filter(function(t){ return orgEqAtrasada(t) && !orgAgendada(t); }).length, agendadas = base.filter(orgAgendada).length;
+    OE.info.textContent = base.length ? abertas + ' em aberto' + (atrasadas ? ' · ' + atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : '') +
+      (agendadas ? ' · ' + agendadas + (agendadas === 1 ? ' agendada' : ' agendadas') : '') + ' · clique na linha para ver os detalhes' : '';
+    var chipAg = OE.chips.querySelector('[data-eqf="agendadas"]');
+    chipAg.hidden = !org.temAgenda;
+    document.getElementById('orgEqAgN').textContent = org.eqTarefas.filter(orgAgendada).length || '';
+    if (!org.temAgenda && org.eqf.sit === 'agendadas') org.eqf.sit = 'abertas';
+    document.getElementById('orgEqApareceBox').hidden = !org.temAgenda;
     var lista = base.filter(orgEqPassa).sort(function(a, b){
       var fa = a.etapa === 'feito', fb = b.etapa === 'feito';
       if (fa !== fb) return fa ? 1 : -1;
@@ -5733,8 +5877,9 @@
       lista.map(function(t){
         var nome = orgNomePessoa(t.dono) || '—', late = orgEqAtrasada(t), c = t.conclusao;
         var tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
-        var k = orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
-        var sub = (late ? '<span class="late">Atrasada</span>' : '') + (t.processo ? procCopyBtn(t.processo) : '') +
+        var ag = orgAgendada(t);
+        var k = ag ? 'agend' : orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+        var sub = (ag ? '<span class="eq-flag agend">Aparece para a pessoa em ' + fmtDia(t.apareceEm) + '</span>' : late ? '<span class="late">Atrasada</span>' : '') + (t.processo ? procCopyBtn(t.processo) : '') +
           (tot ? '<span class="kcheck' + (ok === tot ? ' ok' : '') + '">' + ICON_CK + ok + '/' + tot + '</span>' : '') +
           (c && c.precisa_acao ? '<span class="eq-flag acao">Pede ação do gestor</span>' : '') +
           (c && c.dificuldade ? '<span class="eq-flag dif">Teve dificuldade</span>' : '') +
@@ -5745,17 +5890,215 @@
           '<td><span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span></td>' +
           '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
           '<td>' + (orgPrioTag(t, true) || '<span class="field-hint">Normal</span>') + '</td>' +
-          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
+          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'agend' ? 'Agendada' : k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
       }).join('') + '</tbody></table>' +
       (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
         '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '') + antigas;
   }
 
+  // ---- Painel da equipe: carga por pessoa, prazos, paradas e desempenho (números vêm prontos do banco) ----
+  var OP = {
+    box: document.getElementById('orgPainel'),
+    kpis: document.getElementById('orgPnKpis'),
+    carga: document.getElementById('orgPnCarga'),
+    alertas: document.getElementById('orgPnAlertas'),
+    prazos: document.getElementById('orgPnPrazos'),
+    paradas: document.getElementById('orgPnParadas'),
+    per: document.getElementById('orgPnPer'),
+    desemp: document.getElementById('orgPnDesemp')
+  };
+  org.pnPer = 7;
+  var ORG_DSEM_CURTO = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  function orgPnDia(iso){ return iso ? new Date(String(iso).slice(0, 10) + 'T00:00') : null; }
+  function orgPnZero(){ return { afazer: 0, andamento: 0, conferir: 0, atrasadas: 0, hoje: 0, urgentes: 0, prox_prazo: null }; }
+  // Carga de uma pessoa (zeros quando não tem nada em aberto)
+  function orgPnCarga(id){
+    var c = org.painel ? org.painel.abertas.filter(function(x){ return x.dono === id; })[0] : null;
+    c = c || orgPnZero();
+    c.total = (c.afazer || 0) + (c.andamento || 0) + (c.conferir || 0);
+    return c;
+  }
+  // Texto ao lado do nome na lista "Para" (ex.: " — 3 a fazer, 1 atrasada")
+  function orgPnParaTxt(id){
+    if (!org.painel) return '';
+    var c = orgPnCarga(id);
+    return ' — ' + c.afazer + ' a fazer' + (c.atrasadas ? ', ' + c.atrasadas + (c.atrasadas === 1 ? ' atrasada' : ' atrasadas') : '');
+  }
+  // Pessoas que entram no painel: as ativas e as desativadas que ainda têm algo em aberto
+  function orgPnPessoas(){
+    return org.pessoas.filter(function(p){ return p.ativo || orgPnCarga(p.id).total > 0; });
+  }
+  function orgPnN(n, cls){ return n ? '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + n + '</span>' : '<span class="pn-z">0</span>'; }
+
+  function renderOrgPainel(){
+    var P = org.painel;
+    OP.box.hidden = !P;
+    if (!P) return;
+    var pessoas = orgPnPessoas();
+    var cargas = pessoas.map(function(p){ return { p: p, c: orgPnCarga(p.id) }; });
+    var tot = { aberto: 0, atrasadas: 0, hoje: 0, conferir: 0 };
+    cargas.forEach(function(x){ tot.aberto += x.c.total; tot.atrasadas += x.c.atrasadas; tot.hoje += x.c.hoje; tot.conferir += x.c.conferir; });
+    var per = org.pnPer, feitas = 0;
+    (P.feitas || []).forEach(function(f){ feitas += (per === 7 ? f.n7 : f.n30) || 0; });
+
+    // números do topo (os que têm filtro igual na lista abaixo viram botão)
+    var K = [
+      { n: tot.aberto, l: 'em aberto', f: 'abertas' },
+      { n: tot.atrasadas, l: tot.atrasadas === 1 ? 'atrasada' : 'atrasadas', f: 'atrasadas', c: tot.atrasadas ? 'alerta' : '' },
+      { n: tot.hoje, l: tot.hoje === 1 ? 'vence hoje' : 'vencem hoje', c: tot.hoje ? 'alerta' : '' },
+      { n: tot.conferir, l: 'esperando sua conferência', f: 'conferir', c: tot.conferir ? 'conf' : '' },
+      { n: feitas, l: (feitas === 1 ? 'concluída' : 'concluídas') + ' em ' + per + ' dias', c: 'ok' }
+    ];
+    OP.kpis.innerHTML = K.map(function(k){
+      var inner = '<span class="n">' + k.n + '</span><span class="l">' + k.l + '</span>';
+      return k.f
+        ? '<button type="button" class="pn-kpi ' + (k.c || '') + '" data-pnf="' + k.f + '" aria-pressed="' + (org.eqf.sit === k.f) + '" title="Filtrar a lista abaixo">' + inner + '</button>'
+        : '<div class="pn-kpi ' + (k.c || '') + '">' + inner + '</div>';
+    }).join('');
+
+    // carga por pessoa
+    var media = cargas.length ? tot.aberto / cargas.length : 0;
+    var maxAb = Math.max.apply(null, cargas.map(function(x){ return x.c.total; }).concat([1]));
+    var temAg = Array.isArray(P.agendadas);
+    function orgPnAg(id){
+      var a = P.agendadas.filter(function(z){ return z.dono === id; })[0], px = a ? orgPnDia(a.proxima) : null;
+      return a && a.n ? '<span title="A próxima aparece em ' + (px ? fmtDia(px) : '') + '">' + a.n + (px ? ' <span class="pn-dt">(' + fmtDia(px) + ')</span>' : '') + '</span>' : '<span class="pn-z">0</span>';
+    }
+    function cheia(c){ return c.total >= media * 1.5 && c.total - media >= 3; }
+    if (!cargas.length){
+      OP.carga.innerHTML = '<div class="pn-vazio">Cadastre a equipe no botão "Pessoas" para ver a carga de cada um.</div>';
+    } else {
+      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
+        cargas.map(function(x){
+          var c = x.c, w = function(n){ return (n / maxAb * 100).toFixed(1) + '%'; };
+          var pill = !x.p.ativo ? '<span class="pn-pill">desativada</span>' : c.total === 0 ? '<span class="pn-pill livre">livre</span>' : cheia(c) ? '<span class="pn-pill cheia">sobrecarregada</span>' : '';
+          var px = orgPnDia(c.prox_prazo), pd = px ? orgDiff(px) : null;
+          var prox = px ? '<span class="pn-dt' + (pd === 0 ? ' hoje' : '') + '">' + (pd === 0 ? 'hoje' : pd === 1 ? 'amanhã' : ORG_DSEM_CURTO[px.getDay()] + ' ' + fmtDia(px)) + '</span>' : '<span class="pn-z">—</span>';
+          return '<tr tabindex="0" data-pnp="' + escapeHtml(x.p.id) + '" aria-selected="' + (org.eqf.pessoa === x.p.id) + '" title="Mostrar na lista só as tarefas de ' + escapeHtml(x.p.nome) + '">' +
+            '<td><span class="eq-quem">' + orgAvatar(x.p.nome, true) + escapeHtml(x.p.nome) + '</span>' + pill + '</td>' +
+            '<td class="pn-c-barra"><div class="pn-barra" title="' + c.afazer + ' a fazer, ' + c.andamento + ' em andamento, ' + c.conferir + ' para conferir">' +
+              '<span style="width:' + w(c.afazer) + '"></span><span data-k="and" style="width:' + w(c.andamento) + '"></span><span data-k="conf" style="width:' + w(c.conferir) + '"></span></div></td>' +
+            '<td><b>' + orgPnN(c.afazer) + '</b></td><td>' + orgPnN(c.andamento) + '</td><td>' + orgPnN(c.conferir) + '</td>' +
+            '<td>' + orgPnN(c.atrasadas, 'pn-red') + '</td><td>' + orgPnN(c.urgentes, 'pn-red') + '</td><td>' + prox + '</td>' +
+            (temAg ? '<td>' + orgPnAg(x.p.id) + '</td>' : '') + '</tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    // atenção
+    var al = [];
+    cargas.forEach(function(x){
+      if (x.c.atrasadas) al.push('<div class="pn-alerta r"><b>' + escapeHtml(x.p.nome) + '</b> tem ' + x.c.atrasadas + (x.c.atrasadas === 1 ? ' tarefa atrasada.' : ' tarefas atrasadas.') + '</div>');
+    });
+    cargas.forEach(function(x){
+      if (x.p.ativo && cheia(x.c)) al.push('<div class="pn-alerta a"><b>' + escapeHtml(x.p.nome) + '</b> está com ' + x.c.total + ' em aberto, acima da média da equipe (' + media.toFixed(1).replace('.', ',') + ').</div>');
+    });
+    if (tot.conferir) al.push('<div class="pn-alerta a"><b>' + tot.conferir + '</b> ' + (tot.conferir === 1 ? 'tarefa espera' : 'tarefas esperam') + ' sua conferência.</div>');
+    var ativos = cargas.filter(function(x){ return x.p.ativo; });
+    if (ativos.length > 1){
+      var livre = ativos.slice().sort(function(a, b){ return (a.c.total - b.c.total) || (a.c.atrasadas - b.c.atrasadas); })[0];
+      al.push('<div class="pn-alerta v">Com menos tarefas agora: <b>' + escapeHtml(livre.p.nome) + '</b> (' + livre.c.total + ' em aberto).</div>');
+    }
+    OP.alertas.innerHTML = al.join('') || '<div class="pn-vazio">Nada pedindo atenção agora.</div>';
+
+    // prazos dos próximos 7 dias
+    var hoje0 = orgPnDia(P.hoje) || startOfDay(new Date()), dias = [];
+    for (var i = 0; i < 7; i++){ var dd = new Date(hoje0); dd.setDate(dd.getDate() + i); dias.push(dd); }
+    var h = '<div></div>' + dias.map(function(dd, i){
+      var fds = dd.getDay() === 0 || dd.getDay() === 6;
+      return '<div class="hd' + (fds ? ' fds' : '') + '">' + (i === 0 ? 'hoje' : ORG_DSEM_CURTO[dd.getDay()]) + '<br>' + fmtDia(dd) + '</div>';
+    }).join('');
+    cargas.forEach(function(x){
+      h += '<div class="nm">' + escapeHtml(x.p.nome.split(' ')[0]) + '</div>';
+      dias.forEach(function(dd){
+        var k = dayKey(dd), it = (P.prazos || []).filter(function(z){ return z.dono === x.p.id && String(z.dia).slice(0, 10) === k; })[0], n = it ? it.n : 0;
+        h += '<div class="c" data-n="' + Math.min(n, 3) + '" title="' + escapeHtml(x.p.nome) + ': ' + n + (n === 1 ? ' tarefa' : ' tarefas') + ' em ' + fmtDia(dd) + '">' + n + '</div>';
+      });
+    });
+    OP.prazos.innerHTML = cargas.length ? h : '';
+
+    // paradas
+    var par = P.paradas || [];
+    OP.paradas.innerHTML = par.length ? par.map(function(t){
+      var dias = Math.max(0, Math.floor((Date.now() - new Date(t.desde)) / 86400000));
+      var col = orgEqColuna({ etapa: t.etapa, dono: t.dono });
+      return '<div class="pn-parada" title="' + escapeHtml(t.titulo) + '"><span class="t">' + escapeHtml(t.titulo) + '</span>' +
+        '<span class="m">' + escapeHtml(orgNomePessoa(t.dono) || '—') + ' · ' + escapeHtml(col) + (t.processo ? ' · ' + escapeHtml(t.processo) : '') + '</span>' +
+        '<span class="d">' + dias + ' dias</span></div>';
+    }).join('') : '<div class="pn-vazio">Nada parado. Todas as tarefas em aberto andaram nos últimos 7 dias.</div>';
+
+    // desempenho
+    OP.per.querySelectorAll('[data-pnper]').forEach(function(b){ b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-pnper')) === per)); });
+    var linhas = org.pessoas.filter(function(p){
+      return p.ativo || (P.feitas || []).some(function(f){ return f.dono === p.id && (f.n30 || 0) > 0; });
+    });
+    OP.desemp.innerHTML = !linhas.length ? '' : '<table class="pn-tab"><thead><tr><th>Pessoa</th><th>Concluídas</th><th>No prazo</th><th>Tempo médio</th><th>Devolvidas na conferência</th><th>Últimas 8 semanas</th></tr></thead><tbody>' +
+      linhas.map(function(p){
+        var f = (P.feitas || []).filter(function(x){ return x.dono === p.id; })[0] || {};
+        var n = (per === 7 ? f.n7 : f.n30) || 0, cp = (per === 7 ? f.cp7 : f.cp30) || 0, np = (per === 7 ? f.np7 : f.np30) || 0;
+        var dm = per === 7 ? f.dias7 : f.dias30, dev = (per === 7 ? f.dev7 : f.dev30) || 0;
+        var pct = cp ? Math.round(np / cp * 100) : null;
+        var sem = [7, 6, 5, 4, 3, 2, 1, 0].map(function(w){
+          var it = (P.semanas || []).filter(function(z){ return z.dono === p.id && z.s === w; })[0];
+          return it ? it.n : 0;
+        });
+        var mx = Math.max.apply(null, sem.concat([1]));
+        return '<tr tabindex="0" data-pnp="' + escapeHtml(p.id) + '" aria-selected="' + (org.eqf.pessoa === p.id) + '">' +
+          '<td><span class="eq-quem">' + orgAvatar(p.nome, true) + escapeHtml(p.nome) + '</span></td>' +
+          '<td>' + orgPnN(n) + '</td>' +
+          '<td>' + (pct === null ? '<span class="pn-z">—</span>' : '<span class="' + (pct >= 85 ? 'pn-ok' : pct >= 60 ? 'pn-mid' : 'pn-red') + '" title="' + np + ' de ' + cp + ' com prazo">' + pct + '%</span>') + '</td>' +
+          '<td>' + (dm === null || dm === undefined ? '<span class="pn-z">—</span>' : String(dm).replace('.', ',') + ' dias') + '</td>' +
+          '<td>' + orgPnN(dev, 'pn-red') + '</td>' +
+          '<td><span class="pn-spark" title="Concluídas por semana, da mais antiga à atual: ' + sem.join(', ') + '">' +
+            sem.map(function(v){ return '<i style="height:' + Math.max(2, Math.round(v / mx * 22)) + 'px"></i>'; }).join('') + '</span></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  OP.kpis.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pnf]'); if (!b) return;
+    org.eqf.sit = b.getAttribute('data-pnf'); org.eqf.pessoa = ''; org.eqLimite = ORG_EQ_PAGINA;
+    renderOrgEquipe();
+  });
+  function orgPnPessoaClique(e){
+    var tr = e.target.closest('[data-pnp]'); if (!tr) return;
+    if (e.type === 'keydown'){ if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); }
+    var id = tr.getAttribute('data-pnp');
+    org.eqf.pessoa = org.eqf.pessoa === id ? '' : id;
+    org.eqLimite = ORG_EQ_PAGINA;
+    renderOrgEquipe();
+  }
+  [OP.carga, OP.desemp].forEach(function(el){
+    el.addEventListener('click', orgPnPessoaClique);
+    el.addEventListener('keydown', orgPnPessoaClique);
+  });
+  OP.per.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pnper]'); if (!b) return;
+    org.pnPer = Number(b.getAttribute('data-pnper')) === 30 ? 30 : 7;
+    renderOrgPainel();
+  });
+
   // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"
   var ORG_DSEM_NOMES = { domingo: 0, segunda: 1, 'segunda-feira': 1, terca: 2, 'terca-feira': 2, quarta: 3, 'quarta-feira': 3,
     quinta: 4, 'quinta-feira': 4, sexta: 5, 'sexta-feira': 5, sabado: 6 };
+  // "hoje", "amanhã", dia da semana ou 15/10 (15/10/2026) -> "2026-10-15" ('' se não for data)
+  function orgEqData(n, hoje){
+    var d;
+    if (n === 'hoje') return dayKey(hoje);
+    if (n === 'amanha'){ d = new Date(hoje); d.setDate(d.getDate() + 1); return dayKey(d); }
+    if (ORG_DSEM_NOMES.hasOwnProperty(n)){
+      d = new Date(hoje); d.setDate(d.getDate() + (ORG_DSEM_NOMES[n] - hoje.getDay() + 7) % 7); return dayKey(d);
+    }
+    var m = n.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/);
+    if (m){
+      var ano = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : hoje.getFullYear();
+      d = new Date(ano, Number(m[2]) - 1, Number(m[1]));
+      if (d.getDate() === Number(m[1]) && d.getMonth() === Number(m[2]) - 1){
+        if (!m[3] && d < hoje) d.setFullYear(d.getFullYear() + 1);
+        return dayKey(d);
+      }
+    }
+    return '';
+  }
   function orgEqLer(txt){
-    var r = { titulo: [], processo: '', prio: '', para: '', prazo: '' };
+    var r = { titulo: [], processo: '', prio: '', para: '', prazo: '', aparece: '' };
     var ativos = org.pessoas.filter(function(p){ return p.ativo; });
     var hoje = startOfDay(new Date());
     String(txt || '').split(',').map(function(p){ return p.trim(); }).filter(Boolean).forEach(function(raw){
@@ -5767,21 +6110,12 @@
           ativos.filter(function(x){ return normalize(x.nome).split(/\s+/)[0] === n; })[0];
         if (p){ r.para = p.id; return; }
       }
+      // "a partir de 29/10", "aparece em 29/10", "agendar para 29/10" (só com o SQL atualizado)
+      var ag = org.temAgenda && !r.aparece ? n.match(/^(?:a partir de|aparece(?: em)?|agendar(?: para)?|agendada para)\s+(.+)$/) : null;
+      if (ag && (d = orgEqData(ag[1].trim(), hoje))){ r.aparece = d; return; }
       if (!r.prazo){
-        if (n === 'hoje'){ r.prazo = dayKey(hoje); return; }
-        if (n === 'amanha'){ d = new Date(hoje); d.setDate(d.getDate() + 1); r.prazo = dayKey(d); return; }
-        if (ORG_DSEM_NOMES.hasOwnProperty(n)){
-          d = new Date(hoje); d.setDate(d.getDate() + (ORG_DSEM_NOMES[n] - hoje.getDay() + 7) % 7); r.prazo = dayKey(d); return;
-        }
-        var m = n.match(/^(?:ate |prazo )?(\d{1,2})\/(\d{1,2})(?:\/(\d{2}|\d{4}))?$/);
-        if (m){
-          var ano = m[3] ? (m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3])) : hoje.getFullYear();
-          d = new Date(ano, Number(m[2]) - 1, Number(m[1]));
-          if (d.getDate() === Number(m[1]) && d.getMonth() === Number(m[2]) - 1){
-            if (!m[3] && d < hoje) d.setFullYear(d.getFullYear() + 1);
-            r.prazo = dayKey(d); return;
-          }
-        }
+        d = orgEqData(n.replace(/^(?:ate|prazo)\s+(?=\d)/, ''), hoje);
+        if (d){ r.prazo = d; return; }
       }
       r.titulo.push(raw);
     });
@@ -5789,22 +6123,80 @@
     return r;
   }
 
+  // ---- processo repetido: avisa se o processo já está com alguém (tarefa não concluída) ----
+  var OEdup = document.getElementById('orgEqDup');
+  var eqDup = { proc: '', lista: null, busca: null, ok: '', timer: null };   // ok = processo que o gestor mandou "mesmo assim"
+  function orgEqDupLimpa(){ clearTimeout(eqDup.timer); eqDup = { proc: '', lista: null, busca: null, ok: '', timer: null }; OEdup.hidden = true; OEdup.innerHTML = ''; }
+  // Busca no banco (uma vez por número). Se a busca falhar ou o SQL for antigo, devolve [] e a tarefa segue normalmente.
+  function orgEqDupBusca(proc){
+    if (eqDup.proc === proc && eqDup.busca) return eqDup.busca;
+    eqDup.proc = proc; eqDup.lista = null;
+    eqDup.busca = (org.semDup ? Promise.resolve({ status: 'ok', tarefas: [] }) : orgCall('org_processo_em_uso', { p_processo: proc })).then(function(r){
+      if (r.status === 'erro' && r.codigo === 'PGRST202') org.semDup = true;
+      var lista = r.status === 'ok' && Array.isArray(r.tarefas) ? r.tarefas : [];
+      if (eqDup.proc === proc) eqDup.lista = lista;
+      return lista;
+    }, function(){ return []; });
+    return eqDup.busca;
+  }
+  function orgEqDupNome(dono){ return dono ? (orgNomePessoa(dono) || 'Pessoa excluída') : 'Você (seu quadro)'; }
+  function orgEqDupMostra(){
+    var L = eqDup.lista;
+    if (!L || !L.length || eqDup.ok === eqDup.proc){ OEdup.hidden = true; OEdup.innerHTML = ''; return; }
+    OEdup.innerHTML = '<div><b>Este processo já está com alguém.</b> ' + (L.length === 1 ? 'Há 1 tarefa em aberto' : 'Há ' + L.length + ' tarefas em aberto') + ' com ele:</div><ul>' +
+      L.map(function(t){
+        var pz = t.prazo ? new Date(String(t.prazo).slice(0, 10) + 'T00:00') : null;
+        return '<li><b>' + escapeHtml(orgEqDupNome(t.dono)) + '</b>: ' + escapeHtml(t.titulo || 'Sem título') + ' · ' +
+          escapeHtml(t.conferencia === 'enviada' ? 'em conferência' : (t.coluna || (t.etapa === 'afazer' ? 'A fazer' : 'Em andamento'))) +
+          (pz ? ' · prazo ' + fmtDia(pz) : '') + '</li>';
+      }).join('') + '</ul>' +
+      '<div class="btns"><button type="button" class="btn primary" data-eqdup="sim">Mandar mesmo assim</button><button type="button" class="btn" data-eqdup="nao">Cancelar</button></div>';
+    OEdup.hidden = false;
+  }
+  function orgEqDupConfere(proc){
+    clearTimeout(eqDup.timer);
+    if (!proc){ eqDup.proc = ''; eqDup.lista = null; eqDup.busca = null; OEdup.hidden = true; return; }
+    if (eqDup.proc === proc && eqDup.lista){ orgEqDupMostra(); return; }
+    eqDup.timer = setTimeout(function(){
+      orgEqDupBusca(proc).then(function(){ if (eqDup.proc === proc) orgEqDupMostra(); });
+    }, 400);
+  }
+  OEdup.addEventListener('click', function(e){
+    var b = e.target.closest('[data-eqdup]'); if (!b) return;
+    if (b.getAttribute('data-eqdup') === 'sim'){
+      eqDup.ok = eqDup.proc; OEdup.hidden = true;
+      OE.form.requestSubmit ? OE.form.requestSubmit() : OE.enviar.click();
+    } else {
+      OE.texto.value = ''; OE.prev.innerHTML = ''; orgEqDupLimpa(); OE.texto.focus();
+    }
+  });
+
   function orgEqPrevia(){
     var txt = OE.texto.value;
-    if (!txt.trim()){ OE.prev.innerHTML = ''; return; }
+    if (!txt.trim()){ OE.prev.innerHTML = ''; orgEqDupConfere(''); return; }
     var r = orgEqLer(txt);
+    orgEqDupConfere(r.processo);
     if (!eqToque.para && r.para) OE.para.value = r.para;
     if (!eqToque.prazo && r.prazo) OE.prazo.value = r.prazo;
+    if (!eqToque.aparece && r.aparece) OE.aparece.value = r.aparece;
     if (!eqToque.prio && r.prio && r.prio !== org.eqPrio){ org.eqPrio = r.prio; orgEqPrioChips(); }
     var bits = ['<span>Tarefa: <b>' + escapeHtml(r.titulo || '—') + '</b></span>'];
     if (r.processo) bits.push('<span>Processo: <b>' + escapeHtml(r.processo) + '</b></span>');
     bits.push(OE.para.value ? '<span>Para: <b>' + escapeHtml(orgNomePessoa(OE.para.value)) + '</b></span>' : '<span class="aviso">Escolha para quem vai</span>');
     if (OE.prazo.value) bits.push('<span>Prazo: <b>' + fmtDia(new Date(OE.prazo.value + 'T00:00')) + '</b></span>');
+    var ap = orgEqAparece();
+    if (ap) bits.push('<span>Aparece para a pessoa em: <b>' + fmtDia(new Date(ap + 'T00:00')) + '</b></span>');
     OE.prev.innerHTML = bits.join('');
   }
   OE.texto.addEventListener('input', orgEqPrevia);
   OE.para.addEventListener('change', function(){ eqToque.para = true; orgEqPrevia(); });
   OE.prazo.addEventListener('change', function(){ eqToque.prazo = true; orgEqPrevia(); });
+  OE.aparece.addEventListener('change', function(){ eqToque.aparece = true; orgEqPrevia(); });
+  // Data em que a tarefa aparece para a pessoa ('' = já; hoje ou passado também contam como já)
+  function orgEqAparece(){
+    var v = org.temAgenda ? OE.aparece.value : '';
+    return v && v > dayKey(startOfDay(new Date())) ? v : '';
+  }
   OE.prio.addEventListener('click', function(e){
     var b = e.target.closest('[data-eqprio]'); if (!b) return;
     org.eqPrio = b.getAttribute('data-eqprio'); eqToque.prio = true;
@@ -5817,8 +6209,23 @@
     var para = OE.para.value;
     if (!para){ toast('Escolha para quem vai a tarefa.'); OE.para.focus(); return; }
     OE.enviar.disabled = true;
-    var res = await orgCall('org_salvar_tarefa', { p_pessoa: para, p_id: null, p_titulo: titulo, p_prazo: OE.prazo.value || null,
-      p_prioridade: org.eqPrio, p_responsavel: '', p_processo: r.processo, p_feita_em: null, p_etapa: 'afazer' });
+    // processo repetido: confere antes de gravar (a não ser que o gestor já tenha escolhido "Mandar mesmo assim")
+    if (r.processo && eqDup.ok !== r.processo){
+      var dups = await orgEqDupBusca(r.processo);
+      if (dups.length){
+        OE.enviar.disabled = false;
+        orgEqDupMostra();
+        var bSim = OEdup.querySelector('[data-eqdup=sim]'); if (bSim) bSim.focus();
+        return;
+      }
+    }
+    var aparece = orgEqAparece();
+    // agendada: grava já com a data, numa operação só (a pessoa nunca vê antes da hora)
+    var res = aparece
+      ? await orgCall('org_mandar_tarefa', { p_pessoa: para, p_titulo: titulo, p_prazo: OE.prazo.value || null,
+          p_prioridade: org.eqPrio, p_processo: r.processo, p_aparece_em: aparece })
+      : await orgCall('org_salvar_tarefa', { p_pessoa: para, p_id: null, p_titulo: titulo, p_prazo: OE.prazo.value || null,
+          p_prioridade: org.eqPrio, p_responsavel: '', p_processo: r.processo, p_feita_em: null, p_etapa: 'afazer' });
     if (orgOk(res) && res.id && OE.modTxt.value){
       var r2 = await orgCall('org_tarefa_modelo_texto', { p_pessoa: para, p_id: res.id, p_modelo: OE.modTxt.value });
       if (!orgOk(r2)) res = r2;
@@ -5831,10 +6238,12 @@
     }
     OE.enviar.disabled = false;
     if (res.status !== 'ok') return;
-    toast('Tarefa enviada para ' + orgNomePessoa(para) + (ck.length ? ' com ' + ck.length + (ck.length === 1 ? ' passo' : ' passos') : ''));
+    toast((aparece ? 'Tarefa agendada para ' : 'Tarefa enviada para ') + orgNomePessoa(para) + (ck.length ? ' com ' + ck.length + (ck.length === 1 ? ' passo' : ' passos') : '') +
+      (aparece ? '. Aparece para a pessoa em ' + fmtDia(new Date(aparece + 'T00:00')) : ''));
     OE.modTxt.value = ''; OE.modCard.value = '';
-    OE.texto.value = ''; OE.prev.innerHTML = ''; OE.prazo.value = '';
-    eqToque = { para: false, prazo: false, prio: false };
+    OE.texto.value = ''; OE.prev.innerHTML = ''; OE.prazo.value = ''; OE.aparece.value = '';
+    orgEqDupLimpa();
+    eqToque = { para: false, prazo: false, prio: false, aparece: false };
     org.eqPrio = 'normal';
     await orgLoad();
     OE.texto.focus();
@@ -5874,13 +6283,14 @@
     var t = orgFind(org.eqTarefas, id); if (!t) return;
     orgEqId = id;
     var nome = orgNomePessoa(t.dono) || '—', tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
-    var k = orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
+    var k = orgAgendada(t) ? 'agend' : orgEmConf(t) ? 'conf' : t.etapa === 'feito' ? 'feito' : t.etapa === 'afazer' ? 'afazer' : 'meio';
     function item(rot, val, cheio){ return '<div' + (cheio ? ' class="full"' : '') + '><div class="oq-l">' + rot + '</div><div class="oq-v">' + val + '</div></div>'; }
     OQ.titulo.textContent = t.titulo;
     OQ.grid.innerHTML = item('Responsável', '<span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span>') +
       item('Prazo', t.prazo ? (orgEqAtrasada(t) ? '<span style="color:var(--danger)">' + fmtData(t.prazo) + ' · atrasada</span>' : fmtData(t.prazo)) : 'Sem prazo') +
       item('Prioridade', orgPrioNome(t.prioridade)) +
-      item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span>') +
+      (orgAgendada(t) ? item('Aparece para a pessoa em', fmtData(t.apareceEm) + ' <span class="field-hint">(até lá ela não vê a tarefa)</span>', true) : '') +
+      item('Situação', '<span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'agend' ? 'Agendada' : k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span>') +
       (t.processo ? item('Processo', procCopyBtn(t.processo), true) : '') +
       (tot ? item('Checklist', ok + ' de ' + tot + ' itens feitos', true) : '') +
       (t.modeloTexto && txtModelo(t.modeloTexto) ? item('Modelo de texto', '<button type="button" class="kmodelo" data-oqmodelo="1">' + ICON_DOC + escapeHtml(txtModelo(t.modeloTexto).nome) + '</button>', true) : '');
@@ -5914,6 +6324,9 @@
   // ======== Conferência: a pessoa envia a tarefa, o gestor aprova ou devolve ========
   var ICON_CONF = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1"/><path d="M9 13l2 2 4-4"/></svg>';
   function orgEmConf(t){ return t.conferencia === 'enviada'; }
+  // Agendada: ainda não aparece na tela da pessoa (só o gestor vê)
+  function orgAgendada(t){ return !!t.apareceEm && t.etapa !== 'feito' && orgDiff(t.apareceEm) > 0; }
+  function orgAgendaTag(t){ return orgAgendada(t) && org.modo === 'gestor' ? '<span class="tag agend" title="A pessoa ainda não vê esta tarefa">Aparece em ' + fmtDia(t.apareceEm) + '</span>' : ''; }
   // A pessoa não muda a etapa enquanto o gestor confere
   function orgTravada(t){ return org.modo === 'pessoa' && orgEmConf(t); }
   function orgPodeConferir(t){ return !!org.temConf && org.modo === 'pessoa' && t.etapa !== 'feito' && !t.arquivadaEm && !orgEmConf(t); }
@@ -6430,6 +6843,8 @@
     OQE.prazo.value = t.prazo ? dayKey(t.prazo) : '';
     OQE.prio.value = t.prioridade;
     OQE.proc.value = t.processo;
+    document.getElementById('oqeApareceBox').hidden = !org.temAgenda || t.etapa === 'feito';
+    document.getElementById('oqeAparece').value = orgAgendada(t) ? dayKey(t.apareceEm) : '';
     OQE.modTxt.innerHTML = orgModTxtOpcoes(t.modeloTexto);
     OQE.modTxt.closest('.field').hidden = !org.txt.tem;
     oqModoEditar(true);
@@ -6447,6 +6862,11 @@
       p_feita_em: t.feitaEm ? t.feitaEm.toISOString() : null, p_etapa: t.etapa });
     if (orgOk(r) && org.txt.tem && (OQE.modTxt.value || null) !== t.modeloTexto){
       r = await orgCall('org_tarefa_modelo_texto', { p_pessoa: t.dono, p_id: t.id, p_modelo: OQE.modTxt.value || null });
+      orgOk(r);
+    }
+    var apNovo = document.getElementById('oqeAparece').value, apAntes = orgAgendada(t) ? dayKey(t.apareceEm) : '';
+    if (r.status === 'ok' && org.temAgenda && t.etapa !== 'feito' && apNovo !== apAntes){
+      r = await orgCall('org_agendar_tarefa', { p_pessoa: t.dono, p_id: t.id, p_aparece_em: apNovo || null });
       orgOk(r);
     }
     OQE.salvar.disabled = false;
@@ -6481,6 +6901,120 @@
     O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
     if (currentRoute === 'organizacao' && org.tab === 'lembretes' && !O.content.contains(document.activeElement)) renderOrgLembretes();
   }, 60000);
+
+  // ---- Atualização automática e aviso de tarefa urgente ----
+  // A cada minuto, com a Organização aberta, pergunta ao banco se algo mudou (org_novidades: poucos bytes).
+  // Se mudou, recarrega a tela em segundo plano, mas só quando ninguém está digitando, arrastando ou com uma janela aberta.
+  // Na tela da pessoa, tarefa urgente nova do gestor toca um som (gerado pelo navegador, sem arquivo) e pode avisar no Windows.
+  var ORG_NOVIDADES_MS = 60000;
+  var orgNov = { rodando: false, recarregar: false, sem: false };
+  var orgSom = { ligado: true, ctx: null };
+  try { orgSom.ligado = localStorage.getItem('orgSom') !== '0'; } catch (e) {}
+  var OS = { som: document.getElementById('orgSomBtn'), notif: document.getElementById('orgNotifBtn') };
+
+  function orgSomBotoes(){
+    var pessoa = org.modo === 'pessoa';
+    OS.som.hidden = !pessoa;
+    OS.som.textContent = 'Som: ' + (orgSom.ligado ? 'ligado' : 'desligado');
+    OS.som.setAttribute('aria-pressed', String(orgSom.ligado));
+    OS.notif.hidden = !pessoa || !('Notification' in window) || Notification.permission !== 'default';
+  }
+  // O navegador só libera som depois de um clique ou tecla na página: prepara o áudio no primeiro toque
+  function orgSomPrepara(){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!orgSom.ctx) orgSom.ctx = new AC();
+      if (orgSom.ctx.state === 'suspended') orgSom.ctx.resume();
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', orgSomPrepara, true);
+  document.addEventListener('keydown', orgSomPrepara, true);
+  // "Plim-plom": dois tons curtos
+  function orgSomToca(){
+    if (!orgSom.ligado || !orgSom.ctx) return;
+    try {
+      var ctx = orgSom.ctx, t0 = ctx.currentTime + 0.02;
+      [[880, 0], [1318.5, 0.2]].forEach(function(n){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t0 + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.28, t0 + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + n[1] + 0.32);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0 + n[1]); o.stop(t0 + n[1] + 0.35);
+      });
+    } catch (e) {}
+  }
+  OS.som.addEventListener('click', function(){
+    orgSom.ligado = !orgSom.ligado;
+    try { localStorage.setItem('orgSom', orgSom.ligado ? '1' : '0'); } catch (e) {}
+    orgSomBotoes();
+    if (orgSom.ligado){ orgSomPrepara(); orgSomToca(); }
+    toast(orgSom.ligado ? 'Som ligado: toca quando chegar tarefa urgente' : 'Som desligado');
+  });
+  OS.notif.addEventListener('click', function(){
+    if (!('Notification' in window)) return;
+    Promise.resolve(Notification.requestPermission()).then(function(p){
+      orgSomBotoes();
+      toast(p === 'granted' ? 'Pronto: tarefa urgente também avisa no Windows' : 'O navegador não liberou o aviso. Dá para liberar no cadeado ao lado do endereço do site.');
+    }, function(){});
+  });
+
+  function orgAvisaUrgentes(novas){
+    var tit = novas.map(function(u){ return u.titulo || 'Tarefa'; });
+    orgSomToca();
+    toast(novas.length === 1 ? 'Chegou tarefa urgente: ' + tit[0] : 'Chegaram ' + novas.length + ' tarefas urgentes');
+    try {
+      if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
+        var n = new Notification(novas.length === 1 ? 'Tarefa urgente do gestor' : novas.length + ' tarefas urgentes do gestor', { body: tit.join('\n'), tag: 'org-urgente' });
+        n.onclick = function(){ window.focus(); n.close(); };
+      }
+    } catch (e) {}
+    novas.forEach(function(u){ orgChegou[u.id] = true; });
+    setTimeout(function(){ novas.forEach(function(u){ delete orgChegou[u.id]; }); }, 4000);
+  }
+
+  // Alguém mexendo na tela? Então a recarga espera.
+  function orgUsuarioOcupado(){
+    var a = document.activeElement;
+    if (a && O.content.contains(a) && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) return true;
+    if (document.querySelector('dialog[open]')) return true;
+    return OT.kanban.classList.contains('arrastando');
+  }
+  async function orgRecarregaDiscreto(){
+    if (!orgNov.recarregar) return;
+    if (orgUsuarioOcupado()) return;
+    orgNov.recarregar = false;
+    ocupado.silencio++;
+    try { await orgLoad(); } finally { ocupado.silencio--; }
+  }
+  async function orgNovidades(){
+    if (!org.unlocked || orgNov.sem || orgNov.rodando || !supabase) return;
+    orgNov.rodando = true;
+    try {
+      var quem = org.modo + '|' + (org.eu || '') + '|' + (org.ver || '');
+      var r = await orgCall('org_novidades');
+      if (quem !== org.modo + '|' + (org.eu || '') + '|' + (org.ver || '') || !org.unlocked) return;   // trocou de tela no meio
+      if (r.status === 'erro' && r.codigo === 'PGRST202'){ orgNov.sem = true; return; }   // SQL antigo: fica sem atualização automática
+      if (r.status !== 'ok') return;
+      if (org.modo === 'pessoa' && Array.isArray(r.urgentes)){
+        var novas = r.urgentes.filter(function(u){ return u && u.id && !orgUrgVistos[u.id]; });
+        novas.forEach(function(u){ orgUrgVistos[u.id] = true; });
+        if (novas.length) orgAvisaUrgentes(novas);
+      }
+      if (org.assinatura !== null && r.assinatura !== org.assinatura) orgNov.recarregar = true;
+      await orgRecarregaDiscreto();
+    } catch (e) {
+      // sem internet ou erro passageiro: tenta de novo no próximo minuto, sem mensagem
+    } finally { orgNov.rodando = false; }
+  }
+  setInterval(orgNovidades, ORG_NOVIDADES_MS);
+  // Recarga que ficou esperando: tenta logo depois que a pessoa sai do campo ou fecha a janela
+  O.content.addEventListener('focusout', function(){ if (orgNov.recarregar) setTimeout(orgRecarregaDiscreto, 1500); });
+  document.addEventListener('close', function(){ if (orgNov.recarregar) setTimeout(orgRecarregaDiscreto, 800); }, true);
+  // Voltou para a aba do navegador: confere na hora
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) orgNovidades(); });
 
   // ---------------------------------------------------------------------
   // Perícias: nomeação → agendamento → realização → laudo (30 dias úteis)

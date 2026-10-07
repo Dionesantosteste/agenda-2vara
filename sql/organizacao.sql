@@ -180,6 +180,9 @@ select d.dono, c.chave, c.nome, c.ordem
  cross join (values ('afazer', 'A fazer', 0), ('fazendo', 'Fazendo', 10), ('feito', 'Feito', 100000)) as c(chave, nome, ordem)
  where not exists (select 1 from org_colunas x where x.dono is not distinct from d.dono and x.chave = c.chave);
 
+-- tarefa agendada pelo gestor: só aparece na tela da pessoa a partir deste dia (vazio = aparece já)
+alter table org_tarefas add column if not exists aparece_em date;
+
 -- ---------- modelos de texto (uma biblioteca para todos; qualquer tela edita) ----------
 create table if not exists org_txt_categorias (
   id uuid primary key default gen_random_uuid(),
@@ -443,6 +446,94 @@ as $$
     '[]'::jsonb));
 $$;
 
+-- "Hoje" no horário da vara. O banco trabalha em UTC: sem isto, depois das 20h já seria o dia seguinte.
+create or replace function org_hoje()
+returns date
+language sql
+stable
+as $$
+  select (now() at time zone 'America/Cuiaba')::date;
+$$;
+
+-- Painel da equipe (só o gestor; chamado por org_carregar): totais por pessoa contando TODAS as
+-- tarefas do quadro de cada uma, não só as mandadas pelo gestor. Devolve números, não as tarefas.
+create or replace function org_painel_equipe()
+returns jsonb
+language sql
+stable
+set search_path = public, extensions
+as $$
+  with todas_abertas as (
+    select t.*, coalesce(t.aparece_em > org_hoje(), false) as agendada from org_tarefas t
+     where t.dono is not null and t.arquivada_em is null and t.etapa <> 'feito'
+  ), abertas as (
+    select * from todas_abertas where not agendada
+  ), feitas as (
+    select t.*, (t.feita_em at time zone 'America/Cuiaba')::date as dia_feita from org_tarefas t
+     where t.dono is not null and t.feita_em >= now() - interval '56 days'
+  )
+  select jsonb_build_object(
+    'hoje', org_hoje(),
+    -- em aberto: a fazer, em andamento (qualquer coluna do meio), esperando conferência
+    'abertas', coalesce((select jsonb_agg(x) from (
+        select a.dono,
+               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa = 'afazer') as afazer,
+               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa <> 'afazer') as andamento,
+               count(*) filter (where a.conferencia = 'enviada') as conferir,
+               count(*) filter (where a.prazo < org_hoje()) as atrasadas,
+               count(*) filter (where a.prazo = org_hoje()) as hoje,
+               count(*) filter (where a.prioridade = 'urgente') as urgentes,
+               min(a.prazo) filter (where a.prazo >= org_hoje()) as prox_prazo
+          from abertas a group by a.dono) x), '[]'::jsonb),
+    -- agendadas: ainda não aparecem na tela da pessoa
+    'agendadas', coalesce((select jsonb_agg(x) from (
+        select a.dono, count(*) as n, min(a.aparece_em) as proxima from todas_abertas a where a.agendada group by a.dono) x), '[]'::jsonb),
+    -- prazos dos próximos 7 dias (hoje + 6), por pessoa e dia
+    'prazos', coalesce((select jsonb_agg(x) from (
+        select a.dono, a.prazo as dia, count(*) as n from abertas a
+         where a.prazo between org_hoje() and org_hoje() + 6 group by a.dono, a.prazo) x), '[]'::jsonb),
+    -- paradas: em aberto, fora da conferência e sem mudança há 7 dias ou mais (igual a ORG_DIAS_PARADO no site)
+    'paradas', coalesce((select jsonb_agg(x order by x.desde) from (
+        select a.id, a.dono, a.titulo, a.etapa, a.processo, greatest(a.updated_at, a.aparece_em::timestamptz) as desde from abertas a
+         where a.conferencia is distinct from 'enviada' and greatest(a.updated_at, a.aparece_em::timestamptz) < now() - interval '7 days'
+         order by 6 limit 15) x), '[]'::jsonb),
+    -- desempenho: concluídas nos últimos 7 e 30 dias, no prazo, tempo médio e devolvidas na conferência
+    'feitas', coalesce((select jsonb_agg(x) from (
+        select f.dono,
+               count(*) filter (where f.feita_em >= now() - interval '7 days') as n7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days') as n30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.prazo is not null) as cp7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.prazo is not null) as cp30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.dia_feita <= f.prazo) as np7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.dia_feita <= f.prazo) as np30,
+               round((avg(extract(epoch from f.feita_em - f.created_at)) filter (where f.feita_em >= now() - interval '7 days') / 86400)::numeric, 1) as dias7,
+               round((avg(extract(epoch from f.feita_em - f.created_at)) filter (where f.feita_em >= now() - interval '30 days') / 86400)::numeric, 1) as dias30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev30
+          from feitas f group by f.dono) x), '[]'::jsonb),
+    -- concluídas por semana nas últimas 8 semanas (s = 0 é a semana mais recente)
+    'semanas', coalesce((select jsonb_agg(x) from (
+        select f.dono, floor(extract(epoch from now() - f.feita_em) / 604800)::int as s, count(*) as n
+          from feitas f group by 1, 2) x), '[]'::jsonb)
+  );
+$$;
+revoke all on function org_painel_equipe() from public, anon, authenticated;
+
+-- "Assinatura" das tarefas de uma tela: muda quando alguma tarefa visível é criada, alterada ou excluída,
+-- quando uma nota do mural muda e na virada do dia (tarefas agendadas aparecem). O gestor acompanha todas.
+create or replace function org_assinatura(p_dono uuid, p_gestor boolean)
+returns text
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select (select count(*)::text || '|' || coalesce(max(t.updated_at)::text, '') from org_tarefas t
+           where p_gestor or (t.dono is not distinct from p_dono and (t.aparece_em is null or t.aparece_em <= org_hoje())))
+         || '|' || (select count(*)::text || '|' || coalesce(max(n.updated_at)::text, '') from org_notas n where n.dono is not distinct from p_dono)
+         || '|' || org_hoje()::text;
+$$;
+revoke all on function org_assinatura(uuid, boolean) from public, anon, authenticated;
+
 -- Carrega a tela. p_equipe (só para o gestor) diz quanto da aba "Tarefas da equipe" vem junto:
 --   0 = nada (só o número de tarefas esperando conferência), 1 = em aberto + concluídas nos últimos 30 dias, 2 = todas
 create or replace function org_carregar(p_pin text, p_pessoa uuid, p_equipe int)
@@ -464,18 +555,22 @@ begin
     'gestor', ac.o_gestor,
     'pessoa', (select jsonb_build_object('id', p.id, 'nome', p.nome) from org_pessoas p where p.id = ac.o_dono),
     'notas', coalesce((select jsonb_agg(to_jsonb(n) order by n.fixada desc, n.created_at desc) from org_notas n where n.dono is not distinct from ac.o_dono), '[]'::jsonb),
-    'tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t where t.dono is not distinct from ac.o_dono), '[]'::jsonb),
+    'tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t where t.dono is not distinct from ac.o_dono
+                           and (ac.o_gestor or t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
     'lembretes', coalesce((select jsonb_agg(to_jsonb(l) order by l.data, l.hora nulls first) from org_lembretes l where l.dono is not distinct from ac.o_dono), '[]'::jsonb),
     'rotinas', case when ac.o_gestor then coalesce((select jsonb_agg(to_jsonb(r) order by r.created_at) from org_rotinas r), '[]'::jsonb) else '[]'::jsonb end,
     'etiquetas', coalesce((select jsonb_agg(to_jsonb(e) order by e.nome) from org_etiquetas e where e.dono is not distinct from ac.o_dono), '[]'::jsonb),
     'colunas', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, c.created_at) from org_colunas c where c.dono is not distinct from ac.o_dono), '[]'::jsonb),
-    'anotacoes', coalesce((select jsonb_agg(to_jsonb(x) order by x.created_at desc) from org_anotacoes x join org_tarefas t on t.id = x.tarefa_id where t.dono is not distinct from ac.o_dono), '[]'::jsonb),
+    'anotacoes', coalesce((select jsonb_agg(to_jsonb(x) order by x.created_at desc) from org_anotacoes x join org_tarefas t on t.id = x.tarefa_id where t.dono is not distinct from ac.o_dono
+                             and (ac.o_gestor or t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
     'modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is not distinct from ac.o_dono), '[]'::jsonb),
     'ordem', true,
     'checklist', true,
     'arquivar_livre', true,
     'equipe', true,
     'conferencia', true,
+    'agenda', true,
+    'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
     'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
     'txt_meus', (select to_jsonb(x) from org_txt_meus x where x.dono is not distinct from ac.o_dono),
@@ -496,10 +591,130 @@ begin
                                           or coalesce(t.feita_em, t.updated_at) >= now() - interval '30 days')), '[]'::jsonb),
       'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb),
       -- modelos de cartão do próprio gestor, para o "passo a passo" ao mandar tarefa
-      'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb)
+      'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb),
+      'equipe_painel', org_painel_equipe()
     );
   end if;
   return res;
+end;
+$$;
+
+-- Processo repetido: antes de mandar uma tarefa, o gestor vê se o processo já está com alguém.
+-- Compara só os números (com ou sem pontos e traço) e devolve as tarefas não concluídas e não arquivadas,
+-- de qualquer tela (dono vazio = o próprio gestor), com o nome da coluna em que estão.
+create or replace function org_processo_em_uso(p_pin text, p_pessoa uuid, p_processo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  dig text := regexp_replace(coalesce(p_processo, ''), '\D', '', 'g');
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor confere processos repetidos.');
+  end if;
+  if length(dig) <> 20 then
+    return jsonb_build_object('status', 'ok', 'tarefas', '[]'::jsonb);
+  end if;
+  return jsonb_build_object('status', 'ok', 'tarefas', coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', t.id, 'dono', t.dono, 'titulo', t.titulo, 'etapa', t.etapa, 'prazo', t.prazo,
+             'conferencia', t.conferencia, 'coluna', c.nome, 'created_at', t.created_at, 'aparece_em', t.aparece_em)
+           order by t.created_at)
+      from org_tarefas t
+      left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
+     where t.etapa <> 'feito' and t.arquivada_em is null
+       and t.processo <> '' and regexp_replace(t.processo, '\D', '', 'g') = dig), '[]'::jsonb));
+end;
+$$;
+
+-- Consulta leve que o site faz a cada minuto: devolve só a assinatura da tela e as tarefas urgentes
+-- em aberto que o gestor mandou (para tocar o aviso quando chega uma nova). Nada mais é lido.
+create or replace function org_novidades(p_pin text, p_pessoa uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  return jsonb_build_object(
+    'status', 'ok',
+    'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
+    'urgentes', coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo)) from org_tarefas t
+                           where t.dono is not distinct from ac.o_dono and t.do_gestor and t.prioridade = 'urgente'
+                             and t.etapa <> 'feito' and t.arquivada_em is null
+                             and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb));
+end;
+$$;
+
+-- O gestor manda uma tarefa agendada: grava já com a data em que ela aparece para a pessoa
+-- (numa operação só, para a tarefa nunca aparecer antes da hora). Data de hoje ou passada = aparece já.
+create or replace function org_mandar_tarefa(
+  p_pin text, p_pessoa uuid, p_titulo text, p_prazo date, p_prioridade text, p_processo text, p_aparece_em date
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  pr text := case when p_prioridade in ('baixa', 'normal', 'alta', 'urgente') then p_prioridade else 'normal' end;
+  novo uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor manda tarefas para a equipe.');
+  end if;
+  insert into org_tarefas (dono, do_gestor, titulo, prazo, prioridade, urgente, responsavel, processo, etapa, aparece_em)
+  values (ac.o_dono, true, coalesce(p_titulo, ''), p_prazo, pr, pr = 'urgente', '', coalesce(p_processo, ''), 'afazer',
+          case when p_aparece_em > org_hoje() then p_aparece_em end)
+  returning id into novo;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+-- Muda (ou tira, com p_aparece_em vazio) a data em que a tarefa aparece para a pessoa. Só o gestor.
+create or replace function org_agendar_tarefa(p_pin text, p_pessoa uuid, p_id uuid, p_aparece_em date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  achou uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor agenda tarefas.');
+  end if;
+  update org_tarefas
+     set aparece_em = case when p_aparece_em > org_hoje() then p_aparece_em end, updated_at = now()
+   where id = p_id and dono is not distinct from ac.o_dono
+  returning id into achou;
+  if achou is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não existe mais.');
+  end if;
+  return jsonb_build_object('status', 'ok');
 end;
 $$;
 
@@ -1441,6 +1656,10 @@ grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, a
 grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
+grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
+grant execute on function org_novidades(text, uuid) to anon, authenticated;
+grant execute on function org_mandar_tarefa(text, uuid, text, date, text, text, date) to anon, authenticated;
+grant execute on function org_agendar_tarefa(text, uuid, uuid, date) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_nota(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_salvar_tarefa(text, uuid, uuid, text, date, text, text, text, timestamptz, text) to anon, authenticated;
