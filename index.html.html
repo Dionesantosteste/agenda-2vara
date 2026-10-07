@@ -422,6 +422,9 @@
   .achado{ animation:achado 2s ease-out; }
   @keyframes achado{ 0%, 40%{ box-shadow:0 0 0 3px var(--accent); } 100%{ box-shadow:var(--shadow); } }
   @media (prefers-reduced-motion: reduce){ .achado{ animation:none; outline:3px solid var(--accent); } }
+  .k-chegou{ animation:chegou 2.6s ease-out; }
+  @keyframes chegou{ 0%, 55%{ box-shadow:0 0 0 3px var(--danger); } 100%{ box-shadow:var(--shadow); } }
+  @media (prefers-reduced-motion: reduce){ .k-chegou{ animation:none; outline:3px solid var(--danger); } }
 
   /* ================= Indicador de carregamento ================= */
   .busy-bar{ position:fixed; top:0; left:0; right:0; height:3px; z-index:200; overflow:hidden; pointer-events:none; opacity:0; transition:opacity .2s; background:var(--accent-soft); }
@@ -1559,6 +1562,8 @@
         <div class="org-head-actions">
           <select class="org-in so-gestor" id="orgVer" aria-label="Ver a tela de"></select>
           <button type="button" class="btn so-gestor" id="orgPessoasBtn" title="Cadastrar as pessoas da equipe">Pessoas</button>
+          <button type="button" class="btn" id="orgSomBtn" hidden aria-pressed="true" title="Toca um aviso quando chega tarefa urgente do gestor">Som: ligado</button>
+          <button type="button" class="btn" id="orgNotifBtn" hidden title="Mostra um aviso do Windows quando chega tarefa urgente, mesmo com outra janela na frente">Avisar no Windows</button>
           <button type="button" class="btn" id="orgLockBtn" title="Trancar a Organização neste navegador">Trancar</button>
         </div>
       </header>
@@ -2274,7 +2279,7 @@
   var configured = SUPABASE_URL.indexOf("http") === 0 && SUPABASE_ANON_KEY.length > 20;
   // Indicador "trabalhando": conta as chamadas ao banco em andamento e mostra a faixa e o aviso
   // (só aparece se a operação passar de 250 ms, para não piscar à toa)
-  var ocupado = { leituras: 0, gravacoes: 0, timer: null };
+  var ocupado = { leituras: 0, gravacoes: 0, timer: null, silencio: 0 };   // silencio > 0: leituras em segundo plano (não mostram a faixa)
   function atualizarOcupado(){
     var total = ocupado.leituras + ocupado.gravacoes, root = document.documentElement;
     var txt = document.getElementById('busyTxt');
@@ -2294,7 +2299,9 @@
       var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
       var grava = metodo !== 'GET' && metodo !== 'HEAD';
       var url = String((input && input.url) || input || '');
-      if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico)/.test(url)) grava = false;   // listar a Organização é leitura
+      if (/\/rpc\/org_novidades/.test(url)) return fetchOriginal(input, init);              // consulta de cada minuto: sem faixa
+      if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico|processo_em_uso)/.test(url)) grava = false;   // listar a Organização é leitura
+      if (!grava && ocupado.silencio > 0) return fetchOriginal(input, init);
       if (grava) ocupado.gravacoes++; else ocupado.leituras++;
       atualizarOcupado();
       var fim = function(){ if (grava) ocupado.gravacoes--; else ocupado.leituras--; atualizarOcupado(); };
@@ -3694,6 +3701,8 @@
   var org = { pin: null, notas: [], tarefas: [], cor: 'amarelo', editing: null, unlocked: false,
     modo: 'gestor', eu: null, euNome: '', ver: null, pessoas: [], eqTarefas: [], eqColunas: [], temEquipe: false,
     txt: { tem: false, modelos: [], cats: [], meus: { nome: '', cargo: '', cidade: '', favoritos: [] }, atual: null, cat: 'Todas', q: '', valores: {}, editando: null } };
+  var orgUrgVistos = {};      // ids das urgentes do gestor que a pessoa já tem na tela (atualização automática, mais abaixo)
+  var orgChegou = {};         // cartões que acabaram de chegar (piscam uma vez)
   try { org.pin = sessionStorage.getItem('orgPin'); } catch (e) {}
   try { org.ver = sessionStorage.getItem('orgVer') || null; } catch (e) {}
   try { if (!org.pin){ org.eu = localStorage.getItem('orgPessoa') || null; if (org.eu) org.modo = 'pessoa'; } } catch (e) {}
@@ -3850,6 +3859,7 @@
     org.temEquipe = r.equipe === true;
     org.temConf = r.conferencia === true;
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
+    org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
     org.txt.tem = Array.isArray(r.txt_modelos);
     org.txt.modelos = (r.txt_modelos || []).map(function(m){
       return { id: m.id, nome: m.nome || 'Sem nome', cat: m.categoria || '', texto: m.texto || '', usos: m.usos || 0,
@@ -3874,6 +3884,8 @@
     });
     orgParseQuadro(r);
     org.tarefas = (r.tarefas || []).map(function(t){ return orgTarefaDe(t, orgChaves()); });
+    // urgentes do gestor já na tela: não tocam aviso (só as que chegarem depois)
+    org.tarefas.forEach(function(t){ if (t.doGestor && t.prioridade === 'urgente') orgUrgVistos[t.id] = true; });
     org.lembretes = (r.lembretes || []).map(function(l){
       return { id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
         processo: l.processo || '', feitoEm: l.feito_em ? new Date(l.feito_em) : null };
@@ -4021,6 +4033,7 @@
       el.classList.toggle('org-alheia', orgAlheia());
     });
     O.lockBtn.textContent = pessoa ? 'Sair' : 'Trancar';
+    orgSomBotoes();
     O.lockBtn.title = pessoa ? 'Sair da sua tela neste navegador' : 'Trancar a Organização neste navegador';
     if (pessoa){
       OV.h1.textContent = 'Olá, ' + (org.euNome.split(' ')[0] || 'tudo bem') + '!';
@@ -4556,7 +4569,7 @@
       items.forEach(function(t, ii){
         var aberta = c[0] !== 'feito', selo = orgSeloPrazo(t), parado = orgDiasParado(t);
         var late = selo && selo.cls === 'late', trava = orgTravada(t);
-        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + (orgEmConf(t) ? ' em-conf' : '') + '" draggable="' + !trava + '" data-id="' + t.id + '">' +
+        h += '<div class="kcard' + (late ? ' overdue' : '') + (t.urgente && aberta ? ' urgent' : '') + (parado ? ' stale' : '') + (orgEmConf(t) ? ' em-conf' : '') + (orgChegou[t.id] ? ' k-chegou' : '') + '" draggable="' + !trava + '" data-id="' + t.id + '">' +
           '<div class="khead"><div class="kmain">' + orgKLabels(t) +
           '<div class="t-title"><button type="button" class="ktitle" data-act="abrir-card" data-id="' + t.id + '" title="Abrir a tarefa">' + escapeHtml(t.titulo) + '</button></div></div>' +
           '<span class="kacts">' +
@@ -6888,6 +6901,120 @@
     O.navCount.textContent = (orgPendCount() + (org.modo === 'gestor' ? orgParaConferir() : 0)) || '';
     if (currentRoute === 'organizacao' && org.tab === 'lembretes' && !O.content.contains(document.activeElement)) renderOrgLembretes();
   }, 60000);
+
+  // ---- Atualização automática e aviso de tarefa urgente ----
+  // A cada minuto, com a Organização aberta, pergunta ao banco se algo mudou (org_novidades: poucos bytes).
+  // Se mudou, recarrega a tela em segundo plano, mas só quando ninguém está digitando, arrastando ou com uma janela aberta.
+  // Na tela da pessoa, tarefa urgente nova do gestor toca um som (gerado pelo navegador, sem arquivo) e pode avisar no Windows.
+  var ORG_NOVIDADES_MS = 60000;
+  var orgNov = { rodando: false, recarregar: false, sem: false };
+  var orgSom = { ligado: true, ctx: null };
+  try { orgSom.ligado = localStorage.getItem('orgSom') !== '0'; } catch (e) {}
+  var OS = { som: document.getElementById('orgSomBtn'), notif: document.getElementById('orgNotifBtn') };
+
+  function orgSomBotoes(){
+    var pessoa = org.modo === 'pessoa';
+    OS.som.hidden = !pessoa;
+    OS.som.textContent = 'Som: ' + (orgSom.ligado ? 'ligado' : 'desligado');
+    OS.som.setAttribute('aria-pressed', String(orgSom.ligado));
+    OS.notif.hidden = !pessoa || !('Notification' in window) || Notification.permission !== 'default';
+  }
+  // O navegador só libera som depois de um clique ou tecla na página: prepara o áudio no primeiro toque
+  function orgSomPrepara(){
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      if (!orgSom.ctx) orgSom.ctx = new AC();
+      if (orgSom.ctx.state === 'suspended') orgSom.ctx.resume();
+    } catch (e) {}
+  }
+  document.addEventListener('pointerdown', orgSomPrepara, true);
+  document.addEventListener('keydown', orgSomPrepara, true);
+  // "Plim-plom": dois tons curtos
+  function orgSomToca(){
+    if (!orgSom.ligado || !orgSom.ctx) return;
+    try {
+      var ctx = orgSom.ctx, t0 = ctx.currentTime + 0.02;
+      [[880, 0], [1318.5, 0.2]].forEach(function(n){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = n[0];
+        g.gain.setValueAtTime(0.0001, t0 + n[1]);
+        g.gain.exponentialRampToValueAtTime(0.28, t0 + n[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + n[1] + 0.32);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0 + n[1]); o.stop(t0 + n[1] + 0.35);
+      });
+    } catch (e) {}
+  }
+  OS.som.addEventListener('click', function(){
+    orgSom.ligado = !orgSom.ligado;
+    try { localStorage.setItem('orgSom', orgSom.ligado ? '1' : '0'); } catch (e) {}
+    orgSomBotoes();
+    if (orgSom.ligado){ orgSomPrepara(); orgSomToca(); }
+    toast(orgSom.ligado ? 'Som ligado: toca quando chegar tarefa urgente' : 'Som desligado');
+  });
+  OS.notif.addEventListener('click', function(){
+    if (!('Notification' in window)) return;
+    Promise.resolve(Notification.requestPermission()).then(function(p){
+      orgSomBotoes();
+      toast(p === 'granted' ? 'Pronto: tarefa urgente também avisa no Windows' : 'O navegador não liberou o aviso. Dá para liberar no cadeado ao lado do endereço do site.');
+    }, function(){});
+  });
+
+  function orgAvisaUrgentes(novas){
+    var tit = novas.map(function(u){ return u.titulo || 'Tarefa'; });
+    orgSomToca();
+    toast(novas.length === 1 ? 'Chegou tarefa urgente: ' + tit[0] : 'Chegaram ' + novas.length + ' tarefas urgentes');
+    try {
+      if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
+        var n = new Notification(novas.length === 1 ? 'Tarefa urgente do gestor' : novas.length + ' tarefas urgentes do gestor', { body: tit.join('\n'), tag: 'org-urgente' });
+        n.onclick = function(){ window.focus(); n.close(); };
+      }
+    } catch (e) {}
+    novas.forEach(function(u){ orgChegou[u.id] = true; });
+    setTimeout(function(){ novas.forEach(function(u){ delete orgChegou[u.id]; }); }, 4000);
+  }
+
+  // Alguém mexendo na tela? Então a recarga espera.
+  function orgUsuarioOcupado(){
+    var a = document.activeElement;
+    if (a && O.content.contains(a) && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) return true;
+    if (document.querySelector('dialog[open]')) return true;
+    return OT.kanban.classList.contains('arrastando');
+  }
+  async function orgRecarregaDiscreto(){
+    if (!orgNov.recarregar) return;
+    if (orgUsuarioOcupado()) return;
+    orgNov.recarregar = false;
+    ocupado.silencio++;
+    try { await orgLoad(); } finally { ocupado.silencio--; }
+  }
+  async function orgNovidades(){
+    if (!org.unlocked || orgNov.sem || orgNov.rodando || !supabase) return;
+    orgNov.rodando = true;
+    try {
+      var quem = org.modo + '|' + (org.eu || '') + '|' + (org.ver || '');
+      var r = await orgCall('org_novidades');
+      if (quem !== org.modo + '|' + (org.eu || '') + '|' + (org.ver || '') || !org.unlocked) return;   // trocou de tela no meio
+      if (r.status === 'erro' && r.codigo === 'PGRST202'){ orgNov.sem = true; return; }   // SQL antigo: fica sem atualização automática
+      if (r.status !== 'ok') return;
+      if (org.modo === 'pessoa' && Array.isArray(r.urgentes)){
+        var novas = r.urgentes.filter(function(u){ return u && u.id && !orgUrgVistos[u.id]; });
+        novas.forEach(function(u){ orgUrgVistos[u.id] = true; });
+        if (novas.length) orgAvisaUrgentes(novas);
+      }
+      if (org.assinatura !== null && r.assinatura !== org.assinatura) orgNov.recarregar = true;
+      await orgRecarregaDiscreto();
+    } catch (e) {
+      // sem internet ou erro passageiro: tenta de novo no próximo minuto, sem mensagem
+    } finally { orgNov.rodando = false; }
+  }
+  setInterval(orgNovidades, ORG_NOVIDADES_MS);
+  // Recarga que ficou esperando: tenta logo depois que a pessoa sai do campo ou fecha a janela
+  O.content.addEventListener('focusout', function(){ if (orgNov.recarregar) setTimeout(orgRecarregaDiscreto, 1500); });
+  document.addEventListener('close', function(){ if (orgNov.recarregar) setTimeout(orgRecarregaDiscreto, 800); }, true);
+  // Voltou para a aba do navegador: confere na hora
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) orgNovidades(); });
 
   // ---------------------------------------------------------------------
   // Perícias: nomeação → agendamento → realização → laudo (30 dias úteis)

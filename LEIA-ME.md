@@ -244,6 +244,17 @@ No **Quadro**:
   - Só os modelos ficam guardados. Os dados preenchidos de cada processo não são gravados.
 - **Prioridade:** agora tem 4 níveis, Baixa, Normal, Alta e Urgente, em todos os quadros. As tarefas que eram urgentes continuam urgentes; as demais viram Normal.
 
+**Atualização automática e aviso de tarefa urgente** (precisa do `sql/organizacao.sql` atualizado; sem ele tudo funciona como antes, só sem isso):
+- Com a Organização aberta (em qualquer aba do site), a cada minuto o site pergunta ao banco se algo mudou na tela. É uma consulta de poucos bytes e não acende a faixa "Carregando…".
+- Se mudou (tarefa nova, editada, movida ou excluída, nota do mural, virada do dia), a tela se atualiza sozinha. Se a pessoa estiver digitando, arrastando um cartão ou com uma janela aberta, a atualização espera ela terminar.
+- Na tela do gestor, a aba Tarefas da equipe e o painel também se atualizam quando alguém da equipe mexe nas tarefas.
+- **Tarefa urgente nova do gestor** (só na tela da pessoa): toca um som curto de dois tons, aparece o aviso "Chegou tarefa urgente" e o cartão pisca uma vez no quadro. A urgente que a própria pessoa cria não toca.
+  - **Som: ligado/desligado:** botão no alto da tela da pessoa. Fica guardado neste navegador.
+  - O navegador só libera som depois de um clique na página. Como a pessoa entra clicando no nome, isso já acontece. Se a página for recarregada e ficar parada sem clique, o primeiro aviso pode sair sem som.
+  - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
+  - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
+- O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
+
 **Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:

@@ -519,6 +519,21 @@ as $$
 $$;
 revoke all on function org_painel_equipe() from public, anon, authenticated;
 
+-- "Assinatura" das tarefas de uma tela: muda quando alguma tarefa visível é criada, alterada ou excluída,
+-- quando uma nota do mural muda e na virada do dia (tarefas agendadas aparecem). O gestor acompanha todas.
+create or replace function org_assinatura(p_dono uuid, p_gestor boolean)
+returns text
+language sql
+stable
+set search_path = public, extensions
+as $$
+  select (select count(*)::text || '|' || coalesce(max(t.updated_at)::text, '') from org_tarefas t
+           where p_gestor or (t.dono is not distinct from p_dono and (t.aparece_em is null or t.aparece_em <= org_hoje())))
+         || '|' || (select count(*)::text || '|' || coalesce(max(n.updated_at)::text, '') from org_notas n where n.dono is not distinct from p_dono)
+         || '|' || org_hoje()::text;
+$$;
+revoke all on function org_assinatura(uuid, boolean) from public, anon, authenticated;
+
 -- Carrega a tela. p_equipe (só para o gestor) diz quanto da aba "Tarefas da equipe" vem junto:
 --   0 = nada (só o número de tarefas esperando conferência), 1 = em aberto + concluídas nos últimos 30 dias, 2 = todas
 create or replace function org_carregar(p_pin text, p_pessoa uuid, p_equipe int)
@@ -555,6 +570,7 @@ begin
     'equipe', true,
     'conferencia', true,
     'agenda', true,
+    'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
     'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
     'txt_meus', (select to_jsonb(x) from org_txt_meus x where x.dono is not distinct from ac.o_dono),
@@ -615,6 +631,31 @@ begin
       left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
      where t.etapa <> 'feito' and t.arquivada_em is null
        and t.processo <> '' and regexp_replace(t.processo, '\D', '', 'g') = dig), '[]'::jsonb));
+end;
+$$;
+
+-- Consulta leve que o site faz a cada minuto: devolve só a assinatura da tela e as tarefas urgentes
+-- em aberto que o gestor mandou (para tocar o aviso quando chega uma nova). Nada mais é lido.
+create or replace function org_novidades(p_pin text, p_pessoa uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  return jsonb_build_object(
+    'status', 'ok',
+    'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
+    'urgentes', coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo)) from org_tarefas t
+                           where t.dono is not distinct from ac.o_dono and t.do_gestor and t.prioridade = 'urgente'
+                             and t.etapa <> 'feito' and t.arquivada_em is null
+                             and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb));
 end;
 $$;
 
@@ -1616,6 +1657,7 @@ grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
+grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_mandar_tarefa(text, uuid, text, date, text, text, date) to anon, authenticated;
 grant execute on function org_agendar_tarefa(text, uuid, uuid, date) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;
