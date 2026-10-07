@@ -896,6 +896,23 @@
   .pn-kpi.conf .n{ color:var(--warn); }
   .pn-kpi.ok .n{ color:var(--ok); }
   .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .pn-head-dir{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; justify-content:flex-end; }
+  .pn-corpo{ display:flex; flex-direction:column; gap:14px; }
+  .pn-secs{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
+  .pn-sec + .pn-sec{ border-top:1px solid var(--line); }
+  .pn-sec > summary{ list-style:none; cursor:pointer; display:flex; align-items:center; gap:10px; padding:10px 14px; font-size:13px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+  .pn-sec > summary::-webkit-details-marker{ display:none; }
+  .pn-sec > summary::before{ content:""; width:7px; height:7px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(-45deg); transition:transform .15s; flex:none; margin-right:2px; }
+  .pn-sec[open] > summary::before{ transform:rotate(45deg); }
+  .pn-sec > summary:hover{ background:var(--sunken); color:var(--ink); }
+  .pn-sec > summary:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .pn-sec[open] > summary{ color:var(--ink); }
+  .pn-sec > :not(summary){ margin:0 14px 12px; }
+  .pn-sec .kchips{ margin-bottom:8px; }
+  .pn-sec-dica{ font-size:12.5px; color:var(--muted); }
+  .pn-sum{ text-transform:none; letter-spacing:0; font-weight:500; font-size:12.5px; color:var(--muted); margin-left:auto; text-align:right; }
+  .pn-sum .r{ color:var(--danger); font-weight:600; } .pn-sum .a{ color:var(--warn); font-weight:600; }
+  @media (prefers-reduced-motion: reduce){ .pn-sec > summary::before{ transition:none; } }
   .pn-bloco{ display:flex; flex-direction:column; gap:10px; min-width:0; }
   .pn-bloco h3{ margin:0; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; }
   .pn-bloco h3 .kchips{ text-transform:none; letter-spacing:0; }
@@ -1611,42 +1628,47 @@
         <div class="panel" id="orgPainel" hidden>
           <div class="panel-head">
             <h2>Painel da equipe</h2>
-            <span>Conta todas as tarefas do quadro de cada pessoa. A lista abaixo mostra as que você mandou.</span>
+            <span class="pn-head-dir"><span>Conta todas as tarefas do quadro de cada pessoa. A lista abaixo mostra as que você mandou.</span>
+              <button type="button" class="clear-btn" id="orgPnRecolher" aria-expanded="true" aria-controls="orgPnCorpo">Recolher</button></span>
           </div>
           <div class="pn-kpis" id="orgPnKpis"></div>
+          <div class="pn-corpo" id="orgPnCorpo">
           <div class="pn-bloco">
             <h3>Carga por pessoa
               <span class="pn-leg"><span><i class="pn-sw" data-k="afazer"></i>A fazer</span><span><i class="pn-sw" data-k="and"></i>Em andamento</span><span><i class="pn-sw" data-k="conf"></i>Para conferir</span></span>
             </h3>
             <div class="pn-scroll" id="orgPnCarga"></div>
           </div>
-          <div class="pn-grid">
-            <div class="pn-bloco">
-              <h3>Atenção</h3>
+          <div class="pn-secs" id="orgPnSecs">
+            <details class="pn-sec" data-sec="atencao">
+              <summary><span class="pn-sec-t">Atenção</span><span class="pn-sum" id="orgPnSumAtencao"></span></summary>
               <div class="pn-alertas" id="orgPnAlertas"></div>
-            </div>
-            <div class="pn-bloco">
-              <h3>Paradas <span class="pn-leg">em aberto e sem mudança há 7 dias ou mais</span></h3>
+            </details>
+            <details class="pn-sec" data-sec="paradas">
+              <summary><span class="pn-sec-t">Paradas</span><span class="pn-sum" id="orgPnSumParadas"></span></summary>
+              <div class="pn-leg pn-sec-dica">Em aberto e sem mudança há 7 dias ou mais.</div>
               <div class="pn-paradas" id="orgPnParadas"></div>
-            </div>
-          </div>
-          <div class="pn-bloco">
-            <h3>Prazos dos próximos 7 dias <span class="pn-leg">tarefas em aberto que vencem em cada dia</span></h3>
-            <div class="pn-scroll"><div class="pn-heat" id="orgPnPrazos"></div></div>
-          </div>
-          <div class="pn-bloco">
-            <h3>Desempenho
-              <span class="kchips" id="orgPnPer" role="group" aria-label="Período do desempenho">
+            </details>
+            <details class="pn-sec" data-sec="prazos">
+              <summary><span class="pn-sec-t">Prazos dos próximos 7 dias</span><span class="pn-sum" id="orgPnSumPrazos"></span></summary>
+              <div class="pn-leg pn-sec-dica">Tarefas em aberto que vencem em cada dia.</div>
+              <div class="pn-scroll"><div class="pn-heat" id="orgPnPrazos"></div></div>
+            </details>
+            <details class="pn-sec" data-sec="desempenho">
+              <summary><span class="pn-sec-t">Desempenho</span><span class="pn-sum" id="orgPnSumDesemp"></span></summary>
+              <div class="kchips" id="orgPnPer" role="group" aria-label="Período do desempenho">
                 <button type="button" class="chip" data-pnper="7" aria-pressed="true">Últimos 7 dias</button>
                 <button type="button" class="chip" data-pnper="30" aria-pressed="false">Últimos 30 dias</button>
-              </span>
-            </h3>
-            <div class="pn-scroll" id="orgPnDesemp"></div>
+              </div>
+              <div class="pn-scroll" id="orgPnDesemp"></div>
+            </details>
+          </div>
           </div>
         </div>
         <div class="panel">
           <div class="panel-head"><h2>Tarefas da equipe</h2><span id="orgEqInfo"></span></div>
           <div class="kfilters">
+            <input class="org-in kbusca" id="orgEqBusca" type="search" maxlength="80" placeholder="Buscar por tarefa, nº do processo ou pessoa…" aria-label="Buscar nas tarefas da equipe" />
             <select class="org-in" id="orgEqFPessoa" aria-label="Filtrar por pessoa"></select>
             <div class="kchips" id="orgEqChips" role="group" aria-label="Filtrar por situação">
               <button type="button" class="chip" data-eqf="abertas" aria-pressed="true">Em aberto</button>
@@ -5772,7 +5794,7 @@
   });
 
   // ---- aba "Tarefas da equipe" ----
-  org.eqf = { pessoa: '', sit: 'abertas' };
+  org.eqf = { pessoa: '', sit: 'abertas', q: '' };
   var ORG_EQ_PAGINA = 100;          // linhas da tabela da equipe desenhadas por vez
   org.eqLimite = ORG_EQ_PAGINA;
   org.eqPrio = 'normal';
@@ -5810,6 +5832,14 @@
     if (f === 'acao') return !!(t.conclusao && t.conclusao.precisa_acao);
     if (f === 'concluidas') return t.etapa === 'feito';
     return true;
+  }
+  // Busca: título, nome da pessoa ou nº do processo (só os números, com ou sem pontos)
+  function orgEqBuscaPassa(t){
+    var q = normalize(org.eqf.q).trim(); if (!q) return true;
+    var dig = digitsOnly(org.eqf.q);
+    if (dig.length >= 4 && digitsOnly(t.processo).indexOf(dig) !== -1) return true;
+    var alvo = normalize(t.titulo + ' ' + (orgNomePessoa(t.dono) || '') + ' ' + t.processo);
+    return q.split(/\s+/).every(function(p){ return alvo.indexOf(p) !== -1; });
   }
   function orgEqPrazoTxt(t){
     if (t.etapa === 'feito') return t.feitaEm ? 'Feita ' + fmtDia(t.feitaEm) : 'Feita';
@@ -5850,7 +5880,7 @@
     document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
     renderOrgPainel();
 
-    var base = org.eqTarefas.filter(function(t){ return !org.eqf.pessoa || t.dono === org.eqf.pessoa; });
+    var base = org.eqTarefas.filter(function(t){ return (!org.eqf.pessoa || t.dono === org.eqf.pessoa) && orgEqBuscaPassa(t); });
     var abertas = base.filter(function(t){ return t.etapa !== 'feito' && !orgAgendada(t); }).length;
     var atrasadas = base.filter(function(t){ return orgEqAtrasada(t) && !orgAgendada(t); }).length, agendadas = base.filter(orgAgendada).length;
     OE.info.textContent = base.length ? abertas + ' em aberto' + (atrasadas ? ' · ' + atrasadas + (atrasadas === 1 ? ' atrasada' : ' atrasadas') : '') +
@@ -5871,7 +5901,7 @@
     if (!lista.length){
       OE.lista.innerHTML = antigas + '<div class="org-empty">' + (!org.eqTarefas.length
         ? (org.pessoas.length ? 'Nenhuma tarefa mandada ainda. Escreva acima e clique em "Enviar".' : 'Cadastre a equipe no botão "Pessoas" para começar a mandar tarefas.')
-        : 'Nenhuma tarefa com este filtro.') + '</div>';
+        : org.eqf.q.trim() ? 'Nenhuma tarefa encontrada para "' + escapeHtml(org.eqf.q.trim()) + '" neste filtro.' : 'Nenhuma tarefa com este filtro.') + '</div>';
       return;
     }
     var total = lista.length;
@@ -5914,8 +5944,27 @@
     prazos: document.getElementById('orgPnPrazos'),
     paradas: document.getElementById('orgPnParadas'),
     per: document.getElementById('orgPnPer'),
-    desemp: document.getElementById('orgPnDesemp')
+    desemp: document.getElementById('orgPnDesemp'),
+    corpo: document.getElementById('orgPnCorpo'),
+    recolher: document.getElementById('orgPnRecolher'),
+    secs: document.getElementById('orgPnSecs')
   };
+  // Sanfona: o que fica aberto ou fechado, e o painel recolhido, são guardados neste navegador
+  var orgPnEstado = { secs: {}, recolhido: false };
+  try { orgPnEstado = Object.assign(orgPnEstado, JSON.parse(localStorage.getItem('orgPainel') || '{}')); } catch (e) {}
+  function orgPnGuarda(){ try { localStorage.setItem('orgPainel', JSON.stringify(orgPnEstado)); } catch (e) {} }
+  OP.secs.querySelectorAll('details[data-sec]').forEach(function(d){
+    d.open = !!orgPnEstado.secs[d.getAttribute('data-sec')];
+    d.addEventListener('toggle', function(){ orgPnEstado.secs[d.getAttribute('data-sec')] = d.open; orgPnGuarda(); });
+  });
+  function orgPnRecolhe(){
+    OP.corpo.hidden = !!orgPnEstado.recolhido;
+    OP.recolher.textContent = orgPnEstado.recolhido ? 'Mostrar detalhes' : 'Recolher';
+    OP.recolher.setAttribute('aria-expanded', String(!orgPnEstado.recolhido));
+  }
+  orgPnRecolhe();
+  OP.recolher.addEventListener('click', function(){ orgPnEstado.recolhido = !orgPnEstado.recolhido; orgPnGuarda(); orgPnRecolhe(); });
+  function orgPnSum(id, html){ document.getElementById(id).innerHTML = html; }
   org.pnPer = 7;
   var ORG_DSEM_CURTO = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
   function orgPnDia(iso){ return iso ? new Date(String(iso).slice(0, 10) + 'T00:00') : null; }
@@ -6008,6 +6057,12 @@
       al.push('<div class="pn-alerta v">Com menos tarefas agora: <b>' + escapeHtml(livre.p.nome) + '</b> (' + livre.c.total + ' em aberto).</div>');
     }
     OP.alertas.innerHTML = al.join('') || '<div class="pn-vazio">Nada pedindo atenção agora.</div>';
+    var comAtraso = cargas.filter(function(x){ return x.c.atrasadas; }).length, cheias = cargas.filter(function(x){ return x.p.ativo && cheia(x.c); }).length;
+    var sa = [];
+    if (comAtraso) sa.push('<span class="r">' + comAtraso + (comAtraso === 1 ? ' pessoa com atrasada' : ' pessoas com atrasadas') + '</span>');
+    if (cheias) sa.push('<span class="a">' + cheias + ' acima da média</span>');
+    if (tot.conferir) sa.push('<span class="a">' + tot.conferir + ' para conferir</span>');
+    orgPnSum('orgPnSumAtencao', sa.join(' · ') || 'nada pedindo atenção');
 
     // prazos dos próximos 7 dias
     var hoje0 = orgPnDia(P.hoje) || startOfDay(new Date()), dias = [];
@@ -6024,6 +6079,8 @@
       });
     });
     OP.prazos.innerHTML = cargas.length ? h : '';
+    var n7 = 0; (P.prazos || []).forEach(function(z){ n7 += z.n || 0; });
+    orgPnSum('orgPnSumPrazos', n7 ? n7 + (n7 === 1 ? ' vencendo' : ' vencendo') + (tot.hoje ? ' · <span class="r">' + tot.hoje + ' hoje</span>' : '') : 'nenhuma vencendo');
 
     // paradas
     var par = P.paradas || [];
@@ -6034,8 +6091,10 @@
         '<span class="m">' + escapeHtml(orgNomePessoa(t.dono) || '—') + ' · ' + escapeHtml(col) + (t.processo ? ' · ' + escapeHtml(t.processo) : '') + '</span>' +
         '<span class="d">' + dias + ' dias</span></div>';
     }).join('') : '<div class="pn-vazio">Nada parado. Todas as tarefas em aberto andaram nos últimos 7 dias.</div>';
+    orgPnSum('orgPnSumParadas', par.length ? '<span class="a">' + par.length + (par.length === 1 ? ' parada' : ' paradas') + (par.length >= 15 ? ' ou mais' : '') + '</span>' : 'nenhuma');
 
     // desempenho
+    orgPnSum('orgPnSumDesemp', feitas + (feitas === 1 ? ' concluída' : ' concluídas') + ' em ' + per + ' dias');
     OP.per.querySelectorAll('[data-pnper]').forEach(function(b){ b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-pnper')) === per)); });
     var linhas = org.pessoas.filter(function(p){
       return p.ativo || (P.feitas || []).some(function(f){ return f.dono === p.id && (f.n30 || 0) > 0; });
@@ -6257,6 +6316,8 @@
     await orgLoad();
     OE.texto.focus();
   });
+  var orgEqBuscaEl = document.getElementById('orgEqBusca');
+  orgEqBuscaEl.addEventListener('input', function(){ org.eqf.q = orgEqBuscaEl.value; org.eqLimite = ORG_EQ_PAGINA; renderOrgEquipe(); });
   OE.fPessoa.addEventListener('change', function(){ org.eqf.pessoa = OE.fPessoa.value; org.eqLimite = ORG_EQ_PAGINA; renderOrgEquipe(); });
   OE.chips.addEventListener('click', function(e){
     var b = e.target.closest('[data-eqf]'); if (!b) return;
