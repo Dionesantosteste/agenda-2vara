@@ -193,6 +193,16 @@ No **Quadro**:
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
     - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
     - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
+  - **Painel da equipe** (entre "Mandar tarefa" e a tabela; precisa do `sql/organizacao.sql` atualizado, sem ele o painel não aparece):
+    - Conta **todas** as tarefas do quadro de cada pessoa, inclusive as que ela mesma criou. A tabela abaixo continua mostrando só as que o gestor mandou.
+    - **Números do topo:** em aberto, atrasadas, vencem hoje, esperando conferência e concluídas no período. Clicar em "em aberto", "atrasadas" ou "esperando conferência" aplica o mesmo filtro na tabela.
+    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes e próximo prazo. Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
+    - **Atenção:** quem tem tarefa atrasada, quem está acima da média, quantas esperam conferência e quem está com menos tarefas.
+    - **Paradas:** tarefas em aberto sem nenhuma mudança há 7 dias ou mais (até 15).
+    - **Prazos dos próximos 7 dias:** quantas tarefas vencem em cada dia, por pessoa.
+    - **Desempenho** (7 ou 30 dias): concluídas, % entregue no prazo (entre as que tinham prazo), tempo médio entre criar e concluir, devolvidas na conferência e as concluídas de cada uma das últimas 8 semanas.
+    - Na lista **Para**, ao lado de cada nome, aparece quantas tarefas a pessoa tem em A fazer e quantas atrasadas.
+    - "Hoje" segue o horário de Cuiabá.
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.

@@ -37,6 +37,9 @@
     --warn: #A35A00; --warn-soft: #FDF0DC;
     --note-amarelo: #FFF3B0; --note-verde: #D9F2DF; --note-rosa: #FCE0E6; --note-azul: #DCE9FF; --note-ink: #2A2A1E;
     --note-shadow: 0 2px 6px rgba(20,32,51,.12);
+    /* painel da equipe: partes da barra de carga e tons da grade de prazos */
+    --pn-afazer: #9DB8E0; --pn-and: #1D5BB8; --pn-conf: #D08A1E;
+    --pn-heat1: #D7E4F7; --pn-heat2: #9DB8E0; --pn-heat3: #4F7FC9; --pn-heat3-ink: #FFFFFF;
     --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
@@ -50,6 +53,8 @@
       --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
       --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
       --note-shadow: 0 2px 8px rgba(0,0,0,.4);
+      --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
+      --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
     }
   }
   :root[data-theme="dark"]{
@@ -62,6 +67,8 @@
     --st-red: #F59A8F; --st-red-soft: #3B2125; --st-yellow: #F5D46A; --st-yellow-soft: #3A3212; --st-yellow-line: #8A7420; --st-orange: #FDA765; --st-orange-soft: #3D2614;
     --note-amarelo: #4A4220; --note-verde: #1F3A28; --note-rosa: #432630; --note-azul: #22344F; --note-ink: #F2EEDC;
     --note-shadow: 0 2px 8px rgba(0,0,0,.4);
+    --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
+    --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
   }
 
   *{box-sizing:border-box;}
@@ -864,6 +871,70 @@
   .eq-flag.devolv{ color:var(--danger); background:var(--urgent-bg); }
   .eq-flag.conferida{ color:var(--ok); background:var(--ok-soft); }
   .eq-mais{ display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0 2px; flex-wrap:wrap; }
+
+  /* ---- Painel da equipe (aba Tarefas da equipe) ---- */
+  .pn-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px; }
+  .pn-kpi{ text-align:left; background:var(--sunken); border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--ink); display:flex; flex-direction:column; gap:2px; font-family:var(--font-ui); }
+  button.pn-kpi{ cursor:pointer; }
+  button.pn-kpi:hover{ border-color:var(--accent); }
+  .pn-kpi[aria-pressed="true"]{ border-color:var(--accent); background:var(--accent-soft); }
+  .pn-kpi .n{ font-size:26px; font-weight:600; font-variant-numeric:tabular-nums; line-height:1.15; }
+  .pn-kpi .l{ font-size:12.5px; color:var(--muted); }
+  .pn-kpi.alerta .n{ color:var(--danger); }
+  .pn-kpi.conf .n{ color:var(--warn); }
+  .pn-kpi.ok .n{ color:var(--ok); }
+  .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .pn-bloco{ display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .pn-bloco h3{ margin:0; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; gap:8px; align-items:center; flex-wrap:wrap; }
+  .pn-bloco h3 .kchips{ text-transform:none; letter-spacing:0; }
+  .pn-leg{ text-transform:none; letter-spacing:0; font-weight:400; font-size:12px; display:flex; gap:10px; flex-wrap:wrap; }
+  .pn-sw{ display:inline-block; width:10px; height:10px; border-radius:3px; margin-right:4px; vertical-align:-1px; background:var(--pn-afazer); }
+  .pn-sw[data-k="and"]{ background:var(--pn-and); } .pn-sw[data-k="conf"]{ background:var(--pn-conf); }
+  .pn-scroll{ overflow-x:auto; }
+  .pn-tab{ width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric:tabular-nums; }
+  .pn-tab th{ font-size:11.5px; font-weight:500; color:var(--muted); text-align:right; padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .pn-tab th:first-child, .pn-tab th.pn-c-barra{ text-align:left; }
+  .pn-tab td{ padding:8px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }
+  .pn-tab td:first-child{ text-align:left; }
+  .pn-tab tbody tr{ cursor:pointer; }
+  .pn-tab tbody tr:hover{ background:var(--sunken); }
+  .pn-tab tbody tr[aria-selected="true"]{ background:var(--accent-soft); }
+  .pn-tab tbody tr:focus-visible{ outline:2px solid var(--focus); outline-offset:-2px; }
+  .pn-c-barra{ width:36%; min-width:130px; }
+  .pn-barra{ display:flex; height:12px; border-radius:6px; overflow:hidden; background:var(--sunken); }
+  .pn-barra span{ display:block; height:100%; background:var(--pn-afazer); }
+  .pn-barra span[data-k="and"]{ background:var(--pn-and); } .pn-barra span[data-k="conf"]{ background:var(--pn-conf); }
+  .pn-z{ color:var(--muted); opacity:.55; }
+  .pn-red{ color:var(--danger); font-weight:600; }
+  .pn-pill{ font-size:11px; font-weight:600; border-radius:999px; padding:1px 8px; margin-left:4px; }
+  .pn-pill.cheia{ color:var(--danger); background:var(--urgent-bg); }
+  .pn-pill.livre{ color:var(--ok); background:var(--ok-soft); }
+  .pn-dt{ font-family:var(--font-data); font-size:12.5px; }
+  .pn-dt.hoje{ color:var(--danger); font-weight:500; }
+  .pn-alertas{ display:flex; flex-direction:column; gap:6px; }
+  .pn-alerta{ font-size:13px; border-radius:10px; padding:8px 10px; background:var(--sunken); }
+  .pn-alerta b{ font-weight:600; }
+  .pn-alerta.r{ background:var(--urgent-bg); } .pn-alerta.a{ background:var(--warn-soft); } .pn-alerta.v{ background:var(--ok-soft); }
+  .pn-heat{ display:grid; grid-template-columns:auto repeat(7, minmax(30px,1fr)); gap:3px; max-width:760px; font-variant-numeric:tabular-nums; font-size:12px; min-width:320px; }
+  .pn-heat .hd{ color:var(--muted); text-align:center; font-size:11px; line-height:1.25; padding-bottom:2px; }
+  .pn-heat .hd.fds{ opacity:.6; }
+  .pn-heat .nm{ padding-right:6px; display:flex; align-items:center; white-space:nowrap; }
+  .pn-heat .c{ height:28px; border-radius:6px; display:flex; align-items:center; justify-content:center; background:var(--sunken); color:transparent; }
+  .pn-heat .c[data-n="1"]{ background:var(--pn-heat1); color:var(--ink); }
+  .pn-heat .c[data-n="2"]{ background:var(--pn-heat2); color:var(--ink); }
+  .pn-heat .c[data-n="3"]{ background:var(--pn-heat3); color:var(--pn-heat3-ink); font-weight:600; }
+  .pn-paradas{ display:flex; flex-direction:column; gap:6px; }
+  .pn-parada{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 10px; background:var(--item); border:1px solid var(--item-line); border-radius:10px; padding:8px 10px; }
+  .pn-parada .t{ font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pn-parada .m{ font-size:12px; color:var(--muted); }
+  .pn-parada .d{ grid-row:1 / span 2; grid-column:2; align-self:center; font-size:12px; color:var(--warn); font-weight:600; }
+  .pn-vazio{ color:var(--muted); font-size:13px; padding:6px 0; }
+  .pn-spark{ display:inline-flex; align-items:flex-end; gap:2px; height:22px; vertical-align:middle; }
+  .pn-spark i{ display:block; width:6px; background:var(--pn-afazer); border-radius:2px 2px 0 0; }
+  .pn-spark i:last-child{ background:var(--pn-and); }
+  .pn-ok{ color:var(--ok); } .pn-mid{ color:var(--warn); }
+  @media (max-width:900px){ .pn-grid{ grid-template-columns:minmax(0,1fr); } .pn-kpis{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
+  @media (max-width:520px){ .pn-kpis{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
   .conf-box .conf-st{ font-weight:600; }
   .conf-box .conf-txt{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
   .conf-acts{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:2px; }
@@ -1520,6 +1591,42 @@
             <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
           </form>
           <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
+        </div>
+        <div class="panel" id="orgPainel" hidden>
+          <div class="panel-head">
+            <h2>Painel da equipe</h2>
+            <span>Conta todas as tarefas do quadro de cada pessoa. A lista abaixo mostra as que você mandou.</span>
+          </div>
+          <div class="pn-kpis" id="orgPnKpis"></div>
+          <div class="pn-bloco">
+            <h3>Carga por pessoa
+              <span class="pn-leg"><span><i class="pn-sw" data-k="afazer"></i>A fazer</span><span><i class="pn-sw" data-k="and"></i>Em andamento</span><span><i class="pn-sw" data-k="conf"></i>Para conferir</span></span>
+            </h3>
+            <div class="pn-scroll" id="orgPnCarga"></div>
+          </div>
+          <div class="pn-grid">
+            <div class="pn-bloco">
+              <h3>Atenção</h3>
+              <div class="pn-alertas" id="orgPnAlertas"></div>
+            </div>
+            <div class="pn-bloco">
+              <h3>Paradas <span class="pn-leg">em aberto e sem mudança há 7 dias ou mais</span></h3>
+              <div class="pn-paradas" id="orgPnParadas"></div>
+            </div>
+          </div>
+          <div class="pn-bloco">
+            <h3>Prazos dos próximos 7 dias <span class="pn-leg">tarefas em aberto que vencem em cada dia</span></h3>
+            <div class="pn-scroll"><div class="pn-heat" id="orgPnPrazos"></div></div>
+          </div>
+          <div class="pn-bloco">
+            <h3>Desempenho
+              <span class="kchips" id="orgPnPer" role="group" aria-label="Período do desempenho">
+                <button type="button" class="chip" data-pnper="7" aria-pressed="true">Últimos 7 dias</button>
+                <button type="button" class="chip" data-pnper="30" aria-pressed="false">Últimos 30 dias</button>
+              </span>
+            </h3>
+            <div class="pn-scroll" id="orgPnDesemp"></div>
+          </div>
         </div>
         <div class="panel">
           <div class="panel-head"><h2>Tarefas da equipe</h2><span id="orgEqInfo"></span></div>
@@ -3696,7 +3803,7 @@
     org.pin = null; org.unlocked = false; org.notas = []; org.tarefas = []; org.editing = null;
     org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
     org.txt.valores = {}; org.txt.editando = null; org.txt.atual = null;
-    org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0;
+    org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0; org.painel = null;
     document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
@@ -3748,6 +3855,8 @@
     org.eqColunas = r.equipe_colunas || [];
     org.eqModelos = (r.equipe_modelos || []).map(function(m){ return { id: m.id, nome: m.nome || 'Modelo', dados: m.dados && typeof m.dados === 'object' ? m.dados : {} }; });
     org.eqTarefas = (r.equipe_tarefas || []).map(function(t){ return orgTarefaDe(t, null); });
+    // Painel da equipe: só vem com o SQL atualizado (sem ele, o painel fica escondido)
+    org.painel = r.equipe_painel && typeof r.equipe_painel === 'object' && Array.isArray(r.equipe_painel.abertas) ? r.equipe_painel : null;
     org.notas = (r.notas || []).map(function(n){
       return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
     });
@@ -5692,7 +5801,7 @@
     OE.sem.hidden = !!ativos.length;
     var para = OE.para.value;
     OE.para.innerHTML = '<option value="">Escolha a pessoa…</option>' + ativos.map(function(p){
-      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + '</option>';
+      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + orgPnParaTxt(p.id) + '</option>';
     }).join('');
     if (para && ativos.some(function(p){ return p.id === para; })) OE.para.value = para;
     orgEqPrioChips();
@@ -5709,6 +5818,7 @@
     }).join('');
     OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
     document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
+    renderOrgPainel();
 
     var base = org.eqTarefas.filter(function(t){ return !org.eqf.pessoa || t.dono === org.eqf.pessoa; });
     var abertas = base.filter(function(t){ return t.etapa !== 'feito'; }).length, atrasadas = base.filter(orgEqAtrasada).length;
@@ -5750,6 +5860,179 @@
       (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
         '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '') + antigas;
   }
+
+  // ---- Painel da equipe: carga por pessoa, prazos, paradas e desempenho (números vêm prontos do banco) ----
+  var OP = {
+    box: document.getElementById('orgPainel'),
+    kpis: document.getElementById('orgPnKpis'),
+    carga: document.getElementById('orgPnCarga'),
+    alertas: document.getElementById('orgPnAlertas'),
+    prazos: document.getElementById('orgPnPrazos'),
+    paradas: document.getElementById('orgPnParadas'),
+    per: document.getElementById('orgPnPer'),
+    desemp: document.getElementById('orgPnDesemp')
+  };
+  org.pnPer = 7;
+  var ORG_DSEM_CURTO = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+  function orgPnDia(iso){ return iso ? new Date(String(iso).slice(0, 10) + 'T00:00') : null; }
+  function orgPnZero(){ return { afazer: 0, andamento: 0, conferir: 0, atrasadas: 0, hoje: 0, urgentes: 0, prox_prazo: null }; }
+  // Carga de uma pessoa (zeros quando não tem nada em aberto)
+  function orgPnCarga(id){
+    var c = org.painel ? org.painel.abertas.filter(function(x){ return x.dono === id; })[0] : null;
+    c = c || orgPnZero();
+    c.total = (c.afazer || 0) + (c.andamento || 0) + (c.conferir || 0);
+    return c;
+  }
+  // Texto ao lado do nome na lista "Para" (ex.: " — 3 a fazer, 1 atrasada")
+  function orgPnParaTxt(id){
+    if (!org.painel) return '';
+    var c = orgPnCarga(id);
+    return ' — ' + c.afazer + ' a fazer' + (c.atrasadas ? ', ' + c.atrasadas + (c.atrasadas === 1 ? ' atrasada' : ' atrasadas') : '');
+  }
+  // Pessoas que entram no painel: as ativas e as desativadas que ainda têm algo em aberto
+  function orgPnPessoas(){
+    return org.pessoas.filter(function(p){ return p.ativo || orgPnCarga(p.id).total > 0; });
+  }
+  function orgPnN(n, cls){ return n ? '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + n + '</span>' : '<span class="pn-z">0</span>'; }
+
+  function renderOrgPainel(){
+    var P = org.painel;
+    OP.box.hidden = !P;
+    if (!P) return;
+    var pessoas = orgPnPessoas();
+    var cargas = pessoas.map(function(p){ return { p: p, c: orgPnCarga(p.id) }; });
+    var tot = { aberto: 0, atrasadas: 0, hoje: 0, conferir: 0 };
+    cargas.forEach(function(x){ tot.aberto += x.c.total; tot.atrasadas += x.c.atrasadas; tot.hoje += x.c.hoje; tot.conferir += x.c.conferir; });
+    var per = org.pnPer, feitas = 0;
+    (P.feitas || []).forEach(function(f){ feitas += (per === 7 ? f.n7 : f.n30) || 0; });
+
+    // números do topo (os que têm filtro igual na lista abaixo viram botão)
+    var K = [
+      { n: tot.aberto, l: 'em aberto', f: 'abertas' },
+      { n: tot.atrasadas, l: tot.atrasadas === 1 ? 'atrasada' : 'atrasadas', f: 'atrasadas', c: tot.atrasadas ? 'alerta' : '' },
+      { n: tot.hoje, l: tot.hoje === 1 ? 'vence hoje' : 'vencem hoje', c: tot.hoje ? 'alerta' : '' },
+      { n: tot.conferir, l: 'esperando sua conferência', f: 'conferir', c: tot.conferir ? 'conf' : '' },
+      { n: feitas, l: (feitas === 1 ? 'concluída' : 'concluídas') + ' em ' + per + ' dias', c: 'ok' }
+    ];
+    OP.kpis.innerHTML = K.map(function(k){
+      var inner = '<span class="n">' + k.n + '</span><span class="l">' + k.l + '</span>';
+      return k.f
+        ? '<button type="button" class="pn-kpi ' + (k.c || '') + '" data-pnf="' + k.f + '" aria-pressed="' + (org.eqf.sit === k.f) + '" title="Filtrar a lista abaixo">' + inner + '</button>'
+        : '<div class="pn-kpi ' + (k.c || '') + '">' + inner + '</div>';
+    }).join('');
+
+    // carga por pessoa
+    var media = cargas.length ? tot.aberto / cargas.length : 0;
+    var maxAb = Math.max.apply(null, cargas.map(function(x){ return x.c.total; }).concat([1]));
+    function cheia(c){ return c.total >= media * 1.5 && c.total - media >= 3; }
+    if (!cargas.length){
+      OP.carga.innerHTML = '<div class="pn-vazio">Cadastre a equipe no botão "Pessoas" para ver a carga de cada um.</div>';
+    } else {
+      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th></tr></thead><tbody>' +
+        cargas.map(function(x){
+          var c = x.c, w = function(n){ return (n / maxAb * 100).toFixed(1) + '%'; };
+          var pill = !x.p.ativo ? '<span class="pn-pill">desativada</span>' : c.total === 0 ? '<span class="pn-pill livre">livre</span>' : cheia(c) ? '<span class="pn-pill cheia">sobrecarregada</span>' : '';
+          var px = orgPnDia(c.prox_prazo), pd = px ? orgDiff(px) : null;
+          var prox = px ? '<span class="pn-dt' + (pd === 0 ? ' hoje' : '') + '">' + (pd === 0 ? 'hoje' : pd === 1 ? 'amanhã' : ORG_DSEM_CURTO[px.getDay()] + ' ' + fmtDia(px)) + '</span>' : '<span class="pn-z">—</span>';
+          return '<tr tabindex="0" data-pnp="' + escapeHtml(x.p.id) + '" aria-selected="' + (org.eqf.pessoa === x.p.id) + '" title="Mostrar na lista só as tarefas de ' + escapeHtml(x.p.nome) + '">' +
+            '<td><span class="eq-quem">' + orgAvatar(x.p.nome, true) + escapeHtml(x.p.nome) + '</span>' + pill + '</td>' +
+            '<td class="pn-c-barra"><div class="pn-barra" title="' + c.afazer + ' a fazer, ' + c.andamento + ' em andamento, ' + c.conferir + ' para conferir">' +
+              '<span style="width:' + w(c.afazer) + '"></span><span data-k="and" style="width:' + w(c.andamento) + '"></span><span data-k="conf" style="width:' + w(c.conferir) + '"></span></div></td>' +
+            '<td><b>' + orgPnN(c.afazer) + '</b></td><td>' + orgPnN(c.andamento) + '</td><td>' + orgPnN(c.conferir) + '</td>' +
+            '<td>' + orgPnN(c.atrasadas, 'pn-red') + '</td><td>' + orgPnN(c.urgentes, 'pn-red') + '</td><td>' + prox + '</td></tr>';
+        }).join('') + '</tbody></table>';
+    }
+
+    // atenção
+    var al = [];
+    cargas.forEach(function(x){
+      if (x.c.atrasadas) al.push('<div class="pn-alerta r"><b>' + escapeHtml(x.p.nome) + '</b> tem ' + x.c.atrasadas + (x.c.atrasadas === 1 ? ' tarefa atrasada.' : ' tarefas atrasadas.') + '</div>');
+    });
+    cargas.forEach(function(x){
+      if (x.p.ativo && cheia(x.c)) al.push('<div class="pn-alerta a"><b>' + escapeHtml(x.p.nome) + '</b> está com ' + x.c.total + ' em aberto, acima da média da equipe (' + media.toFixed(1).replace('.', ',') + ').</div>');
+    });
+    if (tot.conferir) al.push('<div class="pn-alerta a"><b>' + tot.conferir + '</b> ' + (tot.conferir === 1 ? 'tarefa espera' : 'tarefas esperam') + ' sua conferência.</div>');
+    var ativos = cargas.filter(function(x){ return x.p.ativo; });
+    if (ativos.length > 1){
+      var livre = ativos.slice().sort(function(a, b){ return (a.c.total - b.c.total) || (a.c.atrasadas - b.c.atrasadas); })[0];
+      al.push('<div class="pn-alerta v">Com menos tarefas agora: <b>' + escapeHtml(livre.p.nome) + '</b> (' + livre.c.total + ' em aberto).</div>');
+    }
+    OP.alertas.innerHTML = al.join('') || '<div class="pn-vazio">Nada pedindo atenção agora.</div>';
+
+    // prazos dos próximos 7 dias
+    var hoje0 = orgPnDia(P.hoje) || startOfDay(new Date()), dias = [];
+    for (var i = 0; i < 7; i++){ var dd = new Date(hoje0); dd.setDate(dd.getDate() + i); dias.push(dd); }
+    var h = '<div></div>' + dias.map(function(dd, i){
+      var fds = dd.getDay() === 0 || dd.getDay() === 6;
+      return '<div class="hd' + (fds ? ' fds' : '') + '">' + (i === 0 ? 'hoje' : ORG_DSEM_CURTO[dd.getDay()]) + '<br>' + fmtDia(dd) + '</div>';
+    }).join('');
+    cargas.forEach(function(x){
+      h += '<div class="nm">' + escapeHtml(x.p.nome.split(' ')[0]) + '</div>';
+      dias.forEach(function(dd){
+        var k = dayKey(dd), it = (P.prazos || []).filter(function(z){ return z.dono === x.p.id && String(z.dia).slice(0, 10) === k; })[0], n = it ? it.n : 0;
+        h += '<div class="c" data-n="' + Math.min(n, 3) + '" title="' + escapeHtml(x.p.nome) + ': ' + n + (n === 1 ? ' tarefa' : ' tarefas') + ' em ' + fmtDia(dd) + '">' + n + '</div>';
+      });
+    });
+    OP.prazos.innerHTML = cargas.length ? h : '';
+
+    // paradas
+    var par = P.paradas || [];
+    OP.paradas.innerHTML = par.length ? par.map(function(t){
+      var dias = Math.max(0, Math.floor((Date.now() - new Date(t.desde)) / 86400000));
+      var col = orgEqColuna({ etapa: t.etapa, dono: t.dono });
+      return '<div class="pn-parada" title="' + escapeHtml(t.titulo) + '"><span class="t">' + escapeHtml(t.titulo) + '</span>' +
+        '<span class="m">' + escapeHtml(orgNomePessoa(t.dono) || '—') + ' · ' + escapeHtml(col) + (t.processo ? ' · ' + escapeHtml(t.processo) : '') + '</span>' +
+        '<span class="d">' + dias + ' dias</span></div>';
+    }).join('') : '<div class="pn-vazio">Nada parado. Todas as tarefas em aberto andaram nos últimos 7 dias.</div>';
+
+    // desempenho
+    OP.per.querySelectorAll('[data-pnper]').forEach(function(b){ b.setAttribute('aria-pressed', String(Number(b.getAttribute('data-pnper')) === per)); });
+    var linhas = org.pessoas.filter(function(p){
+      return p.ativo || (P.feitas || []).some(function(f){ return f.dono === p.id && (f.n30 || 0) > 0; });
+    });
+    OP.desemp.innerHTML = !linhas.length ? '' : '<table class="pn-tab"><thead><tr><th>Pessoa</th><th>Concluídas</th><th>No prazo</th><th>Tempo médio</th><th>Devolvidas na conferência</th><th>Últimas 8 semanas</th></tr></thead><tbody>' +
+      linhas.map(function(p){
+        var f = (P.feitas || []).filter(function(x){ return x.dono === p.id; })[0] || {};
+        var n = (per === 7 ? f.n7 : f.n30) || 0, cp = (per === 7 ? f.cp7 : f.cp30) || 0, np = (per === 7 ? f.np7 : f.np30) || 0;
+        var dm = per === 7 ? f.dias7 : f.dias30, dev = (per === 7 ? f.dev7 : f.dev30) || 0;
+        var pct = cp ? Math.round(np / cp * 100) : null;
+        var sem = [7, 6, 5, 4, 3, 2, 1, 0].map(function(w){
+          var it = (P.semanas || []).filter(function(z){ return z.dono === p.id && z.s === w; })[0];
+          return it ? it.n : 0;
+        });
+        var mx = Math.max.apply(null, sem.concat([1]));
+        return '<tr tabindex="0" data-pnp="' + escapeHtml(p.id) + '" aria-selected="' + (org.eqf.pessoa === p.id) + '">' +
+          '<td><span class="eq-quem">' + orgAvatar(p.nome, true) + escapeHtml(p.nome) + '</span></td>' +
+          '<td>' + orgPnN(n) + '</td>' +
+          '<td>' + (pct === null ? '<span class="pn-z">—</span>' : '<span class="' + (pct >= 85 ? 'pn-ok' : pct >= 60 ? 'pn-mid' : 'pn-red') + '" title="' + np + ' de ' + cp + ' com prazo">' + pct + '%</span>') + '</td>' +
+          '<td>' + (dm === null || dm === undefined ? '<span class="pn-z">—</span>' : String(dm).replace('.', ',') + ' dias') + '</td>' +
+          '<td>' + orgPnN(dev, 'pn-red') + '</td>' +
+          '<td><span class="pn-spark" title="Concluídas por semana, da mais antiga à atual: ' + sem.join(', ') + '">' +
+            sem.map(function(v){ return '<i style="height:' + Math.max(2, Math.round(v / mx * 22)) + 'px"></i>'; }).join('') + '</span></td></tr>';
+      }).join('') + '</tbody></table>';
+  }
+  OP.kpis.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pnf]'); if (!b) return;
+    org.eqf.sit = b.getAttribute('data-pnf'); org.eqf.pessoa = ''; org.eqLimite = ORG_EQ_PAGINA;
+    renderOrgEquipe();
+  });
+  function orgPnPessoaClique(e){
+    var tr = e.target.closest('[data-pnp]'); if (!tr) return;
+    if (e.type === 'keydown'){ if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); }
+    var id = tr.getAttribute('data-pnp');
+    org.eqf.pessoa = org.eqf.pessoa === id ? '' : id;
+    org.eqLimite = ORG_EQ_PAGINA;
+    renderOrgEquipe();
+  }
+  [OP.carga, OP.desemp].forEach(function(el){
+    el.addEventListener('click', orgPnPessoaClique);
+    el.addEventListener('keydown', orgPnPessoaClique);
+  });
+  OP.per.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pnper]'); if (!b) return;
+    org.pnPer = Number(b.getAttribute('data-pnper')) === 30 ? 30 : 7;
+    renderOrgPainel();
+  });
 
   // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"
   var ORG_DSEM_NOMES = { domingo: 0, segunda: 1, 'segunda-feira': 1, terca: 2, 'terca-feira': 2, quarta: 3, 'quarta-feira': 3,

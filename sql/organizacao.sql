@@ -443,6 +443,74 @@ as $$
     '[]'::jsonb));
 $$;
 
+-- "Hoje" no horário da vara. O banco trabalha em UTC: sem isto, depois das 20h já seria o dia seguinte.
+create or replace function org_hoje()
+returns date
+language sql
+stable
+as $$
+  select (now() at time zone 'America/Cuiaba')::date;
+$$;
+
+-- Painel da equipe (só o gestor; chamado por org_carregar): totais por pessoa contando TODAS as
+-- tarefas do quadro de cada uma, não só as mandadas pelo gestor. Devolve números, não as tarefas.
+create or replace function org_painel_equipe()
+returns jsonb
+language sql
+stable
+set search_path = public, extensions
+as $$
+  with abertas as (
+    select t.* from org_tarefas t
+     where t.dono is not null and t.arquivada_em is null and t.etapa <> 'feito'
+  ), feitas as (
+    select t.*, (t.feita_em at time zone 'America/Cuiaba')::date as dia_feita from org_tarefas t
+     where t.dono is not null and t.feita_em >= now() - interval '56 days'
+  )
+  select jsonb_build_object(
+    'hoje', org_hoje(),
+    -- em aberto: a fazer, em andamento (qualquer coluna do meio), esperando conferência
+    'abertas', coalesce((select jsonb_agg(x) from (
+        select a.dono,
+               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa = 'afazer') as afazer,
+               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa <> 'afazer') as andamento,
+               count(*) filter (where a.conferencia = 'enviada') as conferir,
+               count(*) filter (where a.prazo < org_hoje()) as atrasadas,
+               count(*) filter (where a.prazo = org_hoje()) as hoje,
+               count(*) filter (where a.prioridade = 'urgente') as urgentes,
+               min(a.prazo) filter (where a.prazo >= org_hoje()) as prox_prazo
+          from abertas a group by a.dono) x), '[]'::jsonb),
+    -- prazos dos próximos 7 dias (hoje + 6), por pessoa e dia
+    'prazos', coalesce((select jsonb_agg(x) from (
+        select a.dono, a.prazo as dia, count(*) as n from abertas a
+         where a.prazo between org_hoje() and org_hoje() + 6 group by a.dono, a.prazo) x), '[]'::jsonb),
+    -- paradas: em aberto, fora da conferência e sem mudança há 7 dias ou mais (igual a ORG_DIAS_PARADO no site)
+    'paradas', coalesce((select jsonb_agg(x order by x.desde) from (
+        select a.id, a.dono, a.titulo, a.etapa, a.processo, a.updated_at as desde from abertas a
+         where a.conferencia is distinct from 'enviada' and a.updated_at < now() - interval '7 days'
+         order by a.updated_at limit 15) x), '[]'::jsonb),
+    -- desempenho: concluídas nos últimos 7 e 30 dias, no prazo, tempo médio e devolvidas na conferência
+    'feitas', coalesce((select jsonb_agg(x) from (
+        select f.dono,
+               count(*) filter (where f.feita_em >= now() - interval '7 days') as n7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days') as n30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.prazo is not null) as cp7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.prazo is not null) as cp30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.dia_feita <= f.prazo) as np7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.dia_feita <= f.prazo) as np30,
+               round((avg(extract(epoch from f.feita_em - f.created_at)) filter (where f.feita_em >= now() - interval '7 days') / 86400)::numeric, 1) as dias7,
+               round((avg(extract(epoch from f.feita_em - f.created_at)) filter (where f.feita_em >= now() - interval '30 days') / 86400)::numeric, 1) as dias30,
+               count(*) filter (where f.feita_em >= now() - interval '7 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev7,
+               count(*) filter (where f.feita_em >= now() - interval '30 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev30
+          from feitas f group by f.dono) x), '[]'::jsonb),
+    -- concluídas por semana nas últimas 8 semanas (s = 0 é a semana mais recente)
+    'semanas', coalesce((select jsonb_agg(x) from (
+        select f.dono, floor(extract(epoch from now() - f.feita_em) / 604800)::int as s, count(*) as n
+          from feitas f group by 1, 2) x), '[]'::jsonb)
+  );
+$$;
+revoke all on function org_painel_equipe() from public, anon, authenticated;
+
 -- Carrega a tela. p_equipe (só para o gestor) diz quanto da aba "Tarefas da equipe" vem junto:
 --   0 = nada (só o número de tarefas esperando conferência), 1 = em aberto + concluídas nos últimos 30 dias, 2 = todas
 create or replace function org_carregar(p_pin text, p_pessoa uuid, p_equipe int)
@@ -496,7 +564,8 @@ begin
                                           or coalesce(t.feita_em, t.updated_at) >= now() - interval '30 days')), '[]'::jsonb),
       'equipe_colunas', coalesce((select jsonb_agg(jsonb_build_object('dono', c.dono, 'chave', c.chave, 'nome', c.nome)) from org_colunas c where c.dono is not null), '[]'::jsonb),
       -- modelos de cartão do próprio gestor, para o "passo a passo" ao mandar tarefa
-      'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb)
+      'equipe_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by m.nome) from org_modelos m where m.dono is null), '[]'::jsonb),
+      'equipe_painel', org_painel_equipe()
     );
   end if;
   return res;
