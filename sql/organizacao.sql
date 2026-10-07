@@ -180,6 +180,9 @@ select d.dono, c.chave, c.nome, c.ordem
  cross join (values ('afazer', 'A fazer', 0), ('fazendo', 'Fazendo', 10), ('feito', 'Feito', 100000)) as c(chave, nome, ordem)
  where not exists (select 1 from org_colunas x where x.dono is not distinct from d.dono and x.chave = c.chave);
 
+-- título opcional da nota do mural (post-it)
+alter table org_notas add column if not exists titulo text not null default '';
+
 -- tarefa agendada pelo gestor: só aparece na tela da pessoa a partir deste dia (vazio = aparece já)
 alter table org_tarefas add column if not exists aparece_em date;
 
@@ -570,6 +573,7 @@ begin
     'equipe', true,
     'conferencia', true,
     'agenda', true,
+    'nota_titulo', true,
     'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
     'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
@@ -656,6 +660,31 @@ begin
                            where t.dono is not distinct from ac.o_dono and t.do_gestor and t.prioridade = 'urgente'
                              and t.etapa <> 'feito' and t.arquivada_em is null
                              and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb));
+end;
+$$;
+
+-- Título do post-it (vazio = sem título). A nota é salva como sempre por org_salvar_nota.
+create or replace function org_titulo_nota(p_pin text, p_pessoa uuid, p_id uuid, p_titulo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  achou uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  update org_notas set titulo = left(btrim(coalesce(p_titulo, '')), 80), updated_at = now()
+   where id = p_id and dono is not distinct from ac.o_dono
+  returning id into achou;
+  if achou is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta nota não existe mais.');
+  end if;
+  return jsonb_build_object('status', 'ok');
 end;
 $$;
 
@@ -1658,6 +1687,7 @@ grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
+grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_mandar_tarefa(text, uuid, text, date, text, text, date) to anon, authenticated;
 grant execute on function org_agendar_tarefa(text, uuid, uuid, date) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;

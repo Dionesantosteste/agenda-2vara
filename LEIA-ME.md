@@ -138,7 +138,10 @@ não precisa mexer na linha `<<< SENHA`.
 Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
-- A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
+- Com o `sql/organizacao.sql` atualizado, a tela se atualiza sozinha a cada minuto quando alguém altera algo (veja **Atualização automática** mais abaixo). Sem ele, recarregue a página.
+
+No **Mural**:
+- Cada nota pode ter um **título** (opcional), que aparece em negrito. Escreva no campo "Título" antes de colar a nota, ou passe o mouse na nota e clique em "Título" para pôr, mudar ou apagar depois. Precisa do `sql/organizacao.sql` atualizado.
 
 No **Quadro**:
 - **Nova tarefa:** clique em **+ Adicionar tarefa** no fim da coluna (todas, menos Feito). Digite o título e aperte Enter; o campo continua aberto para a próxima.
@@ -214,6 +217,7 @@ No **Quadro**:
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
+    - **Buscar:** o campo ao lado do filtro de pessoa procura no título, no nome da pessoa e no nº do processo (com ou sem pontos). Vale junto com os filtros.
     - A tabela mostra 100 linhas por vez (botão **Mostrar mais**). Os totais do topo e os filtros valem para todas.
     - A lista é buscada quando a aba é aberta. Vêm as tarefas em aberto e as concluídas nos últimos 30 dias; em **Concluídas** ou **Todas**, o botão "Mostrar também as concluídas há mais de 30 dias" busca as antigas. Nada é apagado.
     - Clique na linha para ver os detalhes e o fechamento. "Abrir no quadro" leva para a tela da pessoa com a tarefa aberta.

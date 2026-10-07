@@ -648,6 +648,12 @@
   .note.pinned{ outline:2px solid var(--accent); outline-offset:-2px; }
   .note-text{ outline:none; border-radius:4px; cursor:text; min-height:3em; margin:-3px; padding:3px; white-space:pre-wrap; overflow-wrap:anywhere; }
   .note-text:hover{ background:rgba(0,0,0,.05); }
+  .note-titulo{ outline:none; border-radius:4px; cursor:text; margin:-3px -3px 4px; padding:3px; font-weight:700; font-size:15px; line-height:1.3; overflow-wrap:anywhere; }
+  .note-titulo:empty{ margin-bottom:0; min-height:0; }
+  .note-titulo:empty::before{ content:attr(data-ph); opacity:0; font-weight:600; }
+  .note:hover .note-titulo:empty::before, .note-titulo:empty:focus::before{ opacity:.45; }
+  .note-titulo:hover{ background:rgba(0,0,0,.05); }
+  .note-titulo:focus{ background:rgba(255,255,255,.5); box-shadow:0 0 0 2px var(--accent); min-height:1.3em; }
   .note-text:focus{ background:rgba(255,255,255,.5); box-shadow:0 0 0 2px var(--accent); }
   .note-foot{ position:absolute; left:10px; right:6px; bottom:4px; display:flex; align-items:center; justify-content:space-between; font-size:11.5px; opacity:.8; }
   .note-actions{ display:flex; gap:2px; }
@@ -1700,6 +1706,7 @@
         <div class="panel">
           <div class="panel-head"><h2>Mural</h2><span id="orgNotesInfo"></span></div>
           <form class="org-add" id="orgNoteForm" autocomplete="off">
+            <input class="org-in" id="orgNoteTitulo" maxlength="80" placeholder="Título (opcional)" aria-label="Título da nota" hidden />
             <input class="org-in grow" id="orgNoteText" maxlength="300" placeholder="Escreva um aviso ou lembrete rápido…" required />
             <div class="swatches" id="orgSwatches" role="group" aria-label="Cor da nota"></div>
             <button type="submit" class="btn primary">Colar nota</button>
@@ -3884,6 +3891,7 @@
     org.temEquipe = r.equipe === true;
     org.temConf = r.conferencia === true;
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
+    org.temNotaTitulo = r.nota_titulo === true;   // título no post-it (SQL atualizado)
     org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
     org.txt.tem = Array.isArray(r.txt_modelos);
     org.txt.modelos = (r.txt_modelos || []).map(function(m){
@@ -3905,7 +3913,7 @@
     // Painel da equipe: só vem com o SQL atualizado (sem ele, o painel fica escondido)
     org.painel = r.equipe_painel && typeof r.equipe_painel === 'object' && Array.isArray(r.equipe_painel.abertas) ? r.equipe_painel : null;
     org.notas = (r.notas || []).map(function(n){
-      return { id: n.id, texto: n.texto || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
+      return { id: n.id, texto: n.texto || '', titulo: n.titulo || '', cor: ORG_CORES.indexOf(n.cor) === -1 ? 'amarelo' : n.cor, fixada: !!n.fixada, criada: new Date(n.created_at) };
     });
     orgParseQuadro(r);
     org.tarefas = (r.tarefas || []).map(function(t){ return orgTarefaDe(t, orgChaves()); });
@@ -4094,6 +4102,7 @@
   OV.pessoasBtn.addEventListener('click', function(){ abrirCadastro('pes'); });
 
   function renderOrgNotes(){
+    document.getElementById('orgNoteTitulo').hidden = !org.temNotaTitulo;
     O.swatches.innerHTML = ORG_CORES.map(function(c){
       return '<button type="button" class="sw c-' + c + '" data-cor="' + c + '" aria-pressed="' + (org.cor === c) + '" aria-label="Nota ' + c + '" title="' + capitalize(c) + '"></button>';
     }).join('');
@@ -4107,6 +4116,7 @@
     O.board.innerHTML = list.map(function(n, i){
       return '<div class="note c-' + n.cor + (n.fixada ? ' pinned' : '') + '" style="--r:' + ORG_ROT[i % ORG_ROT.length] + '">' +
         (n.fixada ? '<span class="pin-badge">Fixado</span>' : '') +
+        (org.temNotaTitulo ? '<div class="note-titulo" contenteditable="' + ORG_CE + '" spellcheck="true" data-edit="nota-titulo" data-id="' + n.id + '" data-ph="Título" role="textbox" aria-label="Título da nota" title="Clique para escrever o título">' + escapeHtml(n.titulo) + '</div>' : '') +
         '<div class="note-text" contenteditable="' + ORG_CE + '" spellcheck="true" data-edit="nota" data-id="' + n.id + '" role="textbox" aria-multiline="true" aria-label="Texto da nota" title="Clique para editar">' + escapeHtml(n.texto) + '</div>' +
         '<div class="note-foot"><span>' + fmtDia(n.criada) + '</span><span class="note-actions">' +
         '<button type="button" class="icon-btn" data-act="fixar" data-id="' + n.id + '" title="' + (n.fixada ? 'Desafixar' : 'Fixar no topo') + '" aria-label="' + (n.fixada ? 'Desafixar nota' : 'Fixar nota') + '">' + ICON_PIN + '</button>' +
@@ -4226,9 +4236,11 @@
   O.noteForm.addEventListener('submit', async function(e){
     e.preventDefault();
     var texto = O.noteText.value.trim(); if (!texto) return;
+    var tituloEl = document.getElementById('orgNoteTitulo'), titulo = org.temNotaTitulo ? tituloEl.value.trim() : '';
     var r = await orgSaveNote({ texto: texto, cor: org.cor, fixada: false });
     if (!orgOk(r)) return;
-    O.noteText.value = '';
+    if (titulo && r.id){ var r2 = await orgCall('org_titulo_nota', { p_id: r.id, p_titulo: orgCorrige(titulo) }); orgOk(r2); }
+    O.noteText.value = ''; tituloEl.value = '';
     toast('Nota colada no mural');
     await orgLoad();
   });
@@ -4303,10 +4315,21 @@
     var el = e.target.closest('[data-edit]'); if (!el) return;
     if (e.key === 'Escape'){ el.innerText = el.dataset.orig; el.blur(); }
     if (e.key === 'Enter' && el.getAttribute('data-edit') !== 'nota'){ e.preventDefault(); el.blur(); }
+    if (el.getAttribute('data-edit') === 'nota-titulo' && el.innerText.length >= 80 && e.key.length === 1 && !e.ctrlKey && !e.metaKey){ e.preventDefault(); }
   });
   O.content.addEventListener('focusout', async function(e){
     var el = e.target.closest('[data-edit]'); if (!el) return;
     var txt = el.innerText.replace(/\n{3,}/g, '\n\n').trim(), id = el.getAttribute('data-id');
+    if (el.getAttribute('data-edit') === 'nota-titulo'){
+      // título da nota: pode ficar vazio (tira o título)
+      var nt = orgFind(org.notas, id); if (!nt) return;
+      txt = txt.replace(/\s+/g, ' ').slice(0, 80);
+      if (txt === nt.titulo){ el.innerText = txt; return; }
+      nt.titulo = txt ? orgCorrige(txt) : ''; el.innerText = nt.titulo;
+      var rt = await orgCall('org_titulo_nota', { p_id: id, p_titulo: nt.titulo });
+      if (orgOk(rt)) toast(nt.titulo ? 'Título da nota atualizado' : 'Título da nota tirado'); else await orgLoad();
+      return;
+    }
     if (!txt){ el.innerText = el.dataset.orig; return; }
     if (txt === (el.dataset.orig || '').trim()) return;
     var r;
