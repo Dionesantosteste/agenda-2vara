@@ -180,6 +180,9 @@ select d.dono, c.chave, c.nome, c.ordem
  cross join (values ('afazer', 'A fazer', 0), ('fazendo', 'Fazendo', 10), ('feito', 'Feito', 100000)) as c(chave, nome, ordem)
  where not exists (select 1 from org_colunas x where x.dono is not distinct from d.dono and x.chave = c.chave);
 
+-- ordem que a pessoa escolheu arrastando na lista "Tarefas e mural" (separada da ordem do Quadro)
+alter table org_tarefas add column if not exists ordem_lista int;
+
 -- título opcional da nota do mural (post-it)
 alter table org_notas add column if not exists titulo text not null default '';
 
@@ -587,6 +590,7 @@ begin
     'conferencia', true,
     'agenda', true,
     'nota_titulo', true,
+    'ordem_lista', true,
     'aniversarios', case when ac.o_gestor then coalesce((select jsonb_agg(to_jsonb(a) order by a.mes, a.dia, lower(a.nome)) from org_aniversarios a), '[]'::jsonb) end,
     'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
@@ -698,6 +702,27 @@ begin
   if achou is null then
     return jsonb_build_object('status', 'erro', 'message', 'Esta nota não existe mais.');
   end if;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Lista "Tarefas e mural": recebe as tarefas de um grupo na nova ordem (não mexe na ordem do Quadro)
+create or replace function org_ordenar_lista(p_pin text, p_pessoa uuid, p_ids uuid[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  update org_tarefas t set ordem_lista = x.pos * 10
+    from unnest(p_ids) with ordinality as x(id, pos)
+   where t.id = x.id and t.dono is not distinct from ac.o_dono;
   return jsonb_build_object('status', 'ok');
 end;
 $$;
@@ -1776,6 +1801,7 @@ grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
+grant execute on function org_ordenar_lista(text, uuid, uuid[]) to anon, authenticated;
 grant execute on function org_salvar_aniversario(text, uuid, uuid, text, int, int, text) to anon, authenticated;
 grant execute on function org_excluir_aniversario(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_aniversariantes_mes() to anon, authenticated;

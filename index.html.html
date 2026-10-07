@@ -681,6 +681,12 @@
   .pin-badge{ position:absolute; top:-8px; right:12px; background:var(--accent); color:var(--accent-ink); font-size:10.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; border-radius:6px; padding:2px 7px; }
 
   .tgroup{ display:flex; flex-direction:column; gap:8px; }
+  .tgroup-itens{ display:flex; flex-direction:column; gap:8px; }
+  .t-grip{ display:inline-flex; align-items:center; justify-content:center; width:26px; height:30px; color:var(--muted); cursor:grab; border-radius:6px; opacity:.55; flex:none; }
+  .t-grip:hover, .t-grip:focus-visible{ opacity:1; background:var(--sunken); }
+  .t-grip:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .task.t-movendo{ opacity:.45; }
+  .tgroup.arrastando .tgroup-itens{ outline:1px dashed var(--line); outline-offset:4px; border-radius:10px; }
   .tgroup-title{ font-size:15px; font-weight:600; color:var(--accent); display:flex; gap:8px; align-items:baseline; margin-top:2px; }
   .tgroup-title .n{ font-size:12px; color:var(--muted); font-weight:500; }
   .task{ display:grid; grid-template-columns:28px minmax(0,1fr) auto; gap:10px; align-items:start; padding:10px 12px; border:1px solid var(--item-line); border-radius:10px; background:var(--item); }
@@ -3924,6 +3930,7 @@
       etiquetas: Array.isArray(t.etiquetas) ? t.etiquetas : [],
       checklist: Array.isArray(t.checklist) ? t.checklist.map(function(i){ return { t: String(i && i.t || ''), ok: !!(i && i.ok) }; }) : [],
       posicao: typeof t.posicao === 'number' ? t.posicao : null,
+      ordemLista: typeof t.ordem_lista === 'number' ? t.ordem_lista : null,
       arquivadaEm: t.arquivada_em ? new Date(t.arquivada_em) : null,
       dono: t.dono || null, doGestor: !!t.do_gestor,
       conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
@@ -3938,6 +3945,7 @@
     org.temConf = r.conferencia === true;
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
     org.temNotaTitulo = r.nota_titulo === true;   // título no post-it (SQL atualizado)
+    org.temOrdemLista = r.ordem_lista === true;   // arrastar na lista "Tarefas e mural" (SQL atualizado)
     // aniversariantes: só o gestor recebe a lista (SQL atualizado)
     org.aniv = Array.isArray(r.aniversarios) ? r.aniversarios.map(function(a){ return { id: a.id, nome: a.nome || '', dia: +a.dia, mes: +a.mes, obs: a.obs || '' }; }) : null;
     org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
@@ -4186,13 +4194,15 @@
     if (t.processo) meta.push(procCopyBtn(t.processo));
     if (orgModeloBtn(t)) meta.push(orgModeloBtn(t));
     if (t.feitaEm) meta.push('<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>');
-    return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '">' +
+    return '<div class="task' + (late ? ' overdue' : '') + (t.urgente && !t.feitaEm ? ' urgent' : '') + (t.feitaEm ? ' done' : '') + '" data-tid="' + t.id + '">' +
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
       '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
       (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
-      '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button></div></div>';
+      '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
+      (org.temOrdemLista && !t.feitaEm ? '<span class="t-grip" draggable="true" tabindex="0" role="button" data-tgrip="' + t.id + '" title="Arraste para mudar a ordem (ou use as setas ↑ ↓)" aria-label="Mudar a ordem de ' + escapeHtml(t.titulo) + ' com as setas para cima e para baixo">' + ICON_GRIP + '</span>' : '') +
+      '</div></div>';
   }
 
   var ICON_COPY = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
@@ -4250,14 +4260,82 @@
     groups.forEach(function(g){
       var items = org.tarefas.filter(function(t){ return !t.arquivadaEm && g.f(t); }).sort(function(a, b){
         if (g.desc) return b.feitaEm - a.feitaEm;
-        return ((a.prazo || 0) - (b.prazo || 0)) || (orgPrio(b) - orgPrio(a));
+        // a ordem escolhida arrastando vem primeiro; o resto segue por prazo e prioridade
+        var oa = a.ordemLista === null ? 1e9 : a.ordemLista, ob = b.ordemLista === null ? 1e9 : b.ordemLista;
+        return (oa - ob) || ((a.prazo || 0) - (b.prazo || 0)) || (orgPrio(b) - orgPrio(a));
       });
       if (!items.length) return;
       if (g.desc && items.length > 15) items = items.slice(0, 15);
-      h += '<div class="tgroup-title">' + g.k + ' <span class="n">' + items.length + '</span></div>' + items.map(orgTaskRow).join('');
+      h += '<div class="tgroup-title">' + g.k + ' <span class="n">' + items.length + '</span></div>' +
+        '<div class="tgroup-itens" data-grupo="' + g.k + '">' + items.map(orgTaskRow).join('') + '</div>';
     });
     O.tasks.innerHTML = h;
   }
+
+  // ---- lista "Tarefas e mural": arrastar pela alça muda a ordem dentro do mesmo grupo (Hoje, Próximas…) ----
+  var orgTArr = null;   // { id, grupo }
+  var orgTLinha = document.createElement('div'); orgTLinha.className = 'kdrop-line';
+  function orgTFim(){
+    orgTArr = null;
+    if (orgTLinha.parentNode) orgTLinha.parentNode.removeChild(orgTLinha);
+    O.tasks.classList.remove('arrastando');
+    O.tasks.querySelectorAll('.t-movendo').forEach(function(el){ el.classList.remove('t-movendo'); });
+  }
+  // grava a nova ordem do grupo (ids na ordem da tela)
+  async function orgTGrava(ids){
+    ids.forEach(function(id, i){ var t = orgFind(org.tarefas, id); if (t) t.ordemLista = (i + 1) * 10; });
+    renderOrgTasks();
+    var r = await orgCall('org_ordenar_lista', { p_ids: ids });
+    if (!orgOk(r) && org.unlocked) await orgLoad();
+  }
+  function orgTIds(cont, semId){
+    return Array.prototype.map.call(cont.querySelectorAll('.task[data-tid]'), function(el){ return el.getAttribute('data-tid'); })
+      .filter(function(id){ return id !== semId; });
+  }
+  O.tasks.addEventListener('dragstart', function(e){
+    var g = e.target.closest && e.target.closest('[data-tgrip]'); if (!g) return;
+    var cont = g.closest('.tgroup-itens'); if (!cont) return;
+    orgTArr = { id: g.getAttribute('data-tgrip'), grupo: cont.getAttribute('data-grupo') };
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', 'tarefa:' + orgTArr.id); } catch (e2) {}
+    var row = g.closest('.task'); if (row) row.classList.add('t-movendo');
+    O.tasks.classList.add('arrastando');
+  });
+  O.tasks.addEventListener('dragover', function(e){
+    if (!orgTArr) return;
+    var cont = e.target.closest && e.target.closest('.tgroup-itens');
+    if (!cont || cont.getAttribute('data-grupo') !== orgTArr.grupo){ if (orgTLinha.parentNode) orgTLinha.parentNode.removeChild(orgTLinha); return; }
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    var rows = Array.prototype.slice.call(cont.querySelectorAll('.task[data-tid]:not(.t-movendo)')), alvo = null;
+    for (var i = 0; i < rows.length; i++){ var rc = rows[i].getBoundingClientRect(); if (e.clientY < rc.top + rc.height / 2){ alvo = rows[i]; break; } }
+    if (alvo){ if (orgTLinha.nextSibling !== alvo) cont.insertBefore(orgTLinha, alvo); }
+    else if (orgTLinha.parentNode !== cont || orgTLinha.nextSibling) cont.appendChild(orgTLinha);
+  });
+  O.tasks.addEventListener('drop', function(e){
+    if (!orgTArr) return;
+    var cont = orgTLinha.parentNode, a = orgTArr;
+    if (!cont || !cont.classList || !cont.classList.contains('tgroup-itens')){ orgTFim(); return; }
+    e.preventDefault();
+    var depois = orgTLinha.nextElementSibling, antesDe = depois && depois.getAttribute('data-tid');
+    var ids = orgTIds(cont, a.id), antes = orgTIds(cont).join();
+    var i = antesDe ? ids.indexOf(antesDe) : -1;
+    ids.splice(i === -1 ? ids.length : i, 0, a.id);
+    orgTFim();
+    if (ids.join() !== antes) orgTGrava(ids);
+  });
+  O.tasks.addEventListener('dragend', function(){ if (orgTArr) orgTFim(); });
+  // teclado: com a alça em foco, ↑ ↓ trocam a tarefa de lugar com a vizinha do mesmo grupo
+  O.tasks.addEventListener('keydown', function(e){
+    var g = e.target.closest && e.target.closest('[data-tgrip]'); if (!g || (e.key !== 'ArrowUp' && e.key !== 'ArrowDown')) return;
+    e.preventDefault();
+    var cont = g.closest('.tgroup-itens'), id = g.getAttribute('data-tgrip'), ids = orgTIds(cont), i = ids.indexOf(id), j = i + (e.key === 'ArrowUp' ? -1 : 1);
+    if (i === -1 || j < 0 || j >= ids.length) return;
+    var vizinha = orgFind(org.tarefas, ids[j]); if (vizinha && vizinha.feitaEm) return;
+    ids[i] = ids[j]; ids[j] = id;
+    orgTGrava(ids).then(function(){ var ng = O.tasks.querySelector('[data-tgrip="' + id + '"]'); if (ng) ng.focus(); });
+    var ng = O.tasks.querySelector('[data-tgrip="' + id + '"]'); if (ng) ng.focus();
+  });
 
   function orgFind(list, id){ for (var i = 0; i < list.length; i++){ if (list[i].id === id) return list[i]; } return null; }
 
@@ -7191,7 +7269,7 @@
     var a = document.activeElement;
     if (a && O.content.contains(a) && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) return true;
     if (document.querySelector('dialog[open]')) return true;
-    return OT.kanban.classList.contains('arrastando');
+    return OT.kanban.classList.contains('arrastando') || OT.kanban.classList.contains('arrastando-col') || O.tasks.classList.contains('arrastando');
   }
   async function orgRecarregaDiscreto(){
     if (!orgNov.recarregar) return;

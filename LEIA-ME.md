@@ -140,6 +140,12 @@ Detalhes:
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
 - Com o `sql/organizacao.sql` atualizado, a tela se atualiza sozinha a cada minuto quando alguém altera algo (veja **Atualização automática** mais abaixo). Sem ele, recarregue a página.
 
+Na lista de **Tarefas** (aba Tarefas e mural):
+- **Mudar a ordem:** arraste a tarefa pela alça de pontinhos, à direita, para cima ou para baixo dentro do mesmo grupo (Atrasadas, Hoje, Próximas, Sem prazo). Uma linha azul mostra onde ela vai entrar. Pelo teclado: clique na alça e use as setas ↑ ↓.
+  - A ordem da lista é separada da ordem dos cartões no Quadro: mexer numa não muda a outra.
+  - Para levar uma tarefa para outro grupo, mude o prazo.
+  - Tarefas novas entram no fim do grupo, depois das que já foram arrumadas. Precisa do `sql/organizacao.sql` atualizado.
+
 No **Mural**:
 - Cada nota pode ter um **título** (opcional), que aparece em negrito. Escreva no campo "Título" antes de colar a nota, ou passe o mouse na nota e clique em "Título" para pôr, mudar ou apagar depois. Precisa do `sql/organizacao.sql` atualizado.
 
