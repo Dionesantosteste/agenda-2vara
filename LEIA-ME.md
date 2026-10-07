@@ -124,7 +124,7 @@ tem o endereço do projeto. A senha fica guardada criptografada e **não aparece
 
 1. Abra o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) no GitHub, clique em **Raw** e copie
    tudo (Ctrl+A, Ctrl+C). Não copie de visualizadores que formatam o texto: eles podem apagar os
-   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 38 vezes.
+   símbolos `$$` e o SQL dá erro. Para conferir, o texto colado deve ter `as $$` 39 vezes.
 2. No Supabase, vá em **SQL Editor → New query** e cole.
 3. Procure a linha marcada com `<<< SENHA` e troque `000000` pela senha de 6 números.
 4. Clique em **Run**. Deve aparecer "Success".
@@ -196,6 +196,8 @@ No **Quadro**:
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
+    - A tabela mostra 100 linhas por vez (botão **Mostrar mais**). Os totais do topo e os filtros valem para todas.
+    - A lista é buscada quando a aba é aberta. Vêm as tarefas em aberto e as concluídas nos últimos 30 dias; em **Concluídas** ou **Todas**, o botão "Mostrar também as concluídas há mais de 30 dias" busca as antigas. Nada é apagado.
     - Clique na linha para ver os detalhes e o fechamento. "Abrir no quadro" leva para a tela da pessoa com a tarefa aberta.
 - **Mandar uma tarefa que já está no quadro do gestor:** abra a tarefa, escolha a pessoa em "Mandar para a tela de" e clique em Salvar. A tarefa sai do quadro do gestor e vai para a primeira coluna da pessoa (as etiquetas ficam para trás).
 - **Fechamento:** quando a pessoa move para a última coluna (Feito) uma tarefa que veio do gestor, abre a janela **Concluir tarefa**. Ela responde:
