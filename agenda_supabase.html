@@ -289,6 +289,25 @@
   .nav-item[aria-current="page"]{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
   .nav-item:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
   .nav-count{ margin-left:auto; font-family:var(--font-ui); font-size:11px; font-weight:500; font-variant-numeric:tabular-nums; }
+  .aniver-box{ margin-top:18px; }
+  .aniver-lista{ list-style:none; margin:0; padding:0 4px; display:flex; flex-direction:column; gap:2px; max-height:240px; overflow-y:auto; }
+  .aniver-lista li{ display:flex; gap:8px; align-items:baseline; font-size:13px; padding:4px 6px; border-radius:8px; color:var(--ink); }
+  .aniver-lista .d{ font-family:var(--font-data); font-size:12px; color:var(--muted); min-width:1.6em; text-align:right; font-variant-numeric:tabular-nums; }
+  .aniver-lista .o{ font-size:12px; color:var(--muted); }
+  .aniver-lista li.passou{ opacity:.6; }
+  .aniver-lista li.hoje{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .aniver-lista li.hoje .d, .aniver-lista li.hoje .o{ color:var(--accent); }
+  .aniv-data{ width:130px; }
+  .aniv-mes{ margin-top:14px; }
+  .aniv-mes:first-child{ margin-top:0; }
+  .aniv-mes h3{ margin:0 0 6px; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; gap:8px; align-items:center; }
+  .aniv-mes.atual h3{ color:var(--accent); }
+  .aniv-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; background:var(--item); border:1px solid var(--item-line); border-radius:10px; margin-bottom:6px; }
+  .aniv-row .d{ font-family:var(--font-data); font-size:13px; color:var(--muted); min-width:3.2em; }
+  .aniv-row .n{ font-weight:500; min-width:0; overflow-wrap:anywhere; }
+  .aniv-row .o{ font-size:12.5px; color:var(--muted); }
+  .aniv-row .acts{ margin-left:auto; display:flex; gap:4px; flex:none; }
+  .aniv-row.hoje{ border-color:var(--accent); background:var(--accent-soft); }
   .sidebar-foot{ margin-top:auto; padding:0 10px; font-size:12.5px; color:var(--muted); line-height:1.45; }
   .sidebar-foot strong{ display:block; color:var(--ink); font-weight:500; }
 
@@ -1353,6 +1372,10 @@
         <span class="nav-count" id="navCountOrg" title="Tarefas para hoje ou atrasadas"></span>
       </a>
     </nav>
+    <div class="aniver-box" id="aniverBox" hidden>
+      <div class="nav-label" id="aniverTitulo">Aniversariantes</div>
+      <ul class="aniver-lista" id="aniverLista"></ul>
+    </div>
     <div class="sidebar-foot">
       <strong id="todayLong"></strong>
       <span id="todayAud"></span>
@@ -1613,6 +1636,7 @@
           <button type="button" class="org-tab" role="tab" data-tab="lembretes">Lembretes <span class="org-tab-n" id="orgTabLemN"></span></button>
           <button type="button" class="org-tab" role="tab" data-tab="modelos">Modelos de texto</button>
           <button type="button" class="org-tab so-proprio" role="tab" data-tab="rotinas">Rotinas <span class="org-tab-n" id="orgTabRotN"></span></button>
+          <button type="button" class="org-tab so-proprio so-gestor" role="tab" data-tab="aniver" id="orgTabAniver" hidden>Aniversariantes <span class="org-tab-n" id="orgTabAnivN"></span></button>
         </div>
       </div>
 
@@ -1809,6 +1833,20 @@
             <button type="submit" class="btn primary">Adicionar</button>
           </form>
           <div class="tgroup" id="orgRotList"></div>
+        </div>
+      </div>
+
+      <div id="orgPaneAniver" class="org-pane" hidden>
+        <div class="panel">
+          <div class="panel-head"><h2>Aniversariantes</h2><span>Aparecem na barra da esquerda do site no mês do aniversário, para todos que abrem o site. Só dia e mês, sem o ano.</span></div>
+          <form class="org-add" id="orgAnivForm" autocomplete="off">
+            <input class="org-in grow" id="orgAnivNome" maxlength="80" placeholder="Nome (ex.: Dr. João Silva)" aria-label="Nome" required />
+            <input class="org-in aniv-data" id="orgAnivData" maxlength="5" inputmode="numeric" placeholder="Dia/mês (15/10)" aria-label="Dia e mês do aniversário" required />
+            <input class="org-in" id="orgAnivObs" maxlength="60" placeholder="Complemento (ex.: Juiz)" aria-label="Complemento" />
+            <button type="submit" class="btn primary" id="orgAnivSalvar">Adicionar</button>
+            <button type="button" class="btn" id="orgAnivCancelar" hidden>Cancelar</button>
+          </form>
+          <div id="orgAnivLista"></div>
         </div>
       </div>
     </div>
@@ -2339,7 +2377,7 @@
       var metodo = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
       var grava = metodo !== 'GET' && metodo !== 'HEAD';
       var url = String((input && input.url) || input || '');
-      if (/\/rpc\/org_novidades/.test(url)) return fetchOriginal(input, init);              // consulta de cada minuto: sem faixa
+      if (/\/rpc\/org_(novidades|aniversariantes_mes)/.test(url)) return fetchOriginal(input, init);              // consulta de cada minuto: sem faixa
       if (grava && /\/rpc\/org_(listar|carregar|pessoas_publico|processo_em_uso)/.test(url)) grava = false;   // listar a Organização é leitura
       if (!grava && ocupado.silencio > 0) return fetchOriginal(input, init);
       if (grava) ocupado.gravacoes++; else ocupado.leituras++;
@@ -3900,6 +3938,8 @@
     org.temConf = r.conferencia === true;
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
     org.temNotaTitulo = r.nota_titulo === true;   // título no post-it (SQL atualizado)
+    // aniversariantes: só o gestor recebe a lista (SQL atualizado)
+    org.aniv = Array.isArray(r.aniversarios) ? r.aniversarios.map(function(a){ return { id: a.id, nome: a.nome || '', dia: +a.dia, mes: +a.mes, obs: a.obs || '' }; }) : null;
     org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
     org.txt.tem = Array.isArray(r.txt_modelos);
     org.txt.modelos = (r.txt_modelos || []).map(function(m){
@@ -4044,6 +4084,7 @@
       quadro: renderOrgKanban,
       lembretes: renderOrgLembretes,
       rotinas: renderOrgRotinas,
+      aniver: renderOrgAniv,
       equipe: renderOrgEquipe,
       modelos: renderTxt
     }[org.tab];
@@ -4379,7 +4420,8 @@
     lemN: document.getElementById('orgTabLemN'),
     rotN: document.getElementById('orgTabRotN'),
     panes: { equipe: document.getElementById('orgPaneEquipe'), lista: document.getElementById('orgPaneLista'), quadro: document.getElementById('orgPaneQuadro'),
-      lembretes: document.getElementById('orgPaneLembretes'), modelos: document.getElementById('orgPaneModelos'), rotinas: document.getElementById('orgPaneRotinas') },
+      lembretes: document.getElementById('orgPaneLembretes'), modelos: document.getElementById('orgPaneModelos'), rotinas: document.getElementById('orgPaneRotinas'),
+      aniver: document.getElementById('orgPaneAniver') },
     eqN: document.getElementById('orgTabEqN'),
     kanban: document.getElementById('orgKanban'),
     kBusca: document.getElementById('orgKBusca'),
@@ -4428,6 +4470,7 @@
   function orgTabVisivel(k){
     if (k === 'equipe') return org.modo === 'gestor' && org.temEquipe;
     if (k === 'rotinas') return !orgAlheia();
+    if (k === 'aniver') return org.modo === 'gestor' && !org.ver && !!org.aniv;
     return !!OT.panes[k];
   }
   function renderOrgTabs(){
@@ -4437,6 +4480,10 @@
     OT.lemN.textContent = lemPendentesAte(0).length || '';
     OT.rotN.textContent = org.rotinas.filter(function(r){ return !rotFeita(r); }).length || '';
     OT.eqN.textContent = orgParaConferir() || '';
+    document.getElementById('orgTabAniver').hidden = !orgTabVisivel('aniver');
+    var mesAt = new Date().getMonth() + 1;
+    document.getElementById('orgTabAnivN').textContent = org.aniv ? (org.aniv.filter(function(a){ return a.mes === mesAt; }).length || '') : '';
+    document.getElementById('orgTabAnivN').title = 'Aniversariantes deste mês';
     OT.eqN.title = OT.eqN.textContent ? 'Tarefas esperando a sua conferência' : '';
   }
 
@@ -7179,6 +7226,105 @@
   document.addEventListener('close', function(){ if (orgNov.recarregar) setTimeout(orgRecarregaDiscreto, 800); }, true);
   // Voltou para a aba do navegador: confere na hora
   document.addEventListener('visibilitychange', function(){ if (!document.hidden) orgNovidades(); });
+
+  // ---- Aniversariantes: o gestor cadastra na aba da Organização; a barra da esquerda mostra os do mês ----
+  var OA = {
+    form: document.getElementById('orgAnivForm'), nome: document.getElementById('orgAnivNome'), data: document.getElementById('orgAnivData'),
+    obs: document.getElementById('orgAnivObs'), salvar: document.getElementById('orgAnivSalvar'), cancelar: document.getElementById('orgAnivCancelar'),
+    lista: document.getElementById('orgAnivLista'),
+    box: document.getElementById('aniverBox'), titulo: document.getElementById('aniverTitulo'), barra: document.getElementById('aniverLista')
+  };
+  var orgAnivEditando = null;
+  function orgAnivDM(a){ return pad(a.dia) + '/' + pad(a.mes); }
+  // "15/10", "15-10", "1510" ou "15/10/1980" (o ano é ignorado) -> { dia, mes } ou null
+  function orgAnivLer(txt){
+    var m = String(txt || '').trim().match(/^(\d{1,2})\s*[\/\-. ]?\s*(\d{1,2})(?:[\/\-. ]\d{2,4})?$/);
+    if (!m) return null;
+    var dia = +m[1], mes = +m[2];
+    if (mes < 1 || mes > 12 || dia < 1 || dia > new Date(2024, mes, 0).getDate()) return null;
+    return { dia: dia, mes: mes };
+  }
+  function renderOrgAniv(){
+    var L = org.aniv || [];
+    var hoje = new Date(), mesAt = hoje.getMonth() + 1, diaAt = hoje.getDate();
+    if (!L.length){ OA.lista.innerHTML = '<div class="org-empty">Nenhum aniversariante cadastrado. Escreva o nome e o dia/mês acima e clique em "Adicionar".</div>'; return; }
+    var h = '';
+    for (var i = 0; i < 12; i++){
+      var mes = ((mesAt - 1 + i) % 12) + 1;   // começa pelo mês atual
+      var doMes = L.filter(function(a){ return a.mes === mes; }).sort(function(a, b){ return (a.dia - b.dia) || a.nome.localeCompare(b.nome, 'pt-BR'); });
+      if (!doMes.length) continue;
+      h += '<div class="aniv-mes' + (i === 0 ? ' atual' : '') + '"><h3>' + capitalize(ORG_MESES[mes - 1]) + (i === 0 ? ' <span class="tag gestor">este mês</span>' : '') + '</h3>' +
+        doMes.map(function(a){
+          var ehHoje = a.mes === mesAt && a.dia === diaAt;
+          return '<div class="aniv-row' + (ehHoje ? ' hoje' : '') + '"><span class="d">' + orgAnivDM(a) + '</span><span class="n">' + escapeHtml(a.nome) + '</span>' +
+            (a.obs ? '<span class="o">' + escapeHtml(a.obs) + '</span>' : '') + (ehHoje ? '<span class="tag gestor">hoje</span>' : '') +
+            '<span class="acts"><button type="button" class="icon-btn" data-aniv="editar" data-id="' + a.id + '" title="Editar" aria-label="Editar ' + escapeHtml(a.nome) + '">' + ICON_PENCIL + '</button>' +
+            '<button type="button" class="icon-btn" data-aniv="excluir" data-id="' + a.id + '" title="Excluir" aria-label="Excluir ' + escapeHtml(a.nome) + '">' + ICON_X + '</button></span></div>';
+        }).join('') + '</div>';
+    }
+    OA.lista.innerHTML = h;
+  }
+  function orgAnivLimpa(){
+    orgAnivEditando = null; OA.form.reset();
+    OA.salvar.textContent = 'Adicionar'; OA.cancelar.hidden = true;
+  }
+  OA.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var nome = OA.nome.value.trim(), dm = orgAnivLer(OA.data.value);
+    if (!nome){ toast('Escreva o nome.'); OA.nome.focus(); return; }
+    if (!dm){ toast('Data inválida. Use dia e mês, por exemplo 15/10.'); OA.data.focus(); return; }
+    OA.salvar.disabled = true;
+    var r = await orgCall('org_salvar_aniversario', { p_id: orgAnivEditando, p_nome: nome, p_dia: dm.dia, p_mes: dm.mes, p_obs: OA.obs.value.trim() });
+    OA.salvar.disabled = false;
+    if (!orgOk(r)) return;
+    toast(orgAnivEditando ? 'Aniversariante atualizado' : 'Aniversariante cadastrado');
+    orgAnivLimpa();
+    await orgLoad();
+    aniverBarra();
+    OA.nome.focus();
+  });
+  OA.cancelar.addEventListener('click', orgAnivLimpa);
+  OA.data.addEventListener('blur', function(){ var dm = orgAnivLer(OA.data.value); if (dm) OA.data.value = orgAnivDM(dm); });
+  OA.lista.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-aniv]'); if (!b) return;
+    var a = (org.aniv || []).filter(function(x){ return x.id === b.getAttribute('data-id'); })[0]; if (!a) return;
+    if (b.getAttribute('data-aniv') === 'editar'){
+      orgAnivEditando = a.id; OA.nome.value = a.nome; OA.data.value = orgAnivDM(a); OA.obs.value = a.obs;
+      OA.salvar.textContent = 'Salvar'; OA.cancelar.hidden = false; OA.nome.focus();
+      return;
+    }
+    if (!b.classList.contains('armed')){ b.classList.add('armed'); b.title = 'Clique de novo para excluir'; toast('Clique de novo no X para excluir ' + a.nome); return; }
+    var r = await orgCall('org_excluir_aniversario', { p_id: a.id });
+    if (!orgOk(r)) return;
+    if (orgAnivEditando === a.id) orgAnivLimpa();
+    toast(a.nome + ' saiu da lista de aniversariantes');
+    await orgLoad();
+    aniverBarra();
+  });
+
+  // Barra da esquerda (sem senha): aniversariantes do mês. Some se não houver ninguém ou se o SQL for antigo.
+  var aniverDia = '';
+  async function aniverBarra(){
+    if (!supabase) return;
+    try {
+      var res = await supabase.rpc('org_aniversariantes_mes');
+      var d = !res.error && res.data && res.data.status === 'ok' ? res.data : null;
+      var L = d && Array.isArray(d.lista) ? d.lista : [];
+      aniverDia = dayKey(new Date());
+      OA.box.hidden = !L.length;
+      if (!L.length) return;
+      var hoje = d.hoje ? new Date(String(d.hoje).slice(0, 10) + 'T00:00') : new Date(), diaAt = hoje.getDate();
+      OA.titulo.textContent = 'Aniversariantes de ' + ORG_MESES[hoje.getMonth()];
+      OA.barra.innerHTML = L.map(function(a){
+        var cls = a.dia === diaAt ? 'hoje' : a.dia < diaAt ? 'passou' : '';
+        return '<li' + (cls ? ' class="' + cls + '"' : '') + ' title="' + (a.dia === diaAt ? 'Faz aniversário hoje' : 'Dia ' + a.dia) + '"><span class="d">' + a.dia + '</span><span>' + escapeHtml(a.nome) +
+          (a.obs ? ' <span class="o">' + escapeHtml(a.obs) + '</span>' : '') + (a.dia === diaAt ? ' 🎂' : '') + '</span></li>';
+      }).join('');
+    } catch (e) { OA.box.hidden = true; }
+  }
+  aniverBarra();
+  // vira o dia (e o mês) com a página aberta: atualiza a barra
+  setInterval(function(){ if (dayKey(new Date()) !== aniverDia) aniverBarra(); }, 600000);
 
   // ---------------------------------------------------------------------
   // Perícias: nomeação → agendamento → realização → laudo (30 dias úteis)

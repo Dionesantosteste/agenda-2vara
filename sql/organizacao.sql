@@ -242,6 +242,19 @@ alter table org_anotacoes enable row level security;
 alter table org_modelos   enable row level security;
 revoke all on org_config, org_pessoas, org_notas, org_tarefas, org_lembretes, org_rotinas, org_etiquetas, org_colunas, org_anotacoes, org_modelos from anon, authenticated;
 
+-- ---------- aniversariantes (cadastro do gestor; a barra do site mostra os do mês) ----------
+-- Só dia e mês (sem ano). obs: um complemento curto, como "Juiz" ou "estagiária".
+create table if not exists org_aniversarios (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null default '',
+  dia int not null check (dia between 1 and 31),
+  mes int not null check (mes between 1 and 12),
+  obs text not null default '',
+  created_at timestamptz not null default now()
+);
+alter table org_aniversarios enable row level security;
+revoke all on org_aniversarios from anon, authenticated;
+
 -- ---------- senha ----------
 insert into org_config (id, pin_hash)
 values (1, extensions.crypt('000000', extensions.gen_salt('bf')))   -- <<< SENHA
@@ -574,6 +587,7 @@ begin
     'conferencia', true,
     'agenda', true,
     'nota_titulo', true,
+    'aniversarios', case when ac.o_gestor then coalesce((select jsonb_agg(to_jsonb(a) order by a.mes, a.dia, lower(a.nome)) from org_aniversarios a), '[]'::jsonb) end,
     'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
     'txt_categorias', coalesce((select jsonb_agg(to_jsonb(c) order by c.ordem, lower(c.nome)) from org_txt_categorias c), '[]'::jsonb),
@@ -686,6 +700,80 @@ begin
   end if;
   return jsonb_build_object('status', 'ok');
 end;
+$$;
+
+-- Aniversariantes: o gestor cadastra, muda e exclui
+create or replace function org_salvar_aniversario(p_pin text, p_pessoa uuid, p_id uuid, p_nome text, p_dia int, p_mes int, p_obs text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  nome_ok text := left(btrim(regexp_replace(coalesce(p_nome, ''), '\s+', ' ', 'g')), 80);
+  novo uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor cadastra aniversariantes.');
+  end if;
+  if nome_ok = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Escreva o nome.');
+  end if;
+  -- confere o dia do mês (29/02 vale)
+  if p_mes is null or p_dia is null or p_mes not between 1 and 12 or p_dia < 1
+     or p_dia > extract(day from (make_date(2024, p_mes, 1) + interval '1 month - 1 day')) then
+    return jsonb_build_object('status', 'erro', 'message', 'Data inválida. Use dia e mês, por exemplo 15/10.');
+  end if;
+  if p_id is null then
+    insert into org_aniversarios (nome, dia, mes, obs) values (nome_ok, p_dia, p_mes, left(btrim(coalesce(p_obs, '')), 60))
+    returning id into novo;
+  else
+    update org_aniversarios set nome = nome_ok, dia = p_dia, mes = p_mes, obs = left(btrim(coalesce(p_obs, '')), 60)
+     where id = p_id returning id into novo;
+    if novo is null then
+      return jsonb_build_object('status', 'erro', 'message', 'Este aniversariante não existe mais.');
+    end if;
+  end if;
+  return jsonb_build_object('status', 'ok', 'id', novo);
+end;
+$$;
+
+create or replace function org_excluir_aniversario(p_pin text, p_pessoa uuid, p_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor exclui aniversariantes.');
+  end if;
+  delete from org_aniversarios where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Barra do site (sem senha): só os aniversariantes do mês atual, no horário de Cuiabá
+create or replace function org_aniversariantes_mes()
+returns jsonb
+language sql
+security definer
+set search_path = public, extensions
+as $$
+  select jsonb_build_object('status', 'ok', 'hoje', org_hoje(), 'lista', coalesce(
+    (select jsonb_agg(jsonb_build_object('nome', a.nome, 'dia', a.dia, 'obs', a.obs) order by a.dia, lower(a.nome))
+       from org_aniversarios a where a.mes = extract(month from org_hoje())::int), '[]'::jsonb));
 $$;
 
 -- O gestor manda uma tarefa agendada: grava já com a data em que ela aparece para a pessoa
@@ -1688,6 +1776,9 @@ grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
+grant execute on function org_salvar_aniversario(text, uuid, uuid, text, int, int, text) to anon, authenticated;
+grant execute on function org_excluir_aniversario(text, uuid, uuid) to anon, authenticated;
+grant execute on function org_aniversariantes_mes() to anon, authenticated;
 grant execute on function org_mandar_tarefa(text, uuid, text, date, text, text, date) to anon, authenticated;
 grant execute on function org_agendar_tarefa(text, uuid, uuid, date) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;

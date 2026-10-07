@@ -262,6 +262,12 @@ No **Quadro**:
   - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
 - O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
 
+**Aniversariantes** (precisa do `sql/organizacao.sql` atualizado):
+- Na Organização do gestor, aba **Aniversariantes** (depois de Rotinas): escreva o nome, o dia/mês (ex.: `15/10`) e, se quiser, um complemento curto (ex.: "Juiz", "estagiária"). Pode ser qualquer pessoa, não só quem tem tela na Organização. Só dia e mês, sem o ano.
+- Lápis edita; o X exclui (clique duas vezes para confirmar). A lista começa pelo mês atual.
+- A barra da esquerda do site mostra os aniversariantes do mês para **todos que abrem o site**, sem senha. Quem faz aniversário no dia aparece em destaque; os dias que já passaram ficam mais claros. Nos meses sem ninguém, o bloco some.
+- A aba não aparece para a equipe nem quando o gestor está vendo a tela de alguém.
+
 **Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
