@@ -150,6 +150,7 @@ No **Quadro**:
 - O **lápis** (editar) e o ícone de **arquivar** ficam no canto superior direito de cada cartão.
   - Arquivar funciona em qualquer coluna e mostra "Desfazer" por alguns segundos.
 - Arraste o cartão para outra coluna. No celular, use os botões ← →.
+- **Mudar a coluna de lugar:** arraste pela alça de pontinhos que aparece à esquerda do nome das colunas do meio. Uma faixa azul mostra onde ela vai ficar. A fazer e Feito ficam sempre no começo e no fim. Também dá pelas setas ← → do botão **Colunas**.
 - **Ordem dentro da coluna:** arraste o cartão para cima ou para baixo. Uma linha azul mostra onde ele vai entrar. No celular, use os botões ↑ ↓.
   - A ordem fica salva para todos.
   - Enquanto ninguém mexe na ordem de uma coluna, ela segue por prazo.
