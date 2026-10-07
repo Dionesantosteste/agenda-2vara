@@ -190,6 +190,12 @@ No **Quadro**:
     - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
     - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
     - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+    - **Tarefa agendada:** preencha **Aparece para a pessoa em** (ou escreva na mensagem "a partir de 29/10", "aparece em 29/10" ou "agendar para 29/10"). A tarefa só aparece na tela da pessoa a partir desse dia, e o prazo continua separado.
+      - Até lá ela fica no filtro **Agendadas** da tabela, com o selo "Aparece para a pessoa em…", e fica fora da carga, dos prazos e das paradas do painel (que mostra quantas cada pessoa tem agendadas).
+      - Para mudar ou tirar a data, clique na linha, em **Editar**, e mude **Aparece para a pessoa em**. Vazio ou hoje: a pessoa já vê.
+      - Quando o gestor abre a tela da pessoa, as agendadas aparecem no quadro dela com o selo "Aparece em…"; a pessoa não as vê.
+      - "Hoje" segue o horário de Cuiabá. Lembre que a tela da pessoa não tem senha: "não aparece" quer dizer que não aparece na tela dela.
+      - Precisa do `sql/organizacao.sql` atualizado; sem ele o campo não aparece.
     - **Processo repetido:** se o nº do processo já estiver numa tarefa não concluída de alguém (inclusive no quadro do próprio gestor), aparece um aviso amarelo dizendo com quem está, em que coluna e qual o prazo. Clique em **Mandar mesmo assim** para enviar ou em **Cancelar** para desistir. Tarefas concluídas ou arquivadas não contam. Precisa do `sql/organizacao.sql` atualizado; sem ele, a tarefa é enviada sem o aviso.
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
     - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
