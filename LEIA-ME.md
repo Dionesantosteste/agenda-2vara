@@ -138,7 +138,16 @@ não precisa mexer na linha `<<< SENHA`.
 Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
-- A Organização não atualiza sozinha quando outra pessoa altera; recarregue a página.
+- Com o `sql/organizacao.sql` atualizado, a tela se atualiza sozinha a cada minuto quando alguém altera algo (veja **Atualização automática** mais abaixo). Sem ele, recarregue a página.
+
+Na lista de **Tarefas** (aba Tarefas e mural):
+- **Mudar a ordem:** arraste a tarefa pela alça de pontinhos, à direita, para cima ou para baixo dentro do mesmo grupo (Atrasadas, Hoje, Próximas, Sem prazo). Uma linha azul mostra onde ela vai entrar. Pelo teclado: clique na alça e use as setas ↑ ↓.
+  - A ordem da lista é separada da ordem dos cartões no Quadro: mexer numa não muda a outra.
+  - Para levar uma tarefa para outro grupo, mude o prazo.
+  - Tarefas novas entram no fim do grupo, depois das que já foram arrumadas. Precisa do `sql/organizacao.sql` atualizado.
+
+No **Mural**:
+- Cada nota pode ter um **título** (opcional), que aparece em negrito. Escreva no campo "Título" antes de colar a nota, ou passe o mouse na nota e clique em "Título" para pôr, mudar ou apagar depois. Precisa do `sql/organizacao.sql` atualizado.
 
 No **Quadro**:
 - **Nova tarefa:** clique em **+ Adicionar tarefa** no fim da coluna (todas, menos Feito). Digite o título e aperte Enter; o campo continua aberto para a próxima.
@@ -147,6 +156,7 @@ No **Quadro**:
 - O **lápis** (editar) e o ícone de **arquivar** ficam no canto superior direito de cada cartão.
   - Arquivar funciona em qualquer coluna e mostra "Desfazer" por alguns segundos.
 - Arraste o cartão para outra coluna. No celular, use os botões ← →.
+- **Mudar a coluna de lugar:** arraste pela alça de pontinhos que aparece à esquerda do nome das colunas do meio. Uma faixa azul mostra onde ela vai ficar. A fazer e Feito ficam sempre no começo e no fim. Também dá pelas setas ← → do botão **Colunas**.
 - **Ordem dentro da coluna:** arraste o cartão para cima ou para baixo. Uma linha azul mostra onde ele vai entrar. No celular, use os botões ↑ ↓.
   - A ordem fica salva para todos.
   - Enquanto ninguém mexe na ordem de uma coluna, ela segue por prazo.
@@ -202,8 +212,9 @@ No **Quadro**:
     - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
   - **Painel da equipe** (entre "Mandar tarefa" e a tabela; precisa do `sql/organizacao.sql` atualizado, sem ele o painel não aparece):
     - Conta **todas** as tarefas do quadro de cada pessoa, inclusive as que ela mesma criou. A tabela abaixo continua mostrando só as que o gestor mandou.
+    - Ficam sempre à vista os números do topo e a carga por pessoa. **Atenção**, **Paradas**, **Prazos dos próximos 7 dias** e **Desempenho** abrem e fecham ao clicar (sanfona), e cada linha mostra um resumo mesmo fechada. **Recolher** deixa só os números. O que fica aberto é lembrado neste navegador.
     - **Números do topo:** em aberto, atrasadas, vencem hoje, esperando conferência e concluídas no período. Clicar em "em aberto", "atrasadas" ou "esperando conferência" aplica o mesmo filtro na tabela.
-    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes e próximo prazo. Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
+    - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes, próximo prazo e **feitas hoje** (concluídas hoje, no horário de Cuiabá, contando também as já arquivadas). Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
     - **Atenção:** quem tem tarefa atrasada, quem está acima da média, quantas esperam conferência e quem está com menos tarefas.
     - **Paradas:** tarefas em aberto sem nenhuma mudança há 7 dias ou mais (até 15).
     - **Prazos dos próximos 7 dias:** quantas tarefas vencem em cada dia, por pessoa.
@@ -213,6 +224,7 @@ No **Quadro**:
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
+    - **Buscar:** o campo ao lado do filtro de pessoa procura no título, no nome da pessoa e no nº do processo (com ou sem pontos). Vale junto com os filtros.
     - A tabela mostra 100 linhas por vez (botão **Mostrar mais**). Os totais do topo e os filtros valem para todas.
     - A lista é buscada quando a aba é aberta. Vêm as tarefas em aberto e as concluídas nos últimos 30 dias; em **Concluídas** ou **Todas**, o botão "Mostrar também as concluídas há mais de 30 dias" busca as antigas. Nada é apagado.
     - Clique na linha para ver os detalhes e o fechamento. "Abrir no quadro" leva para a tela da pessoa com a tarefa aberta.
@@ -227,7 +239,8 @@ No **Quadro**:
   - A pessoa clica no ícone de prancheta do cartão (ou em **Enviar para conferência**, na janela da tarefa) e pode deixar um recado.
   - Enquanto espera, a tarefa fica parada na coluna em que está, com o selo "Em conferência". A pessoa pode **Cancelar envio** na janela da tarefa.
   - O gestor vê o número de tarefas para conferir na aba **Tarefas da equipe** e no menu. O filtro **Para conferir** lista essas tarefas.
-  - No detalhe da tarefa, o gestor clica em **Aprovar** ou em **Devolver** (precisa escrever o motivo). Nos dois casos a tarefa continua na coluna da pessoa em que estava quando foi enviada: a aprovada com o selo "Conferida ✓", a devolvida com o selo "Devolvida" e o motivo. Quem leva para Feito é a própria pessoa.
+  - Na própria linha da tabela (sem abrir a tarefa) aparecem os botões **Aprovar** e **Devolver**, e o recado de quem enviou, em itálico. Aprovar é na hora; Devolver abre a janelinha do motivo.
+  - No detalhe da tarefa, o gestor também clica em **Aprovar** ou em **Devolver** (precisa escrever o motivo). Nos dois casos a tarefa continua na coluna da pessoa em que estava quando foi enviada: a aprovada com o selo "Conferida ✓", a devolvida com o selo "Devolvida" e o motivo. Quem leva para Feito é a própria pessoa.
   - Cada envio, cancelamento, aprovação e devolução fica registrado com data e hora na janela da tarefa.
 - **Modelos de texto** (aba da Organização, para o gestor e para a equipe):
   - Uma biblioteca só, que todos usam e qualquer pessoa pode editar. Cada modelo mostra quem fez a última alteração.
@@ -254,6 +267,12 @@ No **Quadro**:
   - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
   - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
 - O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
+
+**Aniversariantes** (precisa do `sql/organizacao.sql` atualizado):
+- Na Organização do gestor, aba **Aniversariantes** (depois de Rotinas): escreva o nome, o dia/mês (ex.: `15/10`) e, se quiser, um complemento curto (ex.: "Juiz", "estagiária"). Pode ser qualquer pessoa, não só quem tem tela na Organização. Só dia e mês, sem o ano.
+- Lápis edita; o X exclui (clique duas vezes para confirmar). A lista começa pelo mês atual.
+- A barra da esquerda do site mostra os aniversariantes do mês para **todos que abrem o site**, sem senha. Quem faz aniversário no dia aparece em destaque; os dias que já passaram ficam mais claros. Nos meses sem ninguém, o bloco some.
+- A aba não aparece para a equipe nem quando o gestor está vendo a tela de alguém.
 
 **Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 
