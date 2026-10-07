@@ -878,6 +878,9 @@
   .eq-flag.devolv{ color:var(--danger); background:var(--urgent-bg); }
   .eq-flag.conferida{ color:var(--ok); background:var(--ok-soft); }
   .eq-flag.agend{ color:var(--accent); background:var(--accent-soft); }
+  .eq-conf-acts{ display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+  .eq-conf-acts .btn{ height:30px; padding:0 10px; font-size:12.5px; }
+  .eq-recado{ font-style:italic; overflow-wrap:anywhere; }
   .eq-st[data-k="agend"]{ background:var(--accent-soft); color:var(--accent); border:1px dashed var(--accent); }
   .eq-mais{ display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0 2px; flex-wrap:wrap; }
 
@@ -5885,12 +5888,18 @@
           (c && c.dificuldade ? '<span class="eq-flag dif">Teve dificuldade</span>' : '') +
           (t.conferencia === 'devolvida' && t.etapa !== 'feito' ? '<span class="eq-flag devolv">Devolvida</span>' : '') +
           (t.conferencia === 'aprovada' ? '<span class="eq-flag conferida">Conferida</span>' : '');
+        var emConf = orgEmConf(t), ult = emConf ? orgConfUlt(t) : null;
+        if (ult && ult.t) sub += '<span class="eq-recado" title="Recado de quem enviou">“' + escapeHtml(ult.t) + '”</span>';
+        // aprovar ou devolver direto na linha, sem abrir a tarefa
+        var confBtns = emConf ? '<div class="eq-conf-acts">' +
+          '<button type="button" class="btn primary" data-eqconf="aprovar" data-id="' + t.id + '" title="Aprovar sem abrir a tarefa">Aprovar</button>' +
+          '<button type="button" class="btn" data-eqconf="devolver" data-id="' + t.id + '" title="Devolver com o motivo">Devolver</button></div>' : '';
         return '<tr tabindex="0" data-eq="' + t.id + '">' +
           '<td class="eq-c-t"><div class="eq-t">' + escapeHtml(t.titulo) + '</div>' + (sub ? '<div class="eq-sub">' + sub + '</div>' : '') + '</td>' +
           '<td><span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span></td>' +
           '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
           '<td>' + (orgPrioTag(t, true) || '<span class="field-hint">Normal</span>') + '</td>' +
-          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'agend' ? 'Agendada' : k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span></td></tr>';
+          '<td><span class="eq-st" data-k="' + k + '">' + (k === 'feito' ? ICON_CHECK : '') + escapeHtml(k === 'agend' ? 'Agendada' : k === 'conf' ? 'Em conferência' : orgEqColuna(t)) + '</span>' + confBtns + '</td></tr>';
       }).join('') + '</tbody></table>' +
       (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
         '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '') + antigas;
@@ -6258,6 +6267,14 @@
   OE.lista.addEventListener('click', function(e){
     if (e.target.closest('[data-eqmais]')){ org.eqLimite += ORG_EQ_PAGINA; renderOrgEquipe(); return; }
     if (e.target.closest('[data-eqantigas]')){ org.eqTodas = true; orgLoad(); return; }
+    var cb = e.target.closest('[data-eqconf]');
+    if (cb){
+      var tc = orgFind(org.eqTarefas, cb.getAttribute('data-id')); if (!tc || cb.disabled) return;
+      if (cb.getAttribute('data-eqconf') === 'devolver'){ orgConfAbrir(tc, 'devolver'); return; }
+      cb.disabled = true; cb.textContent = 'Aprovando…';
+      orgConfAcao(tc.id, 'aprovar', '', tc.dono).then(function(ok){ if (!ok){ cb.disabled = false; cb.textContent = 'Aprovar'; } });
+      return;
+    }
     if (e.target.closest('[data-act], button, a')) return;
     var tr = e.target.closest('[data-eq]'); if (tr) orgEqAbrir(tr.getAttribute('data-eq'));
   });
