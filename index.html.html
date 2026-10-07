@@ -831,6 +831,9 @@
   .eq-prev:empty{ display:none; }
   .eq-prev b{ color:var(--ink); font-weight:600; }
   .eq-prev .aviso{ color:var(--warn); font-weight:500; }
+  .eq-dup{ flex-direction:column; align-items:stretch; gap:8px; }
+  .eq-dup ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:3px; font-size:13.5px; }
+  .eq-dup .btns{ margin-left:0; flex-wrap:wrap; }
 
   .eq-tab{ width:100%; border-collapse:collapse; font-size:14px; }
   .eq-tab th{ text-align:left; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted);
@@ -1589,6 +1592,7 @@
               <label class="eq-ctrl">Passo a passo (opcional)<select class="org-in" id="orgEqModCard"></select></label>
             </div>
             <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
+            <div class="dup-aviso eq-dup" id="orgEqDup" hidden role="alert"></div>
           </form>
           <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
         </div>
@@ -6072,10 +6076,59 @@
     return r;
   }
 
+  // ---- processo repetido: avisa se o processo já está com alguém (tarefa não concluída) ----
+  var OEdup = document.getElementById('orgEqDup');
+  var eqDup = { proc: '', lista: null, busca: null, ok: '', timer: null };   // ok = processo que o gestor mandou "mesmo assim"
+  function orgEqDupLimpa(){ clearTimeout(eqDup.timer); eqDup = { proc: '', lista: null, busca: null, ok: '', timer: null }; OEdup.hidden = true; OEdup.innerHTML = ''; }
+  // Busca no banco (uma vez por número). Se a busca falhar ou o SQL for antigo, devolve [] e a tarefa segue normalmente.
+  function orgEqDupBusca(proc){
+    if (eqDup.proc === proc && eqDup.busca) return eqDup.busca;
+    eqDup.proc = proc; eqDup.lista = null;
+    eqDup.busca = (org.semDup ? Promise.resolve({ status: 'ok', tarefas: [] }) : orgCall('org_processo_em_uso', { p_processo: proc })).then(function(r){
+      if (r.status === 'erro' && r.codigo === 'PGRST202') org.semDup = true;
+      var lista = r.status === 'ok' && Array.isArray(r.tarefas) ? r.tarefas : [];
+      if (eqDup.proc === proc) eqDup.lista = lista;
+      return lista;
+    }, function(){ return []; });
+    return eqDup.busca;
+  }
+  function orgEqDupNome(dono){ return dono ? (orgNomePessoa(dono) || 'Pessoa excluída') : 'Você (seu quadro)'; }
+  function orgEqDupMostra(){
+    var L = eqDup.lista;
+    if (!L || !L.length || eqDup.ok === eqDup.proc){ OEdup.hidden = true; OEdup.innerHTML = ''; return; }
+    OEdup.innerHTML = '<div><b>Este processo já está com alguém.</b> ' + (L.length === 1 ? 'Há 1 tarefa em aberto' : 'Há ' + L.length + ' tarefas em aberto') + ' com ele:</div><ul>' +
+      L.map(function(t){
+        var pz = t.prazo ? new Date(String(t.prazo).slice(0, 10) + 'T00:00') : null;
+        return '<li><b>' + escapeHtml(orgEqDupNome(t.dono)) + '</b>: ' + escapeHtml(t.titulo || 'Sem título') + ' · ' +
+          escapeHtml(t.conferencia === 'enviada' ? 'em conferência' : (t.coluna || (t.etapa === 'afazer' ? 'A fazer' : 'Em andamento'))) +
+          (pz ? ' · prazo ' + fmtDia(pz) : '') + '</li>';
+      }).join('') + '</ul>' +
+      '<div class="btns"><button type="button" class="btn primary" data-eqdup="sim">Mandar mesmo assim</button><button type="button" class="btn" data-eqdup="nao">Cancelar</button></div>';
+    OEdup.hidden = false;
+  }
+  function orgEqDupConfere(proc){
+    clearTimeout(eqDup.timer);
+    if (!proc){ eqDup.proc = ''; eqDup.lista = null; eqDup.busca = null; OEdup.hidden = true; return; }
+    if (eqDup.proc === proc && eqDup.lista){ orgEqDupMostra(); return; }
+    eqDup.timer = setTimeout(function(){
+      orgEqDupBusca(proc).then(function(){ if (eqDup.proc === proc) orgEqDupMostra(); });
+    }, 400);
+  }
+  OEdup.addEventListener('click', function(e){
+    var b = e.target.closest('[data-eqdup]'); if (!b) return;
+    if (b.getAttribute('data-eqdup') === 'sim'){
+      eqDup.ok = eqDup.proc; OEdup.hidden = true;
+      OE.form.requestSubmit ? OE.form.requestSubmit() : OE.enviar.click();
+    } else {
+      OE.texto.value = ''; OE.prev.innerHTML = ''; orgEqDupLimpa(); OE.texto.focus();
+    }
+  });
+
   function orgEqPrevia(){
     var txt = OE.texto.value;
-    if (!txt.trim()){ OE.prev.innerHTML = ''; return; }
+    if (!txt.trim()){ OE.prev.innerHTML = ''; orgEqDupConfere(''); return; }
     var r = orgEqLer(txt);
+    orgEqDupConfere(r.processo);
     if (!eqToque.para && r.para) OE.para.value = r.para;
     if (!eqToque.prazo && r.prazo) OE.prazo.value = r.prazo;
     if (!eqToque.prio && r.prio && r.prio !== org.eqPrio){ org.eqPrio = r.prio; orgEqPrioChips(); }
@@ -6100,6 +6153,16 @@
     var para = OE.para.value;
     if (!para){ toast('Escolha para quem vai a tarefa.'); OE.para.focus(); return; }
     OE.enviar.disabled = true;
+    // processo repetido: confere antes de gravar (a não ser que o gestor já tenha escolhido "Mandar mesmo assim")
+    if (r.processo && eqDup.ok !== r.processo){
+      var dups = await orgEqDupBusca(r.processo);
+      if (dups.length){
+        OE.enviar.disabled = false;
+        orgEqDupMostra();
+        var bSim = OEdup.querySelector('[data-eqdup=sim]'); if (bSim) bSim.focus();
+        return;
+      }
+    }
     var res = await orgCall('org_salvar_tarefa', { p_pessoa: para, p_id: null, p_titulo: titulo, p_prazo: OE.prazo.value || null,
       p_prioridade: org.eqPrio, p_responsavel: '', p_processo: r.processo, p_feita_em: null, p_etapa: 'afazer' });
     if (orgOk(res) && res.id && OE.modTxt.value){
@@ -6117,6 +6180,7 @@
     toast('Tarefa enviada para ' + orgNomePessoa(para) + (ck.length ? ' com ' + ck.length + (ck.length === 1 ? ' passo' : ' passos') : ''));
     OE.modTxt.value = ''; OE.modCard.value = '';
     OE.texto.value = ''; OE.prev.innerHTML = ''; OE.prazo.value = '';
+    orgEqDupLimpa();
     eqToque = { para: false, prazo: false, prio: false };
     org.eqPrio = 'normal';
     await orgLoad();

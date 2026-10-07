@@ -572,6 +572,41 @@ begin
 end;
 $$;
 
+-- Processo repetido: antes de mandar uma tarefa, o gestor vê se o processo já está com alguém.
+-- Compara só os números (com ou sem pontos e traço) e devolve as tarefas não concluídas e não arquivadas,
+-- de qualquer tela (dono vazio = o próprio gestor), com o nome da coluna em que estão.
+create or replace function org_processo_em_uso(p_pin text, p_pessoa uuid, p_processo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  dig text := regexp_replace(coalesce(p_processo, ''), '\D', '', 'g');
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor confere processos repetidos.');
+  end if;
+  if length(dig) <> 20 then
+    return jsonb_build_object('status', 'ok', 'tarefas', '[]'::jsonb);
+  end if;
+  return jsonb_build_object('status', 'ok', 'tarefas', coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', t.id, 'dono', t.dono, 'titulo', t.titulo, 'etapa', t.etapa, 'prazo', t.prazo,
+             'conferencia', t.conferencia, 'coluna', c.nome, 'created_at', t.created_at)
+           order by t.created_at)
+      from org_tarefas t
+      left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
+     where t.etapa <> 'feito' and t.arquivada_em is null
+       and t.processo <> '' and regexp_replace(t.processo, '\D', '', 'g') = dig), '[]'::jsonb));
+end;
+$$;
+
 -- Versão de antes (o site antigo ainda chama esta): tela + aba da equipe completa
 create or replace function org_listar(p_pin text, p_pessoa uuid)
 returns jsonb
@@ -1510,6 +1545,7 @@ grant execute on function org_txt_excluir_categoria(text, uuid, uuid) to anon, a
 grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
+grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
 grant execute on function org_salvar_nota(text, uuid, uuid, text, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_nota(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_salvar_tarefa(text, uuid, uuid, text, date, text, text, text, timestamptz, text) to anon, authenticated;
