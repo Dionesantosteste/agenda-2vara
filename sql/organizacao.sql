@@ -640,19 +640,18 @@ begin
   if ac.o_st <> 'ok' then
     return jsonb_build_object('status', ac.o_st);
   end if;
-  if not ac.o_gestor then
-    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor confere processos repetidos.');
-  end if;
+  -- Gestor e equipe: avisa quando o processo já tem tarefa em aberto com alguém
   if length(dig) <> 20 then
     return jsonb_build_object('status', 'ok', 'tarefas', '[]'::jsonb);
   end if;
   return jsonb_build_object('status', 'ok', 'tarefas', coalesce((
     select jsonb_agg(jsonb_build_object(
-             'id', t.id, 'dono', t.dono, 'titulo', t.titulo, 'etapa', t.etapa, 'prazo', t.prazo,
+             'id', t.id, 'dono', t.dono, 'dono_nome', pe.nome, 'titulo', t.titulo, 'etapa', t.etapa, 'prazo', t.prazo,
              'conferencia', t.conferencia, 'coluna', c.nome, 'created_at', t.created_at, 'aparece_em', t.aparece_em)
            order by t.created_at)
       from org_tarefas t
       left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
+      left join org_pessoas pe on pe.id = t.dono
      where t.etapa <> 'feito' and t.arquivada_em is null
        and t.processo <> '' and regexp_replace(t.processo, '\D', '', 'g') = dig), '[]'::jsonb));
 end;

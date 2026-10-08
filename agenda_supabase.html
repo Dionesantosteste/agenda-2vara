@@ -1077,7 +1077,8 @@
     .eq-linha .btn{ padding:0 14px; }
   }
 
-  #orgFechDialog, #orgEqDialog, #orgConfDialog{ width:min(520px, calc(100vw - 32px)); }
+  #orgFechDialog, #orgEqDialog, #orgConfDialog, #orgDupDialog{ width:min(520px, calc(100vw - 32px)); }
+  #orgDupLista{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:14px; line-height:1.45; }
   .tag.conf{ color:var(--warn); background:var(--warn-soft); text-transform:none; letter-spacing:0; }
   .tag.devolv{ color:var(--danger); background:var(--urgent-bg); text-transform:none; letter-spacing:0; }
   .tag.conferida{ color:var(--ok); background:var(--ok-soft); text-transform:none; letter-spacing:0; }
@@ -2639,6 +2640,17 @@
   </form>
 </dialog>
 
+<dialog id="orgDupDialog" aria-labelledby="orgDupTit">
+  <form class="sheet" method="dialog">
+    <h2 id="orgDupTit">Este processo já está com alguém</h2>
+    <p class="field-hint" id="orgDupInfo" style="margin:-6px 0 0"></p>
+    <ul id="orgDupLista"></ul>
+    <div class="sheet-actions">
+      <button type="submit" class="btn" value="nao">Cancelar</button>
+      <button type="submit" class="btn primary" value="sim" id="orgDupSim">Salvar mesmo assim</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="orgFechDialog">
   <form class="sheet" id="orgFechForm" autocomplete="off">
     <h2>Concluir tarefa</h2>
@@ -4816,6 +4828,7 @@
   O.taskForm.addEventListener('submit', async function(e){
     e.preventDefault();
     var titulo = O.taskTitle.value.trim(); if (!titulo) return;
+    if (!(await orgConfereDup(document.getElementById('orgTaskProc').value))) return;
     var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
       prioridade: O.taskUrg.value, responsavel: orgAlheia() ? '' : O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
     if (!orgOk(r)) return;
@@ -4861,7 +4874,8 @@
     if (e.target.getAttribute('data-form') !== 'editar') return;
     e.preventDefault();
     var t = orgFind(org.tarefas, e.target.getAttribute('data-id')); if (!t) return;
-    var dv = document.getElementById('oePrazo').value;
+    var dv = document.getElementById('oePrazo').value, novoProc = document.getElementById('oeProc').value;
+    if (orgProcMudou(t.processo, novoProc) && !(await orgConfereDup(novoProc, t.id))) return;
     var r = await orgSaveTask(Object.assign({}, t, {
       titulo: document.getElementById('oeTitulo').value.trim() || t.titulo,
       prazo: dv ? new Date(dv + 'T00:00') : null,
@@ -5571,6 +5585,7 @@
     var t = orgFind(org.tarefas, orgCartaoId); if (!t){ OC.dialog.close(); return; }
     var etapa = OC.etapa.value;
     // tarefa do gestor indo para Feito: grava o resto e pede o fechamento antes de concluir
+    if (orgProcMudou(t.processo, OC.proc.value) && !(await orgConfereDup(OC.proc.value, t.id))) return;
     var fechar = etapa === 'feito' && t.etapa !== 'feito' && orgPedeFechamento(t);
     if (fechar) etapa = t.etapa;
     var r = await orgSaveTask(Object.assign({}, t, {
@@ -6953,17 +6968,43 @@
     }, function(){ return []; });
     return eqDup.busca;
   }
-  function orgEqDupNome(dono){ return dono ? (orgNomePessoa(dono) || 'Pessoa excluída') : 'Você (seu quadro)'; }
+  function orgEqDupNome(dono, nome){
+    if (!dono) return org.modo === 'pessoa' ? 'Gestor' : 'Você (seu quadro)';
+    if (org.modo === 'pessoa' && dono === org.eu) return 'Você';
+    return nome || orgNomePessoa(dono) || 'Pessoa excluída';
+  }
+  function orgDupItens(L){
+    return L.map(function(t){
+      var pz = t.prazo ? new Date(String(t.prazo).slice(0, 10) + 'T00:00') : null;
+      return '<li><b>' + escapeHtml(orgEqDupNome(t.dono, t.dono_nome)) + '</b>: ' + escapeHtml(t.titulo || 'Sem título') + ' · ' +
+        escapeHtml(t.conferencia === 'enviada' ? 'em conferência' : (t.coluna || (t.etapa === 'afazer' ? 'A fazer' : 'Em andamento'))) +
+        (pz ? ' · prazo ' + fmtDia(pz) : '') + '</li>';
+    }).join('');
+  }
+  // Processo repetido ao criar ou editar tarefa no próprio quadro (equipe e gestor).
+  // Devolve true para seguir. Sem o SQL novo, ou se a busca falhar, segue sem avisar.
+  var ODup = { dialog: document.getElementById('orgDupDialog'), info: document.getElementById('orgDupInfo'), lista: document.getElementById('orgDupLista') };
+  async function orgConfereDup(proc, ignorarId){
+    if (digitsOnly(proc).length !== 20 || org.semDup) return true;
+    var r = await orgCall('org_processo_em_uso', { p_processo: formatProcesso(proc) });
+    if (r.status === 'erro' && r.codigo === 'PGRST202') org.semDup = true;
+    var L = r.status === 'ok' && Array.isArray(r.tarefas) ? r.tarefas.filter(function(t){ return t.id !== ignorarId; }) : [];
+    if (!L.length) return true;
+    ODup.info.textContent = (L.length === 1 ? 'Há 1 tarefa em aberto' : 'Há ' + L.length + ' tarefas em aberto') + ' com o processo ' + formatProcesso(proc) + ':';
+    ODup.lista.innerHTML = orgDupItens(L);
+    ODup.dialog.returnValue = '';
+    ODup.dialog.showModal();
+    document.getElementById('orgDupSim').focus();
+    return new Promise(function(ok){
+      ODup.dialog.addEventListener('close', function(){ ok(ODup.dialog.returnValue === 'sim'); }, { once: true });
+    });
+  }
+  function orgProcMudou(antes, depois){ return digitsOnly(depois).length === 20 && digitsOnly(antes) !== digitsOnly(depois); }
   function orgEqDupMostra(){
     var L = eqDup.lista;
     if (!L || !L.length || eqDup.ok === eqDup.proc){ OEdup.hidden = true; OEdup.innerHTML = ''; return; }
     OEdup.innerHTML = '<div><b>Este processo já está com alguém.</b> ' + (L.length === 1 ? 'Há 1 tarefa em aberto' : 'Há ' + L.length + ' tarefas em aberto') + ' com ele:</div><ul>' +
-      L.map(function(t){
-        var pz = t.prazo ? new Date(String(t.prazo).slice(0, 10) + 'T00:00') : null;
-        return '<li><b>' + escapeHtml(orgEqDupNome(t.dono)) + '</b>: ' + escapeHtml(t.titulo || 'Sem título') + ' · ' +
-          escapeHtml(t.conferencia === 'enviada' ? 'em conferência' : (t.coluna || (t.etapa === 'afazer' ? 'A fazer' : 'Em andamento'))) +
-          (pz ? ' · prazo ' + fmtDia(pz) : '') + '</li>';
-      }).join('') + '</ul>' +
+      orgDupItens(L) + '</ul>' +
       '<div class="btns"><button type="button" class="btn primary" data-eqdup="sim">Mandar mesmo assim</button><button type="button" class="btn" data-eqdup="nao">Cancelar</button></div>';
     OEdup.hidden = false;
   }
@@ -7024,7 +7065,7 @@
       else if (dig){
         vistos[dig] = x.i;
         var ja = lt.dups[dig];
-        if (ja && ja.length) av = { c: 'a', t: 'já está com ' + ja.map(function(t){ return orgEqDupNome(t.dono).split(' ')[0]; }).filter(function(v, k, a){ return a.indexOf(v) === k; }).join(', ') };
+        if (ja && ja.length) av = { c: 'a', t: 'já está com ' + ja.map(function(t){ return orgEqDupNome(t.dono, t.dono_nome).split(' ')[0]; }).filter(function(v, k, a){ return a.indexOf(v) === k; }).join(', ') };
       }
       var fora = !!(av && av.c === 'r'), para = lt.troca[x.i] || r.para;
       if (!para && !fora){
@@ -7818,6 +7859,7 @@
     var t = orgFind(org.eqTarefas, orgEqId); if (!t) return;
     var titulo = OQE.titulo.value.trim();
     if (!titulo){ toast('Escreva a tarefa.'); OQE.titulo.focus(); return; }
+    if (orgProcMudou(t.processo, OQE.proc.value) && !(await orgConfereDup(OQE.proc.value, t.id))) return;
     OQE.salvar.disabled = true;
     var r = await orgCall('org_salvar_tarefa', { p_pessoa: t.dono, p_id: t.id, p_titulo: orgCorrige(titulo), p_prazo: OQE.prazo.value || null,
       p_prioridade: OQE.prio.value, p_responsavel: t.responsavel || '', p_processo: formatProcesso(OQE.proc.value),
