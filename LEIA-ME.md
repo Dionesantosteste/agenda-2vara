@@ -312,8 +312,8 @@ Como funciona:
 - Ao marcar como **Realizada**, o site calcula o **prazo do laudo: 30 dias úteis** a partir do dia
   seguinte à realização. Não contam sábados, domingos, feriados nacionais (inclusive Carnaval,
   Sexta-feira Santa e Corpus Christi) e o recesso forense de 20/12 a 20/01.
-- Feriados estaduais ou municipais podem ser acrescentados na lista `FERIADOS_EXTRAS` do
-  `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
+- Feriados estaduais ou municipais entram pela seção **Prazos → Feriados e suspensões** (vale para todos).
+  Também dá para fixá-los na lista `FERIADOS_EXTRAS` do `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
 - **Cores das situações:**
@@ -346,6 +346,30 @@ Como funciona:
   nova situação e a data na barra que aparece embaixo e clique em **Aplicar**. Cada perícia recebe o andamento
   e, se for "Realizada", o prazo do laudo calculado a partir da data informada.
   Ao reagendar em lote, informe a hora da primeira e o intervalo: as perícias recebem horários em sequência.
+
+## Passo 2.5 — Prazos
+
+A seção **Prazos** tem quatro abas:
+
+- **Calcular prazo:** escolha o ato (ou digite o prazo), a forma de ciência (DJEN, intimação no PJe,
+  Domicílio Judicial Eletrônico, juntada de AR/mandado ou ciência direta) e a data. O site mostra o
+  vencimento, o passo a passo, um calendário com os dias contados e o texto da certidão para copiar.
+  Também conta para trás a partir da data da audiência (citação, desinteresse na conciliação, laudo).
+  Marca prazo em dobro (Fazenda, MP, Defensoria, litisconsortes) e avisa quando o prazo não dobra.
+- **Idade:** idade exata numa data, capacidade (CC, arts. 3º e 4º), intervenção do MP, prioridade de
+  pessoa idosa e as datas em que a parte completa 16, 18 e 21 anos. Aceita várias pessoas de uma vez.
+- **Tabela de prazos:** prazos de vara cível com o artigo de cada um, inclusive audiência de
+  conciliação (CEJUSC), infância e juventude (ECA, dias corridos) e Juizado.
+- **Feriados e suspensões:** feriados nacionais e recesso de 20/12 a 20/01 já vêm marcados. Marque as
+  suspensões do tribunal (Quarta-feira de Cinzas, Dia do Servidor, Dia da Justiça...) conforme a portaria
+  do ano e cadastre feriados da comarca ou suspensões avulsas.
+
+Para o calendário ser o mesmo para toda a equipe, rode uma vez [`sql/prazos.sql`](sql/prazos.sql) no
+**SQL Editor** do Supabase (copie pelo botão **Raw**). Sem a tabela, a calculadora funciona, mas as mudanças
+do calendário ficam só no navegador de quem mexeu (a aba avisa). Esse mesmo calendário passa a valer para o
+prazo do laudo em Perícias e para os dias úteis da Organização.
+
+Para acrescentar ou corrigir um prazo da tabela, edite a lista `ATOS` no `index.html`.
 
 ## Busca e número do processo
 
