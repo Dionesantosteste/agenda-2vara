@@ -138,6 +138,8 @@ não precisa mexer na linha `<<< SENHA`.
 Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
+- O site abre direto na **Organização** quando o endereço não indica outra seção (um link com `#agenda`, por exemplo, continua abrindo a Agenda).
+- Quem é da equipe entra direto na aba **Quadro**, ao clicar no nome ou ao recarregar a página. O gestor volta para a última aba que usou.
 - Com o `sql/organizacao.sql` atualizado, a tela se atualiza sozinha a cada minuto quando alguém altera algo (veja **Atualização automática** mais abaixo). Sem ele, recarregue a página.
 
 Na lista de **Tarefas** (aba Tarefas e mural):
@@ -200,6 +202,12 @@ No **Quadro**:
     - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
     - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
     - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+    - **Várias de uma vez** (botão no alto de "Mandar tarefa"; precisa do `sql/organizacao.sql` atualizado):
+      - Escreva **uma tarefa por linha**, do mesmo jeito de sempre (tarefa, processo, prioridade, pessoa, prazo, "a partir de…"). Dá para colar uma coluna só de números de processo: cada número vira uma tarefa com o **Título para linhas só com o número**.
+      - **Distribuir:** tudo para uma pessoa (escolha em Para), dividir igual (um para cada, em rodízio) ou pela carga (cada tarefa vai para quem está com menos em aberto). Em "Entre quem", marque quem participa. A linha que já cita um nome vai para essa pessoa.
+      - Prazo, Aparece para a pessoa em, Prioridade, Modelo de texto e Passo a passo valem para as linhas que não disserem outra coisa.
+      - A **prévia** mostra cada linha, para quem vai (dá para trocar ali mesmo) e os avisos: processo já com alguém (amarelo, a linha entra) e processo repetido na própria lista ou linha sem tarefa (vermelho, fica de fora).
+      - **Enviar** grava todas numa operação só: ou entram todas, ou nenhuma. No máximo 100 por vez.
     - **Tarefa agendada:** preencha **Aparece para a pessoa em** (ou escreva na mensagem "a partir de 29/10", "aparece em 29/10" ou "agendar para 29/10"). A tarefa só aparece na tela da pessoa a partir desse dia, e o prazo continua separado.
       - Até lá ela fica no filtro **Agendadas** da tabela, com o selo "Aparece para a pessoa em…", e fica fora da carga, dos prazos e das paradas do painel (que mostra quantas cada pessoa tem agendadas).
       - Para mudar ou tirar a data, clique na linha, em **Editar**, e mude **Aparece para a pessoa em**. Vazio ou hoje: a pessoa já vê.
@@ -221,6 +229,11 @@ No **Quadro**:
     - **Desempenho** (7 ou 30 dias): concluídas, % entregue no prazo (entre as que tinham prazo), tempo médio entre criar e concluir, devolvidas na conferência e as concluídas de cada uma das últimas 8 semanas.
     - Na lista **Para**, ao lado de cada nome, aparece quantas tarefas a pessoa tem em A fazer e quantas atrasadas.
     - "Hoje" segue o horário de Cuiabá.
+  - **Marcar várias na tabela** (precisa do `sql/organizacao.sql` atualizado): cada tarefa em aberto tem uma caixinha; a do cabeçalho marca todas as em aberto que estão à vista. Com alguma marcada, aparece a barra embaixo:
+    - **Passar para [pessoa]:** a tarefa sai do quadro de quem estava e entra em **A fazer** da outra pessoa. As etiquetas saem (cada tela tem as suas); checklist, anotações, prazo e agendamento continuam. Se estava em conferência, a conferência é cancelada (a barra avisa antes e fica registrado no histórico).
+    - **Prazo** e/ou **Prioridade** + **Aplicar:** muda todas as marcadas.
+    - **Excluir:** clique duas vezes para confirmar.
+    - As ações valem só para as marcadas que estão à vista: se a busca ou um filtro esconder uma tarefa marcada, ela é desmarcada.
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
@@ -266,6 +279,7 @@ No **Quadro**:
   - O navegador só libera som depois de um clique na página. Como a pessoa entra clicando no nome, isso já acontece. Se a página for recarregada e ficar parada sem clique, o primeiro aviso pode sair sem som.
   - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
   - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
+- **Tarefa para conferir** (na tela do gestor): quando alguém da equipe envia uma tarefa para conferência, toca o mesmo som e aparece o aviso "Chegou tarefa para conferir" com o título e o nome. Se a tarefa for devolvida e enviada de novo, avisa de novo. Os botões **Som** e **Avisar no Windows** também aparecem para o gestor.
 - O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
 
 **Aniversariantes** (precisa do `sql/organizacao.sql` atualizado):
