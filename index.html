@@ -3126,7 +3126,7 @@
 
   function applyRoute(){
     var r = (location.hash || '').replace('#', '');
-    if (!ROUTES[r]) r = 'agenda';
+    if (!ROUTES[r]) r = 'organizacao';   // sem seção no endereço: abre na Organização
     var changed = r !== currentRoute;
     currentRoute = r;
     Object.keys(ROUTES).forEach(function(k){
@@ -4122,6 +4122,8 @@
   orgEntrar.lista.addEventListener('click', async function(e){
     var b = e.target.closest('[data-entrar]'); if (!b) return;
     org.modo = 'pessoa'; org.eu = b.getAttribute('data-entrar'); org.pin = null; org.ver = null;
+    org.tab = 'quadro';   // a equipe entra direto no Quadro
+    try { sessionStorage.setItem('orgTab', org.tab); } catch (e3) {}
     var ok = await orgLoad();
     if (!ok) return;
     try { localStorage.setItem('orgPessoa', org.eu); } catch (e2) {}
@@ -4580,6 +4582,7 @@
   var ORG_PERIODO = { semanal: "nesta semana", mensal: "neste mês", trimestral: "neste trimestre" };
   org.lembretes = []; org.rotinas = []; org.tab = 'lista';
   try { var savedTab = sessionStorage.getItem('orgTab'); if (savedTab) org.tab = savedTab; } catch (e) {}
+  if (org.modo === 'pessoa') org.tab = 'quadro';   // a equipe entra direto no Quadro (o gestor volta para a última aba)
 
   var OT = {
     tabs: document.getElementById('orgTabs'),
@@ -7515,17 +7518,19 @@
   // Se mudou, recarrega a tela em segundo plano, mas só quando ninguém está digitando, arrastando ou com uma janela aberta.
   // Na tela da pessoa, tarefa urgente nova do gestor toca um som (gerado pelo navegador, sem arquivo) e pode avisar no Windows.
   var ORG_NOVIDADES_MS = 60000;
-  var orgNov = { rodando: false, recarregar: false, sem: false };
+  var orgNov = { rodando: false, recarregar: false, sem: false, confQuem: null, confVistos: {} };
   var orgSom = { ligado: true, ctx: null };
   try { orgSom.ligado = localStorage.getItem('orgSom') !== '0'; } catch (e) {}
   var OS = { som: document.getElementById('orgSomBtn'), notif: document.getElementById('orgNotifBtn') };
 
   function orgSomBotoes(){
-    var pessoa = org.modo === 'pessoa';
-    OS.som.hidden = !pessoa;
+    // pessoa: aviso de urgente do gestor; gestor (na própria tela): aviso de tarefa para conferir
+    var mostra = org.modo === 'pessoa' || (org.modo === 'gestor' && org.temEquipe);
+    OS.som.hidden = !mostra;
     OS.som.textContent = 'Som: ' + (orgSom.ligado ? 'ligado' : 'desligado');
+    OS.som.title = org.modo === 'pessoa' ? 'Toca um aviso quando chega tarefa urgente do gestor' : 'Toca um aviso quando chega tarefa da equipe para você conferir';
     OS.som.setAttribute('aria-pressed', String(orgSom.ligado));
-    OS.notif.hidden = !pessoa || !('Notification' in window) || Notification.permission !== 'default';
+    OS.notif.hidden = !mostra || !('Notification' in window) || Notification.permission !== 'default';
   }
   // O navegador só libera som depois de um clique ou tecla na página: prepara o áudio no primeiro toque
   function orgSomPrepara(){
@@ -7559,13 +7564,13 @@
     try { localStorage.setItem('orgSom', orgSom.ligado ? '1' : '0'); } catch (e) {}
     orgSomBotoes();
     if (orgSom.ligado){ orgSomPrepara(); orgSomToca(); }
-    toast(orgSom.ligado ? 'Som ligado: toca quando chegar tarefa urgente' : 'Som desligado');
+    toast(orgSom.ligado ? (org.modo === 'pessoa' ? 'Som ligado: toca quando chegar tarefa urgente' : 'Som ligado: toca quando chegar tarefa para conferir') : 'Som desligado');
   });
   OS.notif.addEventListener('click', function(){
     if (!('Notification' in window)) return;
     Promise.resolve(Notification.requestPermission()).then(function(p){
       orgSomBotoes();
-      toast(p === 'granted' ? 'Pronto: tarefa urgente também avisa no Windows' : 'O navegador não liberou o aviso. Dá para liberar no cadeado ao lado do endereço do site.');
+      toast(p === 'granted' ? (org.modo === 'pessoa' ? 'Pronto: tarefa urgente também avisa no Windows' : 'Pronto: tarefa para conferir também avisa no Windows') : 'O navegador não liberou o aviso. Dá para liberar no cadeado ao lado do endereço do site.');
     }, function(){});
   });
 
@@ -7581,6 +7586,19 @@
     } catch (e) {}
     novas.forEach(function(u){ orgChegou[u.id] = true; });
     setTimeout(function(){ novas.forEach(function(u){ delete orgChegou[u.id]; }); }, 4000);
+  }
+
+  // Gestor: chegou tarefa da equipe para conferir
+  function orgAvisaConferir(novas){
+    var tit = novas.map(function(u){ return (u.titulo || 'Tarefa') + (orgNomePessoa(u.dono) ? ' (' + orgNomePessoa(u.dono).split(' ')[0] + ')' : ''); });
+    orgSomToca();
+    toast(novas.length === 1 ? 'Chegou tarefa para conferir: ' + tit[0] : 'Chegaram ' + novas.length + ' tarefas para conferir');
+    try {
+      if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
+        var n = new Notification(novas.length === 1 ? 'Tarefa para conferir' : novas.length + ' tarefas para conferir', { body: tit.join('\n'), tag: 'org-conferir' });
+        n.onclick = function(){ window.focus(); n.close(); };
+      }
+    } catch (e) {}
   }
 
   // Alguém mexendo na tela? Então a recarga espera.
@@ -7610,6 +7628,16 @@
         var novas = r.urgentes.filter(function(u){ return u && u.id && !orgUrgVistos[u.id]; });
         novas.forEach(function(u){ orgUrgVistos[u.id] = true; });
         if (novas.length) orgAvisaUrgentes(novas);
+      }
+      if (org.modo === 'gestor' && Array.isArray(r.conferir)){
+        // a primeira consulta só registra o que já estava esperando; avisa o que chegar depois
+        var primeira = orgNov.confQuem !== quem;
+        if (primeira){ orgNov.confQuem = quem; orgNov.confVistos = {}; }
+        var chegaram = r.conferir.filter(function(u){ return u && u.id && !orgNov.confVistos[u.id]; });
+        // guarda só as que ainda esperam: se for devolvida e voltar, avisa de novo
+        orgNov.confVistos = {};
+        r.conferir.forEach(function(u){ if (u && u.id) orgNov.confVistos[u.id] = true; });
+        if (!primeira && chegaram.length) orgAvisaConferir(chegaram);
       }
       if (org.assinatura !== null && r.assinatura !== org.assinatura) orgNov.recarregar = true;
       await orgRecarregaDiscreto();

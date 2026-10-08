@@ -138,6 +138,8 @@ não precisa mexer na linha `<<< SENHA`.
 Detalhes:
 - Após **5 tentativas erradas**, a Organização fica bloqueada por **5 minutos**.
 - Depois de digitar a senha, o navegador lembra dela até a aba ser fechada. O botão **Trancar** pede a senha de novo.
+- O site abre direto na **Organização** quando o endereço não indica outra seção (um link com `#agenda`, por exemplo, continua abrindo a Agenda).
+- Quem é da equipe entra direto na aba **Quadro**, ao clicar no nome ou ao recarregar a página. O gestor volta para a última aba que usou.
 - Com o `sql/organizacao.sql` atualizado, a tela se atualiza sozinha a cada minuto quando alguém altera algo (veja **Atualização automática** mais abaixo). Sem ele, recarregue a página.
 
 Na lista de **Tarefas** (aba Tarefas e mural):
@@ -277,6 +279,7 @@ No **Quadro**:
   - O navegador só libera som depois de um clique na página. Como a pessoa entra clicando no nome, isso já acontece. Se a página for recarregada e ficar parada sem clique, o primeiro aviso pode sair sem som.
   - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
   - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
+- **Tarefa para conferir** (na tela do gestor): quando alguém da equipe envia uma tarefa para conferência, toca o mesmo som e aparece o aviso "Chegou tarefa para conferir" com o título e o nome. Se a tarefa for devolvida e enviada de novo, avisa de novo. Os botões **Som** e **Avisar no Windows** também aparecem para o gestor.
 - O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
 
 **Aniversariantes** (precisa do `sql/organizacao.sql` atualizado):

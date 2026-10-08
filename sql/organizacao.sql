@@ -658,8 +658,9 @@ begin
 end;
 $$;
 
--- Consulta leve que o site faz a cada minuto: devolve só a assinatura da tela e as tarefas urgentes
--- em aberto que o gestor mandou (para tocar o aviso quando chega uma nova). Nada mais é lido.
+-- Consulta leve que o site faz a cada minuto: devolve só a assinatura da tela, as tarefas urgentes
+-- em aberto que o gestor mandou e, para o gestor, as que esperam conferência (para tocar o aviso
+-- quando chega uma nova). Nada mais é lido.
 create or replace function org_novidades(p_pin text, p_pessoa uuid)
 returns jsonb
 language plpgsql
@@ -679,7 +680,10 @@ begin
     'urgentes', coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo)) from org_tarefas t
                            where t.dono is not distinct from ac.o_dono and t.do_gestor and t.prioridade = 'urgente'
                              and t.etapa <> 'feito' and t.arquivada_em is null
-                             and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb));
+                             and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
+    -- gestor: tarefas da equipe esperando a conferência dele (para tocar o aviso quando chega uma nova)
+    'conferir', case when ac.o_gestor then coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo, 'dono', t.dono)) from org_tarefas t
+                           where t.dono is not null and t.conferencia = 'enviada' and t.arquivada_em is null), '[]'::jsonb) end);
 end;
 $$;
 
