@@ -215,6 +215,9 @@ No **Quadro**:
       - "Hoje" segue o horário de Cuiabá. Lembre que a tela da pessoa não tem senha: "não aparece" quer dizer que não aparece na tela dela.
       - Precisa do `sql/organizacao.sql` atualizado; sem ele o campo não aparece.
     - **Processo repetido:** se o nº do processo já estiver numa tarefa não concluída de alguém (inclusive no quadro do próprio gestor), aparece um aviso amarelo dizendo com quem está, em que coluna e qual o prazo. Clique em **Mandar mesmo assim** para enviar ou em **Cancelar** para desistir. Tarefas concluídas ou arquivadas não contam. Precisa do `sql/organizacao.sql` atualizado; sem ele, a tarefa é enviada sem o aviso.
+    - **O mesmo aviso para a equipe:** quem cria uma tarefa no próprio quadro com nº de processo (ou troca o processo
+      de uma tarefa) também é avisado se o processo já está com alguém: nome da pessoa, tarefa, coluna e prazo.
+      Clique em **Salvar mesmo assim** ou **Cancelar**. Para funcionar, rode de novo o `sql/organizacao.sql` inteiro.
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
     - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
     - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
