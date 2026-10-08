@@ -592,6 +592,7 @@ begin
     'agenda', true,
     'nota_titulo', true,
     'ordem_lista', true,
+    'lote', true,
     'aniversarios', case when ac.o_gestor then coalesce((select jsonb_agg(to_jsonb(a) order by a.mes, a.dia, lower(a.nome)) from org_aniversarios a), '[]'::jsonb) end,
     'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
@@ -725,6 +726,172 @@ begin
     from unnest(p_ids) with ordinality as x(id, pos)
    where t.id = x.id and t.dono is not distinct from ac.o_dono;
   return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- ---------- tarefas em lote (só o gestor) ----------
+-- Manda várias tarefas de uma vez, numa operação só: ou entram todas, ou nenhuma.
+-- p_itens: [{"titulo", "processo", "prazo" (aaaa-mm-dd), "prioridade", "para" (id da pessoa), "aparece" (aaaa-mm-dd)}, ...]
+-- p_checklist (passo a passo) e p_modelo (modelo de texto) valem para todas.
+create or replace function org_mandar_lote(p_pin text, p_pessoa uuid, p_itens jsonb, p_checklist jsonb, p_modelo uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  it jsonb;
+  pr text;
+  ap date;
+  n int := 0;
+  ck jsonb := case when jsonb_typeof(p_checklist) = 'array' then p_checklist else '[]'::jsonb end;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor manda tarefas para a equipe.');
+  end if;
+  if jsonb_typeof(p_itens) <> 'array' or jsonb_array_length(p_itens) = 0 then
+    return jsonb_build_object('status', 'erro', 'message', 'Nenhuma tarefa para mandar.');
+  end if;
+  if jsonb_array_length(p_itens) > 100 then
+    return jsonb_build_object('status', 'erro', 'message', 'Mande no máximo 100 tarefas por vez.');
+  end if;
+  -- confere tudo antes de gravar qualquer coisa
+  for it in select * from jsonb_array_elements(p_itens) loop
+    if btrim(coalesce(it->>'titulo', '')) = '' then
+      return jsonb_build_object('status', 'erro', 'message', 'Há uma linha sem tarefa.');
+    end if;
+    if not exists (select 1 from org_pessoas where id::text = it->>'para' and ativo) then
+      return jsonb_build_object('status', 'erro', 'message', 'A tarefa "' || left(it->>'titulo', 60) || '" está para uma pessoa que não está ativa.');
+    end if;
+  end loop;
+  for it in select * from jsonb_array_elements(p_itens) loop
+    pr := case when it->>'prioridade' in ('baixa', 'normal', 'alta', 'urgente') then it->>'prioridade' else 'normal' end;
+    ap := nullif(it->>'aparece', '')::date;
+    insert into org_tarefas (dono, do_gestor, titulo, prazo, prioridade, urgente, responsavel, processo, etapa, aparece_em, checklist, modelo_texto)
+    values ((it->>'para')::uuid, true, left(btrim(it->>'titulo'), 160), nullif(it->>'prazo', '')::date, pr, pr = 'urgente', '',
+            left(coalesce(it->>'processo', ''), 40), 'afazer', case when ap > org_hoje() then ap end, ck,
+            case when exists (select 1 from org_txt_modelos m where m.id = p_modelo) then p_modelo end);
+    n := n + 1;
+  end loop;
+  return jsonb_build_object('status', 'ok', 'n', n);
+end;
+$$;
+
+-- Processo repetido para uma lista inteira: devolve, para cada número que já está numa tarefa não concluída, com quem está
+create or replace function org_processos_em_uso(p_pin text, p_pessoa uuid, p_processos text[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor confere processos repetidos.');
+  end if;
+  return jsonb_build_object('status', 'ok', 'tarefas', coalesce((
+    select jsonb_agg(jsonb_build_object('processo', regexp_replace(t.processo, '\D', '', 'g'), 'dono', t.dono, 'titulo', t.titulo,
+                                        'coluna', c.nome, 'conferencia', t.conferencia, 'aparece_em', t.aparece_em) order by t.created_at)
+      from org_tarefas t
+      left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
+     where t.etapa <> 'feito' and t.arquivada_em is null and t.processo <> ''
+       and regexp_replace(t.processo, '\D', '', 'g') = any (select regexp_replace(x, '\D', '', 'g') from unnest(p_processos) x)), '[]'::jsonb));
+end;
+$$;
+
+-- Passa tarefas (em aberto) de uma pessoa para outra: entram em "A fazer" da nova pessoa, sem as etiquetas
+-- (cada tela tem as suas); checklist e anotações vão junto; se estavam em conferência, a conferência é cancelada.
+create or replace function org_passar_tarefas(p_pin text, p_pessoa uuid, p_ids uuid[], p_destino uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  n int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor passa tarefas de uma pessoa para outra.');
+  end if;
+  if not exists (select 1 from org_pessoas where id = p_destino and ativo) then
+    return jsonb_build_object('status', 'erro', 'message', 'Escolha uma pessoa ativa para receber as tarefas.');
+  end if;
+  update org_tarefas
+     set conf_hist = case when conferencia = 'enviada'
+                          then coalesce(conf_hist, '[]'::jsonb) || jsonb_build_array(jsonb_build_object('a', 'cancelada', 'em', now(), 't', 'Tarefa passada para outra pessoa'))
+                          else conf_hist end,
+         conferencia = case when conferencia = 'enviada' then null else conferencia end,
+         dono = p_destino, do_gestor = true, etapa = 'afazer', posicao = null, ordem_lista = null, etiquetas = '{}', updated_at = now()
+   where id = any (p_ids) and dono is not null and dono <> p_destino and etapa <> 'feito' and arquivada_em is null;
+  get diagnostics n = row_count;
+  return jsonb_build_object('status', 'ok', 'n', n);
+end;
+$$;
+
+-- Muda prazo e/ou prioridade de várias tarefas da equipe. p_mudar_prazo = true aplica p_prazo (vazio tira o prazo).
+create or replace function org_alterar_lote(p_pin text, p_pessoa uuid, p_ids uuid[], p_mudar_prazo boolean, p_prazo date, p_prioridade text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  pr text := case when p_prioridade in ('baixa', 'normal', 'alta', 'urgente') then p_prioridade end;
+  n int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor altera tarefas em lote.');
+  end if;
+  update org_tarefas
+     set prazo = case when coalesce(p_mudar_prazo, false) then p_prazo else prazo end,
+         prioridade = coalesce(pr, prioridade), urgente = coalesce(pr, prioridade) = 'urgente', updated_at = now()
+   where id = any (p_ids) and dono is not null and etapa <> 'feito' and arquivada_em is null;
+  get diagnostics n = row_count;
+  return jsonb_build_object('status', 'ok', 'n', n);
+end;
+$$;
+
+-- Exclui várias tarefas da equipe (as anotações vão junto)
+create or replace function org_excluir_lote(p_pin text, p_pessoa uuid, p_ids uuid[])
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  n int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor exclui tarefas em lote.');
+  end if;
+  delete from org_tarefas where id = any (p_ids) and dono is not null;
+  get diagnostics n = row_count;
+  return jsonb_build_object('status', 'ok', 'n', n);
 end;
 $$;
 
@@ -1803,6 +1970,11 @@ grant execute on function org_processo_em_uso(text, uuid, text) to anon, authent
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_ordenar_lista(text, uuid, uuid[]) to anon, authenticated;
+grant execute on function org_mandar_lote(text, uuid, jsonb, jsonb, uuid) to anon, authenticated;
+grant execute on function org_processos_em_uso(text, uuid, text[]) to anon, authenticated;
+grant execute on function org_passar_tarefas(text, uuid, uuid[], uuid) to anon, authenticated;
+grant execute on function org_alterar_lote(text, uuid, uuid[], boolean, date, text) to anon, authenticated;
+grant execute on function org_excluir_lote(text, uuid, uuid[]) to anon, authenticated;
 grant execute on function org_salvar_aniversario(text, uuid, uuid, text, int, int, text) to anon, authenticated;
 grant execute on function org_excluir_aniversario(text, uuid, uuid) to anon, authenticated;
 grant execute on function org_aniversariantes_mes() to anon, authenticated;

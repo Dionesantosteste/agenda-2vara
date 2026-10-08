@@ -867,6 +867,55 @@
   .eq-prev b{ color:var(--ink); font-weight:600; }
   .eq-prev .aviso{ color:var(--warn); font-weight:500; }
   .eq-dup{ flex-direction:column; align-items:stretch; gap:8px; }
+  .eq-head-dir{ display:flex; gap:10px 14px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+  .eq-seg{ display:inline-flex; background:var(--sunken); border:1px solid var(--line); border-radius:10px; padding:3px; gap:2px; flex:none; }
+  .eq-seg button{ border:0; background:transparent; color:var(--muted); font-family:var(--font-ui); font-size:13px; font-weight:500; padding:5px 11px; border-radius:7px; cursor:pointer; }
+  .eq-seg button[aria-pressed="true"]{ background:var(--paper); color:var(--ink); box-shadow:var(--shadow); }
+  .eq-seg button:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .eq-lote{ display:flex; flex-direction:column; gap:10px; }
+  .eq-lote-txt{ width:100%; height:auto; min-height:130px; padding:10px 12px; font-family:var(--font-data); font-size:13px; line-height:1.55; resize:vertical; text-transform:none; letter-spacing:0; }
+  .eq-lote .field-hint{ font-size:12.5px; color:var(--muted); }
+  .lt-pessoas{ display:flex; gap:6px; flex-wrap:wrap; text-transform:none; letter-spacing:0; }
+  .lt-pessoas label{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink); border:1px solid var(--line); border-radius:999px; padding:3px 10px 3px 4px; cursor:pointer; background:var(--paper); }
+  .lt-pessoas label.on{ border-color:var(--accent); background:var(--accent-soft); }
+  .lt-pessoas input{ accent-color:var(--accent); margin:0 0 0 4px; }
+  .lt-pessoas .c{ font-size:11.5px; color:var(--muted); }
+  .eq-lote-prev{ display:flex; flex-direction:column; gap:10px; }
+  .lt-scroll{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; max-height:420px; overflow-y:auto; }
+  .lt-tab{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  .lt-tab th{ position:sticky; top:0; background:var(--sunken); text-align:left; font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); padding:7px 10px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  .lt-tab td{ padding:6px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+  .lt-tab tr:last-child td{ border-bottom:0; }
+  .lt-tab .n{ font-family:var(--font-data); color:var(--muted); font-size:12px; width:1%; }
+  .lt-tab .proc{ font-family:var(--font-data); font-size:12.5px; white-space:nowrap; }
+  .lt-tab select.org-in{ height:32px; min-width:130px; }
+  .lt-tab tr.fora td{ opacity:.55; }
+  .lt-av{ font-size:12px; font-weight:600; border-radius:6px; padding:2px 7px; display:inline-block; }
+  .lt-av.a{ color:var(--warn); background:var(--warn-soft); }
+  .lt-av.r{ color:var(--danger); background:var(--urgent-bg); }
+  .lt-av.ok{ color:var(--ok); background:var(--ok-soft); }
+  .lt-rodape{ display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:space-between; }
+  .lt-resumo{ display:flex; gap:4px 14px; flex-wrap:wrap; font-size:13px; color:var(--muted); }
+  .lt-resumo b{ color:var(--ink); font-weight:600; }
+  .lt-resumo .a{ color:var(--warn); } .lt-resumo .r{ color:var(--danger); }
+  .lt-botoes{ display:flex; gap:8px; }
+  .eq-form.lote .eq-linha, .eq-form.lote .eq-prev, .eq-form.lote .eq-dup{ display:none !important; }
+  .eq-tab th.eq-c-sel, .eq-tab td.eq-c-sel{ width:1%; padding-right:0; }
+  .eq-tab input[data-eqsel], .eq-tab #orgEqSelTodas{ width:17px; height:17px; accent-color:var(--accent); cursor:pointer; margin:0; vertical-align:middle; }
+  .eq-tab tbody tr.eq-marcada{ background:var(--accent-soft); }
+  .eq-acoes{ position:sticky; bottom:12px; z-index:3; display:flex; gap:8px 10px; align-items:center; flex-wrap:wrap; background:var(--ink); color:var(--paper); border-radius:12px; padding:10px 12px; box-shadow:0 6px 20px rgba(0,0,0,.2); margin-top:4px; }
+  .eq-acoes-n{ font-weight:600; margin-right:4px; }
+  .eq-acoes-g{ display:flex; gap:6px; align-items:center; font-size:13.5px; }
+  .eq-acoes .org-in{ background:var(--paper); color:var(--ink); border-color:transparent; height:34px; }
+  .eq-acoes .btn{ height:34px; }
+  .eq-acoes .btn:not(.primary){ background:var(--paper); color:var(--ink); border-color:transparent; }
+  .eq-acoes .btn.eq-acoes-exc{ color:var(--danger); }
+  .eq-acoes .btn.eq-acoes-exc.armed{ background:var(--danger); color:var(--paper); }
+  .eq-acoes .eq-acoes-limpa{ margin-left:auto; background:transparent !important; color:var(--paper) !important; border-color:rgba(255,255,255,.35) !important; }
+  .eq-acoes-sep{ width:1px; align-self:stretch; background:rgba(255,255,255,.25); }
+  .eq-acoes-aviso{ flex-basis:100%; font-size:12.5px; opacity:.85; }
+  .eq-acoes-aviso:empty{ display:none; }
+  @media (max-width:700px){ .eq-acoes-sep{ display:none; } .eq-acoes .eq-acoes-limpa{ margin-left:0; } }
   .eq-dup ul{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:3px; font-size:13.5px; }
   .eq-dup .btns{ margin-left:0; flex-wrap:wrap; }
 
@@ -1648,8 +1697,28 @@
 
       <div id="orgPaneEquipe" class="org-pane" hidden>
         <div class="panel">
-          <div class="panel-head"><h2>Mandar tarefa</h2><span>Escreva como numa mensagem, separando por vírgula: tarefa, nº do processo, prioridade, nome da pessoa e prazo (hoje, amanhã, sexta…)</span></div>
+          <div class="panel-head"><h2>Mandar tarefa</h2>
+            <span class="eq-head-dir"><span id="orgEqDica">Escreva como numa mensagem, separando por vírgula: tarefa, nº do processo, prioridade, nome da pessoa e prazo (hoje, amanhã, sexta…)</span>
+              <span class="eq-seg" id="orgEqModo" role="group" aria-label="Quantas tarefas" hidden>
+                <button type="button" data-eqmodo="uma" aria-pressed="true">Uma tarefa</button>
+                <button type="button" data-eqmodo="lote" aria-pressed="false">Várias de uma vez</button>
+              </span></span></div>
           <form class="eq-form" id="orgEqForm" autocomplete="off">
+            <div class="eq-lote" id="orgEqLote" hidden>
+              <label class="eq-ctrl" for="orgLtTexto">Uma tarefa por linha
+                <textarea class="org-in eq-lote-txt" id="orgLtTexto" rows="7" spellcheck="false" placeholder="Expedir intimação, 0001226-43.2017.8.11.0008, amanhã&#10;Expedir intimação, 0005521-14.2023.8.11.0008, Ana&#10;0004410-62.2021.8.11.0008"></textarea>
+              </label>
+              <div class="field-hint">Cada linha do mesmo jeito de sempre: tarefa, nº do processo, prioridade, pessoa e prazo. O que faltar vem das escolhas abaixo. Dá para colar uma coluna de números de processo (do PJe ou de uma planilha): cada número vira uma tarefa com o título padrão.</div>
+              <div class="eq-ctrls">
+                <div class="eq-ctrl">Distribuir<div class="kchips" id="orgLtDist" role="group" aria-label="Como distribuir">
+                  <button type="button" class="chip" data-ltdist="uma" aria-pressed="false">Tudo para uma pessoa</button>
+                  <button type="button" class="chip" data-ltdist="igual" aria-pressed="true">Dividir igual</button>
+                  <button type="button" class="chip" data-ltdist="carga" aria-pressed="false">Pela carga (quem tem menos)</button>
+                </div></div>
+                <label class="eq-ctrl">Título para linhas só com o número<input class="org-in" id="orgLtTitulo" maxlength="120" placeholder="Ex.: Analisar e impulsionar" /></label>
+              </div>
+              <div class="eq-ctrl" id="orgLtEntreBox">Entre quem<div class="lt-pessoas" id="orgLtPessoas"></div></div>
+            </div>
             <div class="eq-linha">
               <input class="org-in eq-in" id="orgEqTexto" maxlength="300" placeholder="Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã" aria-label="Nova tarefa para a equipe" />
               <button type="submit" class="btn primary" id="orgEqEnviar">Enviar</button>
@@ -1666,6 +1735,11 @@
             </div>
             <div class="eq-prev" id="orgEqPrev" aria-live="polite"></div>
             <div class="dup-aviso eq-dup" id="orgEqDup" hidden role="alert"></div>
+            <div class="eq-lote-prev" id="orgLtPrevBox" hidden>
+              <div class="lt-scroll"><table class="lt-tab"><thead><tr><th>#</th><th>Tarefa</th><th>Processo</th><th>Para</th><th>Prazo</th><th>Prioridade</th><th>Aviso</th></tr></thead><tbody id="orgLtPrev"></tbody></table></div>
+              <div class="lt-rodape"><div class="lt-resumo" id="orgLtResumo" aria-live="polite"></div>
+                <div class="lt-botoes"><button type="button" class="btn" id="orgLtLimpar">Limpar</button><button type="button" class="btn primary" id="orgLtEnviar" disabled>Enviar</button></div></div>
+            </div>
           </form>
           <div class="org-empty" id="orgEqSemPessoas" hidden>Nenhuma pessoa ativa para receber tarefas. Clique em <b>Pessoas</b>, no alto da tela, para cadastrar ou reativar alguém.</div>
         </div>
@@ -1725,6 +1799,19 @@
             </div>
           </div>
           <div id="orgEqLista"></div>
+          <div class="eq-acoes" id="orgEqAcoes" hidden role="region" aria-label="Ações nas tarefas marcadas">
+            <span class="eq-acoes-n" id="orgEqSelN"></span>
+            <label class="eq-acoes-g">Passar para <select class="org-in" id="orgEqSelPara"></select></label>
+            <button type="button" class="btn primary" id="orgEqSelPassar">Passar</button>
+            <span class="eq-acoes-sep" aria-hidden="true"></span>
+            <label class="eq-acoes-g">Prazo <input class="org-in" type="date" id="orgEqSelPrazo" /></label>
+            <select class="org-in" id="orgEqSelPrio" aria-label="Prioridade"><option value="">Prioridade…</option><option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option></select>
+            <button type="button" class="btn" id="orgEqSelAplicar">Aplicar</button>
+            <span class="eq-acoes-sep" aria-hidden="true"></span>
+            <button type="button" class="btn eq-acoes-exc" id="orgEqSelExcluir">Excluir</button>
+            <button type="button" class="btn eq-acoes-limpa" id="orgEqSelLimpa">Desmarcar</button>
+            <div class="eq-acoes-aviso" id="orgEqSelAviso"></div>
+          </div>
         </div>
       </div>
 
@@ -3945,7 +4032,8 @@
     org.temConf = r.conferencia === true;
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
     org.temNotaTitulo = r.nota_titulo === true;   // título no post-it (SQL atualizado)
-    org.temOrdemLista = r.ordem_lista === true;   // arrastar na lista "Tarefas e mural" (SQL atualizado)
+    org.temOrdemLista = r.ordem_lista === true;
+    org.temLote = r.lote === true;   // tarefas em lote: mandar várias e agir nas marcadas (SQL atualizado)   // arrastar na lista "Tarefas e mural" (SQL atualizado)
     // aniversariantes: só o gestor recebe a lista (SQL atualizado)
     org.aniv = Array.isArray(r.aniversarios) ? r.aniversarios.map(function(a){ return { id: a.id, nome: a.nome || '', dia: +a.dia, mes: +a.mes, obs: a.obs || '' }; }) : null;
     org.assinatura = typeof r.assinatura === 'string' ? r.assinatura : null;   // muda quando algo da tela muda (atualização automática)
@@ -6006,6 +6094,8 @@
 
   // ---- aba "Tarefas da equipe" ----
   org.eqf = { pessoa: '', sit: 'abertas', q: '' };
+  org.eqSel = {};   // tarefas marcadas na tabela (ações em lote)
+  var orgEqSelVisiveis = [];
   var ORG_EQ_PAGINA = 100;          // linhas da tabela da equipe desenhadas por vez
   org.eqLimite = ORG_EQ_PAGINA;
   org.eqPrio = 'normal';
@@ -6090,6 +6180,7 @@
     OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
     document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
     renderOrgPainel();
+    orgLtModo();
 
     var base = org.eqTarefas.filter(function(t){ return (!org.eqf.pessoa || t.dono === org.eqf.pessoa) && orgEqBuscaPassa(t); });
     var abertas = base.filter(function(t){ return t.etapa !== 'feito' && !orgAgendada(t); }).length;
@@ -6113,11 +6204,15 @@
       OE.lista.innerHTML = antigas + '<div class="org-empty">' + (!org.eqTarefas.length
         ? (org.pessoas.length ? 'Nenhuma tarefa mandada ainda. Escreva acima e clique em "Enviar".' : 'Cadastre a equipe no botão "Pessoas" para começar a mandar tarefas.')
         : org.eqf.q.trim() ? 'Nenhuma tarefa encontrada para "' + escapeHtml(org.eqf.q.trim()) + '" neste filtro.' : 'Nenhuma tarefa com este filtro.') + '</div>';
+      orgEqSelVisiveis = [];
+      orgEqSelBarra();
       return;
     }
     var total = lista.length;
     lista = lista.slice(0, org.eqLimite);
-    OE.lista.innerHTML = '<table class="eq-tab"><thead><tr><th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Situação</th></tr></thead><tbody>' +
+    orgEqSelVisiveis = lista.filter(function(t){ return t.etapa !== 'feito'; }).map(function(t){ return t.id; });
+    var sel = org.temLote;
+    OE.lista.innerHTML = '<table class="eq-tab"><thead><tr>' + (sel ? '<th class="eq-c-sel"><input type="checkbox" id="orgEqSelTodas" aria-label="Marcar todas as tarefas em aberto da lista" title="Marcar todas as em aberto da lista"></th>' : '') + '<th>Tarefa</th><th>Responsável</th><th>Prazo</th><th>Prioridade</th><th>Situação</th></tr></thead><tbody>' +
       lista.map(function(t){
         var nome = orgNomePessoa(t.dono) || '—', late = orgEqAtrasada(t), c = t.conclusao;
         var tot = t.checklist.length, ok = t.checklist.filter(function(i){ return i.ok; }).length;
@@ -6135,7 +6230,9 @@
         var confBtns = emConf ? '<div class="eq-conf-acts">' +
           '<button type="button" class="btn primary" data-eqconf="aprovar" data-id="' + t.id + '" title="Aprovar sem abrir a tarefa">Aprovar</button>' +
           '<button type="button" class="btn" data-eqconf="devolver" data-id="' + t.id + '" title="Devolver com o motivo">Devolver</button></div>' : '';
-        return '<tr tabindex="0" data-eq="' + t.id + '">' +
+        var podeSel = sel && t.etapa !== 'feito';
+        return '<tr tabindex="0" data-eq="' + t.id + '"' + (org.eqSel[t.id] ? ' class="eq-marcada"' : '') + '>' +
+          (sel ? '<td class="eq-c-sel">' + (podeSel ? '<input type="checkbox" data-eqsel="' + t.id + '"' + (org.eqSel[t.id] ? ' checked' : '') + ' aria-label="Marcar ' + escapeHtml(t.titulo) + '">' : '') + '</td>' : '') +
           '<td class="eq-c-t"><div class="eq-t">' + escapeHtml(t.titulo) + '</div>' + (sub ? '<div class="eq-sub">' + sub + '</div>' : '') + '</td>' +
           '<td><span class="eq-quem">' + orgAvatar(nome, true) + escapeHtml(nome) + '</span></td>' +
           '<td class="eq-prazo">' + orgEqPrazoTxt(t) + '</td>' +
@@ -6144,7 +6241,89 @@
       }).join('') + '</tbody></table>' +
       (total > lista.length ? '<div class="eq-mais"><span class="field-hint">Mostrando ' + lista.length + ' de ' + total + '</span>' +
         '<button type="button" class="btn" data-eqmais="1">Mostrar mais ' + Math.min(ORG_EQ_PAGINA, total - lista.length) + '</button></div>' : '') + antigas;
+    orgEqSelBarra();
   }
+
+  // ---- ações nas tarefas marcadas: passar para outra pessoa, prazo/prioridade, excluir ----
+  var OS2 = {
+    box: document.getElementById('orgEqAcoes'), n: document.getElementById('orgEqSelN'), para: document.getElementById('orgEqSelPara'),
+    passar: document.getElementById('orgEqSelPassar'), prazo: document.getElementById('orgEqSelPrazo'), prio: document.getElementById('orgEqSelPrio'),
+    aplicar: document.getElementById('orgEqSelAplicar'), excluir: document.getElementById('orgEqSelExcluir'), limpa: document.getElementById('orgEqSelLimpa'),
+    aviso: document.getElementById('orgEqSelAviso')
+  };
+  function orgEqSelIds(){
+    // só valem as que estão à vista na tabela (busca e filtros), ainda existem e estão em aberto
+    return orgEqSelVisiveis.filter(function(id){ var t = orgFind(org.eqTarefas, id); return org.eqSel[id] && t && t.etapa !== 'feito'; });
+  }
+  function orgEqSelBarra(){
+    if (!org.temLote){ org.eqSel = {}; OS2.box.hidden = true; return; }
+    var ids = orgEqSelIds(), novo = {};
+    ids.forEach(function(id){ novo[id] = true; }); org.eqSel = novo;
+    OS2.box.hidden = !ids.length;
+    var todas = document.getElementById('orgEqSelTodas');
+    if (todas){
+      var marcadasVis = orgEqSelVisiveis.filter(function(id){ return org.eqSel[id]; }).length;
+      todas.checked = !!orgEqSelVisiveis.length && marcadasVis === orgEqSelVisiveis.length;
+      todas.indeterminate = marcadasVis > 0 && marcadasVis < orgEqSelVisiveis.length;
+    }
+    if (!ids.length){ OS2.excluir.classList.remove('armed'); OS2.excluir.textContent = 'Excluir'; return; }
+    OS2.n.textContent = ids.length + (ids.length === 1 ? ' marcada' : ' marcadas');
+    var v = OS2.para.value, ativos = org.pessoas.filter(function(p){ return p.ativo; });
+    OS2.para.innerHTML = '<option value="">Escolha…</option>' + ativos.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + (org.painel ? ' (' + orgPnCarga(p.id).total + ')' : '') + '</option>';
+    }).join('');
+    if (v && ativos.some(function(p){ return p.id === v; })) OS2.para.value = v;
+    var conf = ids.filter(function(id){ return orgEmConf(orgFind(org.eqTarefas, id)); }).length;
+    var ag = ids.filter(function(id){ return orgAgendada(orgFind(org.eqTarefas, id)); }).length;
+    OS2.aviso.textContent = (conf ? conf + (conf === 1 ? ' marcada está' : ' marcadas estão') + ' em conferência: ao passar para outra pessoa, a conferência é cancelada. ' : '') +
+      (ag ? ag + (ag === 1 ? ' marcada é agendada' : ' marcadas são agendadas') + ': continuam agendadas para a mesma data.' : '');
+  }
+  function orgEqSelRedesenha(){ OS2.excluir.classList.remove('armed'); OS2.excluir.textContent = 'Excluir'; renderOrgEquipe(); }
+  OE.lista.addEventListener('change', function(e){
+    var c = e.target.closest('[data-eqsel]');
+    if (c){ org.eqSel[c.getAttribute('data-eqsel')] = c.checked; orgEqSelRedesenha(); return; }
+    if (e.target.id === 'orgEqSelTodas'){
+      orgEqSelVisiveis.forEach(function(id){ org.eqSel[id] = e.target.checked; });
+      orgEqSelRedesenha();
+    }
+  });
+  OS2.limpa.addEventListener('click', function(){ org.eqSel = {}; orgEqSelRedesenha(); });
+  OS2.passar.addEventListener('click', async function(){
+    var ids = orgEqSelIds(), dest = OS2.para.value;
+    if (!dest){ toast('Escolha para quem passar as tarefas.'); OS2.para.focus(); return; }
+    var mudam = ids.filter(function(id){ return orgFind(org.eqTarefas, id).dono !== dest; });
+    if (!mudam.length){ toast('As tarefas marcadas já são de ' + orgNomePessoa(dest) + '.'); return; }
+    OS2.passar.disabled = true;
+    var r = await orgCall('org_passar_tarefas', { p_ids: mudam, p_destino: dest });
+    OS2.passar.disabled = false;
+    if (!orgOk(r)) return;
+    toast((r.n === 1 ? '1 tarefa passada' : r.n + ' tarefas passadas') + ' para ' + orgNomePessoa(dest) + ', em A fazer.');
+    org.eqSel = {};
+    await orgLoad();
+  });
+  OS2.aplicar.addEventListener('click', async function(){
+    var ids = orgEqSelIds(), pz = OS2.prazo.value, pr = OS2.prio.value;
+    if (!pz && !pr){ toast('Escolha um prazo ou uma prioridade para aplicar.'); OS2.prazo.focus(); return; }
+    OS2.aplicar.disabled = true;
+    var r = await orgCall('org_alterar_lote', { p_ids: ids, p_mudar_prazo: !!pz, p_prazo: pz || null, p_prioridade: pr || null });
+    OS2.aplicar.disabled = false;
+    if (!orgOk(r)) return;
+    toast((pz ? 'Prazo ' + fmtDia(new Date(pz + 'T00:00')) : '') + (pz && pr ? ' e ' : '') + (pr ? 'prioridade ' + orgPrioNome(pr).toLowerCase() : '') +
+      ' em ' + r.n + (r.n === 1 ? ' tarefa' : ' tarefas'));
+    OS2.prazo.value = ''; OS2.prio.value = ''; org.eqSel = {};
+    await orgLoad();
+  });
+  OS2.excluir.addEventListener('click', async function(){
+    var ids = orgEqSelIds();
+    if (!OS2.excluir.classList.contains('armed')){ OS2.excluir.classList.add('armed'); OS2.excluir.textContent = 'Confirmar exclusão de ' + ids.length; return; }
+    OS2.excluir.disabled = true;
+    var r = await orgCall('org_excluir_lote', { p_ids: ids });
+    OS2.excluir.disabled = false; OS2.excluir.classList.remove('armed'); OS2.excluir.textContent = 'Excluir';
+    if (!orgOk(r)) return;
+    toast((r.n === 1 ? '1 tarefa excluída' : r.n + ' tarefas excluídas') + ' do quadro de quem estava com elas');
+    org.eqSel = {};
+    await orgLoad();
+  });
 
   // ---- Painel da equipe: carga por pessoa, prazos, paradas e desempenho (números vêm prontos do banco) ----
   var OP = {
@@ -6452,6 +6631,142 @@
     }
   });
 
+  // ---- Mandar várias de uma vez (lote): uma tarefa por linha, prévia e envio numa operação só ----
+  var LT = {
+    modo: document.getElementById('orgEqModo'), box: document.getElementById('orgEqLote'), texto: document.getElementById('orgLtTexto'),
+    dist: document.getElementById('orgLtDist'), titulo: document.getElementById('orgLtTitulo'), entreBox: document.getElementById('orgLtEntreBox'),
+    pessoas: document.getElementById('orgLtPessoas'), prevBox: document.getElementById('orgLtPrevBox'), prev: document.getElementById('orgLtPrev'),
+    resumo: document.getElementById('orgLtResumo'), limpar: document.getElementById('orgLtLimpar'), enviar: document.getElementById('orgLtEnviar'),
+    dica: document.getElementById('orgEqDica')
+  };
+  var ORG_LOTE_MAX = 100;
+  var lt = { on: false, dist: 'igual', sel: {}, troca: {}, dups: {}, buscado: '', timer: null };
+  function orgLtCarga(id){
+    if (org.painel) return orgPnCarga(id).total;
+    return org.eqTarefas.filter(function(t){ return t.dono === id && t.etapa !== 'feito' && !orgAgendada(t); }).length;
+  }
+  function orgLtModo(){
+    if (!org.temLote) lt.on = false;
+    LT.modo.hidden = !org.temLote;
+    LT.modo.querySelectorAll('[data-eqmodo]').forEach(function(b){ b.setAttribute('aria-pressed', String((b.getAttribute('data-eqmodo') === 'lote') === lt.on)); });
+    OE.form.classList.toggle('lote', lt.on);
+    LT.box.hidden = !lt.on; LT.prevBox.hidden = !lt.on;
+    LT.dica.hidden = lt.on;
+    OE.para.closest('label').hidden = lt.on && lt.dist !== 'uma';
+    LT.entreBox.hidden = !lt.on || lt.dist === 'uma';
+    if (lt.on) orgLtRender();
+  }
+  // Lê as linhas e decide para quem vai cada uma
+  function orgLtLinhas(){
+    var ativos = org.pessoas.filter(function(p){ return p.ativo; });
+    var escolhidos = ativos.filter(function(p){ return lt.sel[p.id]; }), carga = {}, giro = 0, vistos = {};
+    ativos.forEach(function(p){ carga[p.id] = orgLtCarga(p.id); });
+    var tituloPad = LT.titulo.value.trim(), hojeK = dayKey(startOfDay(new Date()));
+    return LT.texto.value.split('\n').map(function(s, i){ return { i: i + 1, raw: s.trim() }; }).filter(function(x){ return x.raw; }).map(function(x){
+      var r = orgEqLer(x.raw), titulo = orgCorrige(r.titulo.trim()).slice(0, 160), dig = digitsOnly(r.processo), av = null;
+      if (!titulo && r.processo) titulo = tituloPad ? orgCorrige(tituloPad).slice(0, 160) : '';
+      if (!titulo) av = { c: 'r', t: r.processo ? 'falta o título: preencha "Título para linhas só com o número"' : 'linha sem tarefa: fica de fora' };
+      else if (dig && vistos[dig]) av = { c: 'r', t: 'processo repetido na lista (linha ' + vistos[dig] + '): fica de fora' };
+      else if (dig){
+        vistos[dig] = x.i;
+        var ja = lt.dups[dig];
+        if (ja && ja.length) av = { c: 'a', t: 'já está com ' + ja.map(function(t){ return orgEqDupNome(t.dono).split(' ')[0]; }).filter(function(v, k, a){ return a.indexOf(v) === k; }).join(', ') };
+      }
+      var fora = !!(av && av.c === 'r'), para = lt.troca[x.i] || r.para;
+      if (!para && !fora){
+        if (lt.dist === 'uma') para = OE.para.value;
+        else if (escolhidos.length){
+          para = lt.dist === 'igual' ? escolhidos[giro++ % escolhidos.length].id
+            : escolhidos.slice().sort(function(a, b){ return (carga[a.id] - carga[b.id]) || a.nome.localeCompare(b.nome, 'pt-BR'); })[0].id;
+        }
+      }
+      if (para && !fora) carga[para] = (carga[para] || 0) + 1;
+      if (!para && !fora) av = { c: 'r', t: lt.dist === 'uma' ? 'escolha a pessoa em "Para"' : 'marque quem recebe em "Entre quem"' };
+      var aparece = r.aparece || orgEqAparece();
+      return { i: x.i, titulo: titulo, processo: r.processo, dig: dig, para: para, prazo: r.prazo || OE.prazo.value || '', prio: r.prio || org.eqPrio,
+        aparece: aparece && aparece > hojeK ? aparece : '', aviso: av, fora: !!(av && av.c === 'r') };
+    });
+  }
+  function orgLtRender(){
+    var ativos = org.pessoas.filter(function(p){ return p.ativo; });
+    ativos.forEach(function(p){ if (!lt.sel.hasOwnProperty(p.id)) lt.sel[p.id] = true; });
+    LT.dist.querySelectorAll('[data-ltdist]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-ltdist') === lt.dist)); });
+    LT.pessoas.innerHTML = ativos.map(function(p){
+      return '<label class="' + (lt.sel[p.id] ? 'on' : '') + '"><input type="checkbox" data-ltp="' + escapeHtml(p.id) + '"' + (lt.sel[p.id] ? ' checked' : '') + '>' +
+        orgAvatar(p.nome, true) + escapeHtml(p.nome) + ' <span class="c">' + orgLtCarga(p.id) + ' em aberto</span></label>';
+    }).join('');
+    var L = orgLtLinhas(), V = L.filter(function(x){ return !x.fora; });
+    LT.prev.innerHTML = L.length ? L.map(function(x){
+      var pz = x.prazo ? new Date(x.prazo + 'T00:00') : null;
+      return '<tr' + (x.fora ? ' class="fora"' : '') + '><td class="n">' + x.i + '</td><td>' + escapeHtml(x.titulo || '—') + '</td><td class="proc">' + escapeHtml(x.processo || '—') + '</td>' +
+        '<td>' + (x.fora && !x.para ? '—' : '<select class="org-in" data-lttroca="' + x.i + '" aria-label="Para quem vai a linha ' + x.i + '">' +
+          ativos.map(function(p){ return '<option value="' + escapeHtml(p.id) + '"' + (p.id === x.para ? ' selected' : '') + '>' + escapeHtml(p.nome) + '</option>'; }).join('') + '</select>') + '</td>' +
+        '<td>' + (pz ? fmtDia(pz) : '<span class="field-hint">—</span>') + (x.aparece ? ' <span class="eq-flag agend" title="Aparece para a pessoa em">' + fmtDia(new Date(x.aparece + 'T00:00')) + '</span>' : '') + '</td>' +
+        '<td>' + orgPrioNome(x.prio) + '</td>' +
+        '<td>' + (x.aviso ? '<span class="lt-av ' + x.aviso.c + '">' + escapeHtml(x.aviso.t) + '</span>' : '<span class="lt-av ok">ok</span>') + '</td></tr>';
+    }).join('') : '<tr><td colspan="7" class="field-hint">Escreva ou cole as tarefas acima, uma por linha.</td></tr>';
+    var por = {}; V.forEach(function(x){ por[x.para] = (por[x.para] || 0) + 1; });
+    var rep = V.filter(function(x){ return x.aviso && x.aviso.c === 'a'; }).length, fora = L.length - V.length, muitas = V.length > ORG_LOTE_MAX;
+    LT.resumo.innerHTML = L.length ? '<span><b>' + V.length + '</b> ' + (V.length === 1 ? 'tarefa' : 'tarefas') + '</span>' +
+      ativos.filter(function(p){ return por[p.id]; }).map(function(p){ return '<span>' + escapeHtml(p.nome.split(' ')[0]) + ' <b>' + por[p.id] + '</b></span>'; }).join('') +
+      (rep ? '<span class="a"><b>' + rep + '</b> com processo já em andamento</span>' : '') +
+      (fora ? '<span class="r"><b>' + fora + '</b> fora</span>' : '') +
+      (muitas ? '<span class="r">Mande no máximo ' + ORG_LOTE_MAX + ' por vez</span>' : '') : '';
+    LT.enviar.textContent = 'Enviar ' + V.length + (V.length === 1 ? ' tarefa' : ' tarefas');
+    LT.enviar.disabled = !V.length || muitas;
+  }
+  // Processo repetido: uma consulta para a lista inteira (só os números novos)
+  function orgLtConfere(){
+    clearTimeout(lt.timer);
+    lt.timer = setTimeout(async function(){
+      var digs = [];
+      LT.texto.value.split('\n').forEach(function(s){ var r = orgEqLer(s); var dg = digitsOnly(r.processo); if (dg && digs.indexOf(dg) === -1 && !lt.dups.hasOwnProperty(dg)) digs.push(dg); });
+      if (!digs.length || org.semDup) return;
+      var r = await orgCall('org_processos_em_uso', { p_processos: digs });
+      if (r.status !== 'ok') return;
+      digs.forEach(function(dg){ lt.dups[dg] = []; });
+      (r.tarefas || []).forEach(function(t){ (lt.dups[t.processo] = lt.dups[t.processo] || []).push(t); });
+      if (lt.on) orgLtRender();
+    }, 500);
+  }
+  function orgLtLimpa(){ LT.texto.value = ''; lt.troca = {}; lt.dups = {}; orgLtRender(); }
+  LT.modo.addEventListener('click', function(e){
+    var b = e.target.closest('[data-eqmodo]'); if (!b) return;
+    lt.on = b.getAttribute('data-eqmodo') === 'lote';
+    orgLtModo();
+    (lt.on ? LT.texto : OE.texto).focus();
+  });
+  LT.texto.addEventListener('input', function(){ lt.troca = {}; orgLtRender(); orgLtConfere(); });
+  LT.titulo.addEventListener('input', orgLtRender);
+  LT.dist.addEventListener('click', function(e){
+    var b = e.target.closest('[data-ltdist]'); if (!b) return;
+    lt.dist = b.getAttribute('data-ltdist'); lt.troca = {}; orgLtModo();
+  });
+  LT.pessoas.addEventListener('change', function(e){ var c = e.target.closest('[data-ltp]'); if (!c) return; lt.sel[c.getAttribute('data-ltp')] = c.checked; lt.troca = {}; orgLtRender(); });
+  LT.prev.addEventListener('change', function(e){ var c = e.target.closest('[data-lttroca]'); if (!c) return; lt.troca[+c.getAttribute('data-lttroca')] = c.value; orgLtRender(); });
+  [OE.para, OE.prazo, OE.aparece].forEach(function(el){ el.addEventListener('change', function(){ if (lt.on){ lt.troca = {}; orgLtRender(); } }); });
+  OE.prio.addEventListener('click', function(){ if (lt.on) setTimeout(orgLtRender, 0); });
+  LT.limpar.addEventListener('click', function(){ orgLtLimpa(); LT.texto.focus(); });
+  LT.enviar.addEventListener('click', async function(){
+    var V = orgLtLinhas().filter(function(x){ return !x.fora; });
+    if (!V.length || V.length > ORG_LOTE_MAX) return;
+    var passo = org.eqModelos.filter(function(m){ return m.id === OE.modCard.value; })[0];
+    var ck = passo && Array.isArray(passo.dados.checklist) ? passo.dados.checklist.map(function(i){ return { t: String(i && i.t || '').trim(), ok: false }; }).filter(function(i){ return i.t; }) : [];
+    LT.enviar.disabled = true; LT.enviar.textContent = 'Enviando…';
+    var r = await orgCall('org_mandar_lote', {
+      p_itens: V.map(function(x){ return { titulo: x.titulo, processo: x.processo, prazo: x.prazo || null, prioridade: x.prio, para: x.para, aparece: x.aparece || null }; }),
+      p_checklist: ck, p_modelo: OE.modTxt.value || null });
+    if (!orgOk(r)){ orgLtRender(); return; }
+    var ag = V.filter(function(x){ return x.aparece; }).length;
+    toast(r.n + (r.n === 1 ? ' tarefa enviada' : ' tarefas enviadas') + (ag ? ' (' + ag + (ag === 1 ? ' agendada)' : ' agendadas)') : ''));
+    orgLtLimpa();
+    OE.prazo.value = ''; OE.aparece.value = ''; OE.modTxt.value = ''; OE.modCard.value = '';
+    eqToque = { para: false, prazo: false, prio: false, aparece: false };
+    org.eqPrio = 'normal';
+    await orgLoad();
+    LT.texto.focus();
+  });
+
   function orgEqPrevia(){
     var txt = OE.texto.value;
     if (!txt.trim()){ OE.prev.innerHTML = ''; orgEqDupConfere(''); return; }
@@ -6485,6 +6800,7 @@
   });
   OE.form.addEventListener('submit', async function(e){
     e.preventDefault();
+    if (lt.on) return;   // no modo "Várias de uma vez" o envio é pelo botão da prévia
     var r = orgEqLer(OE.texto.value), titulo = orgCorrige(r.titulo.trim()).slice(0, 160);
     if (!titulo){ toast('Escreva a tarefa.'); OE.texto.focus(); return; }
     var para = OE.para.value;
@@ -6541,6 +6857,7 @@
   OE.lista.addEventListener('click', function(e){
     if (e.target.closest('[data-eqmais]')){ org.eqLimite += ORG_EQ_PAGINA; renderOrgEquipe(); return; }
     if (e.target.closest('[data-eqantigas]')){ org.eqTodas = true; orgLoad(); return; }
+    if (e.target.closest('[data-eqsel], #orgEqSelTodas, .eq-c-sel')) return;   // caixinhas de marcar: tratadas no change
     var cb = e.target.closest('[data-eqconf]');
     if (cb){
       var tc = orgFind(org.eqTarefas, cb.getAttribute('data-id')); if (!tc || cb.disabled) return;

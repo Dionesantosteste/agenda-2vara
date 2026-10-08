@@ -200,6 +200,12 @@ No **Quadro**:
     - O site reconhece o nº do processo (20 números), a prioridade (baixa, normal, alta, urgente), o nome da pessoa e o prazo (hoje, amanhã, um dia da semana ou uma data como 15/10).
     - O resto vira o título. Confira na linha de prévia e ajuste Para, Prazo e Prioridade se precisar.
     - A tarefa entra na primeira coluna da pessoa, com o selo "Do gestor".
+    - **Várias de uma vez** (botão no alto de "Mandar tarefa"; precisa do `sql/organizacao.sql` atualizado):
+      - Escreva **uma tarefa por linha**, do mesmo jeito de sempre (tarefa, processo, prioridade, pessoa, prazo, "a partir de…"). Dá para colar uma coluna só de números de processo: cada número vira uma tarefa com o **Título para linhas só com o número**.
+      - **Distribuir:** tudo para uma pessoa (escolha em Para), dividir igual (um para cada, em rodízio) ou pela carga (cada tarefa vai para quem está com menos em aberto). Em "Entre quem", marque quem participa. A linha que já cita um nome vai para essa pessoa.
+      - Prazo, Aparece para a pessoa em, Prioridade, Modelo de texto e Passo a passo valem para as linhas que não disserem outra coisa.
+      - A **prévia** mostra cada linha, para quem vai (dá para trocar ali mesmo) e os avisos: processo já com alguém (amarelo, a linha entra) e processo repetido na própria lista ou linha sem tarefa (vermelho, fica de fora).
+      - **Enviar** grava todas numa operação só: ou entram todas, ou nenhuma. No máximo 100 por vez.
     - **Tarefa agendada:** preencha **Aparece para a pessoa em** (ou escreva na mensagem "a partir de 29/10", "aparece em 29/10" ou "agendar para 29/10"). A tarefa só aparece na tela da pessoa a partir desse dia, e o prazo continua separado.
       - Até lá ela fica no filtro **Agendadas** da tabela, com o selo "Aparece para a pessoa em…", e fica fora da carga, dos prazos e das paradas do painel (que mostra quantas cada pessoa tem agendadas).
       - Para mudar ou tirar a data, clique na linha, em **Editar**, e mude **Aparece para a pessoa em**. Vazio ou hoje: a pessoa já vê.
@@ -221,6 +227,11 @@ No **Quadro**:
     - **Desempenho** (7 ou 30 dias): concluídas, % entregue no prazo (entre as que tinham prazo), tempo médio entre criar e concluir, devolvidas na conferência e as concluídas de cada uma das últimas 8 semanas.
     - Na lista **Para**, ao lado de cada nome, aparece quantas tarefas a pessoa tem em A fazer e quantas atrasadas.
     - "Hoje" segue o horário de Cuiabá.
+  - **Marcar várias na tabela** (precisa do `sql/organizacao.sql` atualizado): cada tarefa em aberto tem uma caixinha; a do cabeçalho marca todas as em aberto que estão à vista. Com alguma marcada, aparece a barra embaixo:
+    - **Passar para [pessoa]:** a tarefa sai do quadro de quem estava e entra em **A fazer** da outra pessoa. As etiquetas saem (cada tela tem as suas); checklist, anotações, prazo e agendamento continuam. Se estava em conferência, a conferência é cancelada (a barra avisa antes e fica registrado no histórico).
+    - **Prazo** e/ou **Prioridade** + **Aplicar:** muda todas as marcadas.
+    - **Excluir:** clique duas vezes para confirmar.
+    - As ações valem só para as marcadas que estão à vista: se a busca ou um filtro esconder uma tarefa marcada, ela é desmarcada.
   - **Editar e excluir:** clique na linha da tarefa e use **Editar** (título, prazo, prioridade, processo e modelo de texto) ou **Excluir**, sem precisar abrir o quadro da pessoa.
   - **Tabela:** mostra tarefa, responsável, prazo, prioridade e situação (o nome da coluna em que a tarefa está no quadro da pessoa, ou "Concluída").
     - Filtros: por pessoa, Em aberto, Atrasadas, Pedem ação do gestor, Concluídas e Todas.
