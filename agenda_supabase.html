@@ -9403,25 +9403,40 @@
     ];
     var cfg = { recesso:true, opc:{ cinzas:false, qsanta:false, servidor:false, justica:true }, extras:[] };
     // O calendário fica no Supabase (tabela prazos_config) e vale para toda a equipe.
+    // Cada item é uma linha própria ("recesso", "opc.<id>", "extra.<id>"): duas pessoas mexendo
+    // ao mesmo tempo não apagam a mudança uma da outra.
     // Sem a tabela, as mudanças ficam só neste navegador até rodar o sql/prazos.sql.
     var cfgErro = null;
-    function lerLocal(){ try { var salvo = JSON.parse(localStorage.getItem("prazosCfg") || "null"); if (salvo) cfg = Object.assign(cfg, salvo); } catch (e) {} }
-    lerLocal();
-    function aplicarCfg(v){
-      cfg = { recesso: v.recesso !== false, opc: Object.assign({ cinzas:false, qsanta:false, servidor:false, justica:true }, v.opc || {}), extras: Array.isArray(v.extras) ? v.extras : [] };
-      feriadosCache = {};
+    function novoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    function lerLocal(){
+      try { var salvo = JSON.parse(localStorage.getItem("prazosCfg") || "null"); if (salvo) cfg = Object.assign(cfg, salvo); } catch (e) {}
+      cfg.extras.forEach(function(x){ if (!x.id) x.id = novoId(); });
     }
+    lerLocal();
+    function ordenarExtras(){ cfg.extras.sort(function(a, b){ return a.data < b.data ? -1 : a.data > b.data ? 1 : 0; }); }
     async function carregar(){
       if (!supabase) return;
-      var res = await supabase.from("prazos_config").select("valor").eq("chave", "calendario").maybeSingle();
+      var res = await supabase.from("prazos_config").select("chave, valor");
       cfgErro = res.error || null;
-      if (!res.error && res.data && res.data.valor) aplicarCfg(res.data.valor);
+      if (!res.error){
+        var novo = { recesso:true, opc:{ cinzas:false, qsanta:false, servidor:false, justica:true }, extras:[] };
+        (res.data || []).forEach(function(l){
+          var k = l.chave || "", v = l.valor;
+          if (k === "recesso") novo.recesso = v !== false;
+          else if (k.indexOf("opc.") === 0) novo.opc[k.slice(4)] = v === true;
+          else if (k.indexOf("extra.") === 0 && v && v.data) novo.extras.push({ id:k.slice(6), data:v.data, nome:v.nome || "Feriado local", anual:!!v.anual });
+        });
+        cfg = novo; ordenarExtras(); feriadosCache = {};
+      }
       redesenhar();
     }
-    async function guardar(){
+    // Grava um item do calendário; sem valor, apaga o item
+    async function gravar(chave, valor){
       feriadosCache = {};
       if (supabase && !cfgErro){
-        var res = await supabase.from("prazos_config").upsert({ chave:"calendario", valor:cfg, updated_at:new Date().toISOString() });
+        var res = valor === undefined
+          ? await supabase.from("prazos_config").delete().eq("chave", chave)
+          : await supabase.from("prazos_config").upsert({ chave:chave, valor:valor, updated_at:new Date().toISOString() });
         if (res.error){ cfgErro = res.error; toast("Não foi possível salvar o calendário: " + res.error.message); }
       }
       if (!supabase || cfgErro){ try { localStorage.setItem("prazosCfg", JSON.stringify(cfg)); } catch (e) {} }
@@ -9618,7 +9633,7 @@
     // Tela: Calcular prazo
     // ------------------------------------------------------------------
     var $ = function(id){ return document.getElementById(id); };
-    var st = { dir:"apos" };
+    var st = { dir:"apos", cert:null, gerado:"" };
 
     (function montarSelect(){
       var html = "", g = "";
@@ -9701,10 +9716,18 @@
 
       // certidão
       html += "<h3>Texto para certidão</h3>";
-      html += '<div class="field"><label for="pzPCert" class="flabel" style="position:absolute;left:-9999px">Texto da certidão</label><textarea id="pzPCert" class="cert" rows="5">' + esc(certidao(p, r)) + "</textarea></div>";
+      // Depois de editado à mão, o texto não é refeito sozinho; avisa se os dados mudaram
+      var gerado = certidao(p, r), ed = st.cert;
+      st.gerado = gerado;
+      html += '<div class="field"><label for="pzPCert" class="flabel" style="position:absolute;left:-9999px">Texto da certidão</label><textarea id="pzPCert" class="cert" rows="5">' + esc(ed ? ed.texto : gerado) + "</textarea></div>";
+      html += '<div class="aviso" id="pzPCertAviso"' + (ed ? "" : " hidden") + '><span id="pzPCertMsg">' + (ed && ed.base !== gerado ? "<b>Os dados do prazo mudaram depois que você editou o texto.</b> Confira as datas ou refaça o texto." : "Texto editado à mão: ele não muda sozinho quando os dados mudam.") +
+        '</span> <button type="button" class="btn sm" id="pzPRefazer">Refazer o texto</button></div>';
       html += '<div class="acts"><button type="button" class="btn primary sm" id="pzPCopiar">Copiar texto</button>' +
         (r.regressivo || r.marco ? "" : '<label class="ck" style="font-size:13px"><input type="checkbox" id="pzPDecurso"' + (st.decurso ? " checked" : "") + " /> Prazo decorrido sem manifestação</label>") + "</div>";
+      var ta0 = document.activeElement && document.activeElement.id === "pzPCert" ? document.activeElement : null;
+      var foco = ta0 ? [ta0.selectionStart, ta0.selectionEnd, ta0.scrollTop] : null;
       box.innerHTML = html;
+      if (foco){ var ta1 = $("pzPCert"); ta1.focus(); ta1.setSelectionRange(foco[0], foco[1]); ta1.scrollTop = foco[2]; }
     }
 
     function diasUteisEntre(a, b){ var c = 0, x = a; while (x < b){ x = add(x, 1); if (util(x)) c++; } return c; }
@@ -9762,7 +9785,14 @@
     $("pzPDirAntes").addEventListener("click", function(){ setDir("antes"); atualizar(); });
     $("pzFPrazo").addEventListener("submit", function(e){ e.preventDefault(); });
     $("pzPRes").addEventListener("change", function(e){ if (e.target.id === "pzPDecurso"){ st.decurso = e.target.checked; atualizar(); } });
+    $("pzPRes").addEventListener("input", function(e){
+      if (e.target.id !== "pzPCert") return;
+      if (!st.cert) st.cert = { base:st.gerado };
+      st.cert.texto = e.target.value;
+      $("pzPCertAviso").hidden = false;
+    });
     $("pzPRes").addEventListener("click", function(e){
+      if (e.target.id === "pzPRefazer"){ st.cert = null; atualizar(); return; }
       if (e.target.id !== "pzPCopiar") return;
       var ta = $("pzPCert");
       var ok = function(){ toast("Texto copiado"); };
@@ -9885,9 +9915,9 @@
       $("pzFOpc").innerHTML = OPCIONAIS.map(function(o){
         return '<label class="ck"><input type="checkbox" data-opc="' + o.id + '"' + (cfg.opc[o.id] ? " checked" : "") + " /> <span>" + esc(o.nome) + "<small>" + esc(o.obs) + "</small></span></label>";
       }).join("");
-      $("pzFExtras").innerHTML = cfg.extras.length ? '<div class="fer-list" style="grid-template-columns:minmax(0,1fr)">' + cfg.extras.map(function(x, i){
+      $("pzFExtras").innerHTML = cfg.extras.length ? '<div class="fer-list" style="grid-template-columns:minmax(0,1fr)">' + cfg.extras.map(function(x){
         var d = parse(x.data);
-        return '<div class="fer" style="grid-template-columns:96px minmax(0,1fr) auto"><span class="d">' + (x.anual ? fmt(d).slice(0, 5) : fmt(d)) + "</span><span>" + esc(x.nome) + '<span class="o"> · ' + (x.anual ? "todo ano" : "só nesta data") + '</span></span><button type="button" class="x" data-del="' + i + '" aria-label="Remover ' + esc(x.nome) + '">×</button></div>';
+        return '<div class="fer" style="grid-template-columns:96px minmax(0,1fr) auto"><span class="d">' + (x.anual ? fmt(d).slice(0, 5) : fmt(d)) + "</span><span>" + esc(x.nome) + '<span class="o"> · ' + (x.anual ? "todo ano" : "só nesta data") + '</span></span><button type="button" class="x" data-del="' + esc(x.id) + '" aria-label="Remover ' + esc(x.nome) + '">×</button></div>';
       }).join("") + "</div>" : '<p class="muted" style="margin:0">Nenhum feriado local cadastrado.</p>';
 
       var ano = +$("pzFAno").value, map = feriadosDoAno(ano), ks = Object.keys(map).sort();
@@ -9905,19 +9935,24 @@
       $("pzFAno").innerHTML = h;
     })();
     function redesenhar(){ renderFeriados(); atualizar(); renderIdade(); renderAvisoCfg(); if (typeof renderPericias === "function") renderPericias(); }
-    function mudouCfg(){ guardar(); redesenhar(); }
+    function mudouCfg(chave, valor){ gravar(chave, valor); redesenhar(); }
     $("pzFAno").addEventListener("change", renderFeriados);
-    $("pzFRecesso").addEventListener("change", function(){ cfg.recesso = this.checked; mudouCfg(); });
-    $("pzFOpc").addEventListener("change", function(e){ var id = e.target.getAttribute("data-opc"); if (id){ cfg.opc[id] = e.target.checked; mudouCfg(); } });
+    $("pzFRecesso").addEventListener("change", function(){ cfg.recesso = this.checked; mudouCfg("recesso", cfg.recesso); });
+    $("pzFOpc").addEventListener("change", function(e){ var id = e.target.getAttribute("data-opc"); if (id){ cfg.opc[id] = e.target.checked; mudouCfg("opc." + id, e.target.checked); } });
     $("pzFAdd").addEventListener("click", function(){
       var d = $("pzFData").value, nome = $("pzFNome").value.trim();
       if (!d){ toast("Escolha a data"); return; }
-      cfg.extras.push({ data:d, nome:nome || "Feriado local", anual:$("pzFTodoAno").checked });
-      cfg.extras.sort(function(a, b){ return a.data < b.data ? -1 : 1; });
+      var x = { id:novoId(), data:d, nome:nome || "Feriado local", anual:$("pzFTodoAno").checked };
+      cfg.extras.push(x); ordenarExtras();
       $("pzFData").value = ""; $("pzFNome").value = ""; $("pzFTodoAno").checked = false;
-      mudouCfg(); toast("Acrescentado");
+      mudouCfg("extra." + x.id, { data:x.data, nome:x.nome, anual:x.anual }); toast("Acrescentado");
     });
-    $("pzFExtras").addEventListener("click", function(e){ var b = e.target.closest("[data-del]"); if (!b) return; cfg.extras.splice(+b.getAttribute("data-del"), 1); mudouCfg(); });
+    $("pzFExtras").addEventListener("click", function(e){
+      var b = e.target.closest("[data-del]"); if (!b) return;
+      var id = b.getAttribute("data-del");
+      cfg.extras = cfg.extras.filter(function(x){ return x.id !== id; });
+      mudouCfg("extra." + id);
+    });
 
     // ------------------------------------------------------------------
     // Abas e início

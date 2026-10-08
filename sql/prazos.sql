@@ -4,9 +4,10 @@
 -- Como usar: cole tudo no SQL Editor do Supabase e clique em Run.
 -- Pode rodar de novo quando o arquivo mudar: nada é apagado.
 --
--- Guarda, numa linha só (chave "calendario"), o que a aba "Feriados e
--- suspensões" da seção Prazos marca: recesso, suspensões do tribunal e
--- feriados da comarca. Vale também para o prazo do laudo em Perícias.
+-- Guarda o que a aba "Feriados e suspensões" da seção Prazos marca, uma
+-- linha por item ("recesso", "opc.<suspensão>", "extra.<feriado>"), para
+-- duas pessoas mexendo ao mesmo tempo não apagarem a mudança uma da outra.
+-- Vale também para o prazo do laudo em Perícias.
 -- Acesso: igual às audiências (aberto para quem usa o site).
 -- =====================================================================
 
