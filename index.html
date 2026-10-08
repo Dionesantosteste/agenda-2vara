@@ -198,6 +198,16 @@
   #view-prazos .x{ border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px; border-radius:6px; }
   #view-prazos .x:hover{ color:var(--danger); background:var(--st-red-soft); }
   #view-prazos .fontes{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+  #view-prazos .tj-intro{ display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px 18px; margin:0; padding:0; list-style:none; }
+  #view-prazos .tj-intro li{ font-size:13.5px; line-height:1.5; color:var(--muted); }
+  #view-prazos .tj-intro li b{ display:block; color:var(--ink); font-size:14px; margin-bottom:2px; }
+  #view-prazos .tj-partes{ display:flex; flex-direction:column; gap:10px; }
+  #view-prazos .tj-parte{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; grid-template-areas:"tipo tipo x" "forma data data"; gap:8px 10px; align-items:end; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
+  #view-prazos .tj-parte .tj-tipo{ grid-area:tipo; } .tj-parte .tj-forma{ grid-area:forma; } .tj-parte .tj-data{ grid-area:data; }
+  #view-prazos .tj-parte .x{ grid-area:x; align-self:center; font-size:20px; }
+  #view-prazos table.tb tr.longo td{ background:var(--accent-soft); }
+  #view-prazos .depois{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:6px; font-size:13.5px; line-height:1.5; }
+  @media (max-width:760px){ #view-prazos .tj-parte{ grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"tipo x" "forma forma" "data data"; } }
   #view-prazos .fontes a{ color:var(--accent); }
   @media (max-width:980px){
   #view-prazos .grid2{ grid-template-columns:minmax(0,1fr); }
@@ -1783,6 +1793,7 @@
 
     <div class="abas" role="tablist" aria-label="Ferramentas de prazo">
       <button type="button" class="aba" role="tab" id="pztab-prazo" data-aba="prazo" aria-selected="true">Calcular prazo</button>
+      <button type="button" class="aba" role="tab" id="pztab-transito" data-aba="transito" aria-selected="false">Trânsito em julgado</button>
       <button type="button" class="aba" role="tab" id="pztab-idade" data-aba="idade" aria-selected="false">Idade</button>
       <button type="button" class="aba" role="tab" id="pztab-tabela" data-aba="tabela" aria-selected="false">Tabela de prazos</button>
       <button type="button" class="aba" role="tab" id="pztab-feriados" data-aba="feriados" aria-selected="false">Feriados e suspensões</button>
@@ -1855,6 +1866,57 @@
         </form>
 
         <div class="panel" id="pzPRes" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- =================== TRÂNSITO EM JULGADO =================== -->
+    <section id="pzv-transito" role="tabpanel" aria-labelledby="pztab-transito" hidden>
+      <div class="panel" style="margin-bottom:16px">
+        <h2>Como funciona</h2>
+        <ul class="tj-intro">
+          <li><b>Cada parte tem o seu prazo</b>O prazo para recorrer começa quando cada parte é intimada. Se as intimações foram em dias diferentes, os prazos terminam em dias diferentes.</li>
+          <li><b>Vale o prazo que termina por último</b>Enquanto alguma parte ainda pode recorrer, a sentença não transitou. Por isso cadastre todas as partes.</li>
+          <li><b>Trânsito: dia seguinte</b>Sem recurso, a sentença transita em julgado no dia seguinte ao último dia do prazo mais longo.</li>
+        </ul>
+      </div>
+      <div class="grid2">
+        <form class="panel" id="fTj" autocomplete="off">
+          <h2>1. O que foi decidido</h2>
+          <div class="field">
+            <label for="pzTjTipo">Tipo de decisão</label>
+            <select id="pzTjTipo">
+              <option value="comum">Sentença (procedimento comum, família, execução)</option>
+              <option value="eca">Sentença no ECA (infância e juventude)</option>
+              <option value="jec">Sentença do Juizado Especial Cível</option>
+              <option value="acordo">Acordo homologado com renúncia ao prazo de recurso</option>
+            </select>
+          </div>
+          <div class="ato-info" id="pzTjTipoInfo"></div>
+          <div class="field" id="pzTjEdBox">
+            <label for="pzTjEd">Houve embargos de declaração?</label>
+            <select id="pzTjEd">
+              <option value="nao">Não</option>
+              <option value="sim">Sim, e já foram julgados</option>
+            </select>
+            <span class="field-hint" id="pzTjEdHint" hidden>Os embargos interrompem o prazo (art. 1.026). Nas datas abaixo, informe a intimação da decisão que julgou os embargos, não a da sentença.</span>
+          </div>
+
+          <div id="pzTjAcordoBox" hidden>
+            <div class="field"><label for="pzTjAcordoData">Data da homologação do acordo</label><input id="pzTjAcordoData" type="date" />
+              <span class="field-hint">Use só se a renúncia ao prazo de recurso de todas as partes consta do termo de audiência ou de petição.</span></div>
+          </div>
+
+          <div id="pzTjPartesBox" style="display:flex;flex-direction:column;gap:12px">
+            <h2>2. Intimação de cada parte</h2>
+            <span class="field-hint" style="margin-top:-6px">Uma linha por parte. Quando o advogado das duas partes foi intimado na mesma publicação, a data é a mesma.</span>
+            <div class="tj-partes" id="pzTjPartes"></div>
+            <div class="acts"><button type="button" class="btn sm" id="pzTjAdd">+ Acrescentar parte</button></div>
+          </div>
+
+          <h2>3. Para a certidão</h2>
+          <div class="field"><label for="pzTjProc">Processo (opcional)</label><input id="pzTjProc" placeholder="0000000-00.0000.8.11.0000" maxlength="25" style="font-family:var(--font-data);font-size:14px" /></div>
+        </form>
+        <div class="panel" id="pzTjRes" aria-live="polite"></div>
       </div>
     </section>
 
@@ -9934,7 +9996,7 @@
       for (var a = y - 1; a <= y + 2; a++) h += '<option value="' + a + '"' + (a === y ? " selected" : "") + ">" + a + "</option>";
       $("pzFAno").innerHTML = h;
     })();
-    function redesenhar(){ renderFeriados(); atualizar(); renderIdade(); renderAvisoCfg(); if (typeof renderPericias === "function") renderPericias(); }
+    function redesenhar(){ renderFeriados(); atualizar(); tjAtualizar(); renderIdade(); renderAvisoCfg(); if (typeof renderPericias === "function") renderPericias(); }
     function mudouCfg(chave, valor){ gravar(chave, valor); redesenhar(); }
     $("pzFAno").addEventListener("change", renderFeriados);
     $("pzFRecesso").addEventListener("change", function(){ cfg.recesso = this.checked; mudouCfg("recesso", cfg.recesso); });
@@ -9955,9 +10017,138 @@
     });
 
     // ------------------------------------------------------------------
+    // Tela: Trânsito em julgado
+    // ------------------------------------------------------------------
+    var TJ_TIPOS = {
+      comum: { ato:"apelacao", nome:"a sentença", info:"<b>Apelação: 15 dias úteis</b> para cada parte (art. 1.003, § 5º), contados da intimação de cada uma. Fazenda Pública, MP e Defensoria têm prazo em dobro." },
+      eca:   { ato:"eca_apel", nome:"a sentença", info:"<b>Apelação no ECA: 10 dias corridos</b> (art. 198, II). Fazenda Pública e MP não têm prazo em dobro (art. 152, § 2º); a Defensoria tem." },
+      jec:   { ato:"jec_ri", nome:"a sentença", info:"<b>Recurso inominado: 10 dias úteis</b> (Lei 9.099, art. 42), contados da ciência da sentença." },
+      acordo:{ nome:"a sentença homologatória", info:"Quando todas as partes renunciam ao prazo de recurso na homologação do acordo, a sentença <b>transita em julgado na mesma data</b> (art. 999)." }
+    };
+    var TJ_PARTES = [["autor", "Autor"], ["reu", "Réu"], ["mp", "Ministério Público"], ["dp", "Defensoria Pública ou curador especial"], ["faz", "Fazenda Pública"], ["terceiro", "Terceiro interessado"]];
+    var TJ_NOME = {}; TJ_PARTES.forEach(function(x){ TJ_NOME[x[0]] = x[1]; });
+    var TJ_FORMAS = [["djen", "Publicação no DJEN / Diário"], ["pje", "Intimação eletrônica no sistema (PJe)"], ["dom", "Domicílio Judicial Eletrônico"], ["juntada", "Correios (AR) ou mandado"], ["ciencia", "Sentença lida em audiência"], ["revel", "Revel sem advogado (publicação)"]];
+    var TJ_DATA_LBL = { djen:"Data da disponibilização", pje:"Data do envio da intimação", dom:"Data da confirmação do recebimento", juntada:"Data da juntada do AR ou do mandado", ciencia:"Data da audiência", revel:"Data da disponibilização da sentença" };
+    var tj = { partes:[{ tipo:"autor", forma:"djen", data:"" }, { tipo:"reu", forma:"djen", data:"" }] };
+
+    function tjRenderPartes(){
+      $("pzTjPartes").innerHTML = tj.partes.map(function(pt, i){
+        return '<div class="tj-parte" data-i="' + i + '">' +
+          '<div class="field tj-tipo"><label for="pzTjT' + i + '">Parte</label><select id="pzTjT' + i + '" data-k="tipo">' + TJ_PARTES.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === pt.tipo ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select></div>" +
+          (tj.partes.length > 1 ? '<button type="button" class="x" data-rm="' + i + '" aria-label="Remover parte">×</button>' : "") +
+          '<div class="field tj-forma"><label for="pzTjF' + i + '">Como foi intimada</label><select id="pzTjF' + i + '" data-k="forma">' + TJ_FORMAS.map(function(x){ return '<option value="' + x[0] + '"' + (x[0] === pt.forma ? " selected" : "") + ">" + x[1] + "</option>"; }).join("") + "</select></div>" +
+          '<div class="field tj-data"><label for="pzTjD' + i + '" id="pzTjDL' + i + '">' + TJ_DATA_LBL[pt.forma] + '</label><input id="pzTjD' + i + '" type="date" data-k="data" value="' + pt.data + '" /></div>' +
+          "</div>";
+      }).join("");
+    }
+    function tjRow(r){
+      var ato = ATO_POR_ID[TJ_TIPOS[$("pzTjTipo").value].ato];
+      var dobro = r.tipo === "mp" || r.tipo === "dp" || r.tipo === "faz" ? r.tipo : "";
+      var res = calcular({ ato:ato, n:ato.n, un:ato.un, dir:"apos", forma:r.forma === "revel" ? "djen" : r.forma, d1:r.data, d2:"", alvo:"", dobro:dobro });
+      res.parte = r; res.un = ato.un;
+      res.nota = dobro ? (res.nFinal > ato.n ? "em dobro" : "não dobra") : "";
+      return res;
+    }
+    function tjAtualizar(){
+      var tipo = $("pzTjTipo").value, T = TJ_TIPOS[tipo], h = hoje(), box = $("pzTjRes"), proc = $("pzTjProc").value.trim();
+      $("pzTjTipoInfo").innerHTML = T.info;
+      $("pzTjAcordoBox").hidden = tipo !== "acordo";
+      $("pzTjPartesBox").hidden = tipo === "acordo";
+      $("pzTjEdBox").hidden = tipo === "acordo";
+      $("pzTjEdHint").hidden = $("pzTjEd").value !== "sim";
+      var html = "", cert, transito;
+
+      if (tipo === "acordo"){
+        transito = parse($("pzTjAcordoData").value);
+        if (!transito){ box.innerHTML = '<h2>Resultado</h2><p class="muted" style="margin:0">Informe a data da homologação do acordo.</p>'; return; }
+        html += '<div class="venc"><span class="lbl">Trânsito em julgado em</span><span class="data">' + fmt(transito) + '</span><span class="dow">' + fmtDow(transito) + ", a própria data da homologação</span></div>";
+        html += '<div class="aviso">Confira se a renúncia ao prazo de recurso é de <b>todas</b> as partes. Se uma delas não renunciou, use "Sentença" e conte o prazo dela.</div>';
+        cert = "Certifico que, homologado o acordo em " + fmt(transito) + (proc ? " nos autos " + proc : "") + ", as partes renunciaram ao prazo recursal (CPC, art. 999), tendo a sentença transitado em julgado em " + fmt(transito) + ".";
+      } else {
+        var linhas = tj.partes.filter(function(r){ return r.data; }).map(tjRow).filter(function(r){ return r.ok; });
+        if (!linhas.length){ box.innerHTML = '<h2>Resultado</h2><p class="muted" style="margin:0">Informe a data da intimação de pelo menos uma parte.</p>'; return; }
+        var faltam = tj.partes.filter(function(r){ return !r.data; }).length;
+        var maior = linhas.reduce(function(a, b){ return b.venc > a.venc ? b : a; });
+        transito = add(maior.venc, 1);
+        var podeCertificar = h >= transito;
+        html += '<div class="venc"><span class="lbl">' + (podeCertificar ? "Transitou em julgado em" : "Transitará em julgado em") + '</span><span class="data">' + fmt(transito) + '</span><span class="dow">' + fmtDow(transito) + ", se nenhuma parte recorrer</span></div>";
+        html += '<div class="chips">' + (faltam ? '<span class="chip danger">Falta a data de ' + plural(faltam, "parte", "partes") + "</span>" :
+          podeCertificar ? '<span class="chip ok">Prazos encerrados: já pode certificar</span>' :
+          '<span class="chip warn">Ainda corre prazo até ' + fmt(maior.venc) + ": não certificar antes de " + fmt(transito) + "</span>") + "</div>";
+        var ultimos = linhas.filter(function(r){ return same(r.venc, maior.venc); });
+        html += '<p style="margin:0;line-height:1.55">O último prazo termina em <b>' + fmt(maior.venc) + "</b> (" + fmtDow(maior.venc) + "), para " + ultimos.map(function(r){ return "<b>" + esc(TJ_NOME[r.parte.tipo]) + "</b>"; }).join(", ").replace(/, ([^,]*)$/, " e $1") + ". O trânsito é o dia seguinte.</p>";
+        html += '<div class="tbl-wrap"><table class="tb" style="min-width:0"><thead><tr><th>Parte</th><th>Intimação</th><th>Prazo</th><th>Último dia</th></tr></thead><tbody>' + linhas.map(function(r){
+          var ult = same(r.venc, maior.venc);
+          return '<tr' + (ult ? ' class="longo"' : "") + "><td>" + esc(TJ_NOME[r.parte.tipo]) + (ult ? ' <span class="tag a">último prazo</span>' : "") + '</td><td class="n">' + fmt(r.termo) +
+            '</td><td>' + qtd(r.nFinal, r.un) + (r.nota ? ' <span class="obs">' + r.nota + "</span>" : "") + '</td><td class="n">' + fmt(r.venc) + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+        html += '<p class="muted" style="margin:-6px 0 0">Na coluna Intimação: a data que marca o início (publicação, ciência ou juntada). O prazo começa no dia útil seguinte.</p>';
+        var av = [];
+        if (podeCertificar) av.push("Antes de certificar, confira no processo se <b>nenhuma parte recorreu</b> nem pediu algo que suspenda o prazo.");
+        if ($("pzTjEd").value === "sim") av.push("Com embargos de declaração, a conta vale a partir da intimação da decisão que julgou os embargos (art. 1.026).");
+        if (tj.partes.some(function(r){ return r.tipo === "faz"; })) av.push("<b>Fazenda Pública vencida:</b> a sentença só transita depois da remessa necessária ao Tribunal (art. 496), salvo nos valores do § 3º e nos casos do § 4º.");
+        if (tj.partes.some(function(r){ return r.forma === "revel"; })) av.push("<b>Revel sem advogado:</b> o prazo corre da publicação da sentença no Diário, sem intimação pessoal (art. 346).");
+        if (tj.partes.some(function(r){ return r.forma === "pje"; })) av.push("Intimação no PJe sem leitura: considerei a ciência automática 10 dias corridos após o envio. Se houve leitura antes, calcule essa parte na aba Calcular prazo.");
+        if (av.length) html += '<div class="avisos">' + av.map(function(a){ return '<div class="aviso">' + a + "</div>"; }).join("") + "</div>";
+        var nMeses = (maior.venc.getFullYear() - maior.termo.getFullYear()) * 12 + maior.venc.getMonth() - maior.termo.getMonth() + 1;
+        if (nMeses <= 4){
+          html += "<h3>Calendário do prazo mais longo (" + esc(TJ_NOME[maior.parte.tipo]) + ")</h3>" + calendario(maior.termo, transito, maior, h);
+          html += '<div class="legenda"><span><i class="sw tm"></i>Intimação (não conta)</span><span><i class="sw ct"></i>Dia contado</span><span><i class="sw vc"></i>Último dia</span><span><i class="sw nu"></i>Sem expediente</span><span><i class="sw hj"></i>Hoje</span></div>';
+        }
+        cert = "Certifico que " + T.nome + (proc ? " proferida nos autos " + proc : "") + " transitou em julgado em " + fmt(transito) + ", tendo decorrido sem interposição de recurso o prazo recursal das partes, cujo último dia foi " + fmt(maior.venc) + ".";
+      }
+
+      html += "<h3>Texto para certidão</h3>";
+      html += '<div class="field"><label for="pzTjCert" class="flabel" style="position:absolute;left:-9999px">Texto da certidão</label><textarea id="pzTjCert" class="cert" rows="4">' + esc(cert) + "</textarea></div>";
+      html += '<div class="acts"><button type="button" class="btn primary sm" id="pzTjCopiar">Copiar texto</button></div>';
+      html += "<h3>Depois do trânsito</h3><ul class=\"depois\">";
+      html += "<li>Certifique o trânsito nos autos.</li>";
+      html += "<li>O cumprimento de sentença depende de pedido do credor (art. 513, § 1º). Intimado o devedor, corre o prazo de 15 dias úteis para pagar (art. 523).</li>";
+      if (tipo === "jec") html += "<li>No Juizado não cabe ação rescisória (Lei 9.099, art. 59).</li>";
+      else { var resc = utilOuProx(addMeses(transito, 24)); html += "<li>Prazo para ação rescisória: até <b>" + fmt(resc) + "</b> (2 anos do trânsito, art. 975).</li>"; }
+      html += "</ul>";
+      box.innerHTML = html;
+    }
+    tjRenderPartes();
+    $("pzTjPartes").addEventListener("input", tjCampo);
+    $("pzTjPartes").addEventListener("change", tjCampo);
+    function tjCampo(e){
+      var row = e.target.closest("[data-i]"), k = e.target.getAttribute("data-k"); if (!row || !k) return;
+      var i = +row.getAttribute("data-i");
+      tj.partes[i][k] = e.target.value;
+      if (k === "forma") $("pzTjDL" + i).textContent = TJ_DATA_LBL[e.target.value];
+      tjAtualizar();
+    }
+    $("pzTjPartes").addEventListener("click", function(e){
+      var b = e.target.closest("[data-rm]"); if (!b) return;
+      tj.partes.splice(+b.getAttribute("data-rm"), 1); tjRenderPartes(); tjAtualizar();
+    });
+    $("pzTjAdd").addEventListener("click", function(){
+      var ult = tj.partes[tj.partes.length - 1] || { forma:"djen", data:"" };
+      var usados = tj.partes.map(function(r){ return r.tipo; });
+      var livre = TJ_PARTES.filter(function(x){ return usados.indexOf(x[0]) < 0; })[0];
+      tj.partes.push({ tipo:livre ? livre[0] : "terceiro", forma:ult.forma, data:ult.data });
+      tjRenderPartes(); tjAtualizar();
+      var n = tj.partes.length - 1; $("pzTjT" + n).focus();
+    });
+    ["pzTjTipo", "pzTjEd", "pzTjAcordoData", "pzTjProc"].forEach(function(id){ $(id).addEventListener("input", tjAtualizar); $(id).addEventListener("change", tjAtualizar); });
+    $("pzTjProc").addEventListener("input", function(){
+      var v = this.value.replace(/\D/g, "").slice(0, 20), o = "", cortes = [7, 9, 13, 14, 16], seps = ["-", ".", ".", ".", "."];
+      for (var i = 0; i < v.length; i++){ var c = cortes.indexOf(i); if (c >= 0) o += seps[c]; o += v[i]; }
+      this.value = o;
+    });
+    $("fTj").addEventListener("submit", function(e){ e.preventDefault(); });
+    $("pzTjRes").addEventListener("click", function(e){
+      if (e.target.id !== "pzTjCopiar") return;
+      var ta = $("pzTjCert");
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(function(){ toast("Texto copiado"); }, function(){ ta.select(); toast("Texto selecionado: use Ctrl+C"); });
+      else { ta.select(); toast("Texto selecionado: use Ctrl+C"); }
+    });
+
+    // ------------------------------------------------------------------
     // Abas e início
     // ------------------------------------------------------------------
-    var ABAS = ["prazo", "idade", "tabela", "feriados"];
+    var ABAS = ["prazo", "transito", "idade", "tabela", "feriados"];
     function irAba(a){
       ABAS.forEach(function(x){ $("pzv-" + x).hidden = x !== a; $("pztab-" + x).setAttribute("aria-selected", String(x === a)); });
       try { localStorage.setItem("prazosAba", a); } catch (e) {}
@@ -9972,6 +10163,8 @@
     $("pzIRef").value = key(hoje());
     $("pzIExemplo").hidden = true;
     aplicarForma(); aplicarAto();
+    $("pzTjAcordoData").value = key(hoje());
+    tjAtualizar();
     renderIdade(); renderTabela(); renderFeriados();
     var abaIni = "prazo";
     try { abaIni = localStorage.getItem("prazosAba") || "prazo"; } catch (e) {}

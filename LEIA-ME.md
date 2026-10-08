@@ -349,13 +349,17 @@ Como funciona:
 
 ## Passo 2.5 — Prazos
 
-A seção **Prazos** tem quatro abas:
+A seção **Prazos** tem cinco abas:
 
 - **Calcular prazo:** escolha o ato (ou digite o prazo), a forma de ciência (DJEN, intimação no PJe,
   Domicílio Judicial Eletrônico, juntada de AR/mandado ou ciência direta) e a data. O site mostra o
   vencimento, o passo a passo, um calendário com os dias contados e o texto da certidão para copiar.
   Também conta para trás a partir da data da audiência (citação, desinteresse na conciliação, laudo).
   Marca prazo em dobro (Fazenda, MP, Defensoria, litisconsortes) e avisa quando o prazo não dobra.
+- **Trânsito em julgado:** escolha o tipo de decisão (sentença comum, ECA, Juizado ou acordo com renúncia
+  ao prazo de recurso) e informe como e quando cada parte foi intimada. O site calcula o prazo de cada uma
+  (com o dobro de MP, Defensoria e Fazenda), mostra qual termina por último e dá a data do trânsito: o dia
+  seguinte ao último dia do prazo mais longo. Traz o texto da certidão e o prazo da ação rescisória.
 - **Idade:** idade exata numa data, capacidade (CC, arts. 3º e 4º), intervenção do MP, prioridade de
   pessoa idosa e as datas em que a parte completa 16, 18 e 21 anos. Aceita várias pessoas de uma vez.
 - **Tabela de prazos:** prazos de vara cível com o artigo de cada um, inclusive audiência de
