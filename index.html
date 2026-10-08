@@ -92,6 +92,125 @@
   .head-acts{ display:flex; align-items:center; gap:12px; }
   .print-btn{ display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 14px; font-size:14px; }
   #printArea{ display:none; }
+  /* ---- Prazos (calculadora, idade, tabela e feriados) ---- */
+  .wrap.medio{ max-width:1180px; }
+  #view-prazos{ display:flex; flex-direction:column; gap:16px; }
+  #view-prazos > header{ margin-bottom:0; }
+  #view-prazos *{ box-sizing:border-box; }
+  #view-prazos [hidden]{ display:none !important; }
+  #view-prazos .abas{ display:flex; gap:4px; max-width:100%; overflow-x:auto; background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:4px; width:max-content; }
+  #view-prazos .aba{ flex:none; border:0; background:transparent; color:var(--muted); font:500 14px var(--font-ui); padding:8px 14px; border-radius:9px; cursor:pointer; }
+  #view-prazos .aba:hover{ color:var(--ink); background:var(--sunken); }
+  #view-prazos .aba[aria-selected="true"]{ background:var(--accent); color:var(--accent-ink); }
+  #view-prazos .aba:focus-visible, #view-prazos .btn:focus-visible, #view-prazos input:focus-visible, #view-prazos select:focus-visible, #view-prazos textarea:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  #view-prazos .grid2{ display:grid; grid-template-columns:minmax(0,400px) minmax(0,1fr); gap:16px; align-items:start; }
+  #view-prazos .panel{ background:var(--paper); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow); padding:16px 18px 18px; display:flex; flex-direction:column; gap:14px; min-width:0; }
+  #view-prazos .panel h2{ margin:0; font-size:17px; font-weight:600; }
+  #view-prazos .panel h3{ margin:0; font-size:13px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); }
+  #view-prazos .field{ display:flex; flex-direction:column; gap:5px; min-width:0; }
+  #view-prazos .field > label, #view-prazos .flabel{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  #view-prazos .field input, #view-prazos .field select, #view-prazos .field textarea{ border:1px solid var(--line); border-radius:10px; padding:0 11px; height:42px; font:15px var(--font-ui); background:var(--sunken); color:var(--ink); width:100%; min-width:0; }
+  #view-prazos .field textarea{ height:auto; padding:10px 12px; line-height:1.5; resize:vertical; }
+  #view-prazos .field-hint{ font-size:12.5px; color:var(--muted); line-height:1.45; }
+  #view-prazos .row{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; }
+  #view-prazos .row.r3{ grid-template-columns:90px minmax(0,1fr); }
+  #view-prazos .seg{ display:flex; background:var(--sunken); border:1px solid var(--line); border-radius:10px; padding:3px; gap:3px; }
+  #view-prazos .seg button{ flex:1; border:0; background:transparent; color:var(--muted); font:500 13.5px var(--font-ui); padding:8px 6px; border-radius:8px; cursor:pointer; }
+  #view-prazos .seg button[aria-pressed="true"]{ background:var(--paper); color:var(--ink); box-shadow:var(--shadow); font-weight:600; }
+  #view-prazos .btn{ font:600 14px var(--font-ui); border-radius:10px; padding:9px 14px; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--ink); }
+  #view-prazos .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  #view-prazos .btn.sm{ padding:5px 10px; font-size:13px; border-radius:8px; }
+  #view-prazos .ato-info{ background:var(--sunken); border-radius:10px; padding:10px 12px; font-size:13px; line-height:1.5; color:var(--muted); }
+  #view-prazos .ato-info b{ color:var(--ink); font-weight:600; }
+  #view-prazos .venc{ display:flex; flex-direction:column; gap:4px; }
+  #view-prazos .venc .lbl{ font-size:12px; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); }
+  #view-prazos .venc .data{ font-family:var(--font-data); font-size:36px; font-weight:500; letter-spacing:-.01em; line-height:1.1; }
+  #view-prazos .venc .dow{ font-size:15px; color:var(--muted); }
+  #view-prazos .chips{ display:flex; gap:6px; flex-wrap:wrap; }
+  #view-prazos .chip{ font-size:12.5px; font-weight:600; border-radius:999px; padding:3px 10px; background:var(--accent-soft); color:var(--accent); }
+  #view-prazos .chip.ok{ background:var(--ok-soft); color:var(--ok); }
+  #view-prazos .chip.warn{ background:var(--warn-soft); color:var(--warn); }
+  #view-prazos .chip.danger{ background:var(--st-red-soft); color:var(--danger); }
+  #view-prazos .steps{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+  #view-prazos .steps li{ display:grid; grid-template-columns:118px minmax(0,1fr); gap:12px; padding:8px 0; border-top:1px solid var(--line); }
+  #view-prazos .steps li:first-child{ border-top:0; }
+  #view-prazos .steps .d{ font-family:var(--font-data); font-size:13.5px; font-variant-numeric:tabular-nums; }
+  #view-prazos .steps .d small{ display:block; font-family:var(--font-ui); color:var(--muted); font-size:12px; }
+  #view-prazos .steps .t b{ font-weight:600; }
+  #view-prazos .steps .t span{ display:block; font-size:12.5px; color:var(--muted); line-height:1.45; }
+  #view-prazos .steps li.fim .d, #view-prazos .steps li.fim .t b{ color:var(--accent); }
+  #view-prazos .avisos{ display:flex; flex-direction:column; gap:6px; }
+  #view-prazos .aviso{ background:var(--warn-soft); color:var(--ink); border-radius:10px; padding:8px 12px; font-size:13px; line-height:1.45; }
+  #view-prazos .aviso b{ color:var(--warn); }
+  #view-prazos .cals{ display:grid; grid-template-columns:repeat(auto-fill, minmax(214px, 1fr)); gap:14px; }
+  #view-prazos .cal h4{ margin:0 0 6px; font-size:13px; font-weight:600; }
+  #view-prazos .cal table{ border-collapse:separate; border-spacing:2px; width:100%; table-layout:fixed; }
+  #view-prazos .cal th{ font-size:10.5px; color:var(--muted); font-weight:500; padding:2px 0; }
+  #view-prazos .cal td{ height:30px; text-align:center; font-size:12.5px; font-variant-numeric:tabular-nums; border-radius:6px; position:relative; color:var(--muted); }
+  #view-prazos .cal td.nu{ background:repeating-linear-gradient(135deg, var(--line) 0 3px, transparent 3px 6px); color:var(--muted); }
+  #view-prazos .cal td.ct{ background:var(--accent-soft); color:var(--ink); font-weight:500; }
+  #view-prazos .cal td.ct i{ position:absolute; right:3px; top:1px; font-style:normal; font-size:8.5px; color:var(--accent); font-weight:600; }
+  #view-prazos .cal td.tm{ outline:1.5px dashed var(--muted); outline-offset:-2px; color:var(--ink); }
+  #view-prazos .cal td.vc{ background:var(--accent); color:var(--accent-ink); font-weight:600; }
+  #view-prazos .cal td.vc i{ color:var(--accent-ink); }
+  #view-prazos .cal td.hj{ box-shadow:inset 0 -2px 0 var(--danger); }
+  #view-prazos .legenda{ display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12px; color:var(--muted); }
+  #view-prazos .legenda span{ display:inline-flex; align-items:center; gap:6px; }
+  #view-prazos .sw{ width:14px; height:14px; border-radius:4px; display:inline-block; }
+  #view-prazos .sw.ct{ background:var(--accent-soft); border:1px solid var(--accent); }
+  #view-prazos .sw.vc{ background:var(--accent); }
+  #view-prazos .sw.nu{ background:repeating-linear-gradient(135deg, var(--line) 0 3px, transparent 3px 6px); border:1px solid var(--line); }
+  #view-prazos .sw.tm{ border:1.5px dashed var(--muted); }
+  #view-prazos .sw.hj{ box-shadow:inset 0 -2px 0 var(--danger); border:1px solid var(--line); }
+  #view-prazos .pulados{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+  #view-prazos .cert{ font-family:var(--font-ui); font-size:14px !important; line-height:1.55 !important; min-height:120px; }
+  #view-prazos .acts{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  #view-prazos .muted{ color:var(--muted); font-size:12.5px; }
+  #view-prazos .idade-big{ font-family:var(--font-data); font-size:30px; font-weight:500; line-height:1.15; }
+  #view-prazos .idade-big small{ display:block; font-family:var(--font-ui); font-size:14px; color:var(--muted); font-weight:400; margin-top:4px; }
+  #view-prazos .marcos{ display:grid; grid-template-columns:repeat(auto-fill, minmax(150px,1fr)); gap:8px; }
+  #view-prazos .marco{ background:var(--sunken); border-radius:10px; padding:9px 11px; display:flex; flex-direction:column; gap:2px; }
+  #view-prazos .marco .k{ font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
+  #view-prazos .marco .v{ font-family:var(--font-data); font-size:15px; }
+  #view-prazos .marco .s{ font-size:12px; color:var(--muted); }
+  #view-prazos .marco.passou .v{ color:var(--muted); text-decoration:line-through; text-decoration-color:var(--line); }
+  #view-prazos .efeitos{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px; font-size:13.5px; line-height:1.5; }
+  #view-prazos .tbl-wrap{ overflow-x:auto; border:1px solid var(--line); border-radius:12px; }
+  #view-prazos table.tb{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:640px; }
+  #view-prazos table.tb th{ text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:500; padding:8px 10px; background:var(--sunken); border-bottom:1px solid var(--line); }
+  #view-prazos table.tb td{ padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; line-height:1.45; }
+  #view-prazos table.tb tr:last-child td{ border-bottom:0; }
+  #view-prazos table.tb tr.grp td{ background:var(--accent-soft); color:var(--accent); font-weight:600; font-size:12.5px; text-transform:uppercase; letter-spacing:.05em; }
+  #view-prazos table.tb .n{ font-family:var(--font-data); font-variant-numeric:tabular-nums; }
+  #view-prazos table.tb .art{ white-space:nowrap; color:var(--muted); font-size:12.5px; }
+  #view-prazos table.tb .obs{ color:var(--muted); font-size:12.5px; }
+  #view-prazos .tag{ display:inline-block; font-size:11px; font-weight:600; border-radius:6px; padding:1px 6px; background:var(--sunken); color:var(--muted); margin-left:4px; white-space:nowrap; }
+  #view-prazos .tag.c{ background:var(--warn-soft); color:var(--warn); }
+  #view-prazos .tag.a{ background:var(--accent-soft); color:var(--accent); }
+  #view-prazos .tag.e{ background:var(--ok-soft); color:var(--ok); }
+  #view-prazos .ck{ display:flex; align-items:flex-start; gap:9px; font-size:14px; line-height:1.4; cursor:pointer; }
+  #view-prazos .ck input{ width:17px; height:17px; margin:2px 0 0; accent-color:var(--accent); flex:none; }
+  #view-prazos .ck small{ display:block; color:var(--muted); font-size:12.5px; }
+  #view-prazos .fer-list{ display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:6px 18px; }
+  #view-prazos .fer{ display:grid; grid-template-columns:96px minmax(0,1fr); gap:8px; font-size:13.5px; padding:5px 0; border-bottom:1px solid var(--line); }
+  #view-prazos .fer .d{ font-family:var(--font-data); font-size:13px; }
+  #view-prazos .fer .o{ color:var(--muted); font-size:12px; }
+  #view-prazos .x{ border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:16px; padding:0 6px; border-radius:6px; }
+  #view-prazos .x:hover{ color:var(--danger); background:var(--st-red-soft); }
+  #view-prazos .fontes{ font-size:12.5px; color:var(--muted); line-height:1.6; }
+  #view-prazos .fontes a{ color:var(--accent); }
+  @media (max-width:980px){
+  #view-prazos .grid2{ grid-template-columns:minmax(0,1fr); }
+  }
+  @media (max-width:760px){
+  #view-prazos .venc .data{ font-size:30px; }
+  #view-prazos .row{ grid-template-columns:minmax(0,1fr); }
+  #view-prazos .steps li{ grid-template-columns:96px minmax(0,1fr); }
+  }
+  @media (prefers-reduced-motion: reduce){
+  #view-prazos *{ transition:none !important; }
+  }
+
   @media print{
     @page{ size:A4 portrait; margin:12mm 11mm 14mm; }
     html, body{ background:#fff !important; }
@@ -1421,6 +1540,10 @@
         <span>Perícias</span>
         <span class="nav-count" id="navCountPer" title="Laudos atrasados"></span>
       </a>
+      <a class="nav-item" href="#prazos" data-route="prazos">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/><path d="M12 13.5v3l2 1.2"/></svg>
+        <span>Prazos</span>
+      </a>
       <a class="nav-item" href="#organizacao" data-route="organizacao">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6"/><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 11l2 2 4-4"/><path d="M9 17h6"/></svg>
         <span>Organização</span>
@@ -1647,6 +1770,169 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <section id="view-prazos" aria-labelledby="pzTitle" hidden>
+
+    <header>
+      <div>
+        <h1 id="pzTitle">Prazos</h1>
+        <div class="tagline">Contagem em dias úteis (CPC, art. 219), sem fins de semana, feriados e recesso de 20/12 a 20/01</div>
+      </div>
+    </header>
+
+    <div class="abas" role="tablist" aria-label="Ferramentas de prazo">
+      <button type="button" class="aba" role="tab" id="pztab-prazo" data-aba="prazo" aria-selected="true">Calcular prazo</button>
+      <button type="button" class="aba" role="tab" id="pztab-idade" data-aba="idade" aria-selected="false">Idade</button>
+      <button type="button" class="aba" role="tab" id="pztab-tabela" data-aba="tabela" aria-selected="false">Tabela de prazos</button>
+      <button type="button" class="aba" role="tab" id="pztab-feriados" data-aba="feriados" aria-selected="false">Feriados e suspensões</button>
+    </div>
+
+    <!-- =================== CALCULAR PRAZO =================== -->
+    <section id="pzv-prazo" role="tabpanel" aria-labelledby="pztab-prazo">
+      <div class="grid2">
+        <form class="panel" id="pzFPrazo" autocomplete="off">
+          <h2>Dados do prazo</h2>
+          <div class="field">
+            <label for="pzPAto">Ato</label>
+            <select id="pzPAto"></select>
+          </div>
+          <div class="ato-info" id="pzPAtoInfo"></div>
+          <div class="row r3">
+            <div class="field"><label for="pzPN">Prazo</label><input id="pzPN" type="number" min="1" max="999" value="15" inputmode="numeric" /></div>
+            <div class="field"><label for="pzPUn">Contagem</label>
+              <select id="pzPUn">
+                <option value="u">dias úteis</option>
+                <option value="c">dias corridos</option>
+                <option value="m">meses</option>
+                <option value="a">anos</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <span class="flabel" id="pzPDirLbl">Contar</span>
+            <div class="seg" role="group" aria-labelledby="pzPDirLbl">
+              <button type="button" id="pzPDirApos" data-dir="apos" aria-pressed="true">A partir da intimação</button>
+              <button type="button" id="pzPDirAntes" data-dir="antes" aria-pressed="false">Antes de uma data</button>
+            </div>
+          </div>
+
+          <div id="pzBoxApos" class="panel" style="padding:0;border:0;box-shadow:none;gap:12px">
+            <div class="field" id="pzBoxForma">
+              <label for="pzPForma">Como a parte tomou ciência</label>
+              <select id="pzPForma">
+                <option value="djen">Publicação no DJEN / Diário</option>
+                <option value="pje">Intimação eletrônica no sistema (PJe)</option>
+                <option value="dom">Citação pelo Domicílio Judicial Eletrônico</option>
+                <option value="juntada">Correios (AR) ou mandado: juntada aos autos</option>
+                <option value="ciencia">Ciência direta (audiência, carga, comparecimento)</option>
+              </select>
+            </div>
+            <div class="field"><label for="pzPData1" id="pzPData1Lbl">Data da disponibilização</label><input id="pzPData1" type="date" /></div>
+            <div class="field" id="pzBoxLeitura" hidden><label for="pzPData2">Data da leitura (se houve)</label><input id="pzPData2" type="date" />
+              <span class="field-hint">Sem leitura, a ciência é automática 10 dias corridos após o envio (Lei 11.419/2006, art. 5º, § 3º).</span></div>
+            <span class="field-hint" id="pzPFormaHint"></span>
+          </div>
+          <div id="pzBoxAntes" hidden>
+            <div class="field"><label for="pzPAlvo">Data da audiência (ou do ato)</label><input id="pzPAlvo" type="date" />
+              <span class="field-hint">Contagem regressiva: o dia da audiência não conta. O resultado é o último dia para cumprir.</span></div>
+          </div>
+
+          <div class="field">
+            <label for="pzPDobro">Prazo em dobro</label>
+            <select id="pzPDobro">
+              <option value="">Não</option>
+              <option value="faz">Fazenda Pública (art. 183)</option>
+              <option value="mp">Ministério Público (art. 180)</option>
+              <option value="dp">Defensoria Pública ou núcleo de prática jurídica (art. 186)</option>
+              <option value="lit">Litisconsortes com advogados de escritórios diferentes (art. 229)</option>
+            </select>
+          </div>
+          <div class="row">
+            <div class="field"><label for="pzPParte">Parte (para a certidão)</label><input id="pzPParte" placeholder="Ex.: parte ré" maxlength="120" /></div>
+            <div class="field"><label for="pzPProc">Processo</label><input id="pzPProc" placeholder="0000000-00.0000.8.11.0000" maxlength="25" style="font-family:var(--font-data);font-size:14px" /></div>
+          </div>
+        </form>
+
+        <div class="panel" id="pzPRes" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <!-- =================== IDADE =================== -->
+    <section id="pzv-idade" role="tabpanel" aria-labelledby="pztab-idade" hidden>
+      <div class="grid2">
+        <form class="panel" id="pzFIdade" autocomplete="off">
+          <h2>Idade da parte</h2>
+          <div class="field"><label for="pzINasc">Data de nascimento</label><input id="pzINasc" type="date" />
+            <span class="field-hint" id="pzIExemplo">Preenchido com um exemplo. Troque pela data da parte.</span></div>
+          <div class="field"><label for="pzIRef">Idade na data de</label><input id="pzIRef" type="date" />
+            <span class="field-hint">Hoje, por padrão. Use outra data para saber a idade no ajuizamento, na citação ou na data do fato.</span></div>
+          <div class="acts"><button type="button" class="btn sm" id="pzIHoje">Usar hoje</button></div>
+        </form>
+        <div class="panel" id="pzIRes" aria-live="polite"></div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <h2>Várias pessoas de uma vez</h2>
+        <div class="field">
+          <label for="pzILote">Uma por linha: nome e data de nascimento</label>
+          <textarea id="pzILote" rows="4" placeholder="Maria Souza; 12/05/2011&#10;João Lima 03/09/2008"></textarea>
+          <span class="field-hint">Pode colar de uma planilha. A idade é calculada na data escolhida acima.</span>
+        </div>
+        <div class="tbl-wrap" id="pzILoteTab" hidden></div>
+      </div>
+    </section>
+
+    <!-- =================== TABELA =================== -->
+    <section id="pzv-tabela" role="tabpanel" aria-labelledby="pztab-tabela" hidden>
+      <div class="panel">
+        <div class="field"><label for="pzTBusca">Buscar ato ou artigo</label><input id="pzTBusca" type="search" placeholder="Ex.: apelação, 1.023, impugnação" /></div>
+        <div class="tbl-wrap"><table class="tb" id="pzTTab"></table></div>
+        <p class="fontes" style="margin:0">Prazos do CPC (Lei 13.105/2015) contam só dias úteis (art. 219). Na falta de prazo na lei ou fixado pelo juiz, o prazo é de 5 dias (art. 218, § 3º).
+          <span class="tag c">corridos</span> marca prazos de direito material ou com entendimento do STJ pela contagem corrida.
+          <span class="tag a">sem dobro</span> marca prazos próprios, que não dobram para Fazenda, MP ou Defensoria.
+          No <span class="tag e">ECA</span>, os prazos são em dias corridos e não dobram para Fazenda e MP (art. 152, § 2º); a Defensoria mantém o dobro (STJ).
+          <span class="tag e">prazo máximo</span> marca limites de duração (acolhimento, estágio, internação), contados da data de início.</p>
+      </div>
+    </section>
+
+    <!-- =================== FERIADOS =================== -->
+    <section id="pzv-feriados" role="tabpanel" aria-labelledby="pztab-feriados" hidden>
+      <div class="grid2">
+        <div class="panel">
+          <h2>O que não conta como dia útil</h2>
+          <label class="ck"><input type="checkbox" id="pzFRecesso" checked /> <span>Recesso forense de 20/12 a 20/01<small>Suspende os prazos processuais (CPC, art. 220).</small></span></label>
+          <h3>Suspensões que dependem do tribunal</h3>
+          <div id="pzFOpc" style="display:flex;flex-direction:column;gap:10px"></div>
+          <p class="field-hint" style="margin:0">Confiram a portaria anual do TJMT com o calendário de expediente e marquem só o que ela suspende.</p>
+          <h3>Feriados da comarca e suspensões avulsas</h3>
+          <div class="row">
+            <div class="field"><label for="pzFData">Data</label><input id="pzFData" type="date" /></div>
+            <div class="field"><label for="pzFNome">Motivo</label><input id="pzFNome" maxlength="80" placeholder="Ex.: aniversário do município" /></div>
+          </div>
+          <label class="ck"><input type="checkbox" id="pzFTodoAno" /> <span>Repete todo ano</span></label>
+          <div class="acts"><button type="button" class="btn primary" id="pzFAdd">Acrescentar</button></div>
+          <div id="pzFExtras"></div>
+          <p class="field-hint" style="margin:0">A lista vale para toda a equipe e também para o prazo do laudo em Perícias.</p>
+          <div class="aviso" id="pzFAviso" hidden></div>
+        </div>
+        <div class="panel">
+          <div class="acts" style="justify-content:space-between">
+            <h2 id="pzFAnoTit">Dias sem expediente</h2>
+            <div class="field" style="flex-direction:row;align-items:center;gap:8px"><label for="pzFAno">Ano</label>
+              <select id="pzFAno" style="width:100px"></select></div>
+          </div>
+          <div class="fer-list" id="pzFLista"></div>
+        </div>
+      </div>
+    </section>
+
+    <p class="fontes">Base: CPC, arts. 180, 183, 186, 219 a 231 e 1.003; Lei 11.419/2006, art. 5º; Resolução CNJ 455/2022 (DJEN e Domicílio Judicial Eletrônico, com a redação da Res. 569/2024);
+      Código Civil, arts. 3º, 4º e 132; ECA, arts. 2º, 19, 46, 47, 121, 152, 158, 163, 166 e 198; Estatuto da Pessoa Idosa, art. 71.
+      Material de apoio: <a href="https://www.tjmg.jus.br/data/files/D4/44/4E/4A/FB82B91042A101B99128CCA8/Protocolo%20DJEN%20e%20Domicilio%20Judicial%20Eletronico%20_externos_%20-%20Ago%2025.pdf" target="_blank" rel="noopener">TJMG, protocolo DJEN e Domicílio</a>,
+      <a href="https://portal.trt12.jus.br/domiciliojudicialeletronico" target="_blank" rel="noopener">TRT-12, Domicílio Judicial Eletrônico</a>,
+      <a href="https://juris.damasio.com.br/jurisprudencia/julgado/870/aplicacao-do-prazo-em-dobro-da-defensoria-publica-nos-procedimentos-do-eca" target="_blank" rel="noopener">STJ, Informativo 870 (Defensoria no ECA)</a>.
+      O cálculo é uma ajuda: a certidão continua sendo responsabilidade de quem confere.</p>
   </section>
 
   <section id="view-organizacao" aria-labelledby="orgTitle" hidden>
@@ -3109,6 +3395,7 @@
     agenda:     { title: 'Agenda' },
     audiencias: { title: 'Audiências' },
     pericias: { title: 'Perícias' },
+    prazos: { title: 'Prazos' },
     organizacao: { title: 'Organização' }
   };
   var currentRoute = 'agenda';
@@ -3140,10 +3427,12 @@
     els.addBtn.hidden = (r !== 'agenda');
     document.getElementById('gBuscaTopo').hidden = (r !== 'pericias');
     document.querySelector('.main .wrap').classList.toggle('wide', r === 'organizacao');
+    document.querySelector('.main .wrap').classList.toggle('medio', r === 'prazos');
     setNavOpen(false);
     if (changed) window.scrollTo(0, 0);
     if (r === 'audiencias') renderAudiencias();
     if (r === 'organizacao') orgOnEnter();
+    if (r === 'prazos') PZ.entrar();
     if (r === 'pericias') renderPericias();
     else document.querySelector('.main').classList.remove('has-batch');
   }
@@ -7768,37 +8057,10 @@
   var PRAZO_ALERTA_DIAS_UTEIS = 5;      // destaca o laudo quando faltam até 5 dias úteis
   var PER_ATALHOS = ["Perito intimado para dizer se aceita", "Perito aceitou", "Perito recusou", "Perito informou a data", "Laudo cobrado do perito"];
 
-  // Feriados que não contam como dia útil. Acrescente feriados estaduais/municipais aqui (formato "MM-DD").
-  var FERIADOS_FIXOS = ["01-01", "04-21", "05-01", "09-07", "10-12", "11-02", "11-15", "11-20", "12-25"];
+  // Feriados locais fixos (formato "MM-DD"). Os demais feriados e suspensões ficam na seção Prazos
+  // (aba "Feriados e suspensões"), que vale para toda a equipe.
   var FERIADOS_EXTRAS = [];
-
-  function pascoa(ano){
-    var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4,
-        f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
-        i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
-        mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
-    return new Date(ano, mes - 1, dia);
-  }
-  var feriadosCache = {};
-  function feriadosDoAno(ano){
-    if (feriadosCache[ano]) return feriadosCache[ano];
-    var set = {};
-    FERIADOS_FIXOS.concat(FERIADOS_EXTRAS).forEach(function(md){ set[ano + '-' + md] = true; });
-    var p = pascoa(ano);
-    [-48, -47, -2, 60].forEach(function(off){   // Carnaval (seg e ter), Sexta-feira Santa, Corpus Christi
-      var d = new Date(p.getFullYear(), p.getMonth(), p.getDate() + off);
-      set[dayKey(d)] = true;
-    });
-    feriadosCache[ano] = set;
-    return set;
-  }
-  function ehDiaUtil(d){
-    var wd = d.getDay();
-    if (wd === 0 || wd === 6) return false;
-    var m = d.getMonth(), dia = d.getDate();
-    if ((m === 11 && dia >= 20) || (m === 0 && dia <= 20)) return false;   // recesso forense (art. 220 do CPC)
-    return !feriadosDoAno(d.getFullYear())[dayKey(d)];
-  }
+  function ehDiaUtil(d){ return PZ.util(d); }
   // Conta n dias úteis a partir do dia seguinte ao início (o dia do início não conta)
   function somarDiasUteis(inicio, n){
     var d = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
@@ -9010,6 +9272,685 @@
   });
 
   // ---------------------------------------------------------------------
+  // Prazos: calculadora de prazos, idade, tabela de prazos e feriados.
+  // O calendário de dias úteis daqui também vale para Perícias e Organização (ehDiaUtil).
+  // ---------------------------------------------------------------------
+
+  var PZ = (function(){
+
+    // ------------------------------------------------------------------
+    // Tabela de prazos (vara cível). un: u = dias úteis, c = corridos, m = meses, a = anos
+    // dir: "antes" = contagem regressiva a partir de uma data (audiência)
+    // ------------------------------------------------------------------
+    var ATOS = [
+      { g:"Respostas e manifestações", id:"contestacao", ato:"Contestação (procedimento comum)", n:15, un:"u", art:"art. 335",
+        ini:"Da audiência de conciliação (ou da última sessão), do protocolo do pedido de cancelamento da audiência pelo réu ou, se não houver audiência, da forma de citação (art. 231)." },
+      { g:"Respostas e manifestações", id:"contest_fam", ato:"Contestação em ação de família", n:15, un:"u", art:"arts. 335 e 697", ini:"Da audiência de mediação e conciliação, quando não houver acordo." },
+      { g:"Respostas e manifestações", id:"replica", ato:"Réplica", n:15, un:"u", art:"arts. 350 e 351", ini:"Da intimação para se manifestar sobre a contestação." },
+      { g:"Respostas e manifestações", id:"reconv", ato:"Contestação à reconvenção", n:15, un:"u", art:"art. 343, § 1º", ini:"Da intimação do autor, na pessoa do advogado." },
+      { g:"Respostas e manifestações", id:"emenda", ato:"Emenda ou complemento da inicial", n:15, un:"u", art:"art. 321", ini:"Da intimação do autor." },
+      { g:"Respostas e manifestações", id:"custas", ato:"Recolhimento das custas iniciais", n:15, un:"u", art:"art. 290", ini:"Da intimação, sob pena de cancelamento da distribuição." },
+      { g:"Respostas e manifestações", id:"docs", ato:"Manifestação sobre documentos juntados", n:15, un:"u", art:"art. 437, § 1º", ini:"Da intimação." },
+      { g:"Respostas e manifestações", id:"generico", ato:"Prazo sem previsão legal nem fixado pelo juiz", n:5, un:"u", art:"art. 218, § 3º", ini:"Da intimação." },
+      { g:"Respostas e manifestações", id:"suspeicao", ato:"Arguição de impedimento ou suspeição", n:15, un:"u", art:"art. 146", ini:"Do conhecimento do fato." },
+      { g:"Respostas e manifestações", id:"mp_fiscal", ato:"Ministério Público como fiscal da ordem jurídica", n:30, un:"u", art:"art. 178", sd:true, ini:"Da intimação. Prazo próprio do MP, não dobra." },
+      { g:"Respostas e manifestações", id:"emb_terc", ato:"Contestação em embargos de terceiro", n:15, un:"u", art:"art. 679", ini:"Da citação." },
+      { g:"Respostas e manifestações", id:"monit", ato:"Monitória: pagamento ou embargos", n:15, un:"u", art:"arts. 701 e 702", ini:"Da citação (art. 231)." },
+
+      { g:"Tutelas provisórias", id:"aditamento", ato:"Aditamento da inicial (tutela antecipada antecedente)", n:15, un:"u", art:"art. 303, § 1º, I", ini:"Da intimação da concessão da tutela, ou prazo maior fixado pelo juiz." },
+      { g:"Tutelas provisórias", id:"cautelar_cont", ato:"Contestação em tutela cautelar antecedente", n:5, un:"u", art:"art. 306", ini:"Da citação." },
+      { g:"Tutelas provisórias", id:"cautelar_princ", ato:"Pedido principal após efetivar a cautelar", n:30, un:"c", art:"art. 308", ini:"Da efetivação da tutela cautelar. O STJ considera prazo decadencial, contado em dias corridos." },
+
+      { g:"Provas e perícia", id:"quesitos", ato:"Quesitos e assistente técnico", n:15, un:"u", art:"art. 465, § 1º", ini:"Da intimação da nomeação do perito." },
+      { g:"Provas e perícia", id:"escusa", ato:"Escusa ou impedimento do perito", n:15, un:"u", art:"art. 157, § 1º", ini:"Da intimação, da suspeição ou do impedimento supervenientes." },
+      { g:"Provas e perícia", id:"laudo_manif", ato:"Manifestação sobre o laudo", n:15, un:"u", art:"art. 477, § 1º", ini:"Da intimação da juntada do laudo." },
+      { g:"Provas e perícia", id:"saneamento", ato:"Pedido de esclarecimento ou ajuste do saneamento", n:5, un:"u", art:"art. 357, § 1º", ini:"Da intimação da decisão de saneamento." },
+      { g:"Provas e perícia", id:"rol", ato:"Rol de testemunhas", n:15, un:"u", art:"art. 357, § 4º", ini:"Prazo comum fixado pelo juiz, de até 15 dias. Confira a decisão." },
+
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_design", ato:"Designar a audiência de conciliação ou mediação", n:30, un:"u", dir:"antes", art:"art. 334", ini:"A audiência deve ser marcada com pelo menos 30 dias de antecedência. O resultado é a data limite do despacho que designa." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cit_334", ato:"Citação antes da audiência de conciliação", n:20, un:"u", dir:"antes", art:"art. 334", ini:"O réu deve ser citado com pelo menos 20 dias de antecedência da audiência." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_fam", ato:"Citação antes da mediação em ação de família", n:15, un:"u", dir:"antes", art:"art. 695, § 2º", ini:"O réu deve ser citado com pelo menos 15 dias de antecedência da audiência." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"desint_334", ato:"Petição do réu sem interesse na conciliação", n:10, un:"u", dir:"antes", art:"art. 334, § 5º", ini:"Protocolo com 10 dias de antecedência, contados da data da audiência. A audiência só é cancelada se as duas partes não quiserem (art. 334, § 4º, I)." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_contest", ato:"Contestação depois da audiência sem acordo", n:15, un:"u", forma:"ciencia", rotForma:"Data da audiência (ou da última sessão)", cert:"realizada a audiência de conciliação sem acordo em", certNome:"contestação", art:"art. 335, I", ini:"Conta da audiência de conciliação ou mediação, ou da última sessão, quando não houver acordo ou uma parte faltar." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_contest_canc", ato:"Contestação depois do pedido de cancelamento da audiência", n:15, un:"u", forma:"ciencia", rotForma:"Data do protocolo do pedido do réu", cert:"protocolado pelo réu o pedido de cancelamento da audiência em", certNome:"contestação", art:"art. 335, II", ini:"Conta do protocolo do pedido de cancelamento feito pelo réu, quando as duas partes não querem a audiência." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_sessoes", ato:"Novas sessões de conciliação: prazo máximo", certNome:"realização de novas sessões de conciliação", n:2, un:"m", marco:true, rot:"Data da primeira sessão", art:"art. 334, § 2º", ini:"As sessões seguintes, quando necessárias para o acordo, não podem passar de 2 meses da primeira." },
+      { g:"Audiência de conciliação (CEJUSC)", id:"cej_mediacao", ato:"Conclusão da mediação judicial", n:60, un:"c", marco:true, rot:"Data da primeira sessão", art:"Lei 13.140/2015, art. 28", ini:"A mediação deve terminar em até 60 dias, salvo se as partes pedirem a prorrogação de comum acordo." },
+
+      { g:"Antes da audiência de instrução (contagem regressiva)", id:"laudo_aij", ato:"Laudo pericial antes da audiência de instrução", n:20, un:"u", dir:"antes", art:"art. 477", ini:"O laudo deve ser protocolado pelo menos 20 dias antes da audiência." },
+      { g:"Antes da audiência de instrução (contagem regressiva)", id:"ar_test", ato:"Juntada do AR da intimação da testemunha", n:3, un:"u", dir:"antes", art:"art. 455, § 1º", ini:"O advogado junta a cópia da carta e o AR pelo menos 3 dias antes da audiência." },
+
+      { g:"Recursos", id:"apelacao", ato:"Apelação", n:15, un:"u", art:"arts. 1.003, § 5º, e 1.009", ini:"Da intimação da sentença (art. 1.003). Se a sentença for lida em audiência, da própria audiência." },
+      { g:"Recursos", id:"contrarraz_ap", ato:"Contrarrazões de apelação", n:15, un:"u", art:"art. 1.010, § 1º", ini:"Da intimação do apelado." },
+      { g:"Recursos", id:"ed", ato:"Embargos de declaração", n:5, un:"u", art:"art. 1.023", ini:"Da intimação da decisão. Interrompem o prazo dos demais recursos (art. 1.026)." },
+      { g:"Recursos", id:"ed_contra", ato:"Contrarrazões aos embargos de declaração", n:5, un:"u", art:"art. 1.023, § 2º", ini:"Da intimação, quando o acolhimento puder modificar a decisão." },
+      { g:"Recursos", id:"agravo", ato:"Agravo de instrumento", n:15, un:"u", art:"arts. 1.003, § 5º, e 1.015", ini:"Da intimação da decisão interlocutória." },
+      { g:"Recursos", id:"agravo_resp", ato:"Resposta ao agravo de instrumento", n:15, un:"u", art:"art. 1.019, II", ini:"Da intimação do agravado." },
+      { g:"Recursos", id:"agr_interno", ato:"Agravo interno", n:15, un:"u", art:"arts. 1.003, § 5º, e 1.021", ini:"Da intimação da decisão monocrática do relator." },
+      { g:"Recursos", id:"resp", ato:"Recurso especial ou extraordinário", n:15, un:"u", art:"art. 1.003, § 5º", ini:"Da intimação do acórdão." },
+
+      { g:"Cumprimento de sentença e execução", id:"pagto_523", ato:"Pagamento voluntário (cumprimento de sentença)", n:15, un:"u", art:"art. 523", ini:"Da intimação do devedor (art. 513, § 2º). Depois dele, multa de 10% e honorários de 10%." },
+      { g:"Cumprimento de sentença e execução", id:"impug_525", ato:"Impugnação ao cumprimento de sentença", n:15, un:"u", art:"art. 525", ini:"Começa no dia seguinte ao fim do prazo de pagamento do art. 523, sem nova intimação." },
+      { g:"Cumprimento de sentença e execução", id:"impug_535", ato:"Impugnação da Fazenda Pública ao cumprimento", n:30, un:"u", art:"art. 535", sd:true, ini:"Da intimação da Fazenda. Prazo próprio, não dobra." },
+      { g:"Cumprimento de sentença e execução", id:"alimentos", ato:"Alimentos: pagar, provar que pagou ou justificar", n:3, un:"u", art:"arts. 528 e 911", ini:"Da intimação (cumprimento) ou da citação (execução de título extrajudicial)." },
+      { g:"Cumprimento de sentença e execução", id:"pagto_829", ato:"Execução de título extrajudicial: pagamento", n:3, un:"u", art:"art. 829", ini:"Da citação. Se pagar em 3 dias, os honorários caem pela metade (art. 827, § 1º)." },
+      { g:"Cumprimento de sentença e execução", id:"emb_exec", ato:"Embargos à execução", n:15, un:"u", art:"art. 915", sd:true, ini:"Da juntada do mandado ou do AR da citação (art. 231). Não dobra para litisconsortes (art. 915, § 3º)." },
+      { g:"Cumprimento de sentença e execução", id:"emb_exec_faz", ato:"Embargos à execução pela Fazenda Pública", n:30, un:"u", art:"art. 910", sd:true, ini:"Da citação. Prazo próprio, não dobra." },
+      { g:"Cumprimento de sentença e execução", id:"penhora", ato:"Impugnação por fato posterior ou à penhora", n:15, un:"u", art:"arts. 525, § 11, e 917, § 1º", ini:"Da ciência do fato ou da intimação do ato." },
+
+      { g:"Inventário", id:"prim_decl", ato:"Primeiras declarações", n:20, un:"u", art:"art. 620", ini:"Da data em que o inventariante prestou compromisso." },
+      { g:"Inventário", id:"manif_decl", ato:"Manifestação sobre as primeiras declarações", n:15, un:"u", art:"art. 627", ini:"Da citação ou intimação das partes, prazo comum." },
+
+      { g:"Infância (ECA): procedimentos", id:"eca_dpf", ato:"Resposta na destituição ou suspensão do poder familiar", n:10, un:"c", eca:true, art:"ECA, arts. 158 e 169", ini:"Da citação. Vale também para guarda, tutela e adoção sem o consentimento dos pais (art. 169)." },
+      { g:"Infância (ECA): procedimentos", id:"eca_arrep", ato:"Arrependimento após a entrega voluntária", n:10, un:"c", eca:true, art:"ECA, art. 166, § 5º", ini:"Da sentença que extingue o poder familiar." },
+      { g:"Infância (ECA): procedimentos", id:"eca_hab", ato:"Manifestação do MP na habilitação para adoção", n:5, un:"c", eca:true, art:"ECA, art. 197-B", ini:"Da vista dos autos ao Ministério Público." },
+      { g:"Infância (ECA): procedimentos", id:"eca_infadm", ato:"Defesa em infração administrativa", n:10, un:"c", eca:true, art:"ECA, art. 195", ini:"Da intimação do auto de infração." },
+      { g:"Infância (ECA): procedimentos", id:"eca_entid", ato:"Resposta na apuração de irregularidade em entidade", n:10, un:"c", eca:true, art:"ECA, art. 192", ini:"Da citação do dirigente da entidade." },
+
+      { g:"Infância (ECA): recursos", id:"eca_apel", ato:"Apelação (ECA)", n:10, un:"c", eca:true, art:"ECA, art. 198, II", ini:"Da intimação da sentença. Todos os recursos do ECA têm 10 dias, menos os embargos de declaração." },
+      { g:"Infância (ECA): recursos", id:"eca_agr", ato:"Agravo de instrumento (ECA)", n:10, un:"c", eca:true, art:"ECA, art. 198, II", ini:"Da intimação da decisão." },
+      { g:"Infância (ECA): recursos", id:"eca_contra", ato:"Contrarrazões (ECA)", n:10, un:"c", eca:true, art:"ECA, art. 198, II", ini:"Da intimação do recorrido." },
+      { g:"Infância (ECA): recursos", id:"eca_ed", ato:"Embargos de declaração (ECA)", n:5, un:"c", eca:true, art:"ECA, art. 198, II; CPC, art. 1.023", ini:"Da intimação. O prazo é o do CPC, contado em dias corridos." },
+
+      { g:"Infância (ECA): prazos máximos", id:"eca_reav", ato:"Reavaliação da criança ou do adolescente acolhido", n:3, un:"m", eca:true, marco:true, rot:"Data do acolhimento ou da última reavaliação", art:"ECA, art. 19, § 1º", ini:"A situação deve ser reavaliada no máximo a cada 3 meses." },
+      { g:"Infância (ECA): prazos máximos", id:"eca_acolh", ato:"Permanência máxima no acolhimento", n:18, un:"m", eca:true, marco:true, rot:"Data do acolhimento", art:"ECA, art. 19, § 2º", ini:"Salvo necessidade comprovada e fundamentada pelo juiz." },
+      { g:"Infância (ECA): prazos máximos", id:"eca_famext", ato:"Busca da família extensa (entrega voluntária)", n:90, un:"c", eca:true, marco:true, rot:"Data do início da busca", art:"ECA, art. 19-A, § 3º", ini:"Prorrogável uma vez por igual período." },
+      { g:"Infância (ECA): prazos máximos", id:"eca_estagio", ato:"Estágio de convivência na adoção", n:90, un:"c", eca:true, marco:true, rot:"Data do início do estágio", art:"ECA, art. 46", ini:"Prazo máximo, prorrogável uma vez por até igual período, por decisão fundamentada." },
+      { g:"Infância (ECA): prazos máximos", id:"eca_concl_dpf", ato:"Conclusão da destituição do poder familiar", n:120, un:"c", eca:true, marco:true, rot:"Data do ajuizamento", art:"ECA, art. 163", ini:"Prazo máximo para concluir o procedimento." },
+      { g:"Infância (ECA): prazos máximos", id:"eca_concl_ado", ato:"Conclusão da ação de adoção", n:120, un:"c", eca:true, marco:true, rot:"Data do ajuizamento", art:"ECA, art. 47, § 10", ini:"Prorrogável uma vez por igual período, por decisão fundamentada." },
+
+      { g:"Infância (ECA): ato infracional", id:"eca_intprov", ato:"Internação provisória: prazo máximo", certNome:"conclusão do procedimento com o adolescente internado provisoriamente", n:45, un:"c", eca:true, marco:true, rot:"Data da internação provisória", art:"ECA, arts. 108 e 183", ini:"Prazo improrrogável para concluir o procedimento com o adolescente internado." },
+      { g:"Infância (ECA): ato infracional", id:"eca_defprev", ato:"Defesa prévia", n:3, un:"c", eca:true, art:"ECA, art. 186, § 3º", ini:"Da audiência de apresentação." },
+      { g:"Infância (ECA): ato infracional", id:"eca_reavmse", ato:"Reavaliação da internação ou semiliberdade", n:6, un:"m", eca:true, marco:true, rot:"Data do início da medida ou da última reavaliação", art:"ECA, art. 121, § 2º", ini:"Reavaliação no máximo a cada 6 meses." },
+      { g:"Infância (ECA): ato infracional", id:"eca_intmax", ato:"Internação: prazo máximo", certNome:"cumprimento da internação", n:3, un:"a", eca:true, marco:true, rot:"Data do início da internação", art:"ECA, art. 121, § 3º", ini:"A liberação é obrigatória aos 21 anos (art. 121, § 5º). Confira na aba Idade." },
+
+      { g:"Juizado Especial Cível (Lei 9.099/1995)", id:"jec_ri", ato:"Recurso inominado", n:10, un:"u", art:"Lei 9.099, arts. 12-A e 42", ini:"Da ciência da sentença." },
+      { g:"Juizado Especial Cível (Lei 9.099/1995)", id:"jec_contra", ato:"Contrarrazões ao recurso inominado", n:10, un:"u", art:"Lei 9.099, art. 42, § 2º", ini:"Da intimação do recorrido." },
+      { g:"Juizado Especial Cível (Lei 9.099/1995)", id:"jec_ed", ato:"Embargos de declaração no Juizado", n:5, un:"u", art:"Lei 9.099, art. 49", ini:"Da ciência da decisão." },
+
+      { g:"Prazos longos", id:"rescisoria", ato:"Ação rescisória", n:2, un:"a", art:"art. 975", ini:"Do trânsito em julgado da última decisão. Se terminar em dia sem expediente, vai para o primeiro dia útil seguinte (art. 975, § 1º)." }
+    ];
+    var ATO_POR_ID = {}; ATOS.forEach(function(a){ ATO_POR_ID[a.id] = a; });
+    var UN_TXT = { u:["dia útil","dias úteis"], c:["dia corrido","dias corridos"], m:["mês","meses"], a:["ano","anos"] };
+
+    // ------------------------------------------------------------------
+    // Datas
+    // ------------------------------------------------------------------
+    var DOW = ["domingo","segunda-feira","terça-feira","quarta-feira","quinta-feira","sexta-feira","sábado"];
+    var MESES = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+    function pad(n){ return (n < 10 ? "0" : "") + n; }
+    function D(y, m, d){ return new Date(y, m, d, 12); }
+    function hoje(){ var t = new Date(); return D(t.getFullYear(), t.getMonth(), t.getDate()); }
+    function key(d){ return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+    function parse(s){ var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || ""); return m ? D(+m[1], +m[2] - 1, +m[3]) : null; }
+    function add(d, n){ return D(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+    function fmt(d){ return pad(d.getDate()) + "/" + pad(d.getMonth() + 1) + "/" + d.getFullYear(); }
+    function fmtDow(d){ return DOW[d.getDay()]; }
+    function same(a, b){ return a && b && key(a) === key(b); }
+    function diasEntre(a, b){ return Math.round((b - a) / 864e5); }
+    function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+
+    // ------------------------------------------------------------------
+    // Feriados e suspensões
+    // ------------------------------------------------------------------
+    var FIXOS = { "01-01":"Confraternização Universal", "04-21":"Tiradentes", "05-01":"Dia do Trabalho", "09-07":"Independência do Brasil",
+      "10-12":"Nossa Senhora Aparecida", "11-02":"Finados", "11-15":"Proclamação da República", "11-20":"Dia Nacional de Zumbi e da Consciência Negra", "12-25":"Natal" };
+    var MOVEIS = [[-48, "Carnaval (segunda-feira)"], [-47, "Carnaval (terça-feira)"], [-2, "Sexta-feira Santa"], [60, "Corpus Christi"]];
+    var OPCIONAIS = [
+      { id:"cinzas", nome:"Quarta-feira de Cinzas", pascoa:-46, obs:"Muitos tribunais só abrem à tarde. Se os prazos ficarem suspensos, marque." },
+      { id:"qsanta", nome:"Quinta-feira Santa", pascoa:-3, obs:"Ponto facultativo em vários tribunais." },
+      { id:"servidor", nome:"Dia do Servidor Público (28/10)", md:"10-28", obs:"Costuma ser transferido; confira a data na portaria do ano." },
+      { id:"justica", nome:"Dia da Justiça (08/12)", md:"12-08", obs:"Sem expediente na maioria dos tribunais." }
+    ];
+    var cfg = { recesso:true, opc:{ cinzas:false, qsanta:false, servidor:false, justica:true }, extras:[] };
+    // O calendário fica no Supabase (tabela prazos_config) e vale para toda a equipe.
+    // Sem a tabela, as mudanças ficam só neste navegador até rodar o sql/prazos.sql.
+    var cfgErro = null;
+    function lerLocal(){ try { var salvo = JSON.parse(localStorage.getItem("prazosCfg") || "null"); if (salvo) cfg = Object.assign(cfg, salvo); } catch (e) {} }
+    lerLocal();
+    function aplicarCfg(v){
+      cfg = { recesso: v.recesso !== false, opc: Object.assign({ cinzas:false, qsanta:false, servidor:false, justica:true }, v.opc || {}), extras: Array.isArray(v.extras) ? v.extras : [] };
+      feriadosCache = {};
+    }
+    async function carregar(){
+      if (!supabase) return;
+      var res = await supabase.from("prazos_config").select("valor").eq("chave", "calendario").maybeSingle();
+      cfgErro = res.error || null;
+      if (!res.error && res.data && res.data.valor) aplicarCfg(res.data.valor);
+      redesenhar();
+    }
+    async function guardar(){
+      feriadosCache = {};
+      if (supabase && !cfgErro){
+        var res = await supabase.from("prazos_config").upsert({ chave:"calendario", valor:cfg, updated_at:new Date().toISOString() });
+        if (res.error){ cfgErro = res.error; toast("Não foi possível salvar o calendário: " + res.error.message); }
+      }
+      if (!supabase || cfgErro){ try { localStorage.setItem("prazosCfg", JSON.stringify(cfg)); } catch (e) {} }
+      renderAvisoCfg();
+    }
+    function renderAvisoCfg(){
+      var el = $("pzFAviso"), m = cfgErro ? (cfgErro.message || "") + " " + (cfgErro.code || "") : "";
+      el.hidden = !supabase || !cfgErro;
+      el.innerHTML = /prazos_config|42P01|PGRST205/.test(m)
+        ? "<b>Falta a tabela do calendário no Supabase.</b> Rode o <code>sql/prazos.sql</code> (veja o LEIA-ME.md). Até lá, as mudanças ficam só neste navegador."
+        : "<b>Calendário indisponível:</b> " + esc(m) + ". As mudanças ficam só neste navegador.";
+    }
+
+    function pascoa(ano){
+      var a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4,
+          f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30,
+          i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451),
+          mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+      return D(ano, mes - 1, dia);
+    }
+    var feriadosCache = {};
+    function feriadosDoAno(ano){
+      if (feriadosCache[ano]) return feriadosCache[ano];
+      var map = {}, p = pascoa(ano);
+      Object.keys(FIXOS).forEach(function(md){ map[ano + "-" + md] = { nome:FIXOS[md], tipo:"Nacional" }; });
+      MOVEIS.forEach(function(x){ map[key(add(p, x[0]))] = { nome:x[1], tipo:"Nacional" }; });
+      OPCIONAIS.forEach(function(o){
+        if (!cfg.opc[o.id]) return;
+        var d = o.md ? parse(ano + "-" + o.md) : add(p, o.pascoa);
+        map[key(d)] = { nome:o.nome, tipo:"Tribunal" };
+      });
+      FERIADOS_EXTRAS.forEach(function(md){ map[ano + "-" + md] = { nome:"Feriado local", tipo:"Comarca (no código)" }; });
+      cfg.extras.forEach(function(x){
+        var k = x.anual ? ano + "-" + x.data.slice(5) : x.data;
+        if (k.slice(0, 4) === String(ano)) map[k] = { nome:x.nome, tipo:x.anual ? "Comarca (todo ano)" : "Avulso" };
+      });
+      feriadosCache[ano] = map;
+      return map;
+    }
+    function emRecesso(d){ var m = d.getMonth(), dia = d.getDate(); return cfg.recesso && ((m === 11 && dia >= 20) || (m === 0 && dia <= 20)); }
+    // Motivo de o dia não ser útil, ou null se for útil
+    function motivo(d){
+      var f = feriadosDoAno(d.getFullYear())[key(d)];
+      if (f) return f.nome;
+      if (emRecesso(d)) return "Recesso forense";
+      if (d.getDay() === 0) return "Domingo";
+      if (d.getDay() === 6) return "Sábado";
+      return null;
+    }
+    function util(d){ return !motivo(d); }
+    function proxUtil(d){ var x = add(d, 1); while (!util(x)) x = add(x, 1); return x; }   // primeiro dia útil depois de d
+    function utilOuProx(d){ return util(d) ? d : proxUtil(d); }
+    function antUtil(d){ var x = add(d, -1); while (!util(x)) x = add(x, -1); return x; }
+    function somaUteis(d, n){ var x = d; for (var i = 0; i < n; i++) x = proxUtil(x); return x; }
+    function addMeses(d, n){
+      var y = d.getFullYear(), m = d.getMonth() + n, ult = new Date(y, m + 1, 0).getDate();
+      // CC, art. 132, § 3º: vence no dia de igual número; se não existir, no dia seguinte
+      return d.getDate() > ult ? D(y, m + 1, 1) : D(y, m, d.getDate());
+    }
+
+    // ------------------------------------------------------------------
+    // Número por extenso (para a certidão)
+    // ------------------------------------------------------------------
+    var UNI = ["zero","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+    var DEZ = ["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+    var CEN = ["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+    function extenso(n){
+      if (n < 20) return UNI[n];
+      if (n < 100) return DEZ[Math.floor(n / 10)] + (n % 10 ? " e " + UNI[n % 10] : "");
+      if (n === 100) return "cem";
+      return CEN[Math.floor(n / 100)] + (n % 100 ? " e " + extenso(n % 100) : "");
+    }
+    function qtd(n, un){ return n + " (" + extenso(n) + ") " + UN_TXT[un][n === 1 ? 0 : 1]; }
+
+    // ------------------------------------------------------------------
+    // Cálculo do prazo
+    // ------------------------------------------------------------------
+    var FORMAS = {
+      djen:    { lbl:"Data da disponibilização", hint:"Publicação: 1º dia útil seguinte à disponibilização. O prazo começa no 1º dia útil seguinte à publicação (CPC, art. 224, §§ 2º e 3º)." },
+      pje:     { lbl:"Data do envio da intimação", hint:"A ciência acontece na leitura ou, sem leitura, 10 dias corridos após o envio. O prazo começa no dia útil seguinte à ciência." },
+      dom:     { lbl:"Data da confirmação do recebimento", hint:"O prazo começa a correr do 5º dia útil seguinte à confirmação (CPC, art. 231, IX). A confirmação deve ocorrer em até 3 dias úteis do envio (art. 246, § 1º-A)." },
+      juntada: { lbl:"Data da juntada do AR ou do mandado", hint:"O prazo começa no dia útil seguinte à juntada aos autos (CPC, art. 231, I e II)." },
+      ciencia: { lbl:"Data da ciência", hint:"Intimação em audiência, por carga ou por comparecimento. O prazo começa no dia útil seguinte (CPC, arts. 224 e 1.003, § 1º)." }
+    };
+    var DOBRO = { faz:"Fazenda Pública (art. 183)", mp:"Ministério Público (art. 180)", dp:"Defensoria Pública (art. 186)", lit:"litisconsortes com advogados diferentes (art. 229)" };
+
+    function calcular(p){
+      var r = { passos:[], avisos:[], contados:[], ok:false };
+      var n = p.n, ato = p.ato;
+      if (!(n > 0)) { r.erro = "Informe o prazo."; return r; }
+
+      if (p.dobro && ato && ato.marco) r.avisos.push("Prazo máximo de duração: não existe prazo em dobro.");
+      else if (p.dobro && ato && ato.eca && (p.dobro === "faz" || p.dobro === "mp")) r.avisos.push("<b>Não dobra:</b> no ECA é proibido prazo em dobro para a Fazenda Pública e o Ministério Público (art. 152, § 2º).");
+      else if (p.dobro){
+        if (ato && ato.sd) r.avisos.push("<b>Não dobra:</b> este é um prazo próprio (" + esc(ato.art) + "). Mantido em " + qtd(n, p.un) + ".");
+        else if (p.un === "u" || p.un === "c"){
+          n = n * 2;
+          r.avisos.push("<b>Prazo em dobro</b> para " + DOBRO[p.dobro] + ": " + qtd(p.n, p.un) + " passam a " + qtd(n, p.un) + ".");
+          if (p.dobro === "dp" && ato && ato.eca) r.avisos.push("No ECA, a Defensoria mantém o prazo em dobro, mesmo em dias corridos (STJ, Informativo 870).");
+          if (p.dobro === "lit") r.avisos.push("<b>Atenção:</b> o prazo em dobro dos litisconsortes não vale para processo eletrônico (art. 229, § 2º).");
+          if (p.dobro === "faz" || p.dobro === "mp" || p.dobro === "dp") r.avisos.push("A contagem em dobro para " + (p.dobro === "faz" ? "a Fazenda" : p.dobro === "mp" ? "o MP" : "a Defensoria") + " começa da intimação pessoal (carga, remessa ou meio eletrônico).");
+        } else r.avisos.push("Prazo em meses ou anos: o dobro não foi aplicado.");
+      }
+      r.nFinal = n;
+
+      // ---- prazo máximo do ECA: conta direto da data informada, sem prorrogar ----
+      if (ato && ato.marco){
+        var m0 = parse(p.d1);
+        if (!m0){ r.erro = "Informe a " + ato.rot.toLowerCase() + "."; return r; }
+        var mv = p.un === "m" ? addMeses(m0, n) : p.un === "a" ? addMeses(m0, n * 12) : add(m0, n);
+        if (p.un === "c") for (var z = 1; z <= n; z++) r.contados.push(add(m0, z));
+        r.passos.push({ d:m0, t:ato.rot, s:"Não entra na contagem." });
+        r.passos.push({ d:mv, t:"Data limite", s:qtd(n, p.un) + ". Prazo máximo: não passa para o dia útil seguinte.", fim:true });
+        r.termo = m0; r.venc = mv; r.marco = true; r.ok = true;
+        return r;
+      }
+
+      // ---- contagem regressiva (antes da audiência) ----
+      if (p.dir === "antes"){
+        var alvo = parse(p.alvo);
+        if (!alvo){ r.erro = "Informe a data da audiência."; return r; }
+        var lim;
+        if (p.un === "u"){
+          lim = alvo; for (var i = 0; i < n; i++){ lim = antUtil(lim); r.contados.push(lim); }
+        } else if (p.un === "c"){
+          lim = add(alvo, -n); for (var j = 1; j <= n; j++) r.contados.push(add(alvo, -j));
+          if (!util(lim)){ var orig = lim; lim = antUtil(lim); r.avisos.push("O limite (" + fmt(orig) + ") caiu em dia sem expediente (" + motivo(orig) + ") e foi antecipado para " + fmt(lim) + "."); }
+        } else { r.erro = "Contagem regressiva só em dias."; return r; }
+        r.passos.push({ d:alvo, t:"Data da audiência", s:"Não entra na contagem." });
+        r.passos.push({ d:lim, t:"Último dia para cumprir", s:qtd(n, p.un) + " antes da audiência.", fim:true });
+        r.venc = lim; r.termo = alvo; r.regressivo = true; r.ok = true;
+        return r;
+      }
+
+      // ---- a partir da intimação: acha o termo inicial (dia que não conta) ----
+      var d1 = parse(p.d1), termo;
+      if (!d1){ r.erro = "Informe a " + FORMAS[p.forma].lbl.toLowerCase() + "."; return r; }
+      if (p.forma === "djen"){
+        var pub = proxUtil(d1);
+        r.passos.push({ d:d1, t:"Disponibilização no DJEN", s:"Data em que a intimação aparece no Diário." });
+        r.passos.push({ d:pub, t:"Publicação", s:"1º dia útil seguinte à disponibilização (art. 224, § 2º)." });
+        termo = pub;
+      } else if (p.forma === "pje"){
+        var tacita = add(d1, 10), lida = parse(p.d2), ciencia;
+        r.passos.push({ d:d1, t:"Envio da intimação no sistema", s:"" });
+        if (lida && lida >= d1 && lida <= tacita){ ciencia = lida; r.passos.push({ d:lida, t:"Leitura da intimação", s:"Ciência na data da consulta." }); }
+        else {
+          ciencia = utilOuProx(tacita);
+          if (lida) r.avisos.push("A leitura informada é posterior aos 10 dias corridos. Vale a ciência automática.");
+          r.passos.push({ d:ciencia, t:"Ciência automática", s:"10 dias corridos após o envio" + (same(ciencia, tacita) ? "." : "; o 10º dia (" + fmt(tacita) + ") caiu em dia sem expediente e passou para o dia útil seguinte.") });
+        }
+        termo = ciencia;
+      } else if (p.forma === "dom"){
+        termo = somaUteis(d1, 5);
+        r.passos.push({ d:d1, t:"Confirmação do recebimento", s:"Ciência da citação no Domicílio Judicial Eletrônico." });
+        r.passos.push({ d:termo, t:"5º dia útil após a confirmação", s:"Marco inicial do prazo (art. 231, IX). Não entra na contagem." });
+      } else if (p.forma === "juntada"){
+        termo = d1; r.passos.push({ d:d1, t:"Juntada aos autos", s:"Do AR ou do mandado cumprido (art. 231, I e II)." });
+      } else {
+        termo = d1; r.passos.push(ato && ato.rotForma ? { d:d1, t:ato.rotForma, s:"Marco inicial do prazo. Não entra na contagem." } : { d:d1, t:"Ciência", s:"Intimação direta da parte ou do advogado." });
+      }
+
+      var inicio, venc;
+      if (p.un === "u"){
+        var x = termo;
+        for (var k = 0; k < n; k++){ x = proxUtil(x); r.contados.push(x); }
+        inicio = r.contados[0]; venc = x;
+      } else if (p.un === "c"){
+        inicio = proxUtil(termo);
+        if (ato && ato.eca && cfg.recesso){
+          var xe = inicio; r.contados.push(inicio);
+          while (r.contados.length < n){ xe = add(xe, 1); if (!emRecesso(xe)) r.contados.push(xe); }
+          venc = xe;
+        } else {
+          for (var q = 0; q < n; q++) r.contados.push(add(inicio, q));
+          venc = add(inicio, n - 1);
+        }
+        if (!util(venc)){ var v0 = venc; venc = proxUtil(venc); r.avisos.push("O último dia (" + fmt(v0) + ") caiu em dia sem expediente (" + motivo(v0) + "). Prorrogado para " + fmt(venc) + " (art. 224, § 1º)."); }
+        if (ato && ato.eca) r.avisos.push("<b>ECA, dias corridos (art. 152, § 2º):</b> sábados, domingos e feriados contam. Só o início e o fim passam para o dia útil seguinte." +
+          (cfg.recesso ? " Os dias do recesso (20/12 a 20/01) não foram contados (CPC, art. 220). Confirmem se a vara adota esse entendimento." : ""));
+        else r.avisos.push("<b>Dias corridos:</b> fins de semana, feriados e recesso contam. Só o início e o fim passam para o dia útil seguinte.");
+      } else {
+        inicio = termo;
+        venc = p.un === "m" ? addMeses(termo, n) : addMeses(termo, n * 12);
+        if (!util(venc)){ var v1 = venc; venc = proxUtil(venc); r.avisos.push("O último dia (" + fmt(v1) + ") caiu em dia sem expediente (" + motivo(v1) + "). Prorrogado para " + fmt(venc) + "."); }
+      }
+      if (p.un === "u" || p.un === "c") r.passos.push({ d:inicio, t:"Início da contagem (1º dia)", s:"Primeiro dia útil depois do marco inicial (art. 224, § 3º)." });
+      r.passos.push({ d:venc, t:"Último dia do prazo", s:qtd(n, p.un) + (p.un === "u" || p.un === "c" ? "" : " a partir de " + fmt(termo) + " (CC, art. 132, § 3º)."), fim:true });
+      r.termo = termo; r.inicio = inicio; r.venc = venc; r.ok = true;
+      return r;
+    }
+
+    // ------------------------------------------------------------------
+    // Tela: Calcular prazo
+    // ------------------------------------------------------------------
+    var $ = function(id){ return document.getElementById(id); };
+    var st = { dir:"apos" };
+
+    (function montarSelect(){
+      var html = "", g = "";
+      ATOS.forEach(function(a){
+        if (a.g !== g){ if (g) html += "</optgroup>"; g = a.g; html += '<optgroup label="' + esc(g) + '">'; }
+        html += '<option value="' + a.id + '">' + esc(a.ato) + " · " + a.n + " " + (a.un === "u" ? "úteis" : a.un === "c" ? "corridos" : UN_TXT[a.un][a.n === 1 ? 0 : 1]) + "</option>";
+      });
+      html += '</optgroup><optgroup label="Outro"><option value="">Outro prazo (digitar)</option></optgroup>';
+      $("pzPAto").innerHTML = html;
+    })();
+
+    function setDir(dir){
+      st.dir = dir;
+      $("pzPDirApos").setAttribute("aria-pressed", String(dir === "apos"));
+      $("pzPDirAntes").setAttribute("aria-pressed", String(dir === "antes"));
+      $("pzBoxApos").hidden = dir !== "apos";
+      $("pzBoxAntes").hidden = dir !== "antes";
+    }
+    function tags(a){
+      return (a.eca ? ' <span class="tag e">ECA</span>' : "") + (a.marco ? ' <span class="tag e">prazo máximo</span>' : "") +
+        (a.un === "c" ? ' <span class="tag c">corridos</span>' : "") + (a.sd ? ' <span class="tag a">sem dobro</span>' : "") + (a.eca && !a.marco ? ' <span class="tag a">sem dobro p/ Fazenda e MP</span>' : "");
+    }
+    function aplicarAto(){
+      var a = ATO_POR_ID[$("pzPAto").value];
+      if (a){
+        $("pzPN").value = a.n; $("pzPUn").value = a.un; setDir(a.dir || "apos");
+        if (a.forma){ $("pzPForma").value = a.forma; st.formaFixa = true; }
+        else if (st.formaFixa){ $("pzPForma").value = "djen"; st.formaFixa = false; }
+        $("pzPAtoInfo").innerHTML = "<b>" + esc(a.art) + ".</b> " + esc(a.ini) + tags(a);
+        $("pzPAtoInfo").hidden = false;
+      } else { $("pzPAtoInfo").hidden = true; }
+      aplicarForma();
+      atualizar();
+    }
+    function aplicarForma(){
+      var f = FORMAS[$("pzPForma").value], a = ATO_POR_ID[$("pzPAto").value], marco = !!(a && a.marco);
+      $("pzBoxForma").hidden = marco;
+      $("pzPData1Lbl").textContent = marco ? a.rot : a && a.rotForma && $("pzPForma").value === a.forma ? a.rotForma : f.lbl;
+      $("pzPFormaHint").textContent = marco ? "Prazo máximo em dias corridos, contado da data informada." : f.hint;
+      $("pzBoxLeitura").hidden = marco || $("pzPForma").value !== "pje";
+    }
+
+    function atualizar(){
+      var p = { ato:ATO_POR_ID[$("pzPAto").value], n:parseInt($("pzPN").value, 10), un:$("pzPUn").value, dir:st.dir,
+        forma:$("pzPForma").value, d1:$("pzPData1").value, d2:$("pzPData2").value, alvo:$("pzPAlvo").value, dobro:$("pzPDobro").value };
+      var r = calcular(p), box = $("pzPRes");
+      if (!r.ok){ box.innerHTML = '<h2>Resultado</h2><p class="muted" style="margin:0">' + esc(r.erro || "Preencha os dados.") + "</p>"; return; }
+
+      var h = hoje(), status;
+      if (r.marco){
+        var fc = diasEntre(h, r.venc);
+        status = fc < 0 ? '<span class="chip danger">Prazo máximo ultrapassado há ' + plural(-fc, "dia", "dias") + "</span>" : fc === 0 ? '<span class="chip warn">Termina hoje</span>' : '<span class="chip ' + (fc <= 15 ? "warn" : "ok") + '">Faltam ' + plural(fc, "dia", "dias") + "</span>";
+      } else if (r.regressivo){
+        var fu = diasUteisEntre(h, r.venc);
+        status = r.venc < h ? '<span class="chip danger">Data limite já passou</span>' : same(r.venc, h) ? '<span class="chip warn">Último dia é hoje</span>' : '<span class="chip ok">Faltam ' + fu + " " + (fu === 1 ? "dia útil" : "dias úteis") + "</span>";
+      } else if (r.venc < h){
+        var ve = diasUteisEntre(r.venc, h);
+        status = '<span class="chip danger">Prazo encerrado há ' + ve + " " + (ve === 1 ? "dia útil" : "dias úteis") + "</span>";
+      } else if (same(r.venc, h)) status = '<span class="chip warn">Vence hoje</span>';
+      else if (r.inicio && r.inicio > h) status = '<span class="chip">Ainda não começou · começa em ' + fmt(r.inicio) + "</span>";
+      else { var fl = diasUteisEntre(h, r.venc); status = '<span class="chip ok">Em curso · faltam ' + fl + " " + (fl === 1 ? "dia útil" : "dias úteis") + " depois de hoje</span>"; }
+
+      var html = '<div class="venc"><span class="lbl">' + (r.marco ? "Data limite" : r.regressivo ? "Cumprir até" : "Vence em") + '</span><span class="data">' + fmt(r.venc) + '</span><span class="dow">' + fmtDow(r.venc) + "</span></div>";
+      html += '<div class="chips">' + status + '<span class="chip">' + qtd(r.nFinal, p.un) + "</span></div>";
+      html += '<ol class="steps">' + r.passos.map(function(s){
+        return '<li' + (s.fim ? ' class="fim"' : "") + '><span class="d">' + fmt(s.d) + "<small>" + fmtDow(s.d) + '</small></span><span class="t"><b>' + esc(s.t) + "</b>" + (s.s ? "<span>" + esc(s.s) + "</span>" : "") + "</span></li>";
+      }).join("") + "</ol>";
+      if (r.avisos.length) html += '<div class="avisos">' + r.avisos.map(function(a){ return '<div class="aviso">' + a + "</div>"; }).join("") + "</div>";
+
+      // calendário
+      var a0 = r.regressivo ? r.venc : r.termo, a1 = r.regressivo ? r.termo : r.venc;
+      var nMeses = (a1.getFullYear() - a0.getFullYear()) * 12 + a1.getMonth() - a0.getMonth() + 1;
+      if (nMeses <= 6){
+        var pul = [];
+        for (var d = add(a0, 1); d < a1; d = add(d, 1)){ var mo = motivo(d); if (mo && mo !== "Sábado" && mo !== "Domingo") pul.push(fmt(d).slice(0, 5) + " " + mo); }
+        html += "<h3>Calendário da contagem</h3>" + calendario(a0, a1, r, h);
+        html += '<div class="legenda"><span><i class="sw tm"></i>' + (r.regressivo ? "Audiência" : r.marco ? "Data de início (não conta)" : "Marco inicial (não conta)") + '</span><span><i class="sw ct"></i>Dia contado</span><span><i class="sw vc"></i>' + (r.regressivo ? "Data limite" : "Vencimento") + '</span><span><i class="sw nu"></i>Sem expediente</span><span><i class="sw hj"></i>Hoje</span></div>';
+        if (pul.length) html += '<div class="pulados"><b>Feriados e suspensões no período:</b> ' + esc(pul.join(" · ")) + "</div>";
+      }
+
+      // certidão
+      html += "<h3>Texto para certidão</h3>";
+      html += '<div class="field"><label for="pzPCert" class="flabel" style="position:absolute;left:-9999px">Texto da certidão</label><textarea id="pzPCert" class="cert" rows="5">' + esc(certidao(p, r)) + "</textarea></div>";
+      html += '<div class="acts"><button type="button" class="btn primary sm" id="pzPCopiar">Copiar texto</button>' +
+        (r.regressivo || r.marco ? "" : '<label class="ck" style="font-size:13px"><input type="checkbox" id="pzPDecurso"' + (st.decurso ? " checked" : "") + " /> Prazo decorrido sem manifestação</label>") + "</div>";
+      box.innerHTML = html;
+    }
+
+    function diasUteisEntre(a, b){ var c = 0, x = a; while (x < b){ x = add(x, 1); if (util(x)) c++; } return c; }
+
+    function certidao(p, r){
+      var parte = $("pzPParte").value.trim() || "a parte", proc = $("pzPProc").value.trim();
+      var ato = p.ato ? (p.ato.certNome || p.ato.ato.replace(/:? ?prazo máximo$/i, "")).toLowerCase() : "manifestação";
+      if (r.marco) return "Certifico que, considerando a " + p.ato.rot.toLowerCase() + " em " + fmt(r.termo) + ", o prazo máximo de " + qtd(r.nFinal, p.un) + " (" + p.ato.art + ") para " + ato + " encerra-se em " + fmt(r.venc) + " (" + fmtDow(r.venc) + ")" + (proc ? ", nos autos " + proc : "") + ".";
+      if (r.regressivo) return "Certifico que, designada a audiência para " + fmt(r.termo) + ", o prazo de " + qtd(r.nFinal, p.un) + " de antecedência para " + ato + " encerra-se em " + fmt(r.venc) + " (" + fmtDow(r.venc) + ")" + (proc ? ", nos autos " + proc : "") + ".";
+      var como = {
+        djen:"por publicação no Diário de Justiça Eletrônico Nacional disponibilizada em " + fmt(parse(p.d1)) + " e considerada publicada em " + fmt(r.termo),
+        pje:"por intimação eletrônica expedida em " + fmt(parse(p.d1)) + ", com ciência em " + fmt(r.termo),
+        dom:"por citação no Domicílio Judicial Eletrônico, com confirmação de recebimento em " + fmt(parse(p.d1)),
+        juntada:"conforme AR/mandado juntado aos autos em " + fmt(r.termo),
+        ciencia:"com ciência em " + fmt(r.termo)
+      }[p.forma];
+      if (p.ato && p.ato.rotForma && p.forma === "ciencia"){
+        var tc = "Certifico que, " + p.ato.cert + " " + fmt(r.termo) + (proc ? ", nos autos " + proc : "") + ", o prazo de " + qtd(r.nFinal, p.un) + " para " + ato + " teve início em " + fmt(r.inicio) + " e " + (r.venc < hoje() ? "encerrou-se" : "encerra-se") + " em " + fmt(r.venc) + ".";
+        return st.decurso ? tc + " Certifico, ainda, que o prazo decorreu sem manifestação." : tc;
+      }
+      var t = "Certifico que " + parte + " foi intimada " + como + (proc ? ", nos autos " + proc : "") + ". ";
+      t += "O prazo de " + qtd(r.nFinal, p.un) + " para " + ato + " " + (r.inicio && (p.un === "u" || p.un === "c") ? "teve início em " + fmt(r.inicio) + " e " : "");
+      t += (r.venc < hoje() ? "encerrou-se" : "encerra-se") + " em " + fmt(r.venc) + ".";
+      if (st.decurso) t += " Certifico, ainda, que o prazo decorreu sem manifestação.";
+      return t;
+    }
+
+    function calendario(a0, a1, r, h){
+      var cont = {}; r.contados.forEach(function(d, i){ cont[key(d)] = r.regressivo ? r.contados.length - i : i + 1; });
+      var out = '<div class="cals">', y = a0.getFullYear(), m = a0.getMonth();
+      while (y < a1.getFullYear() || (y === a1.getFullYear() && m <= a1.getMonth())){
+        var first = D(y, m, 1), dim = new Date(y, m + 1, 0).getDate();
+        out += '<div class="cal"><h4>' + MESES[m].charAt(0).toUpperCase() + MESES[m].slice(1) + " de " + y + '</h4><table><thead><tr><th>D</th><th>S</th><th>T</th><th>Q</th><th>Q</th><th>S</th><th>S</th></tr></thead><tbody><tr>';
+        for (var b = 0; b < first.getDay(); b++) out += "<td></td>";
+        for (var dia = 1; dia <= dim; dia++){
+          var d = D(y, m, dia), k = key(d), cls = [], mo = motivo(d), tit = mo || "";
+          if (mo) cls.push("nu");
+          if (cont[k]) cls.push("ct");
+          if (same(d, r.termo)) { cls.push("tm"); tit = (r.regressivo ? "Audiência" : "Marco inicial") + (mo ? " · " + mo : ""); }
+          if (same(d, r.venc)) cls.push("vc");
+          if (same(d, h)) cls.push("hj");
+          out += '<td class="' + cls.join(" ") + '"' + (tit ? ' title="' + esc(tit) + '"' : "") + ">" + dia + (cont[k] ? "<i>" + cont[k] + "</i>" : "") + "</td>";
+          if (d.getDay() === 6 && dia < dim) out += "</tr><tr>";
+        }
+        out += "</tr></tbody></table></div>";
+        m++; if (m > 11){ m = 0; y++; }
+      }
+      return out + "</div>";
+    }
+
+    $("pzPAto").addEventListener("change", aplicarAto);
+    $("pzPForma").addEventListener("change", function(){ aplicarForma(); atualizar(); });
+    ["pzPN", "pzPUn", "pzPData1", "pzPData2", "pzPAlvo", "pzPDobro", "pzPParte", "pzPProc"].forEach(function(id){ $(id).addEventListener("input", atualizar); $(id).addEventListener("change", atualizar); });
+    $("pzPDirApos").addEventListener("click", function(){ setDir("apos"); atualizar(); });
+    $("pzPDirAntes").addEventListener("click", function(){ setDir("antes"); atualizar(); });
+    $("pzFPrazo").addEventListener("submit", function(e){ e.preventDefault(); });
+    $("pzPRes").addEventListener("change", function(e){ if (e.target.id === "pzPDecurso"){ st.decurso = e.target.checked; atualizar(); } });
+    $("pzPRes").addEventListener("click", function(e){
+      if (e.target.id !== "pzPCopiar") return;
+      var ta = $("pzPCert");
+      var ok = function(){ toast("Texto copiado"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(ok, function(){ ta.select(); toast("Texto selecionado: use Ctrl+C"); });
+      else { ta.select(); toast("Texto selecionado: use Ctrl+C"); }
+    });
+    $("pzPProc").addEventListener("input", function(){
+      var v = this.value.replace(/\D/g, "").slice(0, 20), o = "";
+      var cortes = [7, 9, 13, 14, 16], seps = ["-", ".", ".", ".", "."];
+      for (var i = 0; i < v.length; i++){ var c = cortes.indexOf(i); if (c >= 0) o += seps[c]; o += v[i]; }
+      this.value = o;
+    });
+
+    // ------------------------------------------------------------------
+    // Tela: Idade
+    // ------------------------------------------------------------------
+    function idade(nasc, ref){
+      var y = ref.getFullYear() - nasc.getFullYear(), m = ref.getMonth() - nasc.getMonth(), d = ref.getDate() - nasc.getDate();
+      if (d < 0){ m--; d += new Date(ref.getFullYear(), ref.getMonth(), 0).getDate(); }
+      if (m < 0){ y--; m += 12; }
+      return { a:y, m:m, d:d };
+    }
+    function aniversario(nasc, anos){ return addMeses(nasc, anos * 12); }   // 29/02 vira 01/03 em ano não bissexto
+    function plural(n, s, p){ return n + " " + (n === 1 ? s : p); }
+    function faixa(a){
+      if (a < 12) return { t:"Criança · absolutamente incapaz", c:"danger" };
+      if (a < 16) return { t:"Adolescente · absolutamente incapaz", c:"danger" };
+      if (a < 18) return { t:"Adolescente · relativamente incapaz", c:"warn" };
+      if (a < 60) return { t:"Maior e capaz", c:"ok" };
+      if (a < 80) return { t:"Pessoa idosa · prioridade", c:"" };
+      return { t:"Pessoa idosa · prioridade especial (80+)", c:"" };
+    }
+    function efeitos(a){
+      var e = [];
+      if (a < 16){
+        e.push("Age no processo <b>representada</b> pelos pais, tutor ou curador (CC, art. 3º; CPC, art. 71).");
+        e.push("A prescrição <b>não corre</b> contra ela (CC, art. 198, I).");
+      } else if (a < 18){
+        e.push("Age no processo <b>assistida</b> pelos pais, tutor ou curador (CC, art. 4º, I; CPC, art. 71).");
+        e.push("A prescrição já corre (só não corre contra absolutamente incapaz).");
+      }
+      if (a < 18){
+        e.push("<b>Intimar o Ministério Público</b> para intervir como fiscal da ordem jurídica (CPC, art. 178, II).");
+        e.push("Processos de guarda, tutela, adoção ou medida de proteção seguem os prazos do ECA, em dias corridos (art. 152, § 2º).");
+        e.push("Se houver emancipação (CC, art. 5º), a incapacidade cessa: confira a certidão de nascimento.");
+      }
+      if (a >= 60) e.push("Tem <b>prioridade de tramitação</b> (CPC, art. 1.048, I; Estatuto da Pessoa Idosa, art. 71). Anote na capa e no sistema.");
+      if (a >= 80) e.push("Tem <b>prioridade especial</b> sobre os demais idosos (Estatuto da Pessoa Idosa, art. 71, § 5º).");
+      if (a >= 18 && a < 60) e.push("Plenamente capaz para os atos da vida civil. Sem prioridade por idade.");
+      return e;
+    }
+    function renderIdade(){
+      var nasc = parse($("pzINasc").value), ref = parse($("pzIRef").value) || hoje(), box = $("pzIRes");
+      if (!nasc){ box.innerHTML = '<h2>Resultado</h2><p class="muted" style="margin:0">Informe a data de nascimento.</p>'; renderLote(); return; }
+      if (nasc > ref){ box.innerHTML = '<h2>Resultado</h2><p class="muted" style="margin:0">A data de nascimento é posterior à data de referência.</p>'; renderLote(); return; }
+      var i = idade(nasc, ref), f = faixa(i.a);
+      var html = '<div class="idade-big">' + plural(i.a, "ano", "anos") + "<small>" + plural(i.m, "mês", "meses") + " e " + plural(i.d, "dia", "dias") + " em " + fmt(ref) + (same(ref, hoje()) ? " (hoje)" : "") + "</small></div>";
+      html += '<div class="chips"><span class="chip ' + f.c + '">' + f.t + "</span>" + (i.a < 18 ? '<span class="chip warn">Intervenção do MP</span>' : "") + "</div>";
+      html += '<h3>Marcos</h3><div class="marcos">' + [[12, "Adolescente"], [16, "Relativamente capaz"], [18, "Maioridade"], [21, "Fim de medida do ECA"], [60, "Pessoa idosa"], [80, "Prioridade especial"]].map(function(x){
+        var d = aniversario(nasc, x[0]), passou = d <= ref, dd = diasEntre(ref, d);
+        var s = passou ? "já completou" : dd < 400 ? "faltam " + plural(dd, "dia", "dias") : "em " + (d.getFullYear() - ref.getFullYear()) + " anos";
+        return '<div class="marco' + (passou ? " passou" : "") + '"><span class="k">' + x[0] + " anos · " + x[1] + '</span><span class="v">' + fmt(d) + '</span><span class="s">' + s + "</span></div>";
+      }).join("") + "</div>";
+      html += '<h3>O que muda no processo</h3><ul class="efeitos">' + efeitos(i.a).map(function(t){ return "<li>" + t + "</li>"; }).join("") + "</ul>";
+      if (nasc.getMonth() === 1 && nasc.getDate() === 29) html += '<div class="aviso">Nascimento em 29/02: nos anos não bissextos, considerei o aniversário em 01/03.</div>';
+      box.innerHTML = html;
+      renderLote();
+    }
+    function renderLote(){
+      var linhas = $("pzILote").value.split(/\n/).map(function(s){ return s.trim(); }).filter(Boolean), tab = $("pzILoteTab");
+      if (!linhas.length){ tab.hidden = true; return; }
+      var ref = parse($("pzIRef").value) || hoje();
+      var rows = linhas.map(function(l){
+        var m = /(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/.exec(l);
+        var nome = l.replace(m ? m[0] : "", "").replace(/[;,\t\-–]+\s*$/, "").replace(/^\s*[;,\t]+/, "").trim() || "(sem nome)";
+        if (!m) return "<tr><td>" + esc(nome) + '</td><td colspan="3" class="obs">Data não reconhecida. Use dd/mm/aaaa.</td></tr>';
+        var ano = +m[3]; if (ano < 100) ano += ano > (ref.getFullYear() % 100) ? 1900 : 2000;
+        var n = D(ano, +m[2] - 1, +m[1]);
+        if (n > ref) return "<tr><td>" + esc(nome) + '</td><td class="n">' + fmt(n) + '</td><td colspan="2" class="obs">Nascimento depois da data de referência.</td></tr>';
+        var i = idade(n, ref), f = faixa(i.a), m18 = aniversario(n, 18);
+        return "<tr><td>" + esc(nome) + '</td><td class="n">' + fmt(n) + '</td><td class="n">' + i.a + "a " + i.m + "m " + i.d + 'd</td><td><span class="chip ' + f.c + '">' + f.t + "</span>" +
+          (i.a < 18 ? ' <span class="obs">maior em ' + fmt(m18) + "</span>" : "") + "</td></tr>";
+      });
+      tab.innerHTML = '<table class="tb"><thead><tr><th>Nome</th><th>Nascimento</th><th>Idade em ' + fmt(ref) + "</th><th>Situação</th></tr></thead><tbody>" + rows.join("") + "</tbody></table>";
+      tab.hidden = false;
+    }
+    ["pzINasc", "pzIRef"].forEach(function(id){ $(id).addEventListener("input", function(){ if (id === "pzINasc") $("pzIExemplo").hidden = true; renderIdade(); }); });
+    $("pzILote").addEventListener("input", renderLote);
+    $("pzIHoje").addEventListener("click", function(){ $("pzIRef").value = key(hoje()); renderIdade(); });
+    $("pzFIdade").addEventListener("submit", function(e){ e.preventDefault(); });
+
+    // ------------------------------------------------------------------
+    // Tela: Tabela de prazos
+    // ------------------------------------------------------------------
+    function norm(s){ return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+    function renderTabela(){
+      var q = norm($("pzTBusca").value.trim()), re = new RegExp("(^|[^a-z0-9])" + q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), g = "", html = '<thead><tr><th>Ato</th><th>Prazo</th><th>Base</th><th>Conta a partir de</th><th></th></tr></thead><tbody>', n = 0;
+      ATOS.forEach(function(a){
+        if (q && !re.test(norm(a.ato + " " + a.art + " " + a.g + " " + a.ini + (a.eca ? " eca infancia" : "") + (a.g.indexOf("CEJUSC") >= 0 ? " cejusc conciliacao mediacao" : "")))) return;
+        if (a.g !== g){ g = a.g; html += '<tr class="grp"><td colspan="5">' + esc(g) + "</td></tr>"; }
+        n++;
+        html += "<tr><td>" + esc(a.ato) + '</td><td class="n">' + qtdCurto(a) + tags(a) +
+          '</td><td class="art">' + esc(a.art) + '</td><td class="obs">' + esc(a.ini) + '</td><td><button type="button" class="btn sm" data-calc="' + a.id + '">Calcular</button></td></tr>';
+      });
+      if (!n) html += '<tr><td colspan="5" class="obs">Nenhum ato encontrado.</td></tr>';
+      $("pzTTab").innerHTML = html + "</tbody>";
+    }
+    function qtdCurto(a){ return a.n + " " + (a.un === "u" ? (a.n === 1 ? "dia útil" : "dias úteis") : a.un === "c" ? "dias" : UN_TXT[a.un][a.n === 1 ? 0 : 1]) + (a.dir === "antes" ? " antes" : ""); }
+    $("pzTBusca").addEventListener("input", renderTabela);
+    $("pzTTab").addEventListener("click", function(e){
+      var b = e.target.closest("[data-calc]"); if (!b) return;
+      $("pzPAto").value = b.getAttribute("data-calc"); aplicarAto(); irAba("prazo");
+    });
+
+    // ------------------------------------------------------------------
+    // Tela: Feriados
+    // ------------------------------------------------------------------
+    function renderFeriados(){
+      $("pzFRecesso").checked = cfg.recesso;
+      $("pzFOpc").innerHTML = OPCIONAIS.map(function(o){
+        return '<label class="ck"><input type="checkbox" data-opc="' + o.id + '"' + (cfg.opc[o.id] ? " checked" : "") + " /> <span>" + esc(o.nome) + "<small>" + esc(o.obs) + "</small></span></label>";
+      }).join("");
+      $("pzFExtras").innerHTML = cfg.extras.length ? '<div class="fer-list" style="grid-template-columns:minmax(0,1fr)">' + cfg.extras.map(function(x, i){
+        var d = parse(x.data);
+        return '<div class="fer" style="grid-template-columns:96px minmax(0,1fr) auto"><span class="d">' + (x.anual ? fmt(d).slice(0, 5) : fmt(d)) + "</span><span>" + esc(x.nome) + '<span class="o"> · ' + (x.anual ? "todo ano" : "só nesta data") + '</span></span><button type="button" class="x" data-del="' + i + '" aria-label="Remover ' + esc(x.nome) + '">×</button></div>';
+      }).join("") + "</div>" : '<p class="muted" style="margin:0">Nenhum feriado local cadastrado.</p>';
+
+      var ano = +$("pzFAno").value, map = feriadosDoAno(ano), ks = Object.keys(map).sort();
+      var itens = ks.map(function(k){ var d = parse(k); return { d:d, nome:map[k].nome, o:map[k].tipo + " · " + fmtDow(d) }; });
+      if (cfg.recesso) itens.push({ d:D(ano, 11, 20), nome:"Recesso forense até 20/01/" + (ano + 1), o:"CPC, art. 220 · prazos suspensos", fim:true });
+      itens.sort(function(a, b){ return a.d - b.d; });
+      $("pzFAnoTit").textContent = "Dias sem expediente em " + ano;
+      $("pzFLista").innerHTML = itens.map(function(x){
+        return '<div class="fer"><span class="d">' + fmt(x.d).slice(0, 5) + "</span><span>" + esc(x.nome) + '<span class="o"> · ' + esc(x.o) + "</span></span></div>";
+      }).join("");
+    }
+    (function(){
+      var y = hoje().getFullYear(), h = "";
+      for (var a = y - 1; a <= y + 2; a++) h += '<option value="' + a + '"' + (a === y ? " selected" : "") + ">" + a + "</option>";
+      $("pzFAno").innerHTML = h;
+    })();
+    function redesenhar(){ renderFeriados(); atualizar(); renderIdade(); renderAvisoCfg(); if (typeof renderPericias === "function") renderPericias(); }
+    function mudouCfg(){ guardar(); redesenhar(); }
+    $("pzFAno").addEventListener("change", renderFeriados);
+    $("pzFRecesso").addEventListener("change", function(){ cfg.recesso = this.checked; mudouCfg(); });
+    $("pzFOpc").addEventListener("change", function(e){ var id = e.target.getAttribute("data-opc"); if (id){ cfg.opc[id] = e.target.checked; mudouCfg(); } });
+    $("pzFAdd").addEventListener("click", function(){
+      var d = $("pzFData").value, nome = $("pzFNome").value.trim();
+      if (!d){ toast("Escolha a data"); return; }
+      cfg.extras.push({ data:d, nome:nome || "Feriado local", anual:$("pzFTodoAno").checked });
+      cfg.extras.sort(function(a, b){ return a.data < b.data ? -1 : 1; });
+      $("pzFData").value = ""; $("pzFNome").value = ""; $("pzFTodoAno").checked = false;
+      mudouCfg(); toast("Acrescentado");
+    });
+    $("pzFExtras").addEventListener("click", function(e){ var b = e.target.closest("[data-del]"); if (!b) return; cfg.extras.splice(+b.getAttribute("data-del"), 1); mudouCfg(); });
+
+    // ------------------------------------------------------------------
+    // Abas e início
+    // ------------------------------------------------------------------
+    var ABAS = ["prazo", "idade", "tabela", "feriados"];
+    function irAba(a){
+      ABAS.forEach(function(x){ $("pzv-" + x).hidden = x !== a; $("pztab-" + x).setAttribute("aria-selected", String(x === a)); });
+      try { localStorage.setItem("prazosAba", a); } catch (e) {}
+      window.scrollTo(0, 0);
+    }
+    document.querySelector("#view-prazos .abas").addEventListener("click", function(e){ var b = e.target.closest("[data-aba]"); if (b) irAba(b.getAttribute("data-aba")); });
+
+
+    // Começa com a apelação publicada hoje no DJEN; a idade começa vazia
+    $("pzPAto").value = "apelacao";
+    $("pzPData1").value = key(hoje());
+    $("pzIRef").value = key(hoje());
+    $("pzIExemplo").hidden = true;
+    aplicarForma(); aplicarAto();
+    renderIdade(); renderTabela(); renderFeriados();
+    var abaIni = "prazo";
+    try { abaIni = localStorage.getItem("prazosAba") || "prazo"; } catch (e) {}
+    irAba(ABAS.indexOf(abaIni) >= 0 ? abaIni : "prazo");
+
+    return {
+      util: util,
+      carregar: carregar,
+      entrar: function(){ if (!$("pzPData1").value) $("pzPData1").value = key(hoje()); atualizar(); }
+    };
+
+  })();
+
+  // ---------------------------------------------------------------------
   // Boot
   // ---------------------------------------------------------------------
 
@@ -9024,6 +9965,7 @@
     loadAudiencias();
     loadTiposAud();
     loadPericias();
+    PZ.carregar();
     (async function(){
       await loadCategories();
       await seedExampleContactsIfEmpty();
@@ -9039,6 +9981,7 @@
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pericias' }, loadPericias)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'pericias_andamentos' }, loadPericias)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'peritos' }, loadPericias)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'prazos_config' }, PZ.carregar)
         .subscribe();
     })();
   }
