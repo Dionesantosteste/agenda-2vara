@@ -4828,7 +4828,9 @@
   O.taskForm.addEventListener('submit', async function(e){
     e.preventDefault();
     var titulo = O.taskTitle.value.trim(); if (!titulo) return;
-    if (!(await orgConfereDup(document.getElementById('orgTaskProc').value))) return;
+    var procEl = document.getElementById('orgTaskProc');
+    if (!digitsOnly(procEl.value)){ var sp = orgSeparaProc(titulo); if (sp.processo){ titulo = sp.titulo; procEl.value = sp.processo; } }
+    if (!(await orgConfereDup(procEl.value))) return;
     var r = await orgSaveTask({ titulo: titulo, prazo: O.taskDue.value ? new Date(O.taskDue.value + 'T00:00') : null,
       prioridade: O.taskUrg.value, responsavel: orgAlheia() ? '' : O.taskResp.value, processo: formatProcesso(document.getElementById('orgTaskProc').value), feitaEm: null });
     if (!orgOk(r)) return;
@@ -5272,10 +5274,12 @@
     e.preventDefault();
     var etapa = f.getAttribute('data-kadd'), inp = f.querySelector('.kadd-in'), sel = f.querySelector('.kadd-mod');
     var mod = sel ? orgModelo(sel.value) : null;
-    var titulo = inp.value.trim() || (mod ? ((mod.dados || {}).titulo || mod.nome) : '');
+    var sp = orgSeparaProc(inp.value);
+    var titulo = (inp.value.trim() ? sp.titulo : '') || (mod ? ((mod.dados || {}).titulo || mod.nome) : '');
     if (!titulo){ inp.focus(); return; }
     var btn = f.querySelector('[type=submit]'); btn.disabled = true;
-    var id = await orgCriarTarefa(titulo, etapa, mod);
+    if (sp.processo && !(await orgConfereDup(sp.processo))){ btn.disabled = false; inp.focus(); return; }
+    var id = await orgCriarTarefa(titulo, etapa, mod, sp.processo);
     btn.disabled = false;
     if (!id) return;
     org.kaddTxt = ''; org.kaddMod = '';
@@ -6088,11 +6092,24 @@
   OM.salvar.addEventListener('click', ocCriarModelo);
   OM.nome.addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); ocCriarModelo(); } });
 
+  // Separa o nº do processo (padrão CNJ, com ou sem pontuação) do texto da tarefa.
+  // "0001234-56.2026.8.11.0001 juntar AR" -> título "juntar AR", processo "0001234-56.2026.8.11.0001"
+  function orgSeparaProc(txt){
+    txt = String(txt || '');
+    var m = txt.match(/\d{7}-?\d{2}\.?\d{4}\.?\d\.?\d{2}\.?\d{4}/) || txt.match(/(?:\d[\s.\-]*){20}/);
+    if (!m || digitsOnly(m[0]).length !== 20) return { titulo: txt.trim(), processo: '' };
+    var proc = formatProcesso(digitsOnly(m[0]));
+    var sep = /^[\s,;:\-–—]+|[\s,;:\-–—]+$/g;
+    var resto = (txt.slice(0, m.index) + ' ' + txt.slice(m.index + m[0].length)).replace(/\s+/g, ' ').replace(sep, '')
+      .replace(/(?:^|\s)(?:processo|proc\.?|autos)\s*(?:n[º°o]?\.?)?$/i, '').replace(sep, '').trim();
+    return { titulo: resto || 'Processo ' + proc, processo: proc };
+  }
+
   // ---- nova tarefa (com ou sem modelo); devolve o id ou null ----
-  async function orgCriarTarefa(titulo, etapa, mod){
+  async function orgCriarTarefa(titulo, etapa, mod, processo){
     var d = mod ? (mod.dados || {}) : {};
     var r = await orgSaveTask({ titulo: titulo, prazo: null, prioridade: orgPrioOk(d.prioridade || (d.urgente ? 'urgente' : 'normal')),
-      responsavel: orgAlheia() ? '' : d.responsavel || '', processo: '', feitaEm: null, etapa: etapa });
+      responsavel: orgAlheia() ? '' : d.responsavel || '', processo: processo || '', feitaEm: null, etapa: etapa });
     if (!orgOk(r)) return null;
     if (mod && r.id){
       var etq = (Array.isArray(d.etiquetas) ? d.etiquetas : []).filter(orgEtq), r2;

@@ -218,6 +218,8 @@ No **Quadro**:
     - **O mesmo aviso para a equipe:** quem cria uma tarefa no próprio quadro com nº de processo (ou troca o processo
       de uma tarefa) também é avisado se o processo já está com alguém: nome da pessoa, tarefa, coluna e prazo.
       Clique em **Salvar mesmo assim** ou **Cancelar**. Para funcionar, rode de novo o `sql/organizacao.sql` inteiro.
+      No **+ Adicionar tarefa** do Quadro, basta escrever o número junto com o texto (ex.: "0001234-56.2026.8.11.0001
+      juntar AR"): o número vai sozinho para o campo de processo da tarefa.
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
     - Com modelo de texto, o cartão da pessoa ganha o botão **Modelo**, que abre a aba Modelos de texto com o modelo escolhido e o nº do processo já preenchido. Na janela da tarefa dá para trocar ou tirar o modelo.
     - O passo a passo vem dos modelos de cartão do quadro do gestor (botão **Modelos**): a tarefa chega com o checklist do modelo.
