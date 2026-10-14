@@ -385,6 +385,25 @@
   .cat-list{ display:flex; flex-direction:column; gap:8px; max-height: 260px; overflow-y:auto; padding-right:2px; }
   .cat-empty{ color: var(--muted); font-size: 13px; padding: 4px 0; }
 
+  /* comemoração ao concluir tarefa (pessoa da equipe) */
+  .org-festa-cv{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:1001; }
+  .org-festa{ position:fixed; inset:0; z-index:1000; display:grid; place-items:center; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); background:color-mix(in srgb, var(--ink) 45%, transparent); animation:orgFestaFundo .3s ease-out; }
+  @keyframes orgFestaFundo{ from{ opacity:0; } to{ opacity:1; } }
+  .org-festa-card{ position:relative; width:min(560px, 100%); background:var(--paper); color:var(--ink); border-radius:20px; padding:40px 32px 30px; text-align:center; box-shadow:0 10px 28px rgba(20,32,51,.25); display:flex; flex-direction:column; align-items:center; gap:10px; animation:orgFestaEntra .6s cubic-bezier(.2,1.5,.4,1); overflow:hidden; }
+  .org-festa-card::before{ content:""; position:absolute; inset:0 0 auto 0; height:8px; background:linear-gradient(90deg, var(--accent), var(--ok), #C98A0B); }
+  @keyframes orgFestaEntra{ from{ transform:scale(.6) translateY(40px); opacity:0; } to{ transform:none; opacity:1; } }
+  .org-festa .medalha{ width:110px; height:110px; animation:orgFestaGira 1.1s .2s cubic-bezier(.3,1.3,.5,1) both; }
+  @keyframes orgFestaGira{ from{ transform:rotate(-30deg) scale(.4); opacity:0; } to{ transform:none; opacity:1; } }
+  .org-festa .medalha .fita{ fill:var(--accent); } .org-festa .medalha .fita2{ fill:var(--ok); }
+  .org-festa .medalha .disco{ fill:#D89B1C; } .org-festa .medalha .borda{ fill:none; stroke:#FFF6DC; stroke-width:2.5; opacity:.7; }
+  .org-festa .medalha text{ fill:#FFFFFF; font:700 22px var(--font-ui); }
+  .org-festa-card h2{ margin:4px 0 0; font-size:38px; font-weight:700; letter-spacing:-.01em; text-wrap:balance; }
+  .org-festa-card .big{ font-size:21px; font-weight:600; }
+  .org-festa-card .big b{ color:var(--ok); font-family:var(--font-data); font-size:26px; }
+  .org-festa-card p{ margin:0; color:var(--muted); line-height:1.5; }
+  .org-festa-card .btn{ margin-top:8px; padding:10px 22px; }
+  @media (max-width:520px){ .org-festa-card{ padding:32px 20px 24px; } .org-festa-card h2{ font-size:30px; } }
+  @media (prefers-reduced-motion: reduce){ .org-festa, .org-festa-card, .org-festa .medalha{ animation:none; } }
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translateX(-50%);
     background:var(--ink); color:var(--paper); padding:9px 16px; border-radius:10px;
@@ -4476,6 +4495,7 @@
     O.lock.hidden = true;
     O.content.hidden = false;
     renderOrg();
+    orgFestaConfere();
     return true;
   }
 
@@ -8092,6 +8112,111 @@
     if (orgSom.ligado){ orgSomPrepara(); orgSomToca(); }
     toast(orgSom.ligado ? (org.modo === 'pessoa' ? 'Som ligado: toca quando chegar tarefa urgente' : 'Som ligado: toca quando chegar tarefa para conferir') : 'Som desligado');
   });
+  // ---------------------------------------------------------------------
+  // Comemoração ao concluir tarefa (só a pessoa da equipe, no próprio quadro):
+  // confete, "plim" (se o Som estiver ligado) e recado; a cada 10 no dia, banner de parabéns.
+  // Compara as concluídas hoje antes e depois de recarregar o quadro, então vale para qualquer
+  // jeito de concluir (arrastar, cartão, lista, janela de conclusão).
+  // ---------------------------------------------------------------------
+  var orgFesta = { dono: null, dia: '', n: 0, ids: null };
+  var ORG_FESTA_FRASES = ['Mandou bem!', 'Mais uma!', 'Isso aí!', 'Ótimo trabalho!', 'Arrasou!'];
+  var orgFestaReduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function orgFestaConfere(){
+    if (org.modo !== 'pessoa' || !org.eu || org.ver){ orgFesta = { dono: null, dia: '', n: 0, ids: null }; return; }
+    var hoje = startOfDay(new Date()), dia = dayKey(hoje), ids = {}, n = 0;
+    org.tarefas.forEach(function(t){ if (t.feitaEm && t.feitaEm >= hoje){ ids[t.id] = true; n++; } });
+    var antes = orgFesta.dono === org.eu && orgFesta.dia === dia && orgFesta.ids ? orgFesta : null;
+    var novos = antes ? Object.keys(ids).filter(function(id){ return !antes.ids[id]; }) : [];
+    orgFesta = { dono: org.eu, dia: dia, n: n, ids: ids };
+    if (!antes || !novos.length) return;
+    var marco = n >= 10 && Math.floor(n / 10) > Math.floor(antes.n / 10);
+    orgFestaToca(novos[novos.length - 1], n, marco);
+  }
+  function orgFestaToca(id, n, marco){
+    var el = document.querySelector('.kcard[data-id="' + id + '"]') || document.querySelector('.task[data-tid="' + id + '"]');
+    var r = el && el.offsetParent ? el.getBoundingClientRect() : null;
+    if (!orgFestaReduz) orgConfete(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight * 0.35, 90);
+    if (marco){ orgFestaBanner(Math.floor(n / 10) * 10); return; }
+    orgFestaSom(false);
+    toast(ORG_FESTA_FRASES[(n - 1) % ORG_FESTA_FRASES.length] + ' ' + n + (n === 1 ? ' tarefa feita hoje' : ' tarefas feitas hoje'));
+  }
+  // plim curto ao concluir; fanfarra no banner. Segue o botão "Som" da Organização.
+  function orgFestaSom(fanfarra){
+    if (!orgSom.ligado || !orgSom.ctx) return;
+    try {
+      var ctx = orgSom.ctx, t0 = ctx.currentTime + 0.02;
+      var notas = fanfarra ? [[523.25, 0, .22], [659.25, .12, .22], [783.99, .24, .22], [1046.5, .36, .22], [783.99, .6, .22], [1046.5, .72, .7]]
+                           : [[1046.5, 0, .3], [1567.98, .09, .35]];
+      notas.forEach(function(x){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = fanfarra ? 'triangle' : 'sine'; o.frequency.value = x[0];
+        g.gain.setValueAtTime(0.0001, t0 + x[1]);
+        g.gain.exponentialRampToValueAtTime(fanfarra ? 0.16 : 0.18, t0 + x[1] + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + x[1] + x[2]);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(t0 + x[1]); o.stop(t0 + x[1] + x[2] + 0.05);
+      });
+    } catch (e) {}
+  }
+  var orgFestaT;
+  function orgFestaBanner(n){
+    var velho = document.querySelector('.org-festa'); if (velho) velho.remove();
+    var nome = String(org.euNome || '').trim().split(/\s+/)[0];
+    var f = document.createElement('div');
+    f.className = 'org-festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'orgFestaTit');
+    f.innerHTML = '<div class="org-festa-card">' +
+      '<svg class="medalha" viewBox="0 0 84 84" aria-hidden="true"><path class="fita" d="M24 4h14l8 26H32z"/><path class="fita2" d="M60 4H46l-8 26h14z"/><circle class="disco" cx="42" cy="52" r="26"/><circle class="borda" cx="42" cy="52" r="20"/><text x="42" y="60" text-anchor="middle">' + n + '</text></svg>' +
+      '<h2 id="orgFestaTit">Parabéns' + (nome ? ', ' + escapeHtml(nome) : '') + '!</h2>' +
+      '<div class="big">Você concluiu <b>' + n + '</b> tarefas hoje</div>' +
+      '<p>' + (n >= 30 ? 'Que dia! A equipe agradece.' : n >= 20 ? 'Ritmo forte. Continue assim!' : 'Que dia produtivo. A equipe agradece!') + '</p>' +
+      '<button type="button" class="btn primary" data-festa-ok>Continuar</button></div>';
+    document.body.appendChild(f);
+    function fechar(){ clearTimeout(orgFestaT); f.remove(); document.removeEventListener('keydown', esc, true); }
+    function esc(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
+    f.addEventListener('click', function(e){ if (e.target === f || e.target.closest('[data-festa-ok]')) fechar(); });
+    document.addEventListener('keydown', esc, true);
+    f.querySelector('[data-festa-ok]').focus();
+    orgFestaT = setTimeout(fechar, 8000);
+    orgFestaSom(true);
+    if (!orgFestaReduz){
+      orgConfete(innerWidth * 0.15, innerHeight * 0.9, 90); orgConfete(innerWidth * 0.85, innerHeight * 0.9, 90);
+      setTimeout(function(){ orgConfete(innerWidth * 0.5, innerHeight * 0.75, 90); }, 450);
+    }
+  }
+  // Confete desenhado num canvas por cima da tela (some sozinho)
+  var orgCf = { cv: null, g: null, parts: [], rodando: false };
+  function orgConfete(x, y, qtd){
+    if (!orgCf.cv){
+      orgCf.cv = document.createElement('canvas'); orgCf.cv.className = 'org-festa-cv'; orgCf.cv.setAttribute('aria-hidden', 'true');
+      orgCf.g = orgCf.cv.getContext('2d');
+    }
+    if (!orgCf.cv.isConnected){
+      document.body.appendChild(orgCf.cv);
+      var dpr = window.devicePixelRatio || 1;
+      orgCf.cv.width = innerWidth * dpr; orgCf.cv.height = innerHeight * dpr; orgCf.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    var st = getComputedStyle(document.documentElement);
+    var cores = [st.getPropertyValue('--accent').trim(), st.getPropertyValue('--ok').trim(), '#D89B1C', '#E5484D', '#8E4EC6'];
+    for (var i = 0; i < qtd; i++){
+      var ang = -Math.PI / 2 + (Math.random() - 0.5) * 2.2, v = 6 + Math.random() * 7;
+      orgCf.parts.push({ x: x, y: y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, r: 4 + Math.random() * 4, rot: Math.random() * 6, vr: (Math.random() - 0.5) * 0.4, c: cores[i % cores.length], vida: 90 + Math.random() * 40 });
+    }
+    if (orgCf.rodando) return;
+    orgCf.rodando = true;
+    (function passo(){
+      var g = orgCf.g;
+      g.clearRect(0, 0, innerWidth, innerHeight);
+      orgCf.parts = orgCf.parts.filter(function(p){ return p.vida > 0; });
+      orgCf.parts.forEach(function(p){
+        p.vida--; p.vx *= 0.985; p.vy += 0.28; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.globalAlpha = Math.min(1, p.vida / 30); g.fillStyle = p.c;
+        g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); g.restore();
+      });
+      if (orgCf.parts.length) requestAnimationFrame(passo);
+      else { orgCf.rodando = false; orgCf.cv.remove(); }
+    })();
+  }
+
   OS.notif.addEventListener('click', function(){
     if (!('Notification' in window)) return;
     Promise.resolve(Notification.requestPermission()).then(function(p){

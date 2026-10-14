@@ -218,6 +218,10 @@ No **Quadro**:
     - **O mesmo aviso para a equipe:** quem cria uma tarefa no próprio quadro com nº de processo (ou troca o processo
       de uma tarefa) também é avisado se o processo já está com alguém: nome da pessoa, tarefa, coluna e prazo.
       Clique em **Salvar mesmo assim** ou **Cancelar**. Para funcionar, rode de novo o `sql/organizacao.sql` inteiro.
+    - **Comemoração ao concluir:** quando alguém da equipe conclui uma tarefa no próprio quadro, saem confetes,
+      toca um "plim" e aparece um recado ("Mandou bem! 3 tarefas feitas hoje"). A cada 10 tarefas concluídas no dia
+      (10, 20, 30...), entra um banner grande de parabéns com o nome da pessoa e uma fanfarra. O som segue o botão
+      **Som** da Organização. Quem usa "reduzir movimento" no computador não vê os confetes. O gestor não vê a animação.
     - **Tarefa do gestor não pode ser excluída pela equipe:** quem recebe uma tarefa do gestor não vê o botão Excluir
       nela, nem consegue arquivá-la antes de concluir. Só o gestor exclui. O banco também bloqueia (precisa do
       `sql/organizacao.sql` atualizado).
