@@ -1106,6 +1106,14 @@
   .pn-kpi.conf .n{ color:var(--warn); }
   .pn-kpi.ok .n{ color:var(--ok); }
   .pn-grid{ display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:14px; align-items:start; }
+  .pn-dia{ display:inline-flex; align-items:center; gap:4px; margin-left:auto; font-size:12.5px; font-weight:500; text-transform:none; letter-spacing:0; color:var(--muted); }
+  .pn-dia .icon-btn{ width:30px; height:30px; font-size:18px; line-height:1; }
+  .pn-dia input{ border:1px solid var(--line); border-radius:8px; background:var(--sunken); color:var(--ink); font:13px var(--font-ui); padding:4px 6px; }
+  .pn-feitas{ display:flex; flex-direction:column; gap:12px; padding:4px 14px 14px; }
+  .pn-feitas .pn-fd-p{ font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .pn-feitas ul{ margin:4px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:3px; font-size:13.5px; line-height:1.45; }
+  .pn-feitas .pn-fd-m{ color:var(--muted); font-size:12.5px; }
+  .pn-feitas .pn-fd-m .proc{ font-family:var(--font-data); }
   .pn-head-dir{ display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; justify-content:flex-end; }
   .pn-corpo{ display:flex; flex-direction:column; gap:14px; }
   .pn-secs{ display:flex; flex-direction:column; border:1px solid var(--line); border-radius:12px; overflow:hidden; }
@@ -2102,11 +2110,23 @@
           <div class="pn-corpo" id="orgPnCorpo">
           <div class="pn-bloco">
             <h3>Carga por pessoa
+              <span class="pn-dia" id="orgPnDia" role="group" aria-label="Dia das tarefas feitas">
+                <span>Feitas em</span>
+                <button type="button" class="icon-btn" data-pndia="-1" aria-label="Dia anterior">‹</button>
+                <input type="date" id="orgPnDiaIn" aria-label="Escolher o dia" />
+                <button type="button" class="icon-btn" data-pndia="1" aria-label="Dia seguinte">›</button>
+                <button type="button" class="clear-btn" data-pndia="hoje" hidden>Hoje</button>
+              </span>
               <span class="pn-leg"><span><i class="pn-sw" data-k="afazer"></i>A fazer</span><span><i class="pn-sw" data-k="and"></i>Em andamento</span><span><i class="pn-sw" data-k="conf"></i>Para conferir</span></span>
             </h3>
             <div class="pn-scroll" id="orgPnCarga"></div>
           </div>
           <div class="pn-secs" id="orgPnSecs">
+            <details class="pn-sec" data-sec="feitas">
+              <summary><span class="pn-sec-t" id="orgPnFeitasTit">Concluídas hoje</span><span class="pn-sum" id="orgPnSumFeitas"></span></summary>
+              <div class="pn-leg pn-sec-dica">O que cada pessoa concluiu no dia escolhido em "Feitas em", inclusive o que já foi arquivado.</div>
+              <div class="pn-feitas" id="orgPnFeitas"></div>
+            </details>
             <details class="pn-sec" data-sec="atencao">
               <summary><span class="pn-sec-t">Atenção</span><span class="pn-sum" id="orgPnSumAtencao"></span></summary>
               <div class="pn-alertas" id="orgPnAlertas"></div>
@@ -2715,6 +2735,8 @@
     <h2 id="oqTitulo">Tarefa</h2>
     <div class="oq-grid" id="oqGrid"></div>
     <div class="oq-edit" id="oqEdit" hidden>
+      <div class="field" id="oqeParaBox"><label for="oqePara">Pessoa</label><select id="oqePara"></select>
+        <span class="field-hint" id="oqeParaDica">Mandou para a pessoa errada? Troque aqui. A tarefa vai para o "A fazer" de quem você escolher.</span></div>
       <div class="field"><label for="oqeTitulo">Tarefa</label><input id="oqeTitulo" maxlength="160" /></div>
       <div class="field-row">
         <div class="field"><label for="oqePrazo">Prazo</label><input id="oqePrazo" type="date" /></div>
@@ -4690,7 +4712,7 @@
       '<label>Prioridade<select class="org-in" id="oeUrg">' + ORG_PRIO.map(function(p){ return '<option value="' + p[0] + '"' + (p[0] === t.prioridade ? ' selected' : '') + '>' + p[1] + '</option>'; }).join('') + '</select></label>' +
       '<label class="so-proprio">Responsável<select class="org-in" id="oeResp"><option value="">Ninguém</option>' + resps.map(function(r){ return '<option' + (r === t.responsavel ? ' selected' : '') + '>' + escapeHtml(r) + '</option>'; }).join('') + '</select></label>' +
       '<label>Nº do processo<input data-cnj class="org-in mono-in" id="oeProc" value="' + escapeHtml(t.processo) + '" maxlength="40" placeholder="opcional" style="font-family:var(--font-data)"></label>' +
-      '<div class="row-btns"><button type="button" class="btn danger-text" data-act="excluir-tarefa" data-id="' + t.id + '">Excluir</button>' +
+      '<div class="row-btns">' + (orgProtegida(t) ? '<span class="field-hint">Mandada pelo gestor: não pode ser excluída.</span>' : '<button type="button" class="btn danger-text" data-act="excluir-tarefa" data-id="' + t.id + '">Excluir</button>') +
       '<span style="display:flex;gap:8px"><button type="button" class="btn" data-act="cancelar">Cancelar</button><button type="submit" class="btn primary">Salvar</button></span></div>' +
       '</div></form>';
   }
@@ -5169,7 +5191,9 @@
   var ICON_ARQ = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v9a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9"/><line x1="10" y1="13" x2="14" y2="13"/></svg>';
   org.kadd = null; org.kaddTxt = ''; org.kaddMod = '';
 
-  function orgPodeArquivar(t){ return org.temExtras && (t.etapa === 'feito' || org.arqLivre); }
+  // Tarefa mandada pelo gestor, vista pela pessoa: não pode ser excluída nem arquivada antes de concluída
+  function orgProtegida(t){ return org.modo === 'pessoa' && !!t.doGestor; }
+  function orgPodeArquivar(t){ return org.temExtras && (t.etapa === 'feito' || (org.arqLivre && !orgProtegida(t))); }
 
   // Campo "Adicionar tarefa" no fim da coluna
   function orgKAddHtml(chave, nome){
@@ -5576,6 +5600,7 @@
     if (t.doGestor) info.unshift('Mandada pelo gestor');
     OC.info.textContent = info.join(' · ');
     OC.excluir.classList.remove('armed'); OC.excluir.textContent = 'Excluir';
+    OC.excluir.hidden = orgProtegida(t);
     OC.dialog.showModal();
     setTimeout(function(){ OC.titulo.focus(); }, 30);
   }
@@ -6722,6 +6747,11 @@
     per: document.getElementById('orgPnPer'),
     desemp: document.getElementById('orgPnDesemp'),
     corpo: document.getElementById('orgPnCorpo'),
+    dia: document.getElementById('orgPnDia'),
+    diaIn: document.getElementById('orgPnDiaIn'),
+    feitas: document.getElementById('orgPnFeitas'),
+    feitasTit: document.getElementById('orgPnFeitasTit'),
+    sumFeitas: document.getElementById('orgPnSumFeitas'),
     recolher: document.getElementById('orgPnRecolher'),
     secs: document.getElementById('orgPnSecs')
   };
@@ -6729,6 +6759,15 @@
   var orgPnEstado = { secs: {}, recolhido: false };
   try { orgPnEstado = Object.assign(orgPnEstado, JSON.parse(localStorage.getItem('orgPainel') || '{}')); } catch (e) {}
   function orgPnGuarda(){ try { localStorage.setItem('orgPainel', JSON.stringify(orgPnEstado)); } catch (e) {} }
+  OP.dia.addEventListener('click', function(e){
+    var b = e.target.closest('[data-pndia]'); if (!b) return;
+    var v = b.getAttribute('data-pndia');
+    if (v === 'hoje'){ orgPnMudaDia(''); return; }
+    var atual = OP.diaIn.value ? new Date(OP.diaIn.value + 'T00:00') : new Date();
+    atual.setDate(atual.getDate() + Number(v));
+    orgPnMudaDia(dayKey(atual));
+  });
+  OP.diaIn.addEventListener('change', function(){ if (OP.diaIn.value) orgPnMudaDia(OP.diaIn.value); });
   OP.secs.querySelectorAll('details[data-sec]').forEach(function(d){
     d.open = !!orgPnEstado.secs[d.getAttribute('data-sec')];
     d.addEventListener('toggle', function(){ orgPnEstado.secs[d.getAttribute('data-sec')] = d.open; orgPnGuarda(); });
@@ -6764,6 +6803,27 @@
   }
   function orgPnN(n, cls){ return n ? '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + n + '</span>' : '<span class="pn-z">0</span>'; }
 
+  // Busca as concluídas do dia escolhido (uma vez por dia e por mudança nas tarefas)
+  org.pnDia = ''; org.pnF = null;
+  async function orgPnCarregaFeitas(dia){
+    if (org.semFeitasDia) return;
+    var k = dia + '|' + (org.assinatura || '');
+    if (org.pnF && (org.pnF.k === k || org.pnF.busca === k)) return;
+    var antes = org.pnF && org.pnF.dia === dia ? org.pnF.lista : null;
+    org.pnF = { dia: dia, busca: k, lista: antes };
+    var r = await orgCall('org_feitas_dia', { p_dia: dia });
+    if (!org.pnF || org.pnF.busca !== k) return;
+    if (r.status === 'erro' && r.codigo === 'PGRST202'){ org.semFeitasDia = true; org.pnF = null; }
+    else org.pnF = { dia: dia, k: k, lista: r.status === 'ok' && Array.isArray(r.tarefas) ? r.tarefas : null, erro: r.status === 'ok' ? '' : (r.message || 'Não foi possível carregar.') };
+    renderOrgPainel();
+  }
+  function orgPnMudaDia(dia){
+    var hojeK = org.painel && org.painel.hoje ? String(org.painel.hoje).slice(0, 10) : dayKey(new Date());
+    org.pnDia = dia && dia < hojeK ? dia : '';
+    var sec = OP.secs.querySelector('details[data-sec=feitas]'); if (org.pnDia && sec && !sec.open) sec.open = true;
+    renderOrgPainel();
+  }
+
   function renderOrgPainel(){
     var P = org.painel;
     OP.box.hidden = !P;
@@ -6794,7 +6854,18 @@
     var media = cargas.length ? tot.aberto / cargas.length : 0;
     var maxAb = Math.max.apply(null, cargas.map(function(x){ return x.c.total; }).concat([1]));
     var temAg = Array.isArray(P.agendadas);
-    function orgPnFeitasHoje(id){ var f = (P.feitas || []).filter(function(z){ return z.dono === id; })[0]; return f && f.hoje ? f.hoje : 0; }
+    // Feitas no dia escolhido: vem de org_feitas_dia; sem ela (SQL antigo) só dá para mostrar hoje
+    var hojeK = P.hoje ? String(P.hoje).slice(0, 10) : dayKey(new Date()), diaK = org.pnDia && org.pnDia < hojeK ? org.pnDia : hojeK;
+    var ehHoje = diaK === hojeK, F = org.pnF && org.pnF.dia === diaK ? org.pnF : null;
+    function orgPnFeitasHoje(id){
+      if (F && F.lista) return F.lista.filter(function(z){ return z.dono === id; }).length;
+      if (!ehHoje) return null;
+      var f = (P.feitas || []).filter(function(z){ return z.dono === id; })[0]; return f && f.hoje ? f.hoje : 0;
+    }
+    var diaD = new Date(diaK + 'T00:00'), diaTxt = ehHoje ? 'hoje' : (orgDiff(diaD) === -1 ? 'ontem' : 'em ' + fmtDia(diaD));
+    OP.diaIn.max = hojeK; if (OP.diaIn.value !== diaK && document.activeElement !== OP.diaIn) OP.diaIn.value = diaK;
+    OP.dia.querySelector('[data-pndia="1"]').disabled = ehHoje;
+    OP.dia.querySelector('[data-pndia=hoje]').hidden = ehHoje;
     function orgPnAg(id){
       var a = P.agendadas.filter(function(z){ return z.dono === id; })[0], px = a ? orgPnDia(a.proxima) : null;
       return a && a.n ? '<span title="A próxima aparece em ' + (px ? fmtDia(px) : '') + '">' + a.n + (px ? ' <span class="pn-dt">(' + fmtDia(px) + ')</span>' : '') + '</span>' : '<span class="pn-z">0</span>';
@@ -6803,7 +6874,7 @@
     if (!cargas.length){
       OP.carga.innerHTML = '<div class="pn-vazio">Cadastre a equipe no botão "Pessoas" para ver a carga de cada um.</div>';
     } else {
-      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th><th title="Tarefas concluídas hoje">Feitas hoje</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
+      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th><th title="Tarefas concluídas no dia escolhido em Feitas em">Feitas ' + diaTxt + '</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
         cargas.map(function(x){
           var c = x.c, w = function(n){ return (n / maxAb * 100).toFixed(1) + '%'; };
           var pill = !x.p.ativo ? '<span class="pn-pill">desativada</span>' : c.total === 0 ? '<span class="pn-pill livre">livre</span>' : cheia(c) ? '<span class="pn-pill cheia">sobrecarregada</span>' : '';
@@ -6815,10 +6886,39 @@
               '<span style="width:' + w(c.afazer) + '"></span><span data-k="and" style="width:' + w(c.andamento) + '"></span><span data-k="conf" style="width:' + w(c.conferir) + '"></span></div></td>' +
             '<td><b>' + orgPnN(c.afazer) + '</b></td><td>' + orgPnN(c.andamento) + '</td><td>' + orgPnN(c.conferir) + '</td>' +
             '<td>' + orgPnN(c.atrasadas, 'pn-red') + '</td><td>' + orgPnN(c.urgentes, 'pn-red') + '</td><td>' + prox + '</td>' +
-            '<td>' + orgPnN(orgPnFeitasHoje(x.p.id), 'pn-ok') + '</td>' +
+            '<td>' + (orgPnFeitasHoje(x.p.id) === null ? '<span class="pn-z">…</span>' : orgPnN(orgPnFeitasHoje(x.p.id), 'pn-ok')) + '</td>' +
             (temAg ? '<td>' + orgPnAg(x.p.id) + '</td>' : '') + '</tr>';
         }).join('') + '</tbody></table>';
     }
+
+    // concluídas no dia escolhido, por pessoa
+    OP.feitasTit.textContent = 'Concluídas ' + (ehHoje ? 'hoje' : diaTxt === 'ontem' ? 'ontem' : 'em ' + fmtDia(diaD) + ' (' + ORG_DSEM_CURTO[diaD.getDay()] + ')');
+    if (org.semFeitasDia){
+      OP.sumFeitas.textContent = '';
+      OP.feitas.innerHTML = '<div class="pn-vazio">Para ver o que foi concluído em cada dia, rode de novo o arquivo sql/organizacao.sql (veja o LEIA-ME.md).</div>';
+    } else if (!F || !F.lista){
+      OP.sumFeitas.textContent = '';
+      OP.feitas.innerHTML = '<div class="pn-vazio">' + (F && F.erro ? escapeHtml(F.erro) : 'Carregando…') + '</div>';
+    } else {
+      var porP = {};
+      F.lista.forEach(function(z){ (porP[z.dono] = porP[z.dono] || []).push(z); });
+      var donos = Object.keys(porP).sort(function(a, b){ return (orgNomePessoa(a) || '').localeCompare(orgNomePessoa(b) || '', 'pt-BR'); });
+      OP.sumFeitas.textContent = F.lista.length ? F.lista.length + (F.lista.length === 1 ? ' tarefa' : ' tarefas') : 'nenhuma';
+      OP.feitas.innerHTML = !F.lista.length ? '<div class="pn-vazio">Ninguém concluiu tarefas ' + (ehHoje ? 'hoje' : 'nesse dia') + '.</div>' :
+        donos.map(function(d){
+          var nome = orgNomePessoa(d) || 'Pessoa excluída';
+          return '<div><div class="pn-fd-p">' + orgAvatar(nome, true) + escapeHtml(nome) + ' <span class="pn-fd-m">· ' + porP[d].length + '</span></div><ul>' +
+            porP[d].map(function(z){
+              var fe = new Date(z.feita_em), pz = z.prazo ? new Date(String(z.prazo).slice(0, 10) + 'T00:00') : null;
+              var atras = pz && startOfDay(fe) > pz;
+              return '<li>' + escapeHtml(z.titulo || 'Sem título') + ' <span class="pn-fd-m">· ' + pad(fe.getHours()) + ':' + pad(fe.getMinutes()) +
+                (z.processo ? ' · <span class="proc">' + escapeHtml(z.processo) + '</span>' : '') +
+                (z.do_gestor ? ' · do gestor' : '') + (atras ? ' · <span class="pn-red">depois do prazo (' + fmtDia(pz) + ')</span>' : '') +
+                (z.arquivada ? ' · arquivada' : '') + '</span></li>';
+            }).join('') + '</ul></div>';
+        }).join('');
+    }
+    orgPnCarregaFeitas(diaK);
 
     // atenção
     var al = [];
@@ -7847,6 +7947,7 @@
   var OQE = {
     box: document.getElementById('oqEdit'), titulo: document.getElementById('oqeTitulo'), prazo: document.getElementById('oqePrazo'),
     prio: document.getElementById('oqePrio'), proc: document.getElementById('oqeProc'), modTxt: document.getElementById('oqeModTxt'),
+    para: document.getElementById('oqePara'), paraBox: document.getElementById('oqeParaBox'), paraDica: document.getElementById('oqeParaDica'),
     salvar: document.getElementById('oqeSalvar'), cancelar: document.getElementById('oqeCancelar'),
     acoes: document.getElementById('oqAcoes'), editar: document.getElementById('oqEditar'), excluir: document.getElementById('oqExcluir')
   };
@@ -7863,6 +7964,15 @@
     OQE.prazo.value = t.prazo ? dayKey(t.prazo) : '';
     OQE.prio.value = t.prioridade;
     OQE.proc.value = t.processo;
+    // Trocar a pessoa: só tarefa em aberto do quadro de alguém da equipe
+    var ativos = org.pessoas.filter(function(p){ return p.ativo || p.id === t.dono; });
+    OQE.para.innerHTML = ativos.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '"' + (p.id === t.dono ? ' selected' : '') + (p.ativo ? '' : ' disabled') + '>' + escapeHtml(p.nome) +
+        (p.id === t.dono ? ' (atual)' : org.painel ? ' (' + orgPnCarga(p.id).total + ' em aberto)' : '') + '</option>';
+    }).join('');
+    OQE.paraBox.hidden = !t.dono || t.etapa === 'feito';
+    OQE.paraDica.textContent = 'Mandou para a pessoa errada? Troque aqui. A tarefa vai para o "A fazer" de quem você escolher' +
+      (orgEmConf(t) ? '; a conferência em andamento é cancelada.' : '.');
     document.getElementById('oqeApareceBox').hidden = !org.temAgenda || t.etapa === 'feito';
     document.getElementById('oqeAparece').value = orgAgendada(t) ? dayKey(t.apareceEm) : '';
     OQE.modTxt.innerHTML = orgModTxtOpcoes(t.modeloTexto);
@@ -7890,10 +8000,16 @@
       r = await orgCall('org_agendar_tarefa', { p_pessoa: t.dono, p_id: t.id, p_aparece_em: apNovo || null });
       orgOk(r);
     }
+    // por último, se trocou a pessoa, passa a tarefa (as outras mudanças já foram gravadas no quadro atual)
+    var novaPessoa = !OQE.paraBox.hidden && OQE.para.value && OQE.para.value !== t.dono ? OQE.para.value : '';
+    if (r.status === 'ok' && novaPessoa){
+      r = await orgCall('org_passar_tarefas', { p_ids: [t.id], p_destino: novaPessoa });
+      orgOk(r);
+    }
     OQE.salvar.disabled = false;
     if (r.status !== 'ok') return;
     OQ.dialog.close();
-    toast('Tarefa de ' + orgNomePessoa(t.dono) + ' atualizada');
+    toast(novaPessoa ? 'Tarefa passada de ' + orgNomePessoa(t.dono) + ' para ' + orgNomePessoa(novaPessoa) + ', em A fazer.' : 'Tarefa de ' + orgNomePessoa(t.dono) + ' atualizada');
     await orgLoad();
   });
   OQE.excluir.addEventListener('click', async function(){
