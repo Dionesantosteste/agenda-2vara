@@ -623,6 +623,35 @@ begin
 end;
 $$;
 
+-- Painel da equipe: tarefas concluídas num dia (horário da vara), de todas as pessoas, inclusive as já arquivadas
+create or replace function org_feitas_dia(p_pin text, p_pessoa uuid, p_dia date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor vê as tarefas concluídas da equipe.');
+  end if;
+  return jsonb_build_object('status', 'ok', 'dia', p_dia, 'tarefas', coalesce((
+    select jsonb_agg(jsonb_build_object(
+             'id', t.id, 'dono', t.dono, 'titulo', t.titulo, 'processo', t.processo, 'prazo', t.prazo,
+             'feita_em', t.feita_em, 'do_gestor', t.do_gestor, 'arquivada', t.arquivada_em is not null)
+           order by t.feita_em)
+      from org_tarefas t
+     where t.dono is not null and t.feita_em is not null
+       and t.feita_em >= (p_dia::timestamp at time zone 'America/Cuiaba')
+       and t.feita_em < ((p_dia + 1)::timestamp at time zone 'America/Cuiaba')), '[]'::jsonb));
+end;
+$$;
+
 -- Processo repetido: antes de mandar uma tarefa, o gestor vê se o processo já está com alguém.
 -- Compara só os números (com ou sem pontos e traço) e devolve as tarefas não concluídas e não arquivadas,
 -- de qualquer tela (dono vazio = o próprio gestor), com o nome da coluna em que estão.
@@ -1246,6 +1275,10 @@ begin
   if ac.o_st <> 'ok' then
     return jsonb_build_object('status', ac.o_st);
   end if;
+  -- A pessoa da equipe não exclui tarefa mandada pelo gestor (só o gestor exclui)
+  if not ac.o_gestor and exists (select 1 from org_tarefas where id = p_id and dono is not distinct from ac.o_dono and do_gestor) then
+    return jsonb_build_object('status', 'erro', 'message', 'Tarefa mandada pelo gestor não pode ser excluída. Se ela não for mais necessária, fale com o gestor.');
+  end if;
   delete from org_tarefas where id = p_id and dono is not distinct from ac.o_dono;
   return jsonb_build_object('status', 'ok');
 end;
@@ -1560,8 +1593,10 @@ begin
     return jsonb_build_object('status', ac.o_st);
   end if;
   if coalesce(p_arquivar, true) then
+    -- tarefa do gestor ainda não concluída não sai do quadro da pessoa (arquivar seria o mesmo que sumir com ela)
     update org_tarefas set arquivada_em = now()
-     where id = any(p_ids) and arquivada_em is null and dono is not distinct from ac.o_dono;
+     where id = any(p_ids) and arquivada_em is null and dono is not distinct from ac.o_dono
+       and (ac.o_gestor or not do_gestor or etapa = 'feito');
   else
     update org_tarefas set arquivada_em = null
      where id = any(p_ids) and dono is not distinct from ac.o_dono;
@@ -1970,6 +2005,7 @@ grant execute on function org_pessoas_publico() to anon, authenticated;
 grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
+grant execute on function org_feitas_dia(text, uuid, date) to anon, authenticated;
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_ordenar_lista(text, uuid, uuid[]) to anon, authenticated;

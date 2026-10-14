@@ -218,6 +218,9 @@ No **Quadro**:
     - **O mesmo aviso para a equipe:** quem cria uma tarefa no próprio quadro com nº de processo (ou troca o processo
       de uma tarefa) também é avisado se o processo já está com alguém: nome da pessoa, tarefa, coluna e prazo.
       Clique em **Salvar mesmo assim** ou **Cancelar**. Para funcionar, rode de novo o `sql/organizacao.sql` inteiro.
+    - **Tarefa do gestor não pode ser excluída pela equipe:** quem recebe uma tarefa do gestor não vê o botão Excluir
+      nela, nem consegue arquivá-la antes de concluir. Só o gestor exclui. O banco também bloqueia (precisa do
+      `sql/organizacao.sql` atualizado).
       No **+ Adicionar tarefa** do Quadro, basta escrever o número junto com o texto (ex.: "0001234-56.2026.8.11.0001
       juntar AR"): o número vai sozinho para o campo de processo da tarefa.
   - **Modelo de texto e passo a passo (opcionais):** ao mandar a tarefa, escolha o modelo de texto que a pessoa deve usar e/ou um passo a passo.
@@ -228,6 +231,9 @@ No **Quadro**:
     - Ficam sempre à vista os números do topo e a carga por pessoa. **Atenção**, **Paradas**, **Prazos dos próximos 7 dias** e **Desempenho** abrem e fecham ao clicar (sanfona), e cada linha mostra um resumo mesmo fechada. **Recolher** deixa só os números. O que fica aberto é lembrado neste navegador.
     - **Números do topo:** em aberto, atrasadas, vencem hoje, esperando conferência e concluídas no período. Clicar em "em aberto", "atrasadas" ou "esperando conferência" aplica o mesmo filtro na tabela.
     - **Carga por pessoa:** barra com A fazer, Em andamento (qualquer coluna entre A fazer e Feito) e Para conferir, mais atrasadas, urgentes, próximo prazo e **feitas hoje** (concluídas hoje, no horário de Cuiabá, contando também as já arquivadas). Marca "sobrecarregada" quem tem 1,5 vez a média da equipe (e pelo menos 3 a mais) e "livre" quem não tem nada em aberto. Clicar na pessoa filtra a tabela.
+    - **Dias anteriores:** em "Feitas em", acima da carga, use ‹ e › ou escolha uma data para ver quantas tarefas cada
+      pessoa concluiu naquele dia. A seção **Concluídas** lista as tarefas do dia, por pessoa, com o horário, o processo
+      e se foi depois do prazo. **Hoje** volta para o dia atual. Precisa do `sql/organizacao.sql` atualizado.
     - **Atenção:** quem tem tarefa atrasada, quem está acima da média, quantas esperam conferência e quem está com menos tarefas.
     - **Paradas:** tarefas em aberto sem nenhuma mudança há 7 dias ou mais (até 15).
     - **Prazos dos próximos 7 dias:** quantas tarefas vencem em cada dia, por pessoa.
