@@ -493,11 +493,12 @@ as $$
   )
   select jsonb_build_object(
     'hoje', org_hoje(),
-    -- em aberto: a fazer, em andamento (qualquer coluna do meio), esperando conferência
+    -- em aberto: a fazer, em andamento (só a coluna Fazendo), esperando conferência
     'abertas', coalesce((select jsonb_agg(x) from (
         select a.dono,
                count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa = 'afazer') as afazer,
-               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa <> 'afazer') as andamento,
+               -- andamento: só a coluna Fazendo (colunas criadas pela pessoa não entram na carga)
+               count(*) filter (where a.conferencia is distinct from 'enviada' and a.etapa = 'fazendo') as andamento,
                count(*) filter (where a.conferencia = 'enviada') as conferir,
                count(*) filter (where a.prazo < org_hoje()) as atrasadas,
                count(*) filter (where a.prazo = org_hoje()) as hoje,
