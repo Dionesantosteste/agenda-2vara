@@ -8128,9 +8128,19 @@
     var antes = orgFesta.dono === org.eu && orgFesta.dia === dia && orgFesta.ids ? orgFesta : null;
     var novos = antes ? Object.keys(ids).filter(function(id){ return !antes.ids[id]; }) : [];
     orgFesta = { dono: org.eu, dia: dia, n: n, ids: ids };
-    if (!antes || !novos.length) return;
+    if (!antes){ orgFestaAtrasada(dia, n); return; }
+    if (!novos.length) return;
     var marco = n >= 10 && Math.floor(n / 10) > Math.floor(antes.n / 10);
     orgFestaToca(novos[novos.length - 1], n, marco);
+  }
+  // Só em 14/10/2026, dia em que a comemoração entrou: quem já tinha 10 ou mais concluídas
+  // vê o banner uma vez ao abrir o quadro. Em qualquer outro dia não faz nada.
+  var ORG_FESTA_ATRASADA_DIA = '2026-10-14';
+  function orgFestaAtrasada(dia, n){
+    if (dia !== ORG_FESTA_ATRASADA_DIA || n < 10) return;
+    var chave = 'orgFestaVista:' + org.eu + ':' + dia;
+    try { if (localStorage.getItem(chave)) return; localStorage.setItem(chave, '1'); } catch (e) { return; }
+    setTimeout(function(){ orgFestaBanner(Math.floor(n / 10) * 10); }, 400);
   }
   function orgFestaToca(id, n, marco){
     var el = document.querySelector('.kcard[data-id="' + id + '"]') || document.querySelector('.task[data-tid="' + id + '"]');
