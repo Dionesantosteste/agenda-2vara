@@ -242,6 +242,8 @@ No **Quadro**:
     - "Hoje" segue o horário de Cuiabá.
   - **Marcar várias na tabela** (precisa do `sql/organizacao.sql` atualizado): cada tarefa em aberto tem uma caixinha; a do cabeçalho marca todas as em aberto que estão à vista. Com alguma marcada, aparece a barra embaixo:
     - **Passar para [pessoa]:** a tarefa sai do quadro de quem estava e entra em **A fazer** da outra pessoa. As etiquetas saem (cada tela tem as suas); checklist, anotações, prazo e agendamento continuam. Se estava em conferência, a conferência é cancelada (a barra avisa antes e fica registrado no histórico).
+    - **Trocar a pessoa de uma tarefa só:** clique na tarefa na lista "Tarefas da equipe", depois em **Editar**, e escolha
+      outra pessoa no campo **Pessoa**. Ao salvar, a tarefa passa para o "A fazer" dela, do mesmo jeito que o "Passar para".
     - **Prazo** e/ou **Prioridade** + **Aplicar:** muda todas as marcadas.
     - **Excluir:** clique duas vezes para confirmar.
     - As ações valem só para as marcadas que estão à vista: se a busca ou um filtro esconder uma tarefa marcada, ela é desmarcada.

@@ -2735,6 +2735,8 @@
     <h2 id="oqTitulo">Tarefa</h2>
     <div class="oq-grid" id="oqGrid"></div>
     <div class="oq-edit" id="oqEdit" hidden>
+      <div class="field" id="oqeParaBox"><label for="oqePara">Pessoa</label><select id="oqePara"></select>
+        <span class="field-hint" id="oqeParaDica">Mandou para a pessoa errada? Troque aqui. A tarefa vai para o "A fazer" de quem você escolher.</span></div>
       <div class="field"><label for="oqeTitulo">Tarefa</label><input id="oqeTitulo" maxlength="160" /></div>
       <div class="field-row">
         <div class="field"><label for="oqePrazo">Prazo</label><input id="oqePrazo" type="date" /></div>
@@ -7945,6 +7947,7 @@
   var OQE = {
     box: document.getElementById('oqEdit'), titulo: document.getElementById('oqeTitulo'), prazo: document.getElementById('oqePrazo'),
     prio: document.getElementById('oqePrio'), proc: document.getElementById('oqeProc'), modTxt: document.getElementById('oqeModTxt'),
+    para: document.getElementById('oqePara'), paraBox: document.getElementById('oqeParaBox'), paraDica: document.getElementById('oqeParaDica'),
     salvar: document.getElementById('oqeSalvar'), cancelar: document.getElementById('oqeCancelar'),
     acoes: document.getElementById('oqAcoes'), editar: document.getElementById('oqEditar'), excluir: document.getElementById('oqExcluir')
   };
@@ -7961,6 +7964,15 @@
     OQE.prazo.value = t.prazo ? dayKey(t.prazo) : '';
     OQE.prio.value = t.prioridade;
     OQE.proc.value = t.processo;
+    // Trocar a pessoa: só tarefa em aberto do quadro de alguém da equipe
+    var ativos = org.pessoas.filter(function(p){ return p.ativo || p.id === t.dono; });
+    OQE.para.innerHTML = ativos.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '"' + (p.id === t.dono ? ' selected' : '') + (p.ativo ? '' : ' disabled') + '>' + escapeHtml(p.nome) +
+        (p.id === t.dono ? ' (atual)' : org.painel ? ' (' + orgPnCarga(p.id).total + ' em aberto)' : '') + '</option>';
+    }).join('');
+    OQE.paraBox.hidden = !t.dono || t.etapa === 'feito';
+    OQE.paraDica.textContent = 'Mandou para a pessoa errada? Troque aqui. A tarefa vai para o "A fazer" de quem você escolher' +
+      (orgEmConf(t) ? '; a conferência em andamento é cancelada.' : '.');
     document.getElementById('oqeApareceBox').hidden = !org.temAgenda || t.etapa === 'feito';
     document.getElementById('oqeAparece').value = orgAgendada(t) ? dayKey(t.apareceEm) : '';
     OQE.modTxt.innerHTML = orgModTxtOpcoes(t.modeloTexto);
@@ -7988,10 +8000,16 @@
       r = await orgCall('org_agendar_tarefa', { p_pessoa: t.dono, p_id: t.id, p_aparece_em: apNovo || null });
       orgOk(r);
     }
+    // por último, se trocou a pessoa, passa a tarefa (as outras mudanças já foram gravadas no quadro atual)
+    var novaPessoa = !OQE.paraBox.hidden && OQE.para.value && OQE.para.value !== t.dono ? OQE.para.value : '';
+    if (r.status === 'ok' && novaPessoa){
+      r = await orgCall('org_passar_tarefas', { p_ids: [t.id], p_destino: novaPessoa });
+      orgOk(r);
+    }
     OQE.salvar.disabled = false;
     if (r.status !== 'ok') return;
     OQ.dialog.close();
-    toast('Tarefa de ' + orgNomePessoa(t.dono) + ' atualizada');
+    toast(novaPessoa ? 'Tarefa passada de ' + orgNomePessoa(t.dono) + ' para ' + orgNomePessoa(novaPessoa) + ', em A fazer.' : 'Tarefa de ' + orgNomePessoa(t.dono) + ' atualizada');
     await orgLoad();
   });
   OQE.excluir.addEventListener('click', async function(){
