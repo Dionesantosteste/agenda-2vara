@@ -401,6 +401,22 @@ Para acrescentar ou corrigir um prazo da tabela, edite a lista `ATOS` no `index.
 - **Número do processo:** nos campos de processo, os pontos e o traço entram sozinhos enquanto se digita
   (padrão CNJ `0000000-00.0000.0.00.0000`), também ao colar.
 
+## Aparência (tema, fundo e cor das colunas)
+
+Cada pessoa monta o portal do seu jeito. A escolha fica guardada só no navegador de quem escolheu,
+sem nada no Supabase e sem mudar a tela dos colegas.
+
+- **Tema:** botão **Aparência**, no rodapé do menu lateral (no celular, dentro do menu ☰). Opções:
+  **Automático** (segue o aparelho: claro de dia, noturno quando o sistema está escuro, como era antes),
+  **Claro**, **Alto contraste** (texto preto, bordas escuras e cores vivas nos selos, avisos e lembretes)
+  e **Noturno**.
+- **Fundo da página:** no mesmo painel, uma das cores (Areia, Sálvia, Céu, Lavanda, Rosa, Amarelo, Grafite)
+  ou o padrão do tema.
+- **Cor das colunas do quadro (Organização):** clique na bolinha antes do nome da coluna, ou use a
+  bolinha em **Colunas** (janela "Colunas do quadro"). Bolinha tracejada = sem cor.
+- Cada cor tem uma versão clara, uma escura (Noturno) e uma viva (Alto contraste), e muda sozinha com o tema.
+  A impressão continua em preto no branco.
+
 ### Como adicionar novas seções ao portal depois
 
 No `index.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
