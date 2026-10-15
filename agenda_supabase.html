@@ -6,6 +6,32 @@
 <title>Portal 2ª Vara</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22a%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFF4C2%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23D4A63A%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%239C7019%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23E7C063%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.42%22%20cy%3D%22.3%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233569BE%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%231E4A92%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230A1F4A%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22c%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFF1B8%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23E2B850%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23A97A1C%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M32%202%20L60%2010%20L60%2034%20C60%2049%2048%2058%2032%2063%20C16%2058%204%2049%204%2034%20L4%2010%20Z%22%20fill%3D%22url%28%23a%29%22%2F%3E%3Cpath%20d%3D%22M32%207%20L55%2013.5%20L55%2034%20C55%2046%2045%2053.5%2032%2058%20C19%2053.5%209%2046%209%2034%20L9%2013.5%20Z%22%20fill%3D%22url%28%23b%29%22%2F%3E%3Cpath%20d%3D%22M27.955078125%2041.6328125%2030.306640625%2041.98828125V43.0H21.296875V41.98828125L23.6484375%2041.6328125V26.033203125L21.296875%2025.6640625V24.666015625H30.306640625V25.6640625L27.955078125%2026.033203125ZM40.3515625%2041.6328125%2042.703125%2041.98828125V43.0H33.693359375V41.98828125L36.044921875%2041.6328125V26.033203125L33.693359375%2025.6640625V24.666015625H42.703125V25.6640625L40.3515625%2026.033203125Z%22%20fill%3D%22url%28%23c%29%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>
+  // Aparência (tema e cor de fundo) escolhida por cada pessoa, guardada neste navegador.
+  // Roda antes do CSS desenhar a página para não piscar no tema errado.
+  // Cada cor: [clara, escura (Noturno), viva (Alto contraste)] para o fundo e para as colunas.
+  window.APAR_CORES = [
+    { id: "areia",   nome: "Areia",   fundo: ["#EFE9DC", "#211A10", "#FFB766"], col: ["#F6ECD6", "#2A2417", "#FF9F2E"] },
+    { id: "salvia",  nome: "Sálvia",  fundo: ["#E2ECE4", "#0F1F15", "#5FD08F"], col: ["#DCEFE2", "#18301F", "#2FBF6E"] },
+    { id: "ceu",     nome: "Céu",     fundo: ["#E0EBF6", "#0C1A2B", "#6CB8F2"], col: ["#DCEBFA", "#172A40", "#3FA0EB"] },
+    { id: "lavanda", nome: "Lavanda", fundo: ["#E9E5F3", "#1A1529", "#B39CFF"], col: ["#E7E2F7", "#241F38", "#9775FA"] },
+    { id: "rosa",    nome: "Rosa",    fundo: ["#F3E4E8", "#25131A", "#FF8FB5"], col: ["#F9E0E6", "#34202A", "#FF6B9D"] },
+    { id: "amarelo", nome: "Amarelo", fundo: ["#F3EED8", "#211D0B", "#FFD84D"], col: ["#FBF1C7", "#2E2A14", "#FFC800"] },
+    { id: "grafite", nome: "Grafite", fundo: ["#D9DCE1", "#060708", "#9AA3AE"], col: ["#E6E8EC", "#1D2026", "#7D8794"] }
+  ];
+  window.aparCor = function(id){ return window.APAR_CORES.filter(function(c){ return c.id === id; })[0] || null; };
+  window.aparAplica = function(){
+    var raiz = document.documentElement, tema = null, fundo = null;
+    try { tema = localStorage.getItem("aparTema"); fundo = window.aparCor(localStorage.getItem("aparFundo")); } catch (e) {}
+    if (tema === "light" || tema === "dark" || tema === "contraste") raiz.setAttribute("data-theme", tema);
+    else raiz.removeAttribute("data-theme");
+    if (fundo){
+      raiz.style.setProperty("--fundo-c", fundo.fundo[0]); raiz.style.setProperty("--fundo-e", fundo.fundo[1]); raiz.style.setProperty("--fundo-v", fundo.fundo[2]);
+      raiz.setAttribute("data-fundo", fundo.id);
+    } else raiz.removeAttribute("data-fundo");
+  };
+  window.aparAplica();
+</script>
 <style>
   /* Portal 2ª Vara — fundo cinza-claro levemente azulado; cartões, formulários e menu em branco
      por cima dele. Azul institucional como única cor de destaque; texto escuro e contraste alto. */
@@ -40,10 +66,11 @@
     /* painel da equipe: partes da barra de carga e tons da grade de prazos */
     --pn-afazer: #9DB8E0; --pn-and: #1D5BB8; --pn-conf: #D08A1E;
     --pn-heat1: #D7E4F7; --pn-heat2: #9DB8E0; --pn-heat3: #4F7FC9; --pn-heat3-ink: #FFFFFF;
+    --kc-tinta: #FFFFFF;    /* cartão dentro de coluna colorida */
     --sidebar-w: 236px;
   }
   @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
+    :root:not([data-theme]){
       --bg: #0E141C; --paper: #151D28; --sunken: #1B2533; --ink: #E8EEF6; --muted: #A1AEBF; --line: #2B3748;
       --item: #222E3F; --item-line: #34435A; --urgent-bg: #3B2125; --urgent-line: #6A3A40;
       --accent: #7FB0F5; --accent-ink: #0E141C; --accent-soft: #1C2D46; --danger: #F59A8F;
@@ -55,6 +82,7 @@
       --note-shadow: 0 2px 8px rgba(0,0,0,.4);
       --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
       --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
+      --kc-tinta: #222E3F;
     }
   }
   :root[data-theme="dark"]{
@@ -69,7 +97,40 @@
     --note-shadow: 0 2px 8px rgba(0,0,0,.4);
     --pn-afazer: #3E5F8F; --pn-and: #7FB0F5; --pn-conf: #E3A24A;
     --pn-heat1: #22344F; --pn-heat2: #2F4D7A; --pn-heat3: #5C8FD6; --pn-heat3-ink: #0E141C;
+    --kc-tinta: #222E3F;
   }
+  /* Alto contraste: texto preto, cinzas escuros e cores vivas nos selos, avisos e lembretes */
+  :root[data-theme="contraste"]{
+    --bg: #D5DCE6; --paper: #FFFFFF; --sunken: #F2F5F9; --item: #E3EAF4; --item-line: #4A5D78;
+    --urgent-bg: #FFB3B3; --urgent-line: #C4160B;
+    --ink: #000000; --muted: #26303D; --line: #4A5A70;
+    --accent: #0A3A8C; --accent-ink: #FFFFFF; --accent-soft: #A9C8FF;
+    --danger: #8F1209; --focus: #000000; --shadow: none;
+    --info: #0A3A8C; --info-soft: #A9C8FF;
+    --ok: #0B5B2B; --ok-soft: #7DE3A6;
+    --st-red: #8F1209; --st-red-soft: #FFA3A3;
+    --st-yellow: #3D2C00; --st-yellow-soft: #FFD000; --st-yellow-line: #3D2C00;
+    --st-orange: #6B2300; --st-orange-soft: #FFA552;
+    --warn: #6B3A00; --warn-soft: #FFC266;
+    --note-amarelo: #FFE14D; --note-verde: #8BE8A8; --note-rosa: #FFA8C5; --note-azul: #9CC6FF; --note-ink: #000000;
+    --note-shadow: 0 2px 6px rgba(0,0,0,.25);
+    --pn-afazer: #5C8FE0; --pn-and: #0A3A8C; --pn-conf: #E07B00;
+    --pn-heat1: #A9C8FF; --pn-heat2: #5C8FE0; --pn-heat3: #0A3A8C; --pn-heat3-ink: #FFFFFF;
+    --kc-tinta: #FFFFFF;
+    color-scheme: light;
+  }
+  /* Cor de fundo e cor das colunas escolhidas por cada pessoa (Aparência). Cada cor tem três
+     versões: clara (--cor-c / --fundo-c), escura (Noturno) e viva (Alto contraste). */
+  :root[data-fundo]{ --bg: var(--fundo-c); }
+  [data-cor]{ --cv: var(--cor-c); }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme])[data-fundo]{ --bg: var(--fundo-e); }
+    :root:not([data-theme]) [data-cor]{ --cv: var(--cor-e); }
+  }
+  :root[data-theme="dark"][data-fundo]{ --bg: var(--fundo-e); }
+  :root[data-theme="dark"] [data-cor]{ --cv: var(--cor-e); }
+  :root[data-theme="contraste"][data-fundo]{ --bg: var(--fundo-v); }
+  :root[data-theme="contraste"] [data-cor]{ --cv: var(--cor-v); }
 
   *{box-sizing:border-box;}
   [hidden]{ display:none !important; }
@@ -458,6 +519,29 @@
   .aniv-row.hoje{ border-color:var(--accent); background:var(--accent-soft); }
   .sidebar-foot{ margin-top:auto; padding:0 10px; font-size:12.5px; color:var(--muted); line-height:1.45; }
   .sidebar-foot strong{ display:block; color:var(--ink); font-weight:500; }
+  .apar-btn{ margin-top:10px; display:flex; align-items:center; gap:8px; width:100%; border:1px solid var(--line); background:var(--paper); color:var(--ink);
+    border-radius:10px; padding:7px 10px; font-family:var(--font-ui); font-size:13px; font-weight:500; cursor:pointer; }
+  .apar-btn svg{ flex:none; color:var(--accent); }
+  .apar-btn:hover{ border-color:var(--accent); }
+  .apar-btn[aria-expanded="true"]{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent); font-weight:600; }
+  .apar-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .apar-painel{ margin-top:8px; border:1px solid var(--line); border-radius:12px; padding:10px; background:var(--sunken); display:flex; flex-direction:column; gap:8px; }
+  .apar-lbl{ font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .apar-seg{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:4px; }
+  .apar-seg button{ border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:8px; padding:6px 4px; font-family:var(--font-ui); font-size:12px; cursor:pointer; }
+  .apar-seg button[aria-pressed="true"]{ border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); color:var(--accent); font-weight:600; }
+  .apar-seg button:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .cor-sws{ display:flex; flex-wrap:wrap; gap:6px; }
+  .cor-sw{ width:26px; height:26px; border-radius:7px; border:1px solid var(--line); background:var(--cv); cursor:pointer; padding:0; }
+  .cor-sw.padrao{ background:linear-gradient(135deg, var(--paper) 0 50%, var(--line) 50% 100%); }
+  .cor-sw[aria-pressed="true"]{ outline:2px solid var(--accent); outline-offset:2px; }
+  .cor-sw:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .cor-pop{ position:fixed; z-index:60; width:212px; background:var(--paper); color:var(--ink); border:1px solid var(--line); border-radius:12px;
+    box-shadow:0 12px 32px rgba(20,32,51,.22); padding:10px; display:flex; flex-direction:column; gap:8px; }
+  .cor-dot{ width:16px; height:16px; border-radius:50%; border:1.5px solid var(--muted); background:var(--cv, transparent); padding:0; cursor:pointer; flex:none; }
+  .cor-dot.vazio{ border-style:dashed; background:transparent; }
+  .cor-dot:hover{ border-color:var(--accent); }
+  .cor-dot:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
 
   .main-col{ min-width:0; }
   .main{ min-width:0; padding:30px 28px 100px; }
@@ -882,6 +966,11 @@
   .col h3{ margin:2px 4px 4px; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; }
   .col[data-etapa="fazendo"] h3{ color:var(--accent); }
   .col[data-etapa="feito"] h3{ color:var(--ok); }
+  .col.tingida{ background:var(--cv); }
+  .col.tingida .kcard:not(.urgent){ background:var(--kc-tinta); }
+  :root[data-theme="contraste"] .col.tingida{ border-color:#000000; }
+  :root[data-theme="contraste"] .col.tingida h3{ color:#000000; }
+  .col h3 .cor-dot{ margin-right:7px; }
   .kcard{ background:var(--item); border:1px solid var(--item-line); border-radius:10px; padding:10px 10px 8px; display:flex; flex-direction:column; gap:6px; }
   .kcard.overdue{ border-color:var(--danger); }
   .kcard .t-title{ font-size:14px; }
@@ -1316,12 +1405,15 @@
   .cad-row{ display:grid; grid-template-columns:minmax(0,1fr) 30px 30px 30px; gap:6px; align-items:center; }
   .cad-row.etq{ grid-template-columns:118px minmax(0,1fr) 30px; }
   .cad-row.mod{ grid-template-columns:minmax(0,1fr) 30px; }
+  .cad-row.coluna{ grid-template-columns:30px minmax(0,1fr) 30px 30px 30px; }
+  .cad-row.coluna .cor-dot{ justify-self:center; width:20px; height:20px; }
   .cad-row input, .cad-row select{ border:1px solid var(--line); border-radius:8px; padding:8px 10px; background:var(--sunken); color:var(--ink); font-size:14px; font-family:var(--font-ui); min-width:0; width:100%; }
   .cad-row select{ border-left-width:6px; border-left-color:var(--lc, var(--line)); padding:7px 6px; }
   .cad-row .fixa{ font-size:11px; color:var(--muted); grid-column:span 3; }
   .cad-row.confirmando{ grid-template-columns:minmax(0,1fr) auto; }
   .cad-row.confirmando select, .cad-row.confirmando [data-cad=esq], .cad-row.confirmando [data-cad=dir], .cad-row.confirmando > span{ display:none; }
   .cad-row .icon-btn.armed{ width:auto; }
+  .cad-row.confirmando .cor-dot{ display:none; }
   .kfilters{ display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
   .kfilters .org-in{ height:36px; }
   .kfilters .kbusca{ flex:1 1 220px; }
@@ -1595,6 +1687,21 @@
     <div class="sidebar-foot">
       <strong id="todayLong"></strong>
       <span id="todayAud"></span>
+      <button type="button" class="apar-btn" id="aparBtn" aria-expanded="false" aria-controls="aparPainel">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
+        Aparência
+      </button>
+      <div class="apar-painel" id="aparPainel" hidden>
+        <span class="apar-lbl" id="aparTemaLbl">Tema</span>
+        <div class="apar-seg" id="aparTema" role="group" aria-labelledby="aparTemaLbl">
+          <button type="button" data-tema="auto" aria-pressed="true" title="Segue o aparelho: claro de dia, noturno quando o sistema está escuro">Automático</button>
+          <button type="button" data-tema="light" aria-pressed="false">Claro</button>
+          <button type="button" data-tema="contraste" aria-pressed="false">Alto contraste</button>
+          <button type="button" data-tema="dark" aria-pressed="false">Noturno</button>
+        </div>
+        <span class="apar-lbl" id="aparFundoLbl">Fundo da página</span>
+        <div class="cor-sws" id="aparFundo" role="group" aria-labelledby="aparFundoLbl"></div>
+      </div>
     </div>
   </aside>
   <button type="button" class="scrim" id="scrim" aria-label="Fechar menu" tabindex="-1"></button>
@@ -5246,8 +5353,9 @@
       var renomeia = org.temCadastro && c[0] !== 'afazer' && c[0] !== 'feito';
       // colunas do meio podem ser arrastadas pela alça (A fazer e Feito ficam fixas)
       var arrasta = renomeia && cols.length > 3;
-      h += '<section class="col' + (over ? ' over' : '') + '" data-etapa="' + escapeHtml(c[0]) + '" aria-label="' + escapeHtml(c[1]) + '"><h3>' +
+      h += '<section class="col' + (over ? ' over' : '') + (corColuna(c[0]) ? ' tingida' : '') + '"' + corColAttrs(c[0]) + ' data-etapa="' + escapeHtml(c[0]) + '" aria-label="' + escapeHtml(c[1]) + '"><h3>' +
         (arrasta ? '<span class="col-grip" draggable="true" data-colgrip="' + escapeHtml(c[0]) + '" title="Arraste para mudar a coluna de lugar">' + ICON_GRIP + '</span>' : '') +
+        corDotHtml(c[0], c[1]) +
         '<span class="col-nome"' + (renomeia ? ' data-coluna="' + escapeHtml(c[0]) + '" title="Clique duas vezes para renomear"' : '') + '>' + escapeHtml(c[1]) + '</span>' +
         ' <span' + (c[0] === 'fazendo' ? ' title="Limite de ' + ORG_LIMITE_FAZENDO + ' tarefas em andamento"' : '') + '>' + n + '</span></h3>';
       if (c[0] === 'feito' && org.temExtras && all.length) h += '<div class="karq-row"><button type="button" class="clear-btn" data-act="arquivar-feitas" title="Tira as concluídas do quadro e guarda no Histórico">Arquivar ' + all.length + (all.length === 1 ? ' concluída' : ' concluídas') + '</button></div>';
@@ -5822,6 +5930,121 @@
   var ICON_LIXO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
   var ICON_MAIS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
+  // ---- Aparência: tema, cor de fundo e cor das colunas do quadro ----
+  // Cada pessoa monta do seu jeito: tudo fica guardado só neste navegador (as cores em window.APAR_CORES, no <head>).
+  var APAR = {
+    btn: document.getElementById('aparBtn'),
+    painel: document.getElementById('aparPainel'),
+    tema: document.getElementById('aparTema'),
+    fundo: document.getElementById('aparFundo')
+  };
+  function aparLer(chave){ try { return localStorage.getItem(chave); } catch (e) { return null; } }
+  function aparGravar(chave, v){ try { if (v == null) localStorage.removeItem(chave); else localStorage.setItem(chave, v); } catch (e) {} }
+  // botões de cor; tipo 'fundo' mostra os tons do fundo, 'col' os das colunas
+  function corSws(sel, tipo){
+    var h = '<button type="button" class="cor-sw padrao" data-cor-id="" aria-pressed="' + !sel + '" title="Padrão do tema" aria-label="Padrão do tema"></button>';
+    window.APAR_CORES.forEach(function(c){
+      var v = c[tipo];
+      h += '<button type="button" class="cor-sw" data-cor data-cor-id="' + c.id + '" style="--cor-c:' + v[0] + ';--cor-e:' + v[1] + ';--cor-v:' + v[2] + '"' +
+        ' aria-pressed="' + (sel === c.id) + '" title="' + c.nome + '" aria-label="' + c.nome + '"></button>';
+    });
+    return h;
+  }
+  function aparRender(){
+    var t = aparLer('aparTema') || 'auto';
+    APAR.tema.querySelectorAll('[data-tema]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-tema') === t)); });
+    APAR.fundo.innerHTML = corSws(window.aparCor(aparLer('aparFundo')) ? aparLer('aparFundo') : '', 'fundo');
+  }
+  APAR.btn.addEventListener('click', function(){
+    var abrir = APAR.painel.hidden;
+    if (abrir) aparRender();
+    APAR.painel.hidden = !abrir;
+    APAR.btn.setAttribute('aria-expanded', String(abrir));
+  });
+  APAR.tema.addEventListener('click', function(e){
+    var b = e.target.closest('[data-tema]'); if (!b) return;
+    var t = b.getAttribute('data-tema');
+    aparGravar('aparTema', t === 'auto' ? null : t);
+    window.aparAplica(); aparRender();
+  });
+  APAR.fundo.addEventListener('click', function(e){
+    var b = e.target.closest('.cor-sw'); if (!b) return;
+    var id = b.getAttribute('data-cor-id');
+    aparGravar('aparFundo', id || null);
+    window.aparAplica(); aparRender();
+    var novo = APAR.fundo.querySelector('[data-cor-id="' + id + '"]'); if (novo) novo.focus();
+  });
+
+  // cor de cada coluna do quadro: { chave da coluna: id da cor }
+  var corColunas = {};
+  function corColunasLer(){
+    try { corColunas = JSON.parse(aparLer('aparColunas') || '{}') || {}; } catch (e) { corColunas = {}; }
+  }
+  corColunasLer();
+  function corColuna(chave){ return window.aparCor(corColunas[chave]); }
+  function corColVars(c){ return '--cor-c:' + c.col[0] + ';--cor-e:' + c.col[1] + ';--cor-v:' + c.col[2]; }
+  function corColAttrs(chave){ var c = corColuna(chave); return c ? ' data-cor style="' + corColVars(c) + '"' : ''; }
+  function corDotHtml(chave, nome){
+    var c = corColuna(chave);
+    return '<button type="button" class="cor-dot' + (c ? '' : ' vazio') + '" data-corcol="' + escapeHtml(chave) + '"' + (c ? ' data-cor style="' + corColVars(c) + '"' : '') +
+      ' aria-haspopup="true" aria-expanded="false" title="Cor da coluna" aria-label="Cor da coluna ' + escapeHtml(nome) + ': ' + (c ? c.nome : 'padrão') + '"></button>';
+  }
+  function corColunasRedesenha(){
+    if (OT.kanban.querySelector('.col')) renderOrgKanban();
+    if (cadModo === 'col') renderCadastro();
+  }
+  var corPop = null, corPopChave = null, corPopBtn = null;
+  function corPopFecha(volta){
+    if (corPop){ corPop.remove(); corPop = null; }
+    if (corPopBtn){ corPopBtn.setAttribute('aria-expanded', 'false'); if (volta) corPopBtn.focus(); }
+    corPopBtn = null; corPopChave = null;
+  }
+  function corPopAbre(btn){
+    var chave = btn.getAttribute('data-corcol');
+    if (corPop && corPopChave === chave){ corPopFecha(); return; }
+    corPopFecha();
+    corPopChave = chave; corPopBtn = btn;
+    btn.setAttribute('aria-expanded', 'true');
+    corPop = document.createElement('div');
+    corPop.className = 'cor-pop';
+    corPop.setAttribute('role', 'group');
+    corPop.setAttribute('aria-label', 'Cor da coluna ' + orgNomeColuna(chave));
+    corPop.innerHTML = '<span class="apar-lbl">Cor da coluna “' + escapeHtml(orgNomeColuna(chave)) + '”</span><div class="cor-sws">' + corSws(corColuna(chave) ? corColunas[chave] : '', 'col') + '</div>';
+    // dentro da janela "Colunas do quadro" o menu precisa ficar dentro do <dialog> para aparecer por cima
+    (btn.closest('dialog') || document.body).appendChild(corPop);
+    var r = btn.getBoundingClientRect(), w = corPop.offsetWidth, h = corPop.offsetHeight;
+    var top = r.bottom + 6;
+    if (top + h > window.innerHeight - 8) top = Math.max(8, r.top - h - 6);
+    corPop.style.left = Math.max(8, Math.min(r.left - 6, window.innerWidth - w - 8)) + 'px';
+    corPop.style.top = top + 'px';
+    var sel = corPop.querySelector('[aria-pressed="true"]'); if (sel) sel.focus();
+  }
+  document.addEventListener('click', function(e){
+    var dot = e.target.closest('[data-corcol]');
+    if (dot){ corPopAbre(dot); return; }
+    if (corPop && corPop.contains(e.target)){
+      var b = e.target.closest('.cor-sw'); if (!b) return;
+      var chave = corPopChave, id = b.getAttribute('data-cor-id'), dentro = corPopBtn && corPopBtn.closest('dialog');
+      if (id) corColunas[chave] = id; else delete corColunas[chave];
+      aparGravar('aparColunas', JSON.stringify(corColunas));
+      corPopFecha();
+      corColunasRedesenha();
+      var novo = (dentro || OT.kanban).querySelector('[data-corcol="' + chave + '"]'); if (novo) novo.focus();
+      return;
+    }
+    if (corPop) corPopFecha();
+  });
+  // Esc fecha só o menu de cores (sem fechar a janela "Colunas do quadro" junto)
+  document.addEventListener('keydown', function(e){
+    if (corPop && e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); corPopFecha(true); }
+  }, true);
+  window.addEventListener('resize', function(){ if (corPop) corPopFecha(); });
+  // outra aba do portal mudou a aparência: acompanha
+  window.addEventListener('storage', function(e){
+    if (e.key === 'aparTema' || e.key === 'aparFundo'){ window.aparAplica(); if (!APAR.painel.hidden) aparRender(); }
+    if (e.key === 'aparColunas'){ corColunasLer(); corColunasRedesenha(); }
+  });
+
   function cadCorOpts(sel){
     return ORG_ETQ_CORES.map(function(c){ return '<option value="' + c[0] + '"' + (c[0] === sel ? ' selected' : '') + '>' + c[1] + '</option>'; }).join('');
   }
@@ -5885,11 +6108,11 @@
     } else {
       var primeira = orgNomeColuna('afazer'), ultimaNome = orgNomeColuna('feito'), ult = org.colunas.length - 1;
       CAD.titulo.textContent = 'Colunas do quadro';
-      CAD.dica.textContent = '"' + primeira + '" (a primeira) e "' + ultimaNome + '" (a última, marca a tarefa como feita) são fixas. As outras podem ser renomeadas aqui ou com dois cliques no nome da coluna, e mudam de lugar com ← →. Excluir uma coluna devolve as tarefas dela para "' + primeira + '".';
+      CAD.dica.textContent = '"' + primeira + '" (a primeira) e "' + ultimaNome + '" (a última, marca a tarefa como feita) são fixas. As outras podem ser renomeadas aqui ou com dois cliques no nome da coluna, e mudam de lugar com ← →. Excluir uma coluna devolve as tarefas dela para "' + primeira + '". A bolinha à esquerda escolhe a cor da coluna (vale só neste navegador).';
       org.colunas.forEach(function(c, i){
         var fixa = c.chave === 'afazer' || c.chave === 'feito', padrao = c.chave === 'fazendo';
         var n = org.tarefas.filter(function(t){ return t.etapa === c.chave; }).length;
-        h += '<div class="cad-row" data-chave="' + escapeHtml(c.chave) + '">' +
+        h += '<div class="cad-row coluna" data-chave="' + escapeHtml(c.chave) + '">' + corDotHtml(c.chave, c.nome) +
           '<input data-cad="nome" maxlength="40" value="' + escapeHtml(c.nome) + '" aria-label="Nome da coluna"' + (fixa ? ' readonly title="Coluna fixa: não muda de nome"' : '') + '>' +
           (fixa ? '<span class="fixa">' + (c.chave === 'afazer' ? 'primeira, fixa' : 'última, fixa') + '</span>' :
             '<button type="button" class="icon-btn" data-cad="esq" title="Mover para a esquerda" aria-label="Mover ' + escapeHtml(c.nome) + ' para a esquerda"' + (i <= 1 ? ' disabled' : '') + '>←</button>' +
@@ -5898,8 +6121,8 @@
               : '<button type="button" class="icon-btn danger" data-cad="excluir" data-usos="' + n + '" title="Excluir coluna" aria-label="Excluir a coluna ' + escapeHtml(c.nome) + '">' + ICON_LIXO + '</button>')) +
           '</div>';
       });
-      CAD.novo.className = 'cad-row';
-      CAD.novo.innerHTML = '<input id="cadNovoNome" maxlength="40" placeholder="Nova coluna (ex.: Aguardando retorno)" style="grid-column:span 3">' +
+      CAD.novo.className = 'cad-row coluna';
+      CAD.novo.innerHTML = '<span></span><input id="cadNovoNome" maxlength="40" placeholder="Nova coluna (ex.: Aguardando retorno)" style="grid-column:span 3">' +
         '<button type="button" class="icon-btn" data-cad="add" title="Adicionar coluna" aria-label="Adicionar coluna">' + ICON_MAIS + '</button>';
     }
     CAD.lista.innerHTML = h;
