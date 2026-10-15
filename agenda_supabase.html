@@ -2734,9 +2734,10 @@
     <div class="field oc-extra" id="ocNotasWrap" hidden>
       <label for="ocNotaTxt">Anotações <span class="oc-n" id="ocNotasN"></span></label>
       <div class="ck-add">
-        <textarea id="ocNotaTxt" rows="2" maxlength="2000" placeholder="Ex.: ofício enviado por malote; aguardando resposta"></textarea>
+        <textarea id="ocNotaTxt" rows="2" maxlength="2000" placeholder="Ex.: ofício enviado por malote; aguardando resposta" aria-describedby="ocNotaDica"></textarea>
         <button type="button" class="btn" id="ocNotaAdd">Anotar</button>
       </div>
+      <span class="field-hint" id="ocNotaDica">Enter registra a anotação (Shift+Enter pula linha). Se clicar em Salvar com algo escrito aqui, ela é salva junto.</span>
       <div class="anot-list" id="ocNotasList"></div>
     </div>
     <div class="field oc-modelo" id="ocModeloWrap" hidden>
@@ -5745,6 +5746,19 @@
     if (orgProcMudou(t.processo, OC.proc.value) && !(await orgConfereDup(OC.proc.value, t.id))) return;
     var fechar = etapa === 'feito' && t.etapa !== 'feito' && orgPedeFechamento(t);
     if (fechar) etapa = t.etapa;
+    // texto deixado em Anotações ou no item novo do checklist, sem clicar em Anotar/Adicionar: grava junto
+    var anotou = false;
+    if (!OCX.notasWrap.hidden && OCX.notaTxt.value.trim()){
+      if (!(await ocAnotar(true))) return;
+      anotou = true;
+    }
+    var ckNovo = OCX.checkWrap.hidden ? '' : OCX.checkNovo.value.trim().replace(/\s+/g, ' ');
+    if (ckNovo && t.checklist.length < 100){
+      var ckLista = t.checklist.map(function(x){ return { t: x.t, ok: x.ok }; }).concat([{ t: ckNovo, ok: false }]);
+      var rc = await orgCall('org_checklist_tarefa', { p_id: t.id, p_itens: ckLista });
+      if (!orgOk(rc)) return;
+      t.checklist = ckLista; OCX.checkNovo.value = '';
+    }
     var r = await orgSaveTask(Object.assign({}, t, {
       titulo: OC.titulo.value.trim() || t.titulo,
       prazo: OC.prazo.value ? new Date(OC.prazo.value + 'T00:00') : null,
@@ -5769,7 +5783,7 @@
       if (!orgOk(r)) return;
     }
     OC.dialog.close();
-    toast(destino ? 'Tarefa mandada para ' + orgNomePessoa(destino) : 'Tarefa atualizada');
+    toast(destino ? 'Tarefa mandada para ' + orgNomePessoa(destino) : anotou ? 'Tarefa e anotação salvas' : 'Tarefa atualizada');
     await orgLoad();
     if (fechar) orgAbrirFechamento(orgFind(org.tarefas, t.id) || t);
   });
@@ -5889,21 +5903,28 @@
     ocSalvarChecklist(t, lista);
   });
 
-  async function ocAnotar(){
+  // junto = chamada pelo "Salvar" da tarefa: só grava (a janela fecha e o quadro recarrega em seguida)
+  async function ocAnotar(junto){
     var t = orgFind(org.tarefas, orgCartaoId), txt = OCX.notaTxt.value.trim();
-    if (!t || !txt){ OCX.notaTxt.focus(); return; }
+    if (!t || !txt){ if (!junto) OCX.notaTxt.focus(); return false; }
     OCX.notaAdd.disabled = true;
     var r = await orgCall('org_anotar', { p_tarefa: t.id, p_texto: txt });
     OCX.notaAdd.disabled = false;
-    if (!orgOk(r)) return;
+    if (!orgOk(r)) return false;
     org.anotacoes.unshift({ id: r.id, tarefa: t.id, texto: txt.slice(0, 2000), criada: new Date() });
     t.atualizada = new Date();
     OCX.notaTxt.value = '';
+    if (junto) return true;
     renderOcExtras(); renderOrgKanban();
     toast('Anotação registrada');
+    OCX.notaTxt.focus();
+    return true;
   }
-  OCX.notaAdd.addEventListener('click', ocAnotar);
-  OCX.notaTxt.addEventListener('keydown', function(e){ if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); ocAnotar(); } });
+  OCX.notaAdd.addEventListener('click', function(){ ocAnotar(); });
+  // Enter registra a anotação; Shift+Enter pula linha
+  OCX.notaTxt.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); ocAnotar(); }
+  });
 
   OCX.notasList.addEventListener('click', async function(e){
     var b = e.target.closest('[data-nota]'); if (!b) return;

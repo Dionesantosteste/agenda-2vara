@@ -177,6 +177,8 @@ No **Quadro**:
 - **Checklist e anotações** ficam na janela da tarefa e são salvos na hora, sem precisar clicar em Salvar.
   - O cartão mostra o progresso do checklist (ex.: 2/5) e quantas anotações tem.
   - Cada anotação fica registrada com data e hora.
+  - Para anotar, basta escrever e apertar **Enter** (Shift+Enter pula linha). Se clicar em **Salvar** com uma
+    anotação ou um item de checklist escritos e ainda não adicionados, eles são salvos junto com a tarefa.
 - **Arquivar concluídas:** o botão "Arquivar" na coluna Feito tira todas as tarefas concluídas do quadro de uma vez.
   - Elas ficam no **Histórico**, onde dá para buscar, abrir ou devolver ao quadro.
 - **Modelos:** abra uma tarefa já preenchida (etiquetas, checklist, responsável, prioridade) e clique em **Salvar como modelo**.
