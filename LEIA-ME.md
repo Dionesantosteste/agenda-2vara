@@ -469,13 +469,33 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJI...";
 - Para atualizar o site depois (ex: mudar uma cor, adicionar um campo), me peça a alteração,
   eu atualizo o arquivo e você só precisa subir a nova versão no Vercel/GitHub no lugar da antiga.
 
-## Gatinho do quadro (protótipo)
+## Estrelas e prêmios (gamificação)
 
-No Quadro da Organização mora um gatinho sentado na borda de cima de uma coluna. Ele pisca, mexe o
-rabo, passeia de vez em quando para outra coluna, dorme quando ninguém mexe no sistema por um
-tempo e pula de alegria (indo até a coluna Feito) quando uma tarefa é concluída. Clicar nele faz
-carinho. O botão **🐱 Gatinho**, acima do quadro, liga e desliga (a escolha fica salva no navegador
-de cada pessoa). Quem pede menos movimento no sistema operacional vê o gatinho parado.
+Cada pessoa da equipe ganha **1 estrela** no dia em que conclui **10 tarefas**. Só contam as
+tarefas concluídas naquele mesmo dia (horário da vara): tarefas de dias passados não entram. O
+máximo é **5 estrelas por semana** (de segunda a domingo). Quem dá a estrela é o banco, na hora em
+que a 10ª tarefa do dia vai para Feito, e ela fica guardada: não some se a tarefa voltar de coluna,
+for arquivada ou excluída. O quadro do gestor não ganha estrelas.
+
+Acima do Quadro aparece a barra de estrelas: as da semana (5 espaços), quantas tarefas faltam hoje,
+o total acumulado e quanto falta para o próximo prêmio. Ao ganhar a estrela, o banner de parabéns
+das 10 tarefas avisa (e avisa também quando um prêmio é conquistado).
+
+**Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria a tabela
+`org_estrelas` e o gatilho que dá a estrela). As estrelas começam a contar a partir daí.
+
+- A meta e o limite ficam no banco (função `org_estrela_confere`) e repetidos no `index.html`
+  (`ORG_ESTRELA_META` e `ORG_ESTRELA_SEMANA`) só para mostrar na tela. Se mudar, mude nos dois.
+- Os prêmios e quantas estrelas cada um custa ficam em `ORG_PREMIOS`, no `index.html`.
+
+### Gatinho (primeiro prêmio)
+
+Com **3 estrelas** a pessoa ganha um gatinho que mora no Quadro, sentado na borda de cima de uma
+coluna. Ele pisca, mexe o rabo, passeia de vez em quando para outra coluna, dorme quando ninguém
+mexe no sistema por um tempo e pula de alegria (indo até a coluna Feito) quando uma tarefa é
+concluída. Clicar nele faz carinho. Depois de conquistado aparece o botão **🐱 Gatinho**, acima do
+quadro, que liga e desliga (a escolha fica salva no navegador de cada pessoa). Quem pede menos
+movimento no sistema operacional vê o gatinho parado.
 
 - Os tempos ficam em `ORG_GATO_SONO_MS` (até dormir) e `ORG_GATO_PASSEIO_MS` (entre passeios), e
   as frases do carinho em `ORG_GATO_FRASES`, no `index.html`.

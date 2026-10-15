@@ -575,6 +575,7 @@ begin
     'status', 'ok',
     'gestor', ac.o_gestor,
     'pessoa', (select jsonb_build_object('id', p.id, 'nome', p.nome) from org_pessoas p where p.id = ac.o_dono),
+    'estrelas', org_estrelas_resumo(ac.o_dono),
     'notas', coalesce((select jsonb_agg(to_jsonb(n) order by n.fixada desc, n.created_at desc) from org_notas n where n.dono is not distinct from ac.o_dono), '[]'::jsonb),
     'tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t where t.dono is not distinct from ac.o_dono
                            and (ac.o_gestor or t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
@@ -2046,6 +2047,74 @@ grant execute on function org_ordenar_colunas(text, uuid, text[]) to anon, authe
 grant execute on function org_excluir_coluna(text, uuid, text) to anon, authenticated;
 grant execute on function org_salvar_pessoa(text, uuid, uuid, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_pessoa(text, uuid, uuid) to anon, authenticated;
+
+-- ---------- estrelas (gamificação) ----------
+-- A pessoa da equipe ganha 1 estrela no dia em que conclui 10 tarefas. Só contam as tarefas
+-- concluídas naquele mesmo dia (horário da vara); dias passados não entram na conta.
+-- No máximo 5 estrelas por semana (segunda a domingo).
+-- Quem dá a estrela é o banco, na hora em que a 10ª tarefa do dia vai para Feito (gatilho abaixo),
+-- e ela fica guardada: não some se depois a tarefa voltar de coluna, for arquivada ou excluída.
+-- As estrelas acumuladas liberam os prêmios (bichinhos e acessórios), definidos no index.html.
+create table if not exists org_estrelas (
+  dono uuid not null references org_pessoas(id) on delete cascade,
+  dia date not null,
+  created_at timestamptz not null default now(),
+  primary key (dono, dia)
+);
+alter table org_estrelas enable row level security;
+
+create or replace function org_estrela_confere()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  hoje date := org_hoje();
+  ini timestamptz := hoje::timestamp at time zone 'America/Cuiaba';
+  fim timestamptz := (hoje + 1)::timestamp at time zone 'America/Cuiaba';
+  semana date := date_trunc('week', hoje)::date;
+begin
+  if new.dono is null or new.feita_em is null or new.feita_em < ini or new.feita_em > now() then
+    return null;
+  end if;
+  if tg_op = 'UPDATE' and old.feita_em is not distinct from new.feita_em then
+    return null;
+  end if;
+  if exists (select 1 from org_estrelas where dono = new.dono and dia = hoje) then
+    return null;
+  end if;
+  if (select count(*) from org_estrelas where dono = new.dono and dia >= semana and dia < semana + 7) >= 5 then
+    return null;
+  end if;
+  if (select count(*) from org_tarefas where dono = new.dono and feita_em >= ini and feita_em < fim and feita_em <= now()) >= 10 then
+    insert into org_estrelas (dono, dia) values (new.dono, hoje) on conflict do nothing;
+  end if;
+  return null;
+end;
+$$;
+revoke all on function org_estrela_confere() from public, anon, authenticated;
+
+drop trigger if exists org_tarefas_estrela on org_tarefas;
+create trigger org_tarefas_estrela
+  after insert or update of feita_em on org_tarefas
+  for each row execute function org_estrela_confere();
+
+-- Resumo para a tela da pessoa (vai junto em org_carregar; o quadro do gestor não tem estrelas)
+create or replace function org_estrelas_resumo(p_dono uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $$
+  select case when p_dono is null then null else jsonb_build_object(
+    'total', (select count(*) from org_estrelas e where e.dono = p_dono),
+    'semana', (select count(*) from org_estrelas e where e.dono = p_dono and e.dia >= date_trunc('week', org_hoje())::date),
+    'hoje', exists (select 1 from org_estrelas e where e.dono = p_dono and e.dia = org_hoje())
+  ) end;
+$$;
+revoke all on function org_estrelas_resumo(uuid) from public, anon, authenticated;
 
 -- =====================================================================
 -- TROCAR A SENHA (ou criar uma nova se esquecer): rode só a linha abaixo,
