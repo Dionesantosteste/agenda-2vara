@@ -6,7 +6,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-  /* Layout: bancada de teste (tracejada, fora do produto) em cima; abaixo, a tela da pessoa como no sistema: barra de estrelas, trilha de prêmios e o quadro com o bichinho */
+  /* Layout: bancada de teste (tracejada, fora do produto) em cima; abaixo, a tela da pessoa como no sistema: barra de estrelas e o quadro com o bichinho */
   :root{
     --bg:#EEF1F6; --paper:#FFFFFF; --sunken:#F4F6F9; --item:#EBF0F7; --item-line:#C9D3E1;
     --ink:#142033; --muted:#556275; --line:#D3DBE6;
@@ -95,22 +95,6 @@
   .est-total svg{ width:18px; height:18px; }
   .est-acao{ margin-left:auto; }
   .est-ajuda{ flex-basis:100%; font-size:12px; }
-
-  /* trilha de prêmios: um marco por prêmio, na ordem em que são liberados pelas estrelas acumuladas */
-  .trilha{ list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fit, minmax(118px, 1fr)); gap:8px; }
-  .marco{ position:relative; border:1px solid var(--line); border-radius:12px; padding:8px 10px; display:flex; flex-direction:column; gap:2px; min-width:0; background:var(--sunken); color:var(--muted); }
-  .marco .ic{ font-size:20px; line-height:1.2; filter:grayscale(1); opacity:.55; }
-  .marco .nm{ font-size:13px; font-weight:500; color:var(--ink); overflow-wrap:anywhere; }
-  .marco .qt{ font-size:12px; font-family:var(--font-data); display:flex; align-items:center; gap:3px; }
-  .marco .qt svg{ width:12px; height:12px; }
-  .marco.ganho{ background:var(--ok-soft); border-color:color-mix(in srgb, var(--ok) 40%, var(--line)); }
-  .marco.ganho .ic{ filter:none; opacity:1; }
-  .marco.ganho::after{ content:"✓"; position:absolute; top:6px; right:9px; color:var(--ok); font-weight:700; font-size:13px; }
-  .marco.proximo{ background:var(--ouro-soft); border-color:var(--ouro-borda); }
-  .marco.proximo .ic{ filter:none; opacity:1; }
-  .marco .falta{ font-size:12px; color:var(--ouro-txt); font-weight:600; }
-  .marco .mini{ height:4px; border-radius:99px; background:var(--paper); overflow:hidden; margin-top:3px; }
-  .marco .mini i{ display:block; height:100%; background:var(--ouro); }
 
   .kanban{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; align-items:start; }
   .kanban.com-bicho{ padding-top:50px; }
@@ -244,7 +228,7 @@
       <h1 id="tBancada">Protótipo: estrelas e bichinhos</h1>
       <span class="selo-teste">Bancada de teste</span>
     </div>
-    <p>Tudo aqui é simulado, com dados de exemplo, e não grava nada no sistema. 10 tarefas concluídas no mesmo dia dão 1 estrela, até 5 por semana. A contagem da semana zera toda segunda-feira; o total acumulado nunca zera e avança na trilha de prêmios. A pessoa escolhe qual bichinho quer.</p>
+    <p>Tudo aqui é simulado, com dados de exemplo, e não grava nada no sistema. 10 tarefas concluídas no mesmo dia dão 1 estrela, até 5 por semana. A contagem da semana zera toda segunda-feira; o total acumulado nunca zera e libera os prêmios (a trilha não aparece na tela; o registro abaixo mostra cada conquista). A pessoa escolhe qual bichinho quer.</p>
     <div class="relogio">
       <div class="data"><b id="dataHoje">—</b><span id="dataSemana">—</span></div>
       <div class="acoes">
@@ -269,10 +253,6 @@
     </div>
     <div class="painel">
       <div class="estrelas" id="estrelas"></div>
-      <div>
-        <div class="rot" id="tTrilha">Trilha de prêmios · estrelas acumuladas</div>
-        <ol class="trilha" id="trilha" aria-labelledby="tTrilha"></ol>
-      </div>
     </div>
     <div class="kanban" id="kanban"></div>
   </section>
@@ -440,7 +420,7 @@
   // ---------- desenho da tela ----------
   var EL = {
     data: document.getElementById('dataHoje'), semana: document.getElementById('dataSemana'), registro: document.getElementById('registro'),
-    estrelas: document.getElementById('estrelas'), trilha: document.getElementById('trilha'), kanban: document.getElementById('kanban'),
+    estrelas: document.getElementById('estrelas'), kanban: document.getElementById('kanban'),
     noQuadro: document.getElementById('noQuadro'), toast: document.getElementById('toast')
   };
   var ESTRELA = '<path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" stroke-width="1.3" stroke-linejoin="round"/>';
@@ -453,7 +433,7 @@
     EL.data.textContent = DIAS[d.getDay()].replace(/^./, function(c){ return c.toUpperCase(); }) + ', ' + dCurta(st.dia) + '/' + d.getFullYear();
     EL.semana.textContent = 'semana de ' + dCurta(ini) + ' a ' + dCurta(dSoma(ini, 6)) + ' (dia simulado)';
     EL.registro.innerHTML = st.log.map(function(l){ return '<li><time>' + dCurta(l.dia) + '</time><span>' + esc(l.txt) + '</span></li>'; }).join('');
-    renderEstrelas(semAntes); renderTrilha(); renderNoQuadro(); renderQuadro();
+    renderEstrelas(semAntes); renderNoQuadro(); renderQuadro();
   }
   function renderEstrelas(semAntes){
     var sem = estrelasSemana(), feitas = feitasHoje(), h = '';
@@ -466,23 +446,8 @@
       '<span><b>' + Math.min(feitas, META) + '/' + META + '</b> tarefas</span>';
     h += '</div><div class="est-bloco est-total"><span class="rot">Acumuladas</span>' + estrelaSvg('cheia') + '<b>' + total() + '</b></div>';
     if (escolhasPendentes()) h += '<div class="est-bloco est-acao"><button type="button" class="btn ouro" data-escolher>🐾 Escolher meu ' + ordinal(st.bichos.length + 1) + ' bichinho</button></div>';
-    h += '<div class="est-ajuda">Conclua ' + META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + MAX_SEMANA + ' por semana). A contagem da semana zera toda segunda-feira; as acumuladas nunca zeram e liberam os prêmios da trilha.</div>';
+    h += '<div class="est-ajuda">Conclua ' + META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + MAX_SEMANA + ' por semana). A contagem da semana zera toda segunda-feira; as acumuladas nunca zeram e liberam prêmios.</div>';
     EL.estrelas.innerHTML = h;
-  }
-  function renderTrilha(){
-    var tot = total(), prox = TRILHA.filter(function(m){ return !tem(m.chave); })[0], anterior = 0;
-    EL.trilha.innerHTML = TRILHA.map(function(m, i){
-      var ganho = tem(m.chave), ehProx = m === prox, h, base = i ? TRILHA[i - 1].estrelas : 0;
-      var nome = m.nome;
-      if (m.bicho && ganho){ var b = st.bichos[TRILHA.filter(function(x){ return x.bicho; }).indexOf(m)]; nome = b ? BICHOS[b].icone + ' ' + BICHOS[b].nome : 'Falta escolher!'; }
-      h = '<li class="marco' + (ganho ? ' ganho' : ehProx ? ' proximo' : '') + '"><span class="ic" aria-hidden="true">' + m.icone + '</span><span class="nm">' + esc(nome) + '</span>' +
-        '<span class="qt">' + estrelaSvg(ganho || ehProx ? 'cheia' : 'vazia') + m.estrelas + (ganho ? ' · ' + dCurta(st.premios[m.chave]) : '') + '</span>';
-      if (ehProx){
-        var falta = m.estrelas - tot, pct = Math.max(0, Math.min(100, (tot - base) / (m.estrelas - base) * 100));
-        h += '<span class="falta">Falta' + (falta === 1 ? '' : 'm') + ' ' + falta + '</span><span class="mini"><i style="width:' + pct + '%"></i></span>';
-      }
-      return h + '</li>';
-    }).join('');
   }
   function renderNoQuadro(){
     EL.noQuadro.hidden = !st.bichos.length;
@@ -553,7 +518,7 @@
     if (!escolhasPendentes()) return;
     var livres = ORDEM_BICHOS.filter(function(b){ return st.bichos.indexOf(b) === -1; });
     var f = janela('<h2 id="janelaTit">Escolha seu ' + ordinal(st.bichos.length + 1) + ' bichinho</h2>' +
-      '<p>Ele vai morar no seu quadro e fica com você para sempre.' + (livres.length > 1 ? ' Os outros podem ser conquistados mais adiante na trilha.' : '') + '</p>' +
+      '<p>Ele vai morar no seu quadro e fica com você para sempre.' + (livres.length > 1 ? ' Os outros você conquista continuando a juntar estrelas.' : '') + '</p>' +
       '<div class="opcoes">' + livres.map(function(b){
         return '<button type="button" class="opcao" data-escolhe="' + b + '"><span class="prev bx" data-tipo="' + b + '">' + bichoSvg(b) + '</span><b>' + BICHOS[b].nome + '</b><span>' + BICHOS[b].jeito + '</span></button>';
       }).join('') + '</div><div class="botoes"><button type="button" class="btn" data-fechar>Escolher depois</button></div>', 'escolha');
