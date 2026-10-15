@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important} body{margin:0}</style>
+<!-- Protótipo isolado: dados simulados, não usa o Supabase nem mexe no sistema. -->
+<title>Estrelas e Gatinho</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout: bancada de teste (tracejada, fora do produto) em cima; abaixo, a tela da pessoa como no sistema (barra de estrelas + quadro com o gatinho) */
+  :root{
+    --bg:#EEF1F6; --paper:#FFFFFF; --sunken:#F4F6F9; --item:#EBF0F7; --item-line:#C9D3E1;
+    --ink:#142033; --muted:#556275; --line:#D3DBE6;
+    --accent:#1D5BB8; --accent-ink:#FFFFFF; --accent-soft:#E7F0FC;
+    --ok:#157A3E; --danger:#B42318; --focus:#1D5BB8;
+    --ouro:#E8A317; --ouro-borda:#B97A0A; --ouro-txt:#9A6408;
+    --teste:#7A4FB5; --teste-soft:#F3EDFB;
+    --shadow:0 1px 2px rgba(20,32,51,.06), 0 1px 4px rgba(20,32,51,.04);
+    --gato-pelo:#F2A65A; --gato-listra:#C9722E; --gato-claro:#FFE9CC; --gato-contorno:#5A3A1E; --gato-olho:#2A1E14; --gato-rosa:#F4A3A8; --gato-coracao:#E5484D;
+    --font-ui:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-data:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0E141C; --paper:#151D28; --sunken:#1B2533; --item:#222E3F; --item-line:#34435A;
+      --ink:#E8EEF6; --muted:#A1AEBF; --line:#2B3748;
+      --accent:#7FB0F5; --accent-ink:#0E141C; --accent-soft:#1C2D46;
+      --ok:#6FD39A; --danger:#F59A8F; --focus:#7FB0F5;
+      --ouro:#F0B63A; --ouro-borda:#C88F1A; --ouro-txt:#F5C866;
+      --teste:#C4A3F0; --teste-soft:#251C33; --shadow:none; color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0E141C; --paper:#151D28; --sunken:#1B2533; --item:#222E3F; --item-line:#34435A;
+    --ink:#E8EEF6; --muted:#A1AEBF; --line:#2B3748;
+    --accent:#7FB0F5; --accent-ink:#0E141C; --accent-soft:#1C2D46;
+    --ok:#6FD39A; --danger:#F59A8F; --focus:#7FB0F5;
+    --ouro:#F0B63A; --ouro-borda:#C88F1A; --ouro-txt:#F5C866;
+    --teste:#C4A3F0; --teste-soft:#251C33; --shadow:none; color-scheme:dark;
+  }
+  *{ box-sizing:border-box; }
+  body{ background:var(--bg); color:var(--ink); font:15px/1.45 var(--font-ui); }
+  .pagina{ max-width:1180px; margin:0 auto; padding-block:20px 48px; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); display:flex; flex-direction:column; gap:18px; }
+  button{ font:inherit; color:inherit; }
+  button:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
+  .btn{ border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:9px; height:36px; padding:0 12px; font-size:13.5px; font-weight:500; cursor:pointer; white-space:nowrap; }
+  .btn:hover{ background:var(--sunken); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .btn.primary:hover{ filter:brightness(1.06); background:var(--accent); }
+
+  /* ---------- bancada de teste ---------- */
+  .bancada{ border:2px dashed var(--teste); background:var(--teste-soft); border-radius:16px; padding:14px 16px; display:flex; flex-direction:column; gap:12px; }
+  .bancada-topo{ display:flex; flex-wrap:wrap; gap:6px 14px; align-items:baseline; }
+  .bancada h1{ margin:0; font-size:19px; font-weight:700; text-wrap:balance; }
+  .selo-teste{ font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--teste); border:1px solid var(--teste); border-radius:6px; padding:1px 7px; }
+  .bancada p{ margin:0; color:var(--muted); font-size:13.5px; max-width:75ch; }
+  .relogio{ display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; }
+  .data{ display:flex; flex-direction:column; min-width:0; }
+  .data b{ font-size:17px; }
+  .data span{ font-size:12.5px; color:var(--muted); font-family:var(--font-data); }
+  .acoes{ display:flex; flex-wrap:wrap; gap:8px; }
+  .bancada .btn{ border-color:color-mix(in srgb, var(--teste) 45%, var(--line)); }
+  .bancada .btn.forte{ background:var(--teste); border-color:var(--teste); color:var(--paper); }
+  .registro{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:3px; max-height:132px; overflow:auto; font-size:13px; }
+  .registro li{ display:flex; gap:10px; min-width:0; }
+  .registro time{ font-family:var(--font-data); font-size:12px; color:var(--muted); flex:none; padding-top:1px; }
+  .registro li:first-child{ font-weight:600; }
+  .registro-titulo{ font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); }
+
+  /* ---------- tela da pessoa ---------- */
+  .tela{ display:flex; flex-direction:column; gap:14px; }
+  .tela-topo{ display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:8px; }
+  .tela-topo h2{ margin:0; font-size:22px; font-weight:700; }
+  .tela-topo h2 span{ color:var(--muted); font-weight:400; font-size:15px; }
+  .estrelas{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 22px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px 16px; font-size:13.5px; color:var(--muted); box-shadow:var(--shadow); }
+  .estrelas b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  .est-bloco{ display:flex; align-items:center; gap:8px; }
+  .est-rot{ font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; }
+  .est-semana{ display:inline-flex; gap:2px; }
+  .est-semana svg{ width:20px; height:20px; display:block; }
+  .est-semana .cheia{ fill:var(--ouro); stroke:var(--ouro-borda); }
+  .est-semana .vazia{ fill:none; stroke:var(--item-line); }
+  .est-semana .nova{ animation:estPop .7s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes estPop{ 0%{ transform:scale(.2) rotate(-40deg); } 100%{ transform:none; } }
+  .est-barra{ width:110px; height:8px; border-radius:99px; background:var(--sunken); border:1px solid var(--item-line); overflow:hidden; }
+  .est-barra i{ display:block; height:100%; background:var(--ouro); border-radius:99px; transition:width .4s; }
+  .est-ok{ color:var(--ok); font-weight:600; }
+  .est-premio{ margin-left:auto; }
+  .est-ajuda{ flex-basis:100%; font-size:12px; }
+
+  .kanban{ position:relative; display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:14px; align-items:start; }
+  .kanban.com-gato{ padding-top:50px; }
+  .col{ background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .col h3{ margin:2px 4px 4px; font-size:12.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); display:flex; justify-content:space-between; }
+  .col[data-etapa="fazendo"] h3{ color:var(--accent); }
+  .col[data-etapa="feito"] h3{ color:var(--ok); }
+  .kcard{ background:var(--item); border:1px solid var(--item-line); border-radius:10px; padding:10px 10px 8px; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .kcard.antiga{ opacity:.6; }
+  .kt{ font-weight:500; overflow-wrap:anywhere; }
+  .kmeta{ display:flex; flex-wrap:wrap; gap:4px 10px; font-size:12.5px; color:var(--muted); }
+  .kmeta .proc{ font-family:var(--font-data); font-size:12px; }
+  .kmeta .hoje{ color:var(--ok); font-weight:600; }
+  .kmove{ display:flex; justify-content:space-between; gap:6px; }
+  .mv{ border:0; background:transparent; color:var(--accent); font-size:12.5px; font-weight:500; cursor:pointer; padding:2px 4px; border-radius:6px; }
+  .mv:hover{ background:var(--accent-soft); }
+  .vazio{ color:var(--muted); font-size:13.5px; padding:6px 2px; }
+  @media (max-width:760px){ .kanban{ grid-template-columns:minmax(0,1fr); } }
+
+  /* ---------- gatinho (mesmo desenho do protótipo no sistema) ---------- */
+  .gato{ position:absolute; left:0; top:0; width:52px; height:58.5px; z-index:3; border:0; padding:0; margin:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gato.passeando{ transition:left var(--gato-dur, 2s) linear; }
+  .gato:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:8px; }
+  .gato svg{ display:block; width:100%; height:100%; overflow:visible; transform-origin:50% 90%; }
+  .gato .gp{ fill:var(--gato-pelo); stroke:var(--gato-contorno); stroke-width:1.3; stroke-linejoin:round; }
+  .gato .gc{ fill:var(--gato-claro); }
+  .gato .gpata{ fill:var(--gato-claro); stroke:var(--gato-contorno); stroke-width:1.1; }
+  .gato .gl{ fill:none; stroke:var(--gato-listra); stroke-width:1.8; stroke-linecap:round; }
+  .gato .gr{ fill:var(--gato-rosa); }
+  .gato .go{ fill:var(--gato-olho); }
+  .gato .gw{ fill:var(--gato-claro); }
+  .gato .gt{ fill:none; stroke:var(--gato-olho); stroke-width:1.4; stroke-linecap:round; }
+  .gato .gb{ fill:none; stroke:var(--gato-contorno); stroke-width:.7; stroke-linecap:round; opacity:.55; }
+  .gato .g-rabo-c{ fill:none; stroke:var(--gato-contorno); stroke-width:7; stroke-linecap:round; }
+  .gato .g-rabo-p{ fill:none; stroke:var(--gato-pelo); stroke-width:4.4; stroke-linecap:round; }
+  .gato .g-rabo-l{ fill:none; stroke:var(--gato-listra); stroke-width:4.4; stroke-dasharray:2.4 3.6; }
+  .gato-sono, .gato-alegre, .gato-zzz, .gato-coracao, .gato-bochecha{ display:none; }
+  .gato.dormindo .gato-olhos, .gato.feliz .gato-olhos{ display:none; }
+  .gato.dormindo .gato-sono, .gato.dormindo .gato-zzz{ display:inline; }
+  .gato.feliz .gato-alegre, .gato.feliz .gato-coracao, .gato.feliz .gato-bochecha{ display:inline; }
+  .gato-rabo{ transform-origin:45px 50px; animation:gatoRabo 2.6s ease-in-out infinite alternate; }
+  .gato-olhos{ transform-origin:32px 21.5px; animation:gatoPisca 4.6s infinite; }
+  .gato-orelha-e{ transform-origin:24px 18px; animation:gatoOrelha 7.3s infinite; }
+  .gato-corpo{ transform-origin:32px 56px; animation:gatoRespira 3.4s ease-in-out infinite; }
+  .gato-cabeca{ transform-origin:32px 32px; transition:transform .5s; }
+  .gato.andando svg{ animation:gatoAnda .34s ease-in-out infinite; }
+  .gato.andando .gato-rabo{ animation-duration:.5s; }
+  .gato.dormindo .gato-cabeca{ transform:translateY(3.5px) rotate(-7deg); }
+  .gato.dormindo .gato-rabo{ animation-duration:6s; }
+  .gato.dormindo .gato-corpo{ animation-duration:5s; }
+  .gato.feliz svg{ animation:gatoPulo .8s ease-out 2; }
+  .gato.feliz .gato-rabo{ animation-duration:.3s; }
+  .gato-zzz text{ font:700 11px var(--font-ui); fill:var(--muted); animation:gatoZ 2.8s ease-out infinite; }
+  .gato-zzz text + text{ animation-delay:1.4s; }
+  .gato-coracao{ fill:var(--gato-coracao); transform-origin:52px 12px; animation:gatoCoracao 1.5s ease-out forwards; }
+  .gato-balao{ position:absolute; right:calc(100% + 2px); top:6px; padding:3px 9px; border-radius:10px 10px 2px 10px; background:var(--paper); color:var(--ink);
+    border:1px solid var(--line); box-shadow:var(--shadow); font:500 12px var(--font-ui); white-space:nowrap; pointer-events:none; opacity:0; transform:translateY(4px); transition:opacity .2s, transform .2s; }
+  .gato-balao.show{ opacity:1; transform:none; }
+  @keyframes gatoRabo{ from{ transform:rotate(-8deg); } to{ transform:rotate(14deg); } }
+  @keyframes gatoPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
+  @keyframes gatoOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
+  @keyframes gatoRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
+  @keyframes gatoAnda{ 0%, 100%{ transform:translateY(0) rotate(-3deg); } 50%{ transform:translateY(-4px) rotate(3deg); } }
+  @keyframes gatoPulo{ 0%, 50%, 100%{ transform:translateY(0); } 25%{ transform:translateY(-7px); } 75%{ transform:translateY(-4px); } }
+  @keyframes gatoZ{ 0%{ opacity:0; transform:translate(0, 4px); } 30%{ opacity:1; } 100%{ opacity:0; transform:translate(7px, -8px); } }
+  @keyframes gatoCoracao{ 0%{ opacity:0; transform:translateY(4px) scale(.6); } 25%{ opacity:1; transform:scale(1.1); } 100%{ opacity:0; transform:translateY(-8px) scale(1); } }
+  #btnGato[aria-pressed="true"]{ border-color:var(--accent); color:var(--accent); }
+
+  /* ---------- banner de parabéns e aviso ---------- */
+  .festa{ position:fixed; inset:0; z-index:50; display:grid; place-items:center; padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); background:color-mix(in srgb, var(--ink) 45%, transparent); animation:fundo .3s ease-out; }
+  .festa-card{ position:relative; width:min(520px, 100%); background:var(--paper); color:var(--ink); border-radius:20px; padding:36px 28px 26px; text-align:center; box-shadow:0 10px 28px rgba(20,32,51,.25); display:flex; flex-direction:column; align-items:center; gap:10px; overflow:hidden; animation:entra .6s cubic-bezier(.2,1.5,.4,1); }
+  .festa-card::before{ content:""; position:absolute; inset:0 0 auto 0; height:8px; background:linear-gradient(90deg, var(--accent), var(--ok), var(--ouro)); }
+  .festa-card .medalha{ width:96px; height:96px; }
+  .festa-card h2{ margin:4px 0 0; font-size:32px; font-weight:700; text-wrap:balance; }
+  .festa-card .big{ font-size:19px; font-weight:600; }
+  .festa-card .big b{ color:var(--ok); font-family:var(--font-data); font-size:24px; }
+  .festa-estrela{ font-size:17px; font-weight:600; color:var(--ouro-txt); }
+  .festa-estrela span{ display:block; font-size:13.5px; font-weight:400; color:var(--muted); }
+  .festa-premio{ font-size:15.5px; background:var(--accent-soft); color:var(--ink); border-radius:12px; padding:8px 14px; }
+  .festa-card p{ margin:0; color:var(--muted); }
+  .festa-card .btn{ margin-top:6px; height:42px; padding:0 22px; }
+  @keyframes fundo{ from{ opacity:0; } }
+  @keyframes entra{ from{ opacity:0; transform:scale(.85) translateY(20px); } }
+  .confete{ position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:51; }
+  .toast{ position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); transform:translate(-50%, 20px); z-index:60; background:var(--ink); color:var(--bg); padding:10px 16px; border-radius:10px; font-size:14px; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; max-width:calc(100% - 32px); text-align:center; }
+  .toast.show{ opacity:1; transform:translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce){
+    .gato svg, .gato svg *, .festa, .festa-card, .est-semana .nova{ animation:none !important; transition:none !important; }
+    .gato.passeando{ transition:none; }
+  }
+</style>
+</head><body>
+
+<div class="pagina">
+  <section class="bancada" aria-labelledby="tBancada">
+    <div class="bancada-topo">
+      <h1 id="tBancada">Protótipo: estrelas e gatinho</h1>
+      <span class="selo-teste">Bancada de teste</span>
+    </div>
+    <p>Tudo aqui é simulado, com dados de exemplo, e não grava nada no sistema. Use os botões para conferir a regra: 10 tarefas concluídas no mesmo dia dão 1 estrela, até 5 por semana. As estrelas zeram toda segunda-feira; o gatinho (3 estrelas numa semana) fica para sempre.</p>
+    <div class="relogio">
+      <div class="data"><b id="dataHoje">—</b><span id="dataSemana">—</span></div>
+      <div class="acoes">
+        <button type="button" class="btn forte" id="btnConcluir10">Concluir 10 agora</button>
+        <button type="button" class="btn" id="btnMais">+5 tarefas</button>
+        <button type="button" class="btn" id="btnDia">Próximo dia →</button>
+        <button type="button" class="btn" id="btnSemana">Próxima segunda →</button>
+        <button type="button" class="btn" id="btnDormir">Fazer o gatinho dormir</button>
+        <button type="button" class="btn" id="btnZerar">Recomeçar do zero</button>
+      </div>
+    </div>
+    <div>
+      <div class="registro-titulo">O que aconteceu</div>
+      <ul class="registro" id="registro" aria-live="polite"></ul>
+    </div>
+  </section>
+
+  <section class="tela" aria-labelledby="tTela">
+    <div class="tela-topo">
+      <h2 id="tTela">Quadro <span>· tela de Ana Souza (exemplo)</span></h2>
+      <button type="button" class="btn" id="btnGato" aria-pressed="true" hidden title="Mostrar ou esconder o gatinho do quadro">🐱 Gatinho</button>
+    </div>
+    <div class="estrelas" id="estrelas"></div>
+    <div class="kanban" id="kanban"></div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+  // ---------------------------------------------------------------------------------
+  // Regras (as mesmas que irão para o sistema)
+  // ---------------------------------------------------------------------------------
+  var META = 10;            // tarefas concluídas no mesmo dia para ganhar 1 estrela
+  var MAX_SEMANA = 5;       // no máximo 5 estrelas por semana (segunda a domingo)
+  var PREMIOS = [           // prêmio liberado ao juntar N estrelas numa mesma semana; depois de ganho, é para sempre
+    { chave: 'gato', nome: 'Gatinho', icone: '🐱', estrelas: 3 }
+  ];
+  var SONO_MS = 45000;      // no protótipo ele dorme mais cedo (no sistema: 90 s)
+  var CHAVE = 'prototipoEstrelasGato:v1';
+
+  var TITULOS = ['Expedir intimação', 'Juntar ofício resposta', 'Certificar decurso de prazo', 'Cumprir despacho', 'Expedir mandado de citação',
+    'Remeter ao Ministério Público', 'Intimar perito', 'Juntar AR', 'Atualizar cálculo', 'Expedir alvará', 'Concluso ao juiz', 'Expedir carta precatória',
+    'Juntar laudo pericial', 'Certificar trânsito em julgado', 'Expedir ofício ao INSS', 'Intimar as partes da audiência', 'Arquivar autos', 'Juntar procuração',
+    'Expedir certidão de objeto e pé', 'Agendar audiência de conciliação'];
+  var DIAS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
+  var COLS = [['afazer', 'A fazer'], ['fazendo', 'Fazendo'], ['feito', 'Feito']];
+
+  // ---------- datas (dia simulado, no formato AAAA-MM-DD) ----------
+  function dStr(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function dParse(s){ var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function dSoma(s, n){ var d = dParse(s); d.setDate(d.getDate() + n); return dStr(d); }
+  function segunda(s){ var d = dParse(s), w = (d.getDay() + 6) % 7; d.setDate(d.getDate() - w); return dStr(d); }
+  function dCurta(s){ var d = dParse(s); return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0'); }
+
+  // ---------- estado ----------
+  var st;
+  function novoEstado(){
+    var hoje = dStr(new Date()), s = { dia: hoje, seq: 0, tarefas: [], estrelas: [], premios: {}, gatoLigado: true, log: [] };
+    st = s;
+    for (var i = 0; i < 12; i++) novaTarefa(i < 2 ? 'fazendo' : 'afazer');
+    // duas tarefas concluídas ontem: aparecem em Feito, mas não contam para hoje
+    [0, 1].forEach(function(){ var t = novaTarefa('feito'); t.feitaDia = dSoma(hoje, -1); });
+    registra('Começou o teste. Há 2 tarefas feitas ontem em Feito: elas não contam para a estrela de hoje.');
+    return s;
+  }
+  function novaTarefa(etapa){
+    st.seq++;
+    var t = { id: st.seq, titulo: TITULOS[(st.seq - 1) % TITULOS.length],
+      processo: String(1000 + (st.seq * 37) % 9000).padStart(7, '0') + '-' + String(10 + st.seq % 89) + '.2026.8.11.0008',
+      etapa: etapa, feitaDia: null };
+    st.tarefas.push(t);
+    return t;
+  }
+  function guarda(){ try { localStorage.setItem(CHAVE, JSON.stringify(st)); } catch (e) {} }
+  function carrega(){
+    try { var x = JSON.parse(localStorage.getItem(CHAVE) || 'null'); if (x && x.dia && Array.isArray(x.tarefas)) return x; } catch (e) {}
+    return null;
+  }
+  function registra(txt){ st.log.unshift({ dia: st.dia, txt: txt }); st.log = st.log.slice(0, 40); }
+
+  // ---------- contas da regra ----------
+  function feitasHoje(){ return st.tarefas.filter(function(t){ return t.feitaDia === st.dia; }).length; }
+  function estrelasSemana(){ var ini = segunda(st.dia), fim = dSoma(ini, 7); return st.estrelas.filter(function(d){ return d >= ini && d < fim; }).length; }
+  function temEstrelaHoje(){ return st.estrelas.indexOf(st.dia) !== -1; }
+  function temPremio(chave){ return !!st.premios[chave]; }
+
+  // O mesmo que o gatilho do banco fará: confere na hora em que uma tarefa vai para Feito
+  function confereEstrela(){
+    if (temEstrelaHoje() || feitasHoje() < META) return null;
+    if (estrelasSemana() >= MAX_SEMANA){ return { limite: true }; }
+    st.estrelas.push(st.dia);
+    var sem = estrelasSemana(), novos = [];
+    PREMIOS.forEach(function(p){ if (!st.premios[p.chave] && sem >= p.estrelas){ st.premios[p.chave] = st.dia; novos.push(p); } });
+    registra('⭐ Ganhou 1 estrela (' + sem + ' de ' + MAX_SEMANA + ' nesta semana).');
+    novos.forEach(function(p){ registra(p.icone + ' Conquistou o ' + p.nome + '! Ele fica com a pessoa mesmo quando as estrelas zeram.'); });
+    return { semana: sem, premios: novos };
+  }
+
+  // ---------- ações ----------
+  function mover(id, dir){
+    var t = st.tarefas.filter(function(x){ return x.id === id; })[0]; if (!t) return;
+    var i = COLS.map(function(c){ return c[0]; }).indexOf(t.etapa), j = Math.max(0, Math.min(COLS.length - 1, i + dir));
+    if (i === j) return;
+    var era = t.etapa; t.etapa = COLS[j][0];
+    var res = null, gatoComemora = false;
+    if (t.etapa === 'feito'){
+      t.feitaDia = st.dia;
+      var n = feitasHoje();
+      registra('Concluiu "' + t.titulo + '" (' + n + ' hoje).');
+      res = confereEstrela();
+      gatoComemora = true;
+    } else if (era === 'feito'){
+      t.feitaDia = null;
+      registra('Tirou "' + t.titulo + '" de Feito (' + feitasHoje() + ' hoje).' + (temEstrelaHoje() ? ' A estrela de hoje continua.' : ''));
+    }
+    depois(res, gatoComemora);
+  }
+  function concluirVarias(qtd){
+    var abertas = st.tarefas.filter(function(t){ return t.etapa !== 'feito'; });
+    while (abertas.length < qtd){ abertas.push(novaTarefa('afazer')); }
+    var res = null;
+    abertas.slice(0, qtd).forEach(function(t){
+      t.etapa = 'feito'; t.feitaDia = st.dia;
+      var r = confereEstrela(); if (r) res = r;
+    });
+    registra('Concluiu ' + qtd + ' tarefas de uma vez (' + feitasHoje() + ' hoje).');
+    depois(res, true);
+  }
+  function depois(res, gatoComemora){
+    var semAntes = res && !res.limite ? res.semana - 1 : null;
+    guarda(); render(semAntes);
+    if (gatoComemora) gatoComemoraTarefa();
+    if (res && res.limite && st.avisoLimite !== st.dia){
+      st.avisoLimite = st.dia; guarda();
+      registra('Fez ' + META + ' tarefas hoje, mas a semana já tem ' + MAX_SEMANA + ' estrelas (o máximo). Sem estrela hoje.'); render(null);
+      toast('Você já tem ' + MAX_SEMANA + ' estrelas nesta semana. Elas zeram na segunda-feira.');
+    }
+    if (res && !res.limite) banner(res);
+  }
+  function avancaDia(n){
+    var semAntes = segunda(st.dia), tinha = estrelasSemana();
+    st.dia = dSoma(st.dia, n);
+    var nova = segunda(st.dia) !== semAntes;
+    registra('Agora é ' + DIAS[dParse(st.dia).getDay()] + ', ' + dCurta(st.dia) + '. As tarefas feitas antes não contam para hoje.');
+    if (nova){
+      registra('Semana nova: as estrelas voltaram para 0' + (tinha ? ' (eram ' + tinha + ')' : '') + '.' + (temPremio('gato') ? ' O gatinho continua.' : ''));
+      toast('Semana nova: estrelas zeradas.' + (temPremio('gato') ? ' O gatinho continua com você!' : ''));
+    }
+    guarda(); render(null);
+    if (nova && temPremio('gato')) setTimeout(function(){ gatoAcorda(); gatoFeliz('Miau! Semana nova!'); }, 350);
+  }
+
+  // ---------- desenho da tela ----------
+  var EL = {
+    data: document.getElementById('dataHoje'), semana: document.getElementById('dataSemana'), registro: document.getElementById('registro'),
+    estrelas: document.getElementById('estrelas'), kanban: document.getElementById('kanban'), btnGato: document.getElementById('btnGato'), toast: document.getElementById('toast')
+  };
+  var ESTRELA = '<path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" stroke-width="1.3" stroke-linejoin="round"/>';
+  function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function render(semAntes){
+    var d = dParse(st.dia), ini = segunda(st.dia);
+    EL.data.textContent = DIAS[d.getDay()].replace(/^./, function(c){ return c.toUpperCase(); }) + ', ' + dCurta(st.dia) + '/' + d.getFullYear();
+    EL.semana.textContent = 'semana de ' + dCurta(ini) + ' a ' + dCurta(dSoma(ini, 6)) + ' (dia simulado)';
+    EL.registro.innerHTML = st.log.map(function(l){ return '<li><time>' + dCurta(l.dia) + '</time><span>' + esc(l.txt) + '</span></li>'; }).join('');
+    renderEstrelas(semAntes);
+    renderQuadro();
+  }
+  function renderEstrelas(semAntes){
+    var sem = estrelasSemana(), feitas = feitasHoje(), h = '';
+    h += '<div class="est-bloco"><span class="est-rot">Semana</span><span class="est-semana" role="img" aria-label="' + sem + ' de ' + MAX_SEMANA + ' estrelas nesta semana" title="' + sem + ' de ' + MAX_SEMANA + ' estrelas nesta semana">';
+    for (var i = 0; i < MAX_SEMANA; i++) h += '<svg viewBox="0 0 20 20" aria-hidden="true" class="' + (i < sem ? 'cheia' : 'vazia') + (semAntes !== null && i === semAntes ? ' nova' : '') + '">' + ESTRELA + '</svg>';
+    h += '</span></div><div class="est-bloco"><span class="est-rot">Hoje</span>';
+    if (temEstrelaHoje()) h += '<span class="est-ok">⭐ Estrela de hoje conquistada!</span>';
+    else if (sem >= MAX_SEMANA) h += '<span class="est-ok">Semana completa: ' + MAX_SEMANA + ' de ' + MAX_SEMANA + '!</span>';
+    else h += '<span class="est-barra" role="progressbar" aria-label="Tarefas concluídas hoje" aria-valuemin="0" aria-valuemax="' + META + '" aria-valuenow="' + Math.min(feitas, META) + '"><i style="width:' + Math.min(100, feitas / META * 100) + '%"></i></span>' +
+      '<span><b>' + Math.min(feitas, META) + '/' + META + '</b> tarefas</span>';
+    h += '</div>';
+    PREMIOS.forEach(function(p){
+      if (temPremio(p.chave)) h += '<div class="est-bloco est-premio">' + p.icone + ' <span>' + esc(p.nome) + ' conquistado em ' + dCurta(st.premios[p.chave]) + '. É seu!</span></div>';
+      else { var f = Math.max(0, p.estrelas - sem); h += '<div class="est-bloco est-premio">' + p.icone + ' <span>' + esc(p.nome) + ': <b>' + sem + ' de ' + p.estrelas + '</b> estrelas nesta semana</span></div>'; }
+    });
+    h += '<div class="est-ajuda">Conclua ' + META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + MAX_SEMANA + ' por semana). As estrelas zeram toda segunda-feira; os prêmios conquistados ficam.</div>';
+    EL.estrelas.innerHTML = h;
+  }
+  function renderQuadro(){
+    var h = '';
+    COLS.forEach(function(c, ci){
+      var lista = st.tarefas.filter(function(t){ return t.etapa === c[0]; });
+      if (c[0] === 'feito') lista = lista.slice().sort(function(a, b){ return (b.feitaDia || '').localeCompare(a.feitaDia || '') || b.id - a.id; });
+      h += '<section class="col" data-etapa="' + c[0] + '" aria-label="' + c[1] + '"><h3><span>' + c[1] + '</span><span>' + lista.length + '</span></h3>';
+      if (!lista.length) h += '<div class="vazio">Nada aqui.</div>';
+      var ocultas = 0;
+      if (c[0] === 'feito' && lista.length > 12){ ocultas = lista.length - 12; lista = lista.slice(0, 12); }
+      lista.forEach(function(t){
+        var antiga = t.etapa === 'feito' && t.feitaDia !== st.dia;
+        h += '<div class="kcard' + (antiga ? ' antiga' : '') + '"><div class="kt">' + esc(t.titulo) + '</div><div class="kmeta"><span class="proc">' + t.processo + '</span>' +
+          (t.etapa === 'feito' ? (antiga ? '<span>Feita em ' + dCurta(t.feitaDia) + ' (não conta hoje)</span>' : '<span class="hoje">Feita hoje</span>') : '') + '</div>' +
+          '<div class="kmove">' + (ci > 0 ? '<button type="button" class="mv" data-mv="-1" data-id="' + t.id + '">← ' + COLS[ci - 1][1] + '</button>' : '<span></span>') +
+          (ci < COLS.length - 1 ? '<button type="button" class="mv" data-mv="1" data-id="' + t.id + '">' + COLS[ci + 1][1] + ' →</button>' : '<span></span>') + '</div></div>';
+      });
+      if (ocultas) h += '<div class="vazio">+ ' + ocultas + (ocultas === 1 ? ' mais antiga' : ' mais antigas') + '</div>';
+      h += '</section>';
+    });
+    EL.kanban.innerHTML = h;
+    gatoMonta();
+  }
+
+  // ---------- aviso e banner ----------
+  function toast(msg){
+    EL.toast.textContent = msg; EL.toast.classList.add('show');
+    clearTimeout(toast.t); toast.t = setTimeout(function(){ EL.toast.classList.remove('show'); }, 3200);
+  }
+  var reduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function banner(res){
+    var velho = document.querySelector('.festa'); if (velho) velho.remove();
+    var f = document.createElement('div');
+    f.className = 'festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'festaTit');
+    var n = feitasHoje();
+    f.innerHTML = '<div class="festa-card">' +
+      '<svg class="medalha" viewBox="0 0 84 84" aria-hidden="true"><path d="M24 4h14l8 26H32z" fill="var(--accent)"/><path d="M60 4H46l-8 26h14z" fill="var(--ok)"/><circle cx="42" cy="52" r="26" fill="#D89B1C"/><circle cx="42" cy="52" r="20" fill="none" stroke="#FFF6DC" stroke-width="2.5" opacity=".7"/><text x="42" y="60" text-anchor="middle" fill="#FFFFFF" style="font:700 22px var(--font-ui)">' + n + '</text></svg>' +
+      '<h2 id="festaTit">Parabéns, Ana!</h2>' +
+      '<div class="big">Você concluiu <b>' + n + '</b> tarefas hoje</div>' +
+      '<div class="festa-estrela">⭐ Você ganhou uma estrela!<span>' + res.semana + ' de ' + MAX_SEMANA + ' nesta semana</span></div>' +
+      res.premios.map(function(p){ return '<div class="festa-premio">' + p.icone + ' E conquistou o <b>' + esc(p.nome) + '</b>! Ele já está no seu quadro e é seu para sempre.</div>'; }).join('') +
+      '<p>Que dia produtivo. A equipe agradece!</p>' +
+      '<button type="button" class="btn primary" data-ok>Continuar</button></div>';
+    document.body.appendChild(f);
+    var chegou = res.premios.some(function(p){ return p.chave === 'gato'; });
+    function fechar(){
+      clearTimeout(f.t); f.remove(); document.removeEventListener('keydown', escTecla, true);
+      if (chegou) setTimeout(function(){ gatoFeliz('Miau! Oi! 👋'); }, 200);
+    }
+    function escTecla(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
+    f.addEventListener('click', function(e){ if (e.target === f || e.target.closest('[data-ok]')) fechar(); });
+    document.addEventListener('keydown', escTecla, true);
+    f.querySelector('[data-ok]').focus();
+    f.t = setTimeout(fechar, 9000);
+    if (!reduz){ confete(innerWidth * .15, innerHeight * .9); confete(innerWidth * .85, innerHeight * .9); setTimeout(function(){ confete(innerWidth * .5, innerHeight * .75); }, 450); }
+  }
+  var cf = { cv: null, g: null, parts: [], rodando: false };
+  function confete(x, y){
+    if (!cf.cv){ cf.cv = document.createElement('canvas'); cf.cv.className = 'confete'; cf.cv.setAttribute('aria-hidden', 'true'); cf.g = cf.cv.getContext('2d'); }
+    if (!cf.cv.isConnected){
+      document.body.appendChild(cf.cv);
+      var dpr = window.devicePixelRatio || 1;
+      cf.cv.width = innerWidth * dpr; cf.cv.height = innerHeight * dpr; cf.g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    var css = getComputedStyle(document.documentElement);
+    var cores = [css.getPropertyValue('--accent').trim(), css.getPropertyValue('--ok').trim(), css.getPropertyValue('--ouro').trim(), '#E5484D', '#8E4EC6'];
+    for (var i = 0; i < 90; i++){
+      var ang = -Math.PI / 2 + (Math.random() - .5) * 2.2, v = 6 + Math.random() * 7;
+      cf.parts.push({ x: x, y: y, vx: Math.cos(ang) * v, vy: Math.sin(ang) * v, r: 4 + Math.random() * 4, rot: Math.random() * 6, vr: (Math.random() - .5) * .4, c: cores[i % cores.length], vida: 90 + Math.random() * 40 });
+    }
+    if (cf.rodando) return;
+    cf.rodando = true;
+    (function passo(){
+      var g = cf.g;
+      g.clearRect(0, 0, innerWidth, innerHeight);
+      cf.parts = cf.parts.filter(function(p){ return p.vida > 0; });
+      cf.parts.forEach(function(p){
+        p.vida--; p.vx *= .985; p.vy += .28; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.rot); g.globalAlpha = Math.min(1, p.vida / 30); g.fillStyle = p.c;
+        g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); g.restore();
+      });
+      if (cf.parts.length) requestAnimationFrame(passo);
+      else { cf.rodando = false; cf.cv.remove(); }
+    })();
+  }
+
+  // ---------------------------------------------------------------------------------
+  // Gatinho (igual ao do sistema): senta na borda de cima de uma coluna, pisca, mexe o rabo,
+  // passeia, dorme quando ninguém mexe e comemora indo até Feito quando uma tarefa é concluída
+  // ---------------------------------------------------------------------------------
+  var FRASES = ['Miau!', 'Purrr…', 'Miau? 🐟', 'Prrr ♥', 'Mais um processo?'];
+  var PASSEIO_MS = [20000, 40000];
+  var gato = { el: null, col: null, andando: false, ult: Date.now(), nFrase: 0 };
+  var GATO_SVG = '<svg viewBox="0 0 64 72" aria-hidden="true" focusable="false">' +
+    '<g class="gato-rabo"><path class="g-rabo-c" d="M45 50C55 50 57 58 53 68"/><path class="g-rabo-p" d="M45 50C55 50 57 58 53 68"/><path class="g-rabo-l" d="M49 50.5C55 52 57 58 53 68"/></g>' +
+    '<g class="gato-corpo"><path class="gp" d="M17 56C15 42 21 31 32 31S49 42 47 56Z"/>' +
+      '<path class="gl" d="M18.5 44h5M18 49h5M45.5 44h-5M46 49h-5"/><ellipse class="gc" cx="32" cy="47" rx="7.5" ry="8.5"/>' +
+      '<ellipse class="gpata" cx="26" cy="55" rx="4.6" ry="2.8"/><ellipse class="gpata" cx="38" cy="55" rx="4.6" ry="2.8"/></g>' +
+    '<g class="gato-cabeca">' +
+      '<g class="gato-orelha-e"><path class="gp" d="M19 22L20 6L31 13Z"/><path class="gr" d="M21.5 18L22 10L27.5 13.5Z"/></g>' +
+      '<g class="gato-orelha-d"><path class="gp" d="M45 22L44 6L33 13Z"/><path class="gr" d="M42.5 18L42 10L36.5 13.5Z"/></g>' +
+      '<ellipse class="gp" cx="32" cy="22" rx="16" ry="13"/><path class="gl" d="M28.5 10.5l1 4M32 10v4.6M35.5 10.5l-1 4"/>' +
+      '<ellipse class="gc" cx="32" cy="27.5" rx="6.5" ry="4.5"/>' +
+      '<g class="gato-olhos"><ellipse class="go" cx="25.5" cy="21.5" rx="2.2" ry="2.8"/><ellipse class="go" cx="38.5" cy="21.5" rx="2.2" ry="2.8"/>' +
+        '<circle class="gw" cx="26.3" cy="20.4" r=".8"/><circle class="gw" cx="39.3" cy="20.4" r=".8"/></g>' +
+      '<path class="gato-sono gt" d="M23 22q2.5 2 5 0M36 22q2.5 2 5 0"/>' +
+      '<path class="gato-alegre gt" d="M23 23q2.5-3.2 5 0M36 23q2.5-3.2 5 0"/>' +
+      '<g class="gato-bochecha"><ellipse class="gr" cx="22.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/><ellipse class="gr" cx="41.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/></g>' +
+      '<path class="gr" d="M30.4 25.4h3.2l-1.6 1.8Z"/><path class="gt" d="M32 27.2q-1.4 2-3.2.9M32 27.2q1.4 2 3.2.9"/>' +
+      '<path class="gb" d="M24 27l-8-1.5M24 29l-8 1M40 27l8-1.5M40 29l8 1"/></g>' +
+    '<g class="gato-zzz"><text x="46" y="15">z</text><text x="51" y="10">Z</text></g>' +
+    '<path class="gato-coracao" d="M52 15c-2.5-1.8-5-3.4-5-5.6 0-1.4 1.1-2.4 2.4-2.4.9 0 1.9.5 2.6 1.4.7-.9 1.7-1.4 2.6-1.4 1.3 0 2.4 1 2.4 2.4 0 2.2-2.5 3.8-5 5.6Z"/>' +
+    '</svg><span class="gato-balao" aria-live="polite"></span>';
+
+  function gatoCria(){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'gato'; b.title = 'Clique para fazer carinho';
+    b.setAttribute('aria-label', 'Gatinho do quadro: clique para fazer carinho');
+    b.innerHTML = GATO_SVG;
+    b.addEventListener('click', function(e){ e.stopPropagation(); gatoAcorda(); gatoFeliz(FRASES[gato.nFrase++ % FRASES.length]); });
+    return b;
+  }
+  function gatoMonta(){
+    var tem = temPremio('gato'), mostra = tem && st.gatoLigado;
+    EL.btnGato.hidden = !tem;
+    EL.btnGato.setAttribute('aria-pressed', String(st.gatoLigado));
+    EL.kanban.classList.toggle('com-gato', mostra);
+    if (!mostra){ if (gato.el) gato.el.remove(); return; }
+    if (!gato.el) gato.el = gatoCria();
+    EL.kanban.appendChild(gato.el);
+    gatoPosiciona(false);
+    if (!gato.tPasseio) gatoAgenda();
+  }
+  function gatoCols(){ return Array.prototype.slice.call(EL.kanban.querySelectorAll('section.col')); }
+  function gatoColEl(chave){ return gatoCols().filter(function(c){ return c.getAttribute('data-etapa') === chave; })[0] || null; }
+  function gatoPonto(col){ return { x: col.offsetLeft + Math.round(col.offsetWidth * 0.62) - 26, y: col.offsetTop - 45 }; }
+  function gatoPosiciona(anda, depois){
+    var g = gato.el; if (!g || !g.isConnected) return;
+    var col = (gato.col && gatoColEl(gato.col)) || gatoCols()[0];
+    if (!col){ g.hidden = true; return; }
+    g.hidden = false;
+    gato.col = col.getAttribute('data-etapa');
+    var p = gatoPonto(col), de = parseFloat(g.style.left) || 0, dist = Math.abs(p.x - de);
+    g.style.top = p.y + 'px';
+    if (anda && !reduz && dist > 4){
+      var seg = Math.min(3.5, Math.max(0.8, dist / 220));
+      gato.andando = true;
+      g.style.setProperty('--gato-dur', seg.toFixed(2) + 's');
+      g.classList.add('passeando', 'andando');
+      g.style.left = p.x + 'px';
+      clearTimeout(gato.tAnda);
+      gato.tAnda = setTimeout(function(){ gato.andando = false; g.classList.remove('passeando', 'andando'); if (depois) depois(); }, seg * 1000 + 60);
+      return;
+    }
+    if (!gato.andando) g.classList.remove('passeando');
+    g.style.left = p.x + 'px';
+    if (anda && depois) depois();
+  }
+  function gatoAgenda(){ clearTimeout(gato.tPasseio); gato.tPasseio = setTimeout(gatoPasseia, PASSEIO_MS[0] + Math.random() * (PASSEIO_MS[1] - PASSEIO_MS[0])); }
+  function gatoPasseia(){
+    gatoAgenda();
+    var g = gato.el;
+    if (reduz || !g || !g.isConnected || g.hidden || document.hidden || gato.andando || g.classList.contains('dormindo') || g.classList.contains('feliz')) return;
+    var aqui = gatoColEl(gato.col), outras = gatoCols().filter(function(c){ return c !== aqui; });
+    if (!aqui || !outras.length || outras[0].offsetTop !== aqui.offsetTop) return;
+    gato.col = outras[Math.floor(Math.random() * outras.length)].getAttribute('data-etapa');
+    gatoPosiciona(true);
+  }
+  function gatoBalao(msg){
+    var b = gato.el && gato.el.querySelector('.gato-balao'); if (!b) return;
+    b.textContent = msg; b.classList.add('show');
+    clearTimeout(gato.tBalao); gato.tBalao = setTimeout(function(){ b.classList.remove('show'); }, 1900);
+  }
+  function gatoFeliz(msg){
+    var g = gato.el; if (!g || !g.isConnected) return;
+    g.classList.remove('feliz'); void g.offsetWidth; g.classList.add('feliz');
+    if (msg) gatoBalao(msg);
+    clearTimeout(gato.tFeliz); gato.tFeliz = setTimeout(function(){ g.classList.remove('feliz'); }, 1700);
+  }
+  function gatoDorme(){ var g = gato.el; if (!g || gato.andando) return; g.classList.remove('feliz'); g.classList.add('dormindo'); g.title = 'Shhh… está dormindo (clique para acordar)'; }
+  function gatoAcorda(){ gato.ult = Date.now(); var g = gato.el; if (!g || !g.classList.contains('dormindo')) return; g.classList.remove('dormindo'); g.title = 'Clique para fazer carinho'; }
+  function gatoComemoraTarefa(){
+    var g = gato.el; if (!g || !g.isConnected) return;
+    gatoAcorda();
+    var feito = gatoColEl('feito'), aqui = gatoColEl(gato.col);
+    if (feito && aqui && feito !== aqui && feito.offsetTop === aqui.offsetTop && !reduz){ gato.col = 'feito'; gatoPosiciona(true, function(){ gatoFeliz('Miau! Mais uma!'); }); }
+    else gatoFeliz('Miau! Mais uma!');
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(ev){
+    window.addEventListener(ev, function(e){
+      if (e.target && e.target.closest && e.target.closest('#btnDormir')) return;
+      gato.ult = Date.now();
+      if (gato.el && gato.el.classList.contains('dormindo')) gatoAcorda();
+    }, { passive: true, capture: true });
+  });
+  setInterval(function(){ var g = gato.el; if (g && g.isConnected && !g.classList.contains('dormindo') && Date.now() - gato.ult > SONO_MS) gatoDorme(); }, 3000);
+  var raf = 0;
+  window.addEventListener('resize', function(){ cancelAnimationFrame(raf); raf = requestAnimationFrame(function(){ gatoPosiciona(false); }); });
+
+  // ---------- botões ----------
+  EL.kanban.addEventListener('click', function(e){ var b = e.target.closest('[data-mv]'); if (b) mover(+b.getAttribute('data-id'), +b.getAttribute('data-mv')); });
+  document.getElementById('btnConcluir10').addEventListener('click', function(){ concluirVarias(Math.max(1, META - feitasHoje())); });
+  document.getElementById('btnMais').addEventListener('click', function(){ for (var i = 0; i < 5; i++) novaTarefa('afazer'); registra('Chegaram 5 tarefas novas em A fazer.'); guarda(); render(null); });
+  document.getElementById('btnDia').addEventListener('click', function(){ avancaDia(1); });
+  document.getElementById('btnSemana').addEventListener('click', function(){ var d = dParse(st.dia), w = (d.getDay() + 6) % 7; avancaDia(7 - w); });
+  document.getElementById('btnDormir').addEventListener('click', function(){
+    if (!gato.el || !gato.el.isConnected){ toast('O gatinho ainda não foi conquistado: junte 3 estrelas numa semana.'); return; }
+    gatoDorme(); toast('Dormindo. Mexa o mouse ou toque na tela para acordar.');
+  });
+  var zerarArmado = 0;
+  document.getElementById('btnZerar').addEventListener('click', function(){
+    var b = this;
+    if (Date.now() - zerarArmado > 4000){ zerarArmado = Date.now(); b.textContent = 'Clique de novo para confirmar'; setTimeout(function(){ b.textContent = 'Recomeçar do zero'; }, 4000); return; }
+    zerarArmado = 0; b.textContent = 'Recomeçar do zero';
+    if (gato.el){ gato.el.remove(); gato.el = null; gato.col = null; }
+    novoEstado(); guarda(); render(null); toast('Teste recomeçado do zero.');
+  });
+  EL.btnGato.addEventListener('click', function(){
+    st.gatoLigado = !st.gatoLigado; guarda(); gatoMonta();
+    if (st.gatoLigado){ gatoAcorda(); gatoFeliz('Miau!'); }
+  });
+
+  st = carrega() || novoEstado();
+  guarda();
+  render(null);
+})();
+</script>
+</body></html>
