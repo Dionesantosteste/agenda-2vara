@@ -1423,6 +1423,62 @@
   .kanban.arrastando .col{ border-style:dashed; }
   .col.drop-over{ border-color:var(--accent); border-style:solid; background:var(--accent-soft); }
   .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
+  /* Gatinho do quadro (protótipo): senta na borda de cima de uma coluna, com o rabo pendurado
+     para dentro dela; pisca, mexe o rabo, passeia entre as colunas, dorme e comemora */
+  :root{ --gato-pelo:#F2A65A; --gato-listra:#C9722E; --gato-claro:#FFE9CC; --gato-contorno:#5A3A1E; --gato-olho:#2A1E14; --gato-rosa:#F4A3A8; }
+  :root[data-theme="contraste"]{ --gato-contorno:#000000; --gato-listra:#8A4A12; }
+  .kanban{ position:relative; }
+  .kanban.com-gato{ padding-top:50px; }
+  .gato{ position:absolute; left:0; top:0; width:52px; height:58.5px; z-index:3; border:0; padding:0; margin:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .gato.passeando{ transition:left var(--gato-dur, 2s) linear; }
+  .gato:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:8px; }
+  .gato svg{ display:block; width:100%; height:100%; overflow:visible; transform-origin:50% 90%; }
+  .gato .gp{ fill:var(--gato-pelo); stroke:var(--gato-contorno); stroke-width:1.3; stroke-linejoin:round; }
+  .gato .gc{ fill:var(--gato-claro); }
+  .gato .gpata{ fill:var(--gato-claro); stroke:var(--gato-contorno); stroke-width:1.1; }
+  .gato .gl{ fill:none; stroke:var(--gato-listra); stroke-width:1.8; stroke-linecap:round; }
+  .gato .gr{ fill:var(--gato-rosa); }
+  .gato .go{ fill:var(--gato-olho); }
+  .gato .gt{ fill:none; stroke:var(--gato-olho); stroke-width:1.4; stroke-linecap:round; }
+  .gato .gb{ fill:none; stroke:var(--gato-contorno); stroke-width:.7; stroke-linecap:round; opacity:.55; }
+  .gato .g-rabo-c{ fill:none; stroke:var(--gato-contorno); stroke-width:7; stroke-linecap:round; }
+  .gato .g-rabo-p{ fill:none; stroke:var(--gato-pelo); stroke-width:4.4; stroke-linecap:round; }
+  .gato .g-rabo-l{ fill:none; stroke:var(--gato-listra); stroke-width:4.4; stroke-dasharray:2.4 3.6; }
+  .gato-sono, .gato-alegre, .gato-zzz, .gato-coracao, .gato-bochecha{ display:none; }
+  .gato.dormindo .gato-olhos, .gato.feliz .gato-olhos{ display:none; }
+  .gato.dormindo .gato-sono, .gato.dormindo .gato-zzz{ display:inline; }
+  .gato.feliz .gato-alegre, .gato.feliz .gato-coracao, .gato.feliz .gato-bochecha{ display:inline; }
+  .gato-rabo{ transform-origin:45px 50px; animation:gatoRabo 2.6s ease-in-out infinite alternate; }
+  .gato-olhos{ transform-origin:32px 21.5px; animation:gatoPisca 4.6s infinite; }
+  .gato-orelha-e{ transform-origin:24px 18px; animation:gatoOrelha 7.3s infinite; }
+  .gato-corpo{ transform-origin:32px 56px; animation:gatoRespira 3.4s ease-in-out infinite; }
+  .gato-cabeca{ transform-origin:32px 32px; transition:transform .5s; }
+  .gato.andando svg{ animation:gatoAnda .34s ease-in-out infinite; }
+  .gato.andando .gato-rabo{ animation-duration:.5s; }
+  .gato.dormindo .gato-cabeca{ transform:translateY(3.5px) rotate(-7deg); }
+  .gato.dormindo .gato-rabo{ animation-duration:6s; }
+  .gato.dormindo .gato-corpo{ animation-duration:5s; }
+  .gato.feliz svg{ animation:gatoPulo .8s ease-out 2; }
+  .gato.feliz .gato-rabo{ animation-duration:.3s; }
+  .gato-zzz text{ font:700 11px var(--font-ui); fill:var(--muted); animation:gatoZ 2.8s ease-out infinite; }
+  .gato-zzz text + text{ animation-delay:1.4s; }
+  .gato-coracao{ fill:#E5484D; transform-origin:52px 12px; animation:gatoCoracao 1.5s ease-out forwards; }
+  .gato-balao{ position:absolute; right:calc(100% + 2px); top:6px; padding:3px 9px; border-radius:10px 10px 2px 10px; background:var(--paper); color:var(--ink);
+    border:1px solid var(--line); box-shadow:var(--shadow); font:500 12px var(--font-ui); white-space:nowrap; pointer-events:none; opacity:0; transform:translateY(4px); transition:opacity .2s, transform .2s; }
+  .gato-balao.show{ opacity:1; transform:none; }
+  @keyframes gatoRabo{ from{ transform:rotate(-8deg); } to{ transform:rotate(14deg); } }
+  @keyframes gatoPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
+  @keyframes gatoOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
+  @keyframes gatoRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
+  @keyframes gatoAnda{ 0%, 100%{ transform:translateY(0) rotate(-3deg); } 50%{ transform:translateY(-4px) rotate(3deg); } }
+  @keyframes gatoPulo{ 0%, 50%, 100%{ transform:translateY(0); } 25%{ transform:translateY(-7px); } 75%{ transform:translateY(-4px); } }
+  @keyframes gatoZ{ 0%{ opacity:0; transform:translate(0, 4px); } 30%{ opacity:1; } 100%{ opacity:0; transform:translate(7px, -8px); } }
+  @keyframes gatoCoracao{ 0%{ opacity:0; transform:translateY(4px) scale(.6); } 25%{ opacity:1; transform:scale(1.1); } 100%{ opacity:0; transform:translateY(-8px) scale(1); } }
+  @media (prefers-reduced-motion: reduce){
+    .gato svg, .gato svg *{ animation:none !important; transition:none !important; }
+    .gato.passeando{ transition:none; }
+  }
+  #orgKGato[aria-pressed="true"]{ border-color:var(--accent); color:var(--accent); }
   .ktitle:hover{ color:var(--accent); text-decoration:underline; }
   .ktitle:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
   .t-meta .kprazo.hoje{ color:var(--st-orange); background:var(--st-orange-soft); font-weight:600; border-radius:6px; padding:0 6px; }
@@ -2348,6 +2404,7 @@
           <button type="button" class="btn kbtn" id="orgKCadCol">Colunas</button>
           <button type="button" class="btn kbtn" id="orgKCadMod">Modelos</button>
           <button type="button" class="btn kbtn" id="orgKHist">Histórico</button>
+          <button type="button" class="btn kbtn" id="orgKGato" aria-pressed="true" title="Mostrar ou esconder o gatinho do quadro">🐱 Gatinho</button>
           <div class="kchips" id="orgKChips" role="group" aria-label="Filtrar por prazo">
             <button type="button" class="chip" data-kprazo="" aria-pressed="true">Todas</button>
             <button type="button" class="chip" data-kprazo="atrasadas" aria-pressed="false">Atrasadas</button>
@@ -5334,6 +5391,170 @@
       '<button type="button" class="icon-btn" data-act="kadd-fechar" title="Fechar (Esc)" aria-label="Fechar">' + ICON_X + '</button></div></form>';
   }
 
+  // ---------------------------------------------------------------------
+  // Gatinho do quadro (protótipo). Senta na borda de cima de uma coluna com o rabo pendurado
+  // para dentro dela: pisca, mexe o rabo e a orelha, passeia de vez em quando para outra
+  // coluna, dorme quando ninguém mexe no sistema e comemora quando uma tarefa é concluída.
+  // Clicar nele faz carinho. O botão "Gatinho" acima do quadro liga e desliga (fica salvo
+  // neste navegador). Sem animação para quem pede menos movimento no sistema.
+  // ---------------------------------------------------------------------
+  var ORG_GATO_SONO_MS = 90000;              // sem mexer no sistema por esse tempo, ele dorme
+  var ORG_GATO_PASSEIO_MS = [25000, 55000];  // intervalo entre um passeio e outro (mín., máx.)
+  var ORG_GATO_FRASES = ['Miau!', 'Purrr…', 'Miau? 🐟', 'Prrr ♥', 'Mais um processo?'];
+  var orgGatoReduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var orgGato = { ligado: true, el: null, col: null, andando: false, ult: Date.now(), nFrase: 0 };
+  try { orgGato.ligado = localStorage.getItem('orgGato') !== '0'; } catch (e) {}
+  var ORG_GATO_SVG = '<svg viewBox="0 0 64 72" aria-hidden="true" focusable="false">' +
+    '<g class="gato-rabo"><path class="g-rabo-c" d="M45 50C55 50 57 58 53 68"/><path class="g-rabo-p" d="M45 50C55 50 57 58 53 68"/><path class="g-rabo-l" d="M49 50.5C55 52 57 58 53 68"/></g>' +
+    '<g class="gato-corpo"><path class="gp" d="M17 56C15 42 21 31 32 31S49 42 47 56Z"/>' +
+      '<path class="gl" d="M18.5 44h5M18 49h5M45.5 44h-5M46 49h-5"/><ellipse class="gc" cx="32" cy="47" rx="7.5" ry="8.5"/>' +
+      '<ellipse class="gpata" cx="26" cy="55" rx="4.6" ry="2.8"/><ellipse class="gpata" cx="38" cy="55" rx="4.6" ry="2.8"/></g>' +
+    '<g class="gato-cabeca">' +
+      '<g class="gato-orelha-e"><path class="gp" d="M19 22L20 6L31 13Z"/><path class="gr" d="M21.5 18L22 10L27.5 13.5Z"/></g>' +
+      '<g class="gato-orelha-d"><path class="gp" d="M45 22L44 6L33 13Z"/><path class="gr" d="M42.5 18L42 10L36.5 13.5Z"/></g>' +
+      '<ellipse class="gp" cx="32" cy="22" rx="16" ry="13"/><path class="gl" d="M28.5 10.5l1 4M32 10v4.6M35.5 10.5l-1 4"/>' +
+      '<ellipse class="gc" cx="32" cy="27.5" rx="6.5" ry="4.5"/>' +
+      '<g class="gato-olhos"><ellipse class="go" cx="25.5" cy="21.5" rx="2.2" ry="2.8"/><ellipse class="go" cx="38.5" cy="21.5" rx="2.2" ry="2.8"/>' +
+        '<circle cx="26.3" cy="20.4" r=".8" fill="#fff"/><circle cx="39.3" cy="20.4" r=".8" fill="#fff"/></g>' +
+      '<path class="gato-sono gt" d="M23 22q2.5 2 5 0M36 22q2.5 2 5 0"/>' +
+      '<path class="gato-alegre gt" d="M23 23q2.5-3.2 5 0M36 23q2.5-3.2 5 0"/>' +
+      '<g class="gato-bochecha"><ellipse class="gr" cx="22.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/><ellipse class="gr" cx="41.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/></g>' +
+      '<path class="gr" d="M30.4 25.4h3.2l-1.6 1.8Z"/><path class="gt" d="M32 27.2q-1.4 2-3.2.9M32 27.2q1.4 2 3.2.9"/>' +
+      '<path class="gb" d="M24 27l-8-1.5M24 29l-8 1M40 27l8-1.5M40 29l8 1"/></g>' +
+    '<g class="gato-zzz"><text x="46" y="15">z</text><text x="51" y="10">Z</text></g>' +
+    '<path class="gato-coracao" d="M52 15c-2.5-1.8-5-3.4-5-5.6 0-1.4 1.1-2.4 2.4-2.4.9 0 1.9.5 2.6 1.4.7-.9 1.7-1.4 2.6-1.4 1.3 0 2.4 1 2.4 2.4 0 2.2-2.5 3.8-5 5.6Z"/>' +
+    '</svg><span class="gato-balao" aria-live="polite"></span>';
+  var OGB = document.getElementById('orgKGato');
+
+  function orgGatoCria(){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'gato';
+    b.title = 'Clique para fazer carinho';
+    b.setAttribute('aria-label', 'Gatinho do quadro: clique para fazer carinho');
+    b.innerHTML = ORG_GATO_SVG;
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      orgGatoAcorda();
+      orgGatoFeliz(ORG_GATO_FRASES[orgGato.nFrase++ % ORG_GATO_FRASES.length]);
+    });
+    return b;
+  }
+  // Chamada a cada vez que o quadro é desenhado de novo (o innerHTML apaga o gatinho; o mesmo nó volta)
+  function orgGatoMonta(){
+    if (!orgGato) return;
+    OT.kanban.classList.toggle('com-gato', orgGato.ligado);
+    if (!orgGato.ligado){ if (orgGato.el) orgGato.el.remove(); return; }
+    if (!orgGato.el) orgGato.el = orgGatoCria();
+    OT.kanban.appendChild(orgGato.el);
+    orgGatoPosiciona(false);
+    if (!orgGato.tPasseio) orgGatoAgenda();
+  }
+  function orgGatoCols(){ return Array.prototype.slice.call(OT.kanban.querySelectorAll('section.col')); }
+  function orgGatoColEl(chave){ return orgGatoCols().filter(function(c){ return c.getAttribute('data-etapa') === chave; })[0] || null; }
+  // Onde ele senta: um pouco à direita do meio da coluna, com as patas na borda de cima
+  function orgGatoPonto(col){ return { x: col.offsetLeft + Math.round(col.offsetWidth * 0.62) - 26, y: col.offsetTop - 45 }; }
+  function orgGatoPosiciona(anda, depois){
+    var g = orgGato.el; if (!g || !g.isConnected) return;
+    var col = (orgGato.col && orgGatoColEl(orgGato.col)) || orgGatoCols()[0];
+    if (!col){ g.hidden = true; return; }
+    g.hidden = false;
+    orgGato.col = col.getAttribute('data-etapa');
+    var p = orgGatoPonto(col), de = parseFloat(g.style.left) || 0, dist = Math.abs(p.x - de);
+    g.style.top = p.y + 'px';
+    if (anda && !orgGatoReduz && dist > 4){
+      var seg = Math.min(3.5, Math.max(0.8, dist / 220));
+      orgGato.andando = true;
+      g.style.setProperty('--gato-dur', seg.toFixed(2) + 's');
+      g.classList.add('passeando', 'andando');
+      g.style.left = p.x + 'px';
+      clearTimeout(orgGato.tAnda);
+      orgGato.tAnda = setTimeout(function(){
+        orgGato.andando = false;
+        g.classList.remove('passeando', 'andando');
+        if (depois) depois();
+      }, seg * 1000 + 60);
+      return;
+    }
+    if (!orgGato.andando) g.classList.remove('passeando');
+    g.style.left = p.x + 'px';
+    if (anda && depois) depois();
+  }
+  function orgGatoAgenda(){
+    clearTimeout(orgGato.tPasseio);
+    var a = ORG_GATO_PASSEIO_MS;
+    orgGato.tPasseio = setTimeout(orgGatoPasseia, a[0] + Math.random() * (a[1] - a[0]));
+  }
+  function orgGatoPasseia(){
+    orgGatoAgenda();
+    var g = orgGato.el;
+    if (!orgGato.ligado || orgGatoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden) return;
+    if (orgGato.andando || g.classList.contains('dormindo') || g.classList.contains('feliz')) return;
+    var aqui = orgGatoColEl(orgGato.col);
+    var outras = orgGatoCols().filter(function(c){ return c !== aqui; });
+    // no celular as colunas ficam uma embaixo da outra: aí ele fica quieto na primeira
+    if (!aqui || !outras.length || outras[0].offsetTop !== aqui.offsetTop) return;
+    orgGato.col = outras[Math.floor(Math.random() * outras.length)].getAttribute('data-etapa');
+    orgGatoPosiciona(true);
+  }
+  function orgGatoBalao(msg){
+    var b = orgGato.el && orgGato.el.querySelector('.gato-balao'); if (!b) return;
+    b.textContent = msg; b.classList.add('show');
+    clearTimeout(orgGato.tBalao);
+    orgGato.tBalao = setTimeout(function(){ b.classList.remove('show'); }, 1900);
+  }
+  function orgGatoFeliz(msg){
+    var g = orgGato.el; if (!g || !g.isConnected) return;
+    g.classList.remove('feliz'); void g.offsetWidth; g.classList.add('feliz');
+    if (msg) orgGatoBalao(msg);
+    clearTimeout(orgGato.tFeliz);
+    orgGato.tFeliz = setTimeout(function(){ g.classList.remove('feliz'); }, 1700);
+  }
+  function orgGatoDorme(){
+    var g = orgGato.el; if (!g || orgGato.andando) return;
+    g.classList.remove('feliz'); g.classList.add('dormindo');
+    g.title = 'Shhh… está dormindo (clique para acordar)';
+  }
+  function orgGatoAcorda(){
+    orgGato.ult = Date.now();
+    var g = orgGato.el; if (!g || !g.classList.contains('dormindo')) return;
+    g.classList.remove('dormindo');
+    g.title = 'Clique para fazer carinho';
+  }
+  // Tarefa concluída: vai até a coluna Feito (se der para andar até lá) e pula de alegria
+  function orgGatoComemora(marco){
+    if (!orgGato.ligado || !orgGato.el || !orgGato.el.isConnected) return;
+    orgGatoAcorda();
+    var msg = marco ? 'Miau! Que dia! 🎉' : 'Miau! Mais uma!';
+    var feito = orgGatoColEl('feito'), aqui = orgGatoColEl(orgGato.col);
+    if (feito && aqui && feito !== aqui && feito.offsetTop === aqui.offsetTop && !orgGatoReduz){
+      orgGato.col = 'feito';
+      orgGatoPosiciona(true, function(){ orgGatoFeliz(msg); });
+    } else orgGatoFeliz(msg);
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(ev){
+    window.addEventListener(ev, function(){
+      orgGato.ult = Date.now();
+      if (orgGato.el && orgGato.el.classList.contains('dormindo')) orgGatoAcorda();
+    }, { passive: true, capture: true });
+  });
+  setInterval(function(){
+    var g = orgGato.el;
+    if (orgGato.ligado && g && g.isConnected && !g.classList.contains('dormindo') && Date.now() - orgGato.ult > ORG_GATO_SONO_MS) orgGatoDorme();
+  }, 5000);
+  var orgGatoRaf = 0;
+  window.addEventListener('resize', function(){
+    cancelAnimationFrame(orgGatoRaf);
+    orgGatoRaf = requestAnimationFrame(function(){ orgGatoPosiciona(false); });
+  });
+  OGB.setAttribute('aria-pressed', String(orgGato.ligado));
+  OGB.addEventListener('click', function(){
+    orgGato.ligado = !orgGato.ligado;
+    try { localStorage.setItem('orgGato', orgGato.ligado ? '1' : '0'); } catch (e) {}
+    OGB.setAttribute('aria-pressed', String(orgGato.ligado));
+    orgGatoMonta();
+    if (orgGato.ligado){ orgGatoAcorda(); orgGatoFeliz('Miau!'); }
+  });
+
   function renderOrgKanban(){
     orgKRespOpcoes();
     orgKModeloOpcoes();
@@ -5394,6 +5615,7 @@
       h += '</section>';
     });
     OT.kanban.innerHTML = h;
+    orgGatoMonta();
     if (addFocado || orgKAddFocar){
       orgKAddFocar = false;
       var inp = OT.kanban.querySelector('.kadd-in');
@@ -8387,6 +8609,7 @@
     setTimeout(function(){ orgFestaBanner(Math.floor(n / 10) * 10); }, 400);
   }
   function orgFestaToca(id, n, marco){
+    orgGatoComemora(marco);
     var el = document.querySelector('.kcard[data-id="' + id + '"]') || document.querySelector('.task[data-tid="' + id + '"]');
     var r = el && el.offsetParent ? el.getBoundingClientRect() : null;
     if (!orgFestaReduz) orgConfete(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight * 0.35, 90);

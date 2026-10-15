@@ -468,3 +468,15 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJI...";
   de publicar, ou simplesmente use o botão "⚙ categorias" depois de publicado.
 - Para atualizar o site depois (ex: mudar uma cor, adicionar um campo), me peça a alteração,
   eu atualizo o arquivo e você só precisa subir a nova versão no Vercel/GitHub no lugar da antiga.
+
+## Gatinho do quadro (protótipo)
+
+No Quadro da Organização mora um gatinho sentado na borda de cima de uma coluna. Ele pisca, mexe o
+rabo, passeia de vez em quando para outra coluna, dorme quando ninguém mexe no sistema por um
+tempo e pula de alegria (indo até a coluna Feito) quando uma tarefa é concluída. Clicar nele faz
+carinho. O botão **🐱 Gatinho**, acima do quadro, liga e desliga (a escolha fica salva no navegador
+de cada pessoa). Quem pede menos movimento no sistema operacional vê o gatinho parado.
+
+- Os tempos ficam em `ORG_GATO_SONO_MS` (até dormir) e `ORG_GATO_PASSEIO_MS` (entre passeios), e
+  as frases do carinho em `ORG_GATO_FRASES`, no `index.html`.
+- As cores do pelo ficam nas variáveis `--gato-*` do CSS.
