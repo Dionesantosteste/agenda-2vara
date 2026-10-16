@@ -1,0 +1,33 @@
+# Roda os testes automáticos (pasta testes/) em cada pull request e em cada mudança no main.
+# Os testes usam um Supabase simulado: não encostam no banco de verdade.
+name: Testes
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: testes
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: testes/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+      - name: Guardar o relatório quando algum teste falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-dos-testes
+          path: testes/playwright-report
+          retention-days: 7

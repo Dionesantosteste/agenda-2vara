@@ -522,3 +522,10 @@ Windows), como já acontece com a conferência.
 
 **Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria as colunas
 `enviada_por`, `recado_gestor` e `enviada_em` em `org_tarefas` e a função `org_enviar_ao_gestor`).
+
+## Testes automáticos
+
+A pasta `testes/` tem testes que abrem o sistema num navegador e conferem os fluxos principais de
+cada seção, usando um Supabase simulado (não mexem no banco de verdade). Eles rodam sozinhos no
+GitHub em cada pull request e não vão para o site publicado. Como rodar no computador e como funcionam:
+veja `testes/LEIA-ME.md`.

@@ -1,0 +1,13 @@
+{
+  "name": "agenda-2vara-testes",
+  "private": true,
+  "description": "Testes automáticos do sistema (navegador + Supabase simulado). Não fazem parte do site.",
+  "scripts": {
+    "test": "playwright test",
+    "test:ver": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.1",
+    "@supabase/supabase-js": "2.118.0"
+  }
+}
