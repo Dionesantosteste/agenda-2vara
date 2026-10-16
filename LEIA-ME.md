@@ -497,8 +497,9 @@ pessoa escolhe e troca; o gestor, vendo a tela dela, só vê. Quem pede menos mo
 operacional vê o bichinho parado.
 
 **Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria as tabelas
-`org_estrelas` e `org_bichos`, o gatilho que dá a estrela e as funções de escolha). As estrelas começam
-a contar a partir daí.
+`org_estrelas` e `org_bichos`, o gatilho que dá a estrela e as funções de escolha). As estrelas valem
+desde **15/10/2026**: ao rodar o arquivo, quem já tinha concluído 10 tarefas num dia a partir dessa data
+recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrela.
 
 - A meta e o limite ficam no banco (função `org_estrela_confere`) e repetidos no `index.html`
   (`ORG_ESTRELA_META` e `ORG_ESTRELA_SEMANA`) só para mostrar na tela. Se mudar, mude nos dois.

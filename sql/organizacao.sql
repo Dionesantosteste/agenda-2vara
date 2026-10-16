@@ -2055,6 +2055,7 @@ grant execute on function org_excluir_pessoa(text, uuid, uuid) to anon, authenti
 -- O total acumulado nunca zera e libera os prêmios (bichinhos, caminha, potinho...), definidos
 -- em ORG_PREMIOS no index.html. Os marcos de bichinho (3, 55, 75 e 100) se repetem em
 -- org_escolher_bicho, abaixo: se mudar lá, mude aqui também.
+-- Valem desde 15/10/2026 (veja o bloco logo depois do gatilho).
 -- Quem dá a estrela é o banco, na hora em que a 10ª tarefa do dia vai para Feito (gatilho abaixo),
 -- e ela fica guardada: não some se depois a tarefa voltar de coluna, for arquivada ou excluída.
 -- O quadro do gestor não ganha estrelas.
@@ -2113,6 +2114,31 @@ drop trigger if exists org_tarefas_estrela on org_tarefas;
 create trigger org_tarefas_estrela
   after insert or update of feita_em on org_tarefas
   for each row execute function org_estrela_confere();
+
+-- As estrelas valem desde 15/10/2026: quem concluiu 10 tarefas num dia a partir dessa data ganha a
+-- estrela desse dia, mesmo que o dia tenha passado antes de este arquivo ser rodado (respeitando o
+-- máximo de 5 por semana). Contam as tarefas que estão como concluídas naquele dia. Rodar de novo
+-- não repete estrela.
+do $$
+declare
+  r record;
+begin
+  for r in
+    select t.dono, (t.feita_em at time zone 'America/Cuiaba')::date as dia
+      from org_tarefas t
+     where t.dono is not null and t.feita_em is not null and t.feita_em <= now()
+       and t.feita_em >= (date '2026-10-15')::timestamp at time zone 'America/Cuiaba'
+     group by 1, 2
+    having count(*) >= 10
+     order by 2
+  loop
+    if (select count(*) from org_estrelas e
+         where e.dono = r.dono and e.dia >= date_trunc('week', r.dia)::date and e.dia < date_trunc('week', r.dia)::date + 7) < 5 then
+      insert into org_estrelas (dono, dia) values (r.dono, r.dia) on conflict do nothing;
+    end if;
+  end loop;
+end;
+$$;
 
 -- Resumo para a tela da pessoa (vai junto em org_carregar; o quadro do gestor não tem estrelas)
 create or replace function org_estrelas_resumo(p_dono uuid)
