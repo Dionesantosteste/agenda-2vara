@@ -468,3 +468,41 @@ var SUPABASE_ANON_KEY = "eyJhbGciOiJI...";
   de publicar, ou simplesmente use o botão "⚙ categorias" depois de publicado.
 - Para atualizar o site depois (ex: mudar uma cor, adicionar um campo), me peça a alteração,
   eu atualizo o arquivo e você só precisa subir a nova versão no Vercel/GitHub no lugar da antiga.
+
+## Estrelas e bichinhos (gamificação)
+
+Cada pessoa da equipe ganha **1 estrela** no dia em que conclui **10 tarefas**. Só contam as tarefas
+concluídas naquele mesmo dia (horário da vara): tarefas de dias passados não entram. O máximo é
+**5 estrelas por semana**, de segunda a domingo; a contagem da semana zera toda segunda-feira. O total
+**acumulado** nunca zera e libera os prêmios. Quem dá a estrela é o banco, na hora em que a 10ª tarefa
+do dia vai para Feito, e ela fica guardada (não some se a tarefa voltar de coluna, for arquivada ou
+excluída). O quadro do gestor não ganha estrelas.
+
+Acima do Quadro aparece só a barra de estrelas: as da semana, o progresso de hoje (ex.: 7/10) e o total
+acumulado. A trilha de prêmios não aparece; cada conquista é avisada no banner de parabéns.
+
+| Estrelas acumuladas | Prêmio |
+|---|---|
+| 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha e leoazinha |
+| 8 | Caminha (ele dorme nela quando o sistema fica parado) |
+| 15 | Potinho (de vez em quando vai comer) |
+| 25 | Bolinha (de vez em quando brinca) |
+| 40 | Cresce: vira adulto |
+| 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem) |
+
+O bichinho mora na borda de cima das colunas do Quadro: pisca, mexe o rabo, passeia, dorme quando
+ninguém mexe no sistema e comemora quando uma tarefa é concluída. Clicar nele faz carinho. Quem tem
+bichinho escolhe qual fica no quadro (ou esconde) nos botões ao lado de "Histórico". Só a própria
+pessoa escolhe e troca; o gestor, vendo a tela dela, só vê. Quem pede menos movimento no sistema
+operacional vê o bichinho parado.
+
+**Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria as tabelas
+`org_estrelas` e `org_bichos`, o gatilho que dá a estrela e as funções de escolha). As estrelas valem
+desde **15/10/2026**: ao rodar o arquivo, quem já tinha concluído 10 tarefas num dia a partir dessa data
+recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrela.
+
+- A meta e o limite ficam no banco (função `org_estrela_confere`) e repetidos no `index.html`
+  (`ORG_ESTRELA_META` e `ORG_ESTRELA_SEMANA`) só para mostrar na tela. Se mudar, mude nos dois.
+- Os prêmios ficam em `ORG_PREMIOS`, no `index.html`. Os marcos de bichinho (3, 55, 75 e 100) se
+  repetem na função `org_escolher_bicho`, no SQL.
+- Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.

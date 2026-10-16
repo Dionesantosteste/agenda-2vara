@@ -1423,6 +1423,121 @@
   .kanban.arrastando .col{ border-style:dashed; }
   .col.drop-over{ border-color:var(--accent); border-style:solid; background:var(--accent-soft); }
   .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
+  /* Estrelas (1 por dia com 10 tarefas concluídas no próprio dia, até 5 por semana) e bichinhos do quadro */
+  :root{ --olho:#2A1E14; --brilho:#FFFFFF; --coracao:#E5484D; --ouro:#E8A317; --ouro-borda:#B97A0A; --ouro-txt:#9A6408;
+    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ouro-txt:#F5C866; } }
+  :root[data-theme="dark"]{ --ouro-txt:#F5C866; }
+  :root[data-theme="contraste"]{ --ouro-txt:#5C3B00; --ouro-borda:#000000; }
+  .estrelas{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 22px; background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:10px 16px; font-size:13.5px; color:var(--muted); }
+  .estrelas b{ color:var(--ink); font-variant-numeric:tabular-nums; }
+  .est-bloco{ display:flex; align-items:center; gap:8px; }
+  .est-rot{ font-size:11.5px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; }
+  .est-semana{ display:inline-flex; gap:2px; }
+  .est-semana svg{ width:20px; height:20px; display:block; }
+  .est-total svg{ width:18px; height:18px; display:block; }
+  .estrelas .cheia{ fill:var(--ouro); stroke:var(--ouro-borda); }
+  .estrelas .vazia{ fill:none; stroke:var(--item-line); }
+  .est-barra{ width:110px; height:8px; border-radius:99px; background:var(--sunken); border:1px solid var(--item-line); overflow:hidden; }
+  .est-barra i{ display:block; height:100%; background:var(--ouro); border-radius:99px; transition:width .4s; }
+  .est-ok{ color:var(--ok); font-weight:600; }
+  .est-acao{ margin-left:auto; }
+  .est-acao .btn{ background:var(--ouro); border-color:var(--ouro-borda); color:#2A1B00; font-weight:600; }
+  .est-ajuda{ flex-basis:100%; font-size:12px; }
+  .kbichos{ display:flex; flex-wrap:wrap; align-items:center; gap:4px; background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:2px; }
+  .kbichos button{ border:0; background:transparent; border-radius:8px; height:30px; padding:0 9px; font:13px var(--font-ui); cursor:pointer; color:var(--muted); }
+  .kbichos button[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); }
+  .org-festa-card .festa-estrela{ font-size:17px; font-weight:600; color:var(--ouro-txt); }
+  .org-festa-card .festa-estrela span{ display:block; font-size:13.5px; font-weight:400; color:var(--muted); }
+  .org-festa-card .festa-premio{ font-size:16px; background:var(--accent-soft); color:var(--ink); border-radius:12px; padding:8px 14px; }
+  .org-festa-card .festa-botoes{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
+  .org-festa-card .festa-botoes .btn{ margin-top:8px; }
+  .org-festa-card.bicho-escolha{ width:min(720px, 100%); }
+  .kanban{ position:relative; }
+  .kanban.com-bicho{ padding-top:50px; }
+  .kanban.com-bicho.adulto{ padding-top:60px; }
+  [data-tipo="gato"]{ --b-pelo:#F2A65A; --b-listra:#C9722E; --b-claro:#FFE9CC; --b-contorno:#5A3A1E; --b-escuro:#C9722E; --b-rosa:#F4A3A8; }
+  [data-tipo="cachorro"]{ --b-pelo:#C89160; --b-listra:#A8703F; --b-claro:#F6E4CC; --b-contorno:#4A3020; --b-escuro:#7E4F2B; --b-rosa:#F08A9A; }
+  [data-tipo="raposa"]{ --b-pelo:#E8743B; --b-listra:#C2551F; --b-claro:#FFF4E8; --b-contorno:#5A2A12; --b-escuro:#3A2418; --b-rosa:#F4A3A8; }
+  [data-tipo="leoa"]{ --b-pelo:#D9AE6A; --b-listra:#B98A45; --b-claro:#F7E6C4; --b-contorno:#5A4220; --b-escuro:#7A5226; --b-rosa:#C9877A; }
+  .bx svg{ display:block; width:100%; height:100%; overflow:visible; transform-origin:50% 90%; }
+  .bx .gp{ fill:var(--b-pelo); stroke:var(--b-contorno); stroke-width:1.3; stroke-linejoin:round; }
+  .bx .gc{ fill:var(--b-claro); }
+  .bx .gcl{ fill:var(--b-claro); stroke:var(--b-contorno); stroke-width:1.1; }
+  .bx .ge{ fill:var(--b-escuro); }
+  .bx .gel{ fill:var(--b-escuro); stroke:var(--b-contorno); stroke-width:1.2; }
+  .bx .gl{ fill:none; stroke:var(--b-listra); stroke-width:1.8; stroke-linecap:round; }
+  .bx .gr{ fill:var(--b-rosa); }
+  .bx .go{ fill:var(--olho); }
+  .bx .gw{ fill:var(--brilho); }
+  .bx .gt{ fill:none; stroke:var(--olho); stroke-width:1.4; stroke-linecap:round; }
+  .bx .gb{ fill:none; stroke:var(--b-contorno); stroke-width:.7; stroke-linecap:round; opacity:.55; }
+  .bx .rc{ fill:none; stroke:var(--b-contorno); stroke-linecap:round; }
+  .bx .rp{ fill:none; stroke:var(--b-pelo); stroke-linecap:round; }
+  .bx .rl{ fill:none; stroke:var(--b-listra); stroke-dasharray:2.4 3.6; }
+  .bx .rw{ fill:none; stroke:var(--b-claro); stroke-linecap:round; }
+  .b-sono, .b-alegre, .b-zzz, .b-coracao, .b-feliz{ display:none; }
+  .bicho.dormindo .b-olhos, .bicho.feliz .b-olhos{ display:none; }
+  .bicho.dormindo .b-sono, .bicho.dormindo .b-zzz{ display:inline; }
+  .bicho.feliz .b-alegre, .bicho.feliz .b-coracao, .bicho.feliz .b-feliz{ display:inline; }
+  .bx .b-rabo{ animation:bRabo 2.6s ease-in-out infinite alternate; }
+  .bx[data-tipo="cachorro"] .b-rabo{ animation-duration:.45s; }
+  .bx[data-tipo="raposa"] .b-rabo{ animation-duration:3.4s; }
+  .bx .b-olhos{ transform-origin:32px 21.5px; animation:bPisca 4.6s infinite; }
+  .bx .b-orelha{ animation:bOrelha 7.3s infinite; }
+  .bx .b-corpo{ transform-origin:32px 56px; animation:bRespira 3.4s ease-in-out infinite; }
+  .bx .b-cabeca{ transform-origin:32px 32px; transition:transform .5s; }
+  .bicho{ position:absolute; left:0; top:0; width:52px; height:58.5px; z-index:3; border:0; padding:0; margin:0; background:transparent; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+  .bicho.adulto{ width:62px; height:69.75px; }
+  .bicho.passeando{ transition:left var(--b-dur, 2s) linear, top .3s; }
+  .bicho:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; border-radius:8px; }
+  .bicho.andando svg{ animation:bAnda .34s ease-in-out infinite; }
+  .bicho.andando .b-rabo{ animation-duration:.5s; }
+  .bicho.dormindo .b-cabeca{ transform:translateY(3.5px) rotate(-7deg); }
+  .bicho.dormindo .b-rabo{ animation-duration:6s; }
+  .bicho.dormindo .b-corpo{ animation-duration:5s; }
+  .bicho.comendo .b-cabeca{ animation:bCome .5s ease-in-out 4; }
+  .bicho.feliz svg{ animation:bPulo .8s ease-out 2; }
+  .bicho.feliz .b-rabo{ animation-duration:.3s; }
+  .b-zzz text{ font:700 11px var(--font-ui); fill:var(--muted); animation:bZ 2.8s ease-out infinite; }
+  .b-zzz text + text{ animation-delay:1.4s; }
+  .b-coracao{ fill:var(--coracao); transform-origin:52px 12px; animation:bCoracao 1.5s ease-out forwards; }
+  .balao{ position:absolute; right:calc(100% + 2px); top:6px; padding:3px 9px; border-radius:10px 10px 2px 10px; background:var(--paper); color:var(--ink);
+    border:1px solid var(--line); box-shadow:var(--shadow); font:500 12px var(--font-ui); white-space:nowrap; pointer-events:none; opacity:0; transform:translateY(4px); transition:opacity .2s, transform .2s; }
+  .balao.show{ opacity:1; transform:none; }
+  @keyframes bRabo{ from{ transform:rotate(-8deg); } to{ transform:rotate(14deg); } }
+  @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
+  @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
+  @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
+  @keyframes bAnda{ 0%, 100%{ transform:translateY(0) rotate(-3deg); } 50%{ transform:translateY(-4px) rotate(3deg); } }
+  @keyframes bPulo{ 0%, 50%, 100%{ transform:translateY(0); } 25%{ transform:translateY(-7px); } 75%{ transform:translateY(-4px); } }
+  @keyframes bCome{ 0%, 100%{ transform:none; } 50%{ transform:translate(-3px, 5px) rotate(-14deg); } }
+  @keyframes bZ{ 0%{ opacity:0; transform:translate(0, 4px); } 30%{ opacity:1; } 100%{ opacity:0; transform:translate(7px, -8px); } }
+  @keyframes bCoracao{ 0%{ opacity:0; transform:translateY(4px) scale(.6); } 25%{ opacity:1; transform:scale(1.1); } 100%{ opacity:0; transform:translateY(-8px) scale(1); } }
+
+  /* cantinho: caminha, potinho e bolinha na borda da primeira coluna */
+  .cantinho{ position:absolute; left:0; top:0; z-index:2; display:flex; align-items:flex-end; gap:6px; pointer-events:none; }
+  .cantinho svg{ display:block; overflow:visible; }
+  .cama-borda{ fill:var(--cama); stroke:color-mix(in srgb, var(--cama) 60%, #000); stroke-width:1.2; }
+  .cama-almofada{ fill:var(--cama-almofada); }
+  .pote{ fill:var(--pote); stroke:color-mix(in srgb, var(--pote) 60%, #000); stroke-width:1.1; }
+  .racao{ fill:var(--racao); }
+  .novelo{ fill:var(--novelo); stroke:color-mix(in srgb, var(--novelo) 60%, #000); stroke-width:1; }
+  .novelo-l{ fill:none; stroke:var(--novelo-l); stroke-width:1.2; stroke-linecap:round; }
+  .bolinha.rolando{ animation:bRola 1.2s ease-in-out; }
+  @keyframes bRola{ 0%, 100%{ transform:none; } 30%{ transform:translate(14px, -6px) rotate(200deg); } 60%{ transform:translate(6px, 0) rotate(320deg); } }
+
+  .opcoes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; width:100%; }
+  .opcao{ border:2px solid var(--line); background:var(--sunken); border-radius:14px; padding:14px 10px 12px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; transition:border-color .15s, transform .15s; }
+  .opcao:hover{ border-color:var(--accent); transform:translateY(-2px); }
+  .opcao .prev{ width:74px; height:83px; margin-bottom:4px; }
+  .opcao b{ font-size:15px; }
+  .opcao span{ font-size:12.5px; color:var(--muted); }
+  @media (prefers-reduced-motion: reduce){
+    .bx svg, .bx svg *, .bolinha{ animation:none !important; transition:none !important; }
+    .bicho.passeando{ transition:none; }
+    .opcao{ transition:none; }
+  }
   .ktitle:hover{ color:var(--accent); text-decoration:underline; }
   .ktitle:focus-visible{ outline:2px solid var(--focus); outline-offset:2px; }
   .t-meta .kprazo.hoje{ color:var(--st-orange); background:var(--st-orange-soft); font-weight:600; border-radius:6px; padding:0 6px; }
@@ -2348,6 +2463,7 @@
           <button type="button" class="btn kbtn" id="orgKCadCol">Colunas</button>
           <button type="button" class="btn kbtn" id="orgKCadMod">Modelos</button>
           <button type="button" class="btn kbtn" id="orgKHist">Histórico</button>
+          <div class="kbichos" id="orgKBichos" role="group" aria-label="Bichinho no quadro" hidden></div>
           <div class="kchips" id="orgKChips" role="group" aria-label="Filtrar por prazo">
             <button type="button" class="chip" data-kprazo="" aria-pressed="true">Todas</button>
             <button type="button" class="chip" data-kprazo="atrasadas" aria-pressed="false">Atrasadas</button>
@@ -2358,6 +2474,7 @@
           </div>
           <button type="button" class="clear-btn" id="orgKLimpar" hidden>Limpar filtros</button>
         </div>
+        <div class="estrelas" id="orgEstrelas" hidden></div>
         <div class="kanban" id="orgKanban"></div>
         <div class="kcal" id="orgKCal" hidden></div>
       </div>
@@ -4559,6 +4676,10 @@
     var mm = r.txt_meus || {};
     org.txt.meus = { nome: mm.nome || '', cargo: mm.cargo || '', cidade: mm.cidade || '', favoritos: Array.isArray(mm.favoritos) ? mm.favoritos : [] };
     org.euNome = r.pessoa && r.pessoa.nome ? r.pessoa.nome : '';
+    // estrelas e bichinhos da pessoa dona da tela (o quadro do gestor não tem; SQL antigo também não manda)
+    var re = r.estrelas;
+    org.estrelas = re && typeof re.total === 'number' && r.pessoa ? { dono: r.pessoa.id, total: re.total, semana: re.semana || 0, hoje: re.hoje === true,
+      bichos: (Array.isArray(re.bichos) ? re.bichos : []).filter(function(b){ return !!ORG_BICHOS[b]; }), noQuadro: typeof re.no_quadro === 'string' ? re.no_quadro : null } : null;
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqCarregado = Array.isArray(r.equipe_tarefas);
     org.eqCompleta = r.equipe_completa !== false;
@@ -4598,12 +4719,15 @@
   async function orgLoad(){
     var r = await orgBuscar();
     if (!orgOk(r)) return false;
+    var estAntes = org.estrelas;
     orgParse(r);
+    orgEstrelaConfere(estAntes);
     org.unlocked = true;
     O.lock.hidden = true;
     O.content.hidden = false;
     renderOrg();
     orgFestaConfere();
+    orgEstrelaAvisa();
     return true;
   }
 
@@ -5334,7 +5458,375 @@
       '<button type="button" class="icon-btn" data-act="kadd-fechar" title="Fechar (Esc)" aria-label="Fechar">' + ICON_X + '</button></div></form>';
   }
 
+  // ---------------------------------------------------------------------
+  // Estrelas e bichinhos. A pessoa ganha 1 estrela no dia em que conclui 10 tarefas (só contam as
+  // concluídas no próprio dia), até 5 por semana. A contagem da semana zera toda segunda; o total
+  // acumulado nunca zera e libera os prêmios abaixo. Quem dá a estrela é o banco (gatilho
+  // org_tarefas_estrela, em sql/organizacao.sql); aqui só mostramos, comemoramos e desenhamos.
+  // A trilha de prêmios não aparece na tela: cada conquista é avisada no banner de parabéns.
+  // ---------------------------------------------------------------------
+  var ORG_ESTRELA_META = 10;        // tarefas concluídas no dia para ganhar a estrela (igual ao do banco)
+  var ORG_ESTRELA_SEMANA = 5;       // máximo por semana (igual ao do banco)
+  // Marcos pelas estrelas ACUMULADAS. Os de bichinho (3, 55, 75, 100) se repetem em org_escolher_bicho, no SQL.
+  var ORG_PREMIOS = [
+    { chave: 'bicho1',  estrelas: 3,   icone: '🐾', nome: 'um novo bichinho! Você escolhe qual.', bicho: true },
+    { chave: 'caminha', estrelas: 8,   icone: '🛏️', nome: 'Caminha' },
+    { chave: 'potinho', estrelas: 15,  icone: '🥣', nome: 'Potinho' },
+    { chave: 'bolinha', estrelas: 25,  icone: '🧶', nome: 'Bolinha' },
+    { chave: 'cresce',  estrelas: 40,  icone: '✨', nome: 'seu bichinho cresceu: virou adulto' },
+    { chave: 'bicho2',  estrelas: 55,  icone: '🐾', nome: 'um segundo bichinho! Você escolhe qual.', bicho: true },
+    { chave: 'bicho3',  estrelas: 75,  icone: '🐾', nome: 'um terceiro bichinho! Você escolhe qual.', bicho: true },
+    { chave: 'bicho4',  estrelas: 100, icone: '🐾', nome: 'o quarto bichinho: a turma completa!', bicho: true }
+  ];
+  var ORG_BICHOS = {
+    gato:     { nome: 'Gatinho',     icone: '🐱', jeito: 'Curioso e dorminhoco',  frases: ['Miau!', 'Purrr…', 'Miau? 🐟', 'Prrr ♥', 'Mais um processo?'] },
+    cachorro: { nome: 'Cachorrinho', icone: '🐶', jeito: 'Animado, abana o rabo', frases: ['Au au!', 'Rrr… 🦴', 'Au! ♥', 'Vamos trabalhar?', 'Uau!'] },
+    raposa:   { nome: 'Raposinha',   icone: '🦊', jeito: 'Esperta e brincalhona', frases: ['Yip!', 'Hehe 🦊', 'Yip yip ♥', 'Achei um prazo!', 'Hmm…'] },
+    leoa:     { nome: 'Leoazinha',   icone: '🦁', jeito: 'Corajosa e protetora',  frases: ['Rawr!', 'Grrr ♥', 'Rawr? 🍖', 'Deixa comigo!', 'Rrr…'] }
+  };
+  var ORG_BICHOS_ORDEM = ['gato', 'cachorro', 'raposa', 'leoa'];
+  var ORG_BICHO_SONO_MS = 90000;               // sem mexer no sistema por esse tempo, ele vai dormir (na caminha, se tiver)
+  var ORG_BICHO_PASSEIO_MS = [25000, 55000];   // intervalo entre um passeio e outro (mín., máx.)
+  var ICON_ESTRELA = '<path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" stroke-width="1.3" stroke-linejoin="round"/>';
+  var EST = document.getElementById('orgEstrelas'), OKB = document.getElementById('orgKBichos');
+  var orgBichoReduz = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function orgEstrelaSvg(cls){ return '<svg viewBox="0 0 20 20" aria-hidden="true" class="' + cls + '">' + ICON_ESTRELA + '</svg>'; }
+  function orgTemPremio(chave){
+    var p = ORG_PREMIOS.filter(function(x){ return x.chave === chave; })[0];
+    return !!(p && org.estrelas && org.estrelas.total >= p.estrelas);
+  }
+  // Só a própria pessoa escolhe e troca o bichinho; o gestor, vendo a tela dela, só vê
+  function orgBichoMexe(){ return org.modo === 'pessoa' && !!org.estrelas; }
+  function orgBichoPendentes(){
+    var e = org.estrelas; if (!e) return 0;
+    var vagas = ORG_PREMIOS.filter(function(p){ return p.bicho && e.total >= p.estrelas; }).length;
+    return Math.max(0, vagas - e.bichos.length);
+  }
+  function orgBichoAtivo(){
+    var e = org.estrelas; if (!e || !e.bichos.length || e.noQuadro === '') return null;
+    return e.noQuadro && e.bichos.indexOf(e.noQuadro) !== -1 ? e.noQuadro : e.bichos[0];
+  }
+  function orgFeitasHoje(){
+    var hoje = startOfDay(new Date()), n = 0;
+    org.tarefas.forEach(function(t){ if (t.feitaEm && t.feitaEm >= hoje) n++; });
+    return n;
+  }
+  function orgOrdinal(n){ return ['primeiro', 'segundo', 'terceiro', 'quarto'][n - 1] || n + 'º'; }
+
+  function orgEstrelasRender(){
+    var e = org.estrelas;
+    EST.hidden = !e;
+    if (!e) return;
+    var feitas = orgFeitasHoje(), h = '';
+    h += '<div class="est-bloco"><span class="est-rot">Semana</span><span class="est-semana" role="img" aria-label="' + e.semana + ' de ' + ORG_ESTRELA_SEMANA + ' estrelas nesta semana" title="' + e.semana + ' de ' + ORG_ESTRELA_SEMANA + ' estrelas nesta semana">';
+    for (var i = 0; i < ORG_ESTRELA_SEMANA; i++) h += orgEstrelaSvg(i < e.semana ? 'cheia' : 'vazia');
+    h += '</span></div><div class="est-bloco"><span class="est-rot">Hoje</span>';
+    if (e.hoje) h += '<span class="est-ok">⭐ Estrela de hoje conquistada!</span>';
+    else if (e.semana >= ORG_ESTRELA_SEMANA) h += '<span class="est-ok">Semana completa: ' + ORG_ESTRELA_SEMANA + ' de ' + ORG_ESTRELA_SEMANA + '!</span>';
+    else h += '<span class="est-barra" role="progressbar" aria-label="Tarefas concluídas hoje" aria-valuemin="0" aria-valuemax="' + ORG_ESTRELA_META + '" aria-valuenow="' + Math.min(feitas, ORG_ESTRELA_META) + '"><i style="width:' + Math.min(100, feitas / ORG_ESTRELA_META * 100) + '%"></i></span>' +
+      '<span><b>' + Math.min(feitas, ORG_ESTRELA_META) + '/' + ORG_ESTRELA_META + '</b> tarefas</span>';
+    h += '</div><div class="est-bloco est-total"><span class="est-rot">Acumuladas</span>' + orgEstrelaSvg('cheia') + '<b>' + e.total + '</b></div>';
+    if (orgBichoMexe() && orgBichoPendentes()) h += '<div class="est-bloco est-acao"><button type="button" class="btn" data-bicho-escolher>🐾 Escolher meu ' + orgOrdinal(e.bichos.length + 1) + ' bichinho</button></div>';
+    h += '<div class="est-ajuda">Conclua ' + ORG_ESTRELA_META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + ORG_ESTRELA_SEMANA + ' por semana). A contagem da semana zera toda segunda-feira; as acumuladas nunca zeram e liberam prêmios.</div>';
+    EST.innerHTML = h;
+  }
+  EST.addEventListener('click', function(e){ if (e.target.closest('[data-bicho-escolher]')) orgBichoEscolha(); });
+
+  // Compara com a carga anterior da mesma tela: ganhou estrela? liberou prêmio?
+  function orgEstrelaConfere(antes){
+    var e = org.estrelas;
+    if (!e || !antes || antes.dono !== e.dono || e.total <= antes.total) return;
+    org.estrelaNova = { semana: e.semana, total: e.total,
+      premios: ORG_PREMIOS.filter(function(p){ return p.estrelas > antes.total && p.estrelas <= e.total; }) };
+  }
+  // Pedaço do banner de parabéns (a 10ª tarefa do dia é a mesma hora da estrela)
+  function orgEstrelaFestaHtml(){
+    var x = org.estrelaNova; if (!x) return { html: '', escolher: false, chegou: false };
+    org.estrelaNova = null;
+    var escolher = orgBichoMexe() && orgBichoPendentes() > 0;
+    return { escolher: escolher, chegou: false,
+      html: '<div class="festa-estrela">⭐ Você ganhou uma estrela!<span>' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana · ' + x.total + ' acumuladas</span></div>' +
+        x.premios.map(function(p){ return '<div class="festa-premio">' + p.icone + ' Conquistou: <b>' + escapeHtml(p.nome) + '</b></div>'; }).join('') };
+  }
+  // Ganhou sem banner (ex.: o gestor concluiu na tela da pessoa): só o aviso
+  function orgEstrelaAvisa(){
+    var x = org.estrelaNova; if (!x) return;
+    org.estrelaNova = null;
+    var p = x.premios[x.premios.length - 1];
+    toast('⭐ Nova estrela! ' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana' + (p ? ' · ' + p.icone + ' novo prêmio!' : ''));
+  }
+
+  // ---- escolha do bichinho ----
+  function orgBichoEscolha(){
+    if (!orgBichoMexe() || !orgBichoPendentes()) return;
+    var e = org.estrelas, livres = ORG_BICHOS_ORDEM.filter(function(b){ return e.bichos.indexOf(b) === -1; });
+    var velho = document.querySelector('.org-festa'); if (velho) velho.remove();
+    var f = document.createElement('div');
+    f.className = 'org-festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'orgBichoTit');
+    f.innerHTML = '<div class="org-festa-card bicho-escolha"><h2 id="orgBichoTit">Escolha seu ' + orgOrdinal(e.bichos.length + 1) + ' bichinho</h2>' +
+      '<p>Ele vai morar no seu quadro e fica com você para sempre.' + (livres.length > 1 ? ' Os outros você conquista continuando a juntar estrelas.' : '') + '</p>' +
+      '<div class="opcoes">' + livres.map(function(b){
+        return '<button type="button" class="opcao" data-escolhe="' + b + '"><span class="prev bx" data-tipo="' + b + '">' + orgBichoSvg(b) + '</span><b>' + ORG_BICHOS[b].nome + '</b><span>' + ORG_BICHOS[b].jeito + '</span></button>';
+      }).join('') + '</div><button type="button" class="btn" data-festa-ok>Escolher depois</button></div>';
+    document.body.appendChild(f);
+    function fechar(){ f.remove(); document.removeEventListener('keydown', esc, true); }
+    function esc(ev){ if (ev.key === 'Escape'){ ev.stopPropagation(); fechar(); } }
+    f.addEventListener('click', async function(ev){
+      var o = ev.target.closest('[data-escolhe]');
+      if (o){
+        var tipo = o.getAttribute('data-escolhe');
+        f.querySelectorAll('button').forEach(function(b){ b.disabled = true; });
+        var r = await orgCall('org_escolher_bicho', { p_tipo: tipo });
+        fechar();
+        if (!orgOk(r)){ await orgLoad(); return; }
+        await orgLoad();
+        toast(ORG_BICHOS[tipo].icone + ' ' + ORG_BICHOS[tipo].nome + ' agora mora no seu quadro!');
+        setTimeout(orgBichoOi, 300);
+        return;
+      }
+      if (ev.target === f || ev.target.closest('[data-festa-ok]')) fechar();
+    });
+    document.addEventListener('keydown', esc, true);
+    var primeiro = f.querySelector('[data-escolhe]'); if (primeiro) primeiro.focus();
+  }
+  // Qual fica no quadro (só aparece para quem tem bichinho)
+  function orgBichoSeletor(){
+    var e = org.estrelas, mostra = orgBichoMexe() && e.bichos.length > 0;
+    OKB.hidden = !mostra;
+    if (!mostra){ OKB.innerHTML = ''; return; }
+    var ativo = orgBichoAtivo();
+    OKB.innerHTML = e.bichos.map(function(b){ return '<button type="button" data-bicho="' + b + '" aria-pressed="' + (ativo === b) + '" title="' + ORG_BICHOS[b].nome + ' no quadro">' + ORG_BICHOS[b].icone + (e.bichos.length === 1 ? ' ' + ORG_BICHOS[b].nome : '') + '</button>'; }).join('') +
+      '<button type="button" data-bicho="" aria-pressed="' + (!ativo) + '" title="Esconder o bichinho do quadro">Esconder</button>';
+  }
+  OKB.addEventListener('click', async function(ev){
+    var b = ev.target.closest('[data-bicho]'); if (!b || !org.estrelas) return;
+    var tipo = b.getAttribute('data-bicho'), antes = org.estrelas.noQuadro;
+    org.estrelas.noQuadro = tipo; orgBichoSeletor(); orgBichoMonta();
+    if (tipo) setTimeout(orgBichoOi, 150);
+    var r = await orgCall('org_bicho_no_quadro', { p_tipo: tipo });
+    if (!orgOk(r)){ org.estrelas.noQuadro = antes; orgBichoSeletor(); orgBichoMonta(); }
+  });
+
+  // ---------------------------------------------------------------------
+  // Desenho dos bichinhos: todos sentados do mesmo jeito (patas na borda, y = 56); mudam as
+  // orelhas, o rabo, o focinho e as cores. Cada bicho novo é só um desenho a mais aqui.
+  // ---------------------------------------------------------------------
+  function orgBichoSvg(tipo){
+    var rabo, orelhas, orelhasDepois = '', marcas = '', focinho, bigode = '', extra = '';
+    var olhos = '<g class="b-olhos"><ellipse class="go" cx="25.5" cy="21.5" rx="2.2" ry="2.8"/><ellipse class="go" cx="38.5" cy="21.5" rx="2.2" ry="2.8"/>' +
+      '<circle class="gw" cx="26.3" cy="20.4" r=".8"/><circle class="gw" cx="39.3" cy="20.4" r=".8"/></g>' +
+      '<path class="b-sono gt" d="M23 22q2.5 2 5 0M36 22q2.5 2 5 0"/><path class="b-alegre gt" d="M23 23q2.5-3.2 5 0M36 23q2.5-3.2 5 0"/>' +
+      '<g class="b-feliz"><ellipse class="gr" cx="22.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/><ellipse class="gr" cx="41.5" cy="26.5" rx="2.3" ry="1.3" opacity=".7"/></g>';
+    var boca = '<path class="gt" d="M32 27.2q-1.4 2-3.2.9M32 27.2q1.4 2 3.2.9"/>';
+    if (tipo === 'gato'){
+      rabo = '<g class="b-rabo" style="transform-origin:45px 50px"><path class="rc" stroke-width="7" d="M45 50C55 50 57 58 53 68"/><path class="rp" stroke-width="4.4" d="M45 50C55 50 57 58 53 68"/><path class="rl" stroke-width="4.4" d="M49 50.5C55 52 57 58 53 68"/></g>';
+      orelhas = '<g class="b-orelha" style="transform-origin:24px 18px"><path class="gp" d="M19 22L20 6L31 13Z"/><path class="gr" d="M21.5 18L22 10L27.5 13.5Z"/></g>' +
+        '<path class="gp" d="M45 22L44 6L33 13Z"/><path class="gr" d="M42.5 18L42 10L36.5 13.5Z"/>';
+      marcas = '<path class="gl" d="M28.5 10.5l1 4M32 10v4.6M35.5 10.5l-1 4"/>';
+      focinho = '<ellipse class="gc" cx="32" cy="27.5" rx="6.5" ry="4.5"/>';
+      bigode = '<path class="gb" d="M24 27l-8-1.5M24 29l-8 1M40 27l8-1.5M40 29l8 1"/>';
+      extra = '<path class="gr" d="M30.4 25.4h3.2l-1.6 1.8Z"/>' + boca;
+    } else if (tipo === 'cachorro'){
+      rabo = '<g class="b-rabo" style="transform-origin:45px 50px"><path class="rc" stroke-width="6.4" d="M44 51C51 50 54 44 52 37"/><path class="rp" stroke-width="3.8" d="M44 51C51 50 54 44 52 37"/></g>';
+      orelhas = '';
+      orelhasDepois = '<g class="b-orelha" style="transform-origin:18px 13px"><ellipse class="gel" cx="17" cy="22" rx="5" ry="10" transform="rotate(16 17 22)"/></g>' +
+        '<ellipse class="gel" cx="47" cy="22" rx="5" ry="10" transform="rotate(-16 47 22)"/>';
+      marcas = '<ellipse class="ge" cx="25.5" cy="20.5" rx="4.6" ry="4.4" opacity=".75"/>';
+      focinho = '<ellipse class="gc" cx="32" cy="28" rx="7.5" ry="5.4"/>';
+      extra = '<ellipse class="go" cx="32" cy="25.3" rx="2.7" ry="1.9"/><path class="gt" d="M32 27.2v1.2M32 28.4q-1.6 1.8-3.4.6M32 28.4q1.6 1.8 3.4.6"/>' +
+        '<path class="b-feliz gr" d="M30.4 29.6h3.2v2.6a1.6 1.6 0 0 1-3.2 0z"/>';
+    } else if (tipo === 'raposa'){
+      rabo = '<g class="b-rabo" style="transform-origin:44px 52px"><path class="rc" stroke-width="12" d="M44 52C56 52 60 60 54 69"/><path class="rp" stroke-width="9.4" d="M44 52C56 52 60 60 54 69"/><path class="rw" stroke-width="9.4" d="M57.2 64.5C56.6 66.4 55.6 67.8 54 69"/></g>';
+      orelhas = '<g class="b-orelha" style="transform-origin:23px 18px"><path class="gp" d="M17 22L17 2L31 12Z"/><path class="gc" d="M19.5 17L19.5 8L26.5 12.5Z"/><path class="ge" d="M17 2.4L17 8L21 5Z"/></g>' +
+        '<path class="gp" d="M47 22L47 2L33 12Z"/><path class="gc" d="M44.5 17L44.5 8L37.5 12.5Z"/><path class="ge" d="M47 2.4L47 8L43 5Z"/>';
+      focinho = '<path class="gc" d="M17.5 24.5Q24 23 28 26.5Q32 25 36 26.5Q40 23 46.5 24.5Q44 33.5 32 34.5Q20 33.5 17.5 24.5Z"/>';
+      extra = '<ellipse class="go" cx="32" cy="27.2" rx="1.9" ry="1.4"/><path class="gt" d="M32 28.6q-1.3 1.6-2.9.6M32 28.6q1.3 1.6 2.9.6"/>';
+    } else {
+      rabo = '<g class="b-rabo" style="transform-origin:45px 50px"><path class="rc" stroke-width="5.2" d="M45 50C55 50 57 58 53 66"/><path class="rp" stroke-width="2.8" d="M45 50C55 50 57 58 53 66"/><ellipse class="gel" cx="52.6" cy="68" rx="3.4" ry="4"/></g>';
+      orelhas = '<g class="b-orelha" style="transform-origin:21px 14px"><circle class="gp" cx="20.5" cy="12.5" r="5.2"/><circle class="gr" cx="20.8" cy="12.8" r="2.6"/></g>' +
+        '<circle class="gp" cx="43.5" cy="12.5" r="5.2"/><circle class="gr" cx="43.2" cy="12.8" r="2.6"/>';
+      marcas = '<path class="gl" d="M24 16.5q2-1.2 4 0M36 16.5q2-1.2 4 0" stroke-width="1.2"/>';
+      focinho = '<ellipse class="gc" cx="32" cy="28" rx="7" ry="5"/>';
+      bigode = '<path class="gb" d="M25 28l-6-.8M25 30l-6 .9M39 28l6-.8M39 30l6 .9"/>';
+      extra = '<path class="gr" d="M29.8 25.2h4.4l-2.2 2.4Z"/>' + boca.replace(/27\.2/g, '27.6');
+    }
+    return '<svg viewBox="0 0 64 72" aria-hidden="true" focusable="false">' + rabo +
+      '<g class="b-corpo"><path class="gp" d="M17 56C15 42 21 31 32 31S49 42 47 56Z"/>' +
+        (tipo === 'gato' ? '<path class="gl" d="M18.5 44h5M18 49h5M45.5 44h-5M46 49h-5"/>' : '') +
+        '<ellipse class="gc" cx="32" cy="47" rx="7.5" ry="8.5"/><ellipse class="gcl" cx="26" cy="55" rx="4.6" ry="2.8"/><ellipse class="gcl" cx="38" cy="55" rx="4.6" ry="2.8"/></g>' +
+      '<g class="b-cabeca">' + orelhas + '<ellipse class="gp" cx="32" cy="22" rx="16" ry="13"/>' + orelhasDepois + marcas + focinho + olhos + extra + bigode + '</g>' +
+      '<g class="b-zzz"><text x="46" y="15">z</text><text x="51" y="10">Z</text></g>' +
+      '<path class="b-coracao" d="M52 15c-2.5-1.8-5-3.4-5-5.6 0-1.4 1.1-2.4 2.4-2.4.9 0 1.9.5 2.6 1.4.7-.9 1.7-1.4 2.6-1.4 1.3 0 2.4 1 2.4 2.4 0 2.2-2.5 3.8-5 5.6Z"/>' +
+      '</svg>';
+  }
+  var ORG_CAMA = '<svg width="66" height="24" viewBox="0 0 66 24" aria-hidden="true"><ellipse class="cama-borda" cx="33" cy="15" rx="31" ry="8.4"/><ellipse class="cama-almofada" cx="33" cy="13" rx="24" ry="4.6"/><path class="cama-borda" d="M2.2 15.4Q33 31 63.8 15.4Q63 22 33 23.4Q3 22 2.2 15.4Z"/></svg>';
+  var ORG_POTE = '<svg width="28" height="15" viewBox="0 0 28 15" aria-hidden="true"><circle class="racao" cx="9" cy="5" r="2.3"/><circle class="racao" cx="13.5" cy="4" r="2.3"/><circle class="racao" cx="18" cy="5" r="2.3"/><path class="pote" d="M2 6h24l-3.4 8.4H5.4Z"/></svg>';
+  var ORG_NOVELO = '<svg class="bolinha" width="17" height="17" viewBox="0 0 17 17" aria-hidden="true"><circle class="novelo" cx="8.5" cy="8.5" r="7.6"/><path class="novelo-l" d="M3 6.5q5-3.4 11 1.8M2.6 10.4q6-1 10.8 4.2M6.6 2.2q4.6 4.6 3 13"/></svg>';
+
+  // ---------------------------------------------------------------------
+  // Comportamento: senta na borda de cima de uma coluna, pisca, mexe o rabo, passeia, come no
+  // potinho, brinca com a bolinha, dorme (na caminha, se tiver) quando ninguém mexe no sistema e
+  // comemora indo até Feito quando uma tarefa é concluída. Clicar nele faz carinho.
+  // ---------------------------------------------------------------------
+  var orgBicho = { el: null, tipo: null, col: null, x: null, naCama: false, andando: false, ult: Date.now(), nFrase: 0, cant: null };
+  function orgBichoTam(){ return orgTemPremio('cresce') ? 62 : 52; }
+  function orgBichoBorda(){ return orgBichoTam() * 56 / 64; }
+  function orgBichoCria(){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'bicho bx';
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation(); orgBichoAcorda();
+      var fr = ORG_BICHOS[orgBicho.tipo].frases; orgBichoFeliz(fr[orgBicho.nFrase++ % fr.length]);
+    });
+    return b;
+  }
+  // Chamada a cada vez que o quadro é desenhado de novo (o innerHTML apaga o bichinho; o mesmo nó volta)
+  function orgBichoMonta(){
+    if (!orgBicho) return;
+    if (org.estrelas) orgBichoSeletor(); else { OKB.hidden = true; OKB.innerHTML = ''; }
+    var tipo = orgBichoAtivo(), mostra = !!tipo;
+    OT.kanban.classList.toggle('com-bicho', mostra);
+    OT.kanban.classList.toggle('adulto', mostra && orgTemPremio('cresce'));
+    if (!mostra){ if (orgBicho.el) orgBicho.el.remove(); if (orgBicho.cant) orgBicho.cant.remove(); return; }
+    if (!orgBicho.el) orgBicho.el = orgBichoCria();
+    if (orgBicho.tipo !== tipo){
+      orgBicho.tipo = tipo; orgBicho.col = null; orgBicho.x = null; orgBicho.naCama = false;
+      orgBicho.el.setAttribute('data-tipo', tipo);
+      orgBicho.el.innerHTML = orgBichoSvg(tipo) + '<span class="balao" aria-live="polite"></span>';
+      orgBicho.el.setAttribute('aria-label', ORG_BICHOS[tipo].nome + ' do quadro: clique para fazer carinho');
+      orgBicho.el.title = 'Clique para fazer carinho';
+    }
+    orgBicho.el.classList.toggle('adulto', orgTemPremio('cresce'));
+    orgBichoCantinho();
+    OT.kanban.appendChild(orgBicho.el);
+    orgBichoPosiciona(false);
+    if (!orgBicho.tPasseio) orgBichoAgenda();
+  }
+  function orgBichoCantinho(){
+    var itens = (orgTemPremio('caminha') ? '<span data-item="cama">' + ORG_CAMA + '</span>' : '') + (orgTemPremio('potinho') ? '<span data-item="pote">' + ORG_POTE + '</span>' : '') +
+      (orgTemPremio('bolinha') ? '<span data-item="bola">' + ORG_NOVELO + '</span>' : '');
+    if (!itens){ if (orgBicho.cant) orgBicho.cant.remove(); return; }
+    if (!orgBicho.cant){ orgBicho.cant = document.createElement('div'); orgBicho.cant.className = 'cantinho'; orgBicho.cant.setAttribute('aria-hidden', 'true'); }
+    if (orgBicho.cant.getAttribute('data-itens') !== itens){ orgBicho.cant.innerHTML = itens; orgBicho.cant.setAttribute('data-itens', itens); }
+    OT.kanban.appendChild(orgBicho.cant);
+    var col = orgBichoCols()[0]; if (!col) return;
+    orgBicho.cant.style.left = (col.offsetLeft + 14) + 'px';
+    orgBicho.cant.style.top = (col.offsetTop - orgBicho.cant.offsetHeight + 3) + 'px';
+  }
+  function orgBichoItem(nome){ return orgBicho.cant && orgBicho.cant.isConnected ? orgBicho.cant.querySelector('[data-item="' + nome + '"]') : null; }
+  function orgBichoItemX(el){ return orgBicho.cant.offsetLeft + el.offsetLeft; }
+  function orgBichoCols(){ return Array.prototype.slice.call(OT.kanban.querySelectorAll('section.col')); }
+  function orgBichoColEl(chave){ return orgBichoCols().filter(function(c){ return c.getAttribute('data-etapa') === chave; })[0] || null; }
+  function orgBichoPosiciona(anda, depois){
+    var g = orgBicho.el; if (!g || !g.isConnected) return;
+    var col = (orgBicho.col && orgBichoColEl(orgBicho.col)) || orgBichoCols()[0];
+    if (!col){ g.hidden = true; return; }
+    g.hidden = false;
+    orgBicho.col = col.getAttribute('data-etapa');
+    var x = orgBicho.x !== null ? orgBicho.x : col.offsetLeft + Math.round(col.offsetWidth * 0.62) - orgBichoTam() / 2;
+    var de = parseFloat(g.style.left) || 0, dist = Math.abs(x - de);
+    g.style.top = (col.offsetTop - orgBichoBorda() + (orgBicho.naCama ? 2 : 0)) + 'px';
+    if (anda && !orgBichoReduz && dist > 4){
+      var seg = Math.min(3.5, Math.max(0.6, dist / 220));
+      orgBicho.andando = true;
+      g.style.setProperty('--b-dur', seg.toFixed(2) + 's');
+      g.classList.add('passeando', 'andando');
+      g.style.left = x + 'px';
+      clearTimeout(orgBicho.tAnda);
+      orgBicho.tAnda = setTimeout(function(){ orgBicho.andando = false; g.classList.remove('passeando', 'andando'); if (depois) depois(); }, seg * 1000 + 60);
+      return;
+    }
+    if (!orgBicho.andando) g.classList.remove('passeando');
+    g.style.left = x + 'px';
+    if (anda && depois) depois();
+  }
+  function orgBichoVai(colChave, x, naCama, depois){ orgBicho.col = colChave; orgBicho.x = x; orgBicho.naCama = !!naCama; orgBichoPosiciona(true, depois); }
+  function orgBichoVaiPerto(nome, depois){
+    var el = orgBichoItem(nome), c0 = orgBichoCols()[0]; if (!el || !c0) return;
+    orgBichoVai(c0.getAttribute('data-etapa'), orgBichoItemX(el) + el.offsetWidth - 8, false, depois);
+  }
+  function orgBichoAgenda(){
+    clearTimeout(orgBicho.tPasseio);
+    var a = ORG_BICHO_PASSEIO_MS;
+    orgBicho.tPasseio = setTimeout(orgBichoPasseia, a[0] + Math.random() * (a[1] - a[0]));
+  }
+  function orgBichoPasseia(){
+    orgBichoAgenda();
+    var g = orgBicho.el;
+    if (orgBichoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden || orgBicho.andando || g.classList.contains('dormindo') || g.classList.contains('feliz')) return;
+    var aqui = orgBichoColEl(orgBicho.col), outras = orgBichoCols().filter(function(c){ return c !== aqui; });
+    // no celular as colunas ficam uma embaixo da outra: aí ele fica quieto na primeira
+    if (!aqui || !outras.length || outras[0].offsetTop !== aqui.offsetTop) return;
+    var opc = ['coluna', 'coluna'];
+    if (orgBichoItem('pote')) opc.push('comer');
+    if (orgBichoItem('bola')) opc.push('brincar');
+    var o = opc[Math.floor(Math.random() * opc.length)];
+    if (o === 'comer') orgBichoVaiPerto('pote', orgBichoCome);
+    else if (o === 'brincar') orgBichoVaiPerto('bola', orgBichoBrinca);
+    else orgBichoVai(outras[Math.floor(Math.random() * outras.length)].getAttribute('data-etapa'), null, false);
+  }
+  function orgBichoCome(){
+    var g = orgBicho.el; if (!g) return;
+    g.classList.remove('comendo'); void g.offsetWidth; g.classList.add('comendo'); orgBichoBalao('Nham nham!');
+    setTimeout(function(){ g.classList.remove('comendo'); }, 2100);
+  }
+  function orgBichoBrinca(){
+    var b = orgBichoItem('bola'); if (!b) return;
+    var s = b.querySelector('svg'); s.classList.remove('rolando'); void s.getBoundingClientRect(); s.classList.add('rolando');
+    orgBichoFeliz('!');
+  }
+  function orgBichoBalao(msg){
+    var b = orgBicho.el && orgBicho.el.querySelector('.balao'); if (!b) return;
+    b.textContent = msg; b.classList.add('show');
+    clearTimeout(orgBicho.tBalao); orgBicho.tBalao = setTimeout(function(){ b.classList.remove('show'); }, 1900);
+  }
+  function orgBichoFeliz(msg){
+    var g = orgBicho.el; if (!g || !g.isConnected) return;
+    g.classList.remove('feliz'); void g.offsetWidth; g.classList.add('feliz');
+    if (msg) orgBichoBalao(msg);
+    clearTimeout(orgBicho.tFeliz); orgBicho.tFeliz = setTimeout(function(){ g.classList.remove('feliz'); }, 1700);
+  }
+  function orgBichoOi(){ if (orgBicho.el && orgBicho.el.isConnected && orgBicho.tipo){ orgBichoAcorda(); orgBichoFeliz(ORG_BICHOS[orgBicho.tipo].frases[0] + ' Oi! 👋'); } }
+  function orgBichoDorme(){
+    var g = orgBicho.el; if (!g || !g.isConnected || orgBicho.andando) return;
+    function deita(){ g.classList.remove('feliz'); g.classList.add('dormindo'); g.title = 'Shhh… está dormindo (clique para acordar)'; }
+    var cama = orgBichoItem('cama'), c0 = orgBichoCols()[0];
+    if (cama && c0 && !orgBicho.naCama && c0.offsetParent) orgBichoVai(c0.getAttribute('data-etapa'), orgBichoItemX(cama) + cama.offsetWidth / 2 - orgBichoTam() / 2, true, deita);
+    else deita();
+  }
+  function orgBichoAcorda(){
+    orgBicho.ult = Date.now();
+    var g = orgBicho.el; if (!g || !g.classList.contains('dormindo')) return;
+    g.classList.remove('dormindo'); g.title = 'Clique para fazer carinho';
+  }
+  // Tarefa concluída: vai até a coluna Feito (se der para andar até lá) e pula de alegria
+  function orgBichoComemora(){
+    var g = orgBicho.el; if (!g || !g.isConnected || !orgBicho.tipo) return;
+    orgBichoAcorda();
+    var msg = ORG_BICHOS[orgBicho.tipo].frases[0] + ' Mais uma!';
+    var feito = orgBichoColEl('feito'), aqui = orgBichoColEl(orgBicho.col);
+    if (feito && aqui && feito.offsetTop === aqui.offsetTop && !orgBichoReduz && (feito !== aqui || orgBicho.x !== null)) orgBichoVai('feito', null, false, function(){ orgBichoFeliz(msg); });
+    else orgBichoFeliz(msg);
+  }
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(ev){
+    window.addEventListener(ev, function(){
+      orgBicho.ult = Date.now();
+      if (orgBicho.el && orgBicho.el.classList.contains('dormindo')) orgBichoAcorda();
+    }, { passive: true, capture: true });
+  });
+  setInterval(function(){
+    var g = orgBicho.el;
+    if (g && g.isConnected && !g.classList.contains('dormindo') && Date.now() - orgBicho.ult > ORG_BICHO_SONO_MS) orgBichoDorme();
+  }, 5000);
+  var orgBichoRaf = 0;
+  window.addEventListener('resize', function(){
+    cancelAnimationFrame(orgBichoRaf);
+    orgBichoRaf = requestAnimationFrame(function(){ orgBicho.x = null; orgBicho.naCama = false; orgBichoCantinho(); orgBichoPosiciona(false); });
+  });
+
   function renderOrgKanban(){
+    orgEstrelasRender();
     orgKRespOpcoes();
     orgKModeloOpcoes();
     orgKEtqOpcoes();
@@ -5394,6 +5886,7 @@
       h += '</section>';
     });
     OT.kanban.innerHTML = h;
+    orgBichoMonta();
     if (addFocado || orgKAddFocar){
       orgKAddFocar = false;
       var inp = OT.kanban.querySelector('.kadd-in');
@@ -8387,6 +8880,7 @@
     setTimeout(function(){ orgFestaBanner(Math.floor(n / 10) * 10); }, 400);
   }
   function orgFestaToca(id, n, marco){
+    orgBichoComemora();
     var el = document.querySelector('.kcard[data-id="' + id + '"]') || document.querySelector('.task[data-tid="' + id + '"]');
     var r = el && el.offsetParent ? el.getBoundingClientRect() : null;
     if (!orgFestaReduz) orgConfete(r ? r.left + r.width / 2 : innerWidth / 2, r ? r.top + r.height / 2 : innerHeight * 0.35, 90);
@@ -8416,21 +8910,27 @@
   function orgFestaBanner(n){
     var velho = document.querySelector('.org-festa'); if (velho) velho.remove();
     var nome = String(org.euNome || '').trim().split(/\s+/)[0];
+    var est = orgEstrelaFestaHtml();
     var f = document.createElement('div');
     f.className = 'org-festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'orgFestaTit');
     f.innerHTML = '<div class="org-festa-card">' +
       '<svg class="medalha" viewBox="0 0 84 84" aria-hidden="true"><path class="fita" d="M24 4h14l8 26H32z"/><path class="fita2" d="M60 4H46l-8 26h14z"/><circle class="disco" cx="42" cy="52" r="26"/><circle class="borda" cx="42" cy="52" r="20"/><text x="42" y="60" text-anchor="middle">' + n + '</text></svg>' +
       '<h2 id="orgFestaTit">Parabéns' + (nome ? ', ' + escapeHtml(nome) : '') + '!</h2>' +
       '<div class="big">Você concluiu <b>' + n + '</b> tarefas hoje</div>' +
+      est.html +
       '<p>' + (n >= 30 ? 'Que dia! A equipe agradece.' : n >= 20 ? 'Ritmo forte. Continue assim!' : 'Que dia produtivo. A equipe agradece!') + '</p>' +
-      '<button type="button" class="btn primary" data-festa-ok>Continuar</button></div>';
+      (est.escolher ? '<div class="festa-botoes"><button type="button" class="btn primary" data-festa-escolher>🐾 Escolher meu bichinho</button><button type="button" class="btn" data-festa-ok>Depois</button></div>'
+        : '<button type="button" class="btn primary" data-festa-ok>Continuar</button>') + '</div>';
     document.body.appendChild(f);
-    function fechar(){ clearTimeout(orgFestaT); f.remove(); document.removeEventListener('keydown', esc, true); }
+    function fechar(){ clearTimeout(orgFestaT); f.remove(); document.removeEventListener('keydown', esc, true); if (est.chegou) orgBichoOi(); }
     function esc(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
-    f.addEventListener('click', function(e){ if (e.target === f || e.target.closest('[data-festa-ok]')) fechar(); });
+    f.addEventListener('click', function(e){
+      if (e.target.closest('[data-festa-escolher]')){ fechar(); orgBichoEscolha(); return; }
+      if (e.target === f || e.target.closest('[data-festa-ok]')) fechar();
+    });
     document.addEventListener('keydown', esc, true);
-    f.querySelector('[data-festa-ok]').focus();
-    orgFestaT = setTimeout(fechar, 8000);
+    (f.querySelector('[data-festa-escolher]') || f.querySelector('[data-festa-ok]')).focus();
+    if (!est.escolher) orgFestaT = setTimeout(fechar, 8000);
     orgFestaSom(true);
     if (!orgFestaReduz){
       orgConfete(innerWidth * 0.15, innerHeight * 0.9, 90); orgConfete(innerWidth * 0.85, innerHeight * 0.9, 90);
