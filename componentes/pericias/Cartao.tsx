@@ -6,37 +6,11 @@ import {
   prazoLaudo, type Andamento, type Pericia, type Perito, type Status, type Util
 } from '@/lib/pericias';
 import { formatarDataHora } from '@/lib/datas';
-import { useAviso } from '@/componentes/Avisos';
+import { CopiarProcesso } from '@/componentes/CopiarProcesso';
 
 const IconeCheck = () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
 const IconeX = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 const IconeLapis = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>;
-const IconeCopiar = () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>;
-
-// Botão com o número do processo: um clique copia
-export function CopiarProcesso({ proc }: { proc: string }){
-  const avisar = useAviso();
-  const [copiado, setCopiado] = useState(false);
-  function copiar(){
-    const ok = () => { avisar('Número copiado: ' + proc); setCopiado(true); setTimeout(() => setCopiado(false), 1500); };
-    const reserva = () => {
-      const ta = document.createElement('textarea');
-      ta.value = proc; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta); ta.select();
-      let feito = false;
-      try { feito = document.execCommand('copy'); } catch { /* sem cópia */ }
-      ta.remove();
-      if (feito) ok(); else avisar('Não foi possível copiar. Selecione o número e use Ctrl+C.');
-    };
-    if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(proc).then(ok, reserva);
-    else reserva();
-  }
-  return (
-    <button type="button" className={'proc-copy' + (copiado ? ' copied' : '')} data-act="copiar" data-proc={proc} title="Copiar número do processo" aria-label={'Copiar número do processo ' + proc} onClick={copiar}>
-      {proc}<IconeCopiar />
-    </button>
-  );
-}
 
 function ApagarAndamento({ apagar }: { apagar: () => void }){
   const [armado, setArmado] = useState(false);

@@ -7,7 +7,7 @@ export const SECOES: Secao[] = [
   { id: 'audiencias', nome: 'Audiências', novo: true },
   { id: 'pericias', nome: 'Perícias', novo: true },
   { id: 'prazos', nome: 'Prazos', novo: true },
-  { id: 'organizacao', nome: 'Organização', novo: false }
+  { id: 'organizacao', nome: 'Organização', novo: true }
 ];
 
 export function enderecoDaSecao(s: Secao): string {
