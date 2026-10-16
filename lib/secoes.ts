@@ -6,7 +6,7 @@ export const SECOES: Secao[] = [
   { id: 'agenda', nome: 'Agenda', novo: false },
   { id: 'audiencias', nome: 'Audiências', novo: false },
   { id: 'pericias', nome: 'Perícias', novo: false },
-  { id: 'prazos', nome: 'Prazos', novo: false },
+  { id: 'prazos', nome: 'Prazos', novo: true },
   { id: 'organizacao', nome: 'Organização', novo: false }
 ];
 

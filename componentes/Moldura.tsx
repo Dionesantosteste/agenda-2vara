@@ -6,7 +6,8 @@ import { dataPorExtenso } from '@/lib/datas';
 import { Aparencia } from './Aparencia';
 import { IconeMenu, IconeSecao } from './Icones';
 
-export function Moldura({ titulo, secaoAtual, children }: { titulo: string; secaoAtual?: string; children: ReactNode }){
+// largura: "medio" (Prazos) ou "wide" (Organização), como no sistema atual
+export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: string; secaoAtual?: string; largura?: 'medio' | 'wide'; children: ReactNode }){
   const [menuAberto, setMenuAberto] = useState(false);
   const [hoje, setHoje] = useState('');
   useEffect(() => {
@@ -53,7 +54,7 @@ export function Moldura({ titulo, secaoAtual, children }: { titulo: string; seca
           <span className="topbar-title" id="topbarTitle">{titulo}</span>
         </div>
         <main className="main">
-          <div className="wrap">{children}</div>
+          <div className={largura ? 'wrap ' + largura : 'wrap'}>{children}</div>
         </main>
       </div>
     </div>

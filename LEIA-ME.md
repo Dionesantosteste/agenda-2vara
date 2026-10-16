@@ -464,6 +464,10 @@ O sistema está passando aos poucos de um arquivo HTML único para Next.js:
   `public/legado.html`. Nada muda para quem usa.
 - A **base do sistema novo** fica em `/novo`. As seções passam para lá uma de cada vez; enquanto
   uma seção não foi migrada, o menu do sistema novo leva para ela no sistema atual.
+- **Prazos** já tem a versão nova em `/novo/prazos` (código em `lib/prazos/` e `componentes/prazos/`),
+  para comparar com a atual. As contas são as mesmas, e o calendário da vara (recesso, suspensões
+  e feriados da comarca) é o mesmo nos dois, porque os dois leem e gravam a tabela `prazos_config`.
+  O endereço principal continua abrindo os Prazos do sistema atual até a troca ser liberada.
 - A aparência escolhida (tema e cor de fundo) vale nos dois, porque fica guardada no navegador com
   os mesmos nomes.
 - Durante a migração, as novidades grandes ficam pausadas na seção que está sendo migrada.
