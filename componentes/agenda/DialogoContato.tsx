@@ -1,8 +1,9 @@
 'use client';
 // Janela de cadastro e edição de contato (telefones e e-mails com rótulo, categoria e categoria nova)
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ROTULOS_EMAIL, ROTULOS_TELEFONE, linhasPreenchidas, type Contato, type Rotulado } from '@/lib/agenda';
 import { useAviso } from '@/componentes/Avisos';
+import { useJanela } from '@/componentes/useJanela';
 
 export type DadosContato = { name: string; phones: Rotulado[]; emails: Rotulado[]; category: string };
 type Linha = Rotulado & { k: number };
@@ -10,19 +11,6 @@ type Linha = Rotulado & { k: number };
 const NOVA = '__add_new__';
 let seq = 0;
 const linha = (rotulos: string[], r?: Rotulado): Linha => ({ k: ++seq, label: r?.label || rotulos[0], value: r?.value || '' });
-
-// Abre e fecha um <dialog> nativo conforme "aberto"; fecha também ao clicar fora da janela
-export function useJanela(aberto: boolean, fechar: () => void){
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    const d = ref.current;
-    if (!d) return;
-    if (aberto && !d.open) d.showModal();
-    if (!aberto && d.open) d.close();
-  }, [aberto]);
-  const cliqueFora = (e: MouseEvent<HTMLDialogElement>) => { if (e.target === e.currentTarget) fechar(); };
-  return { ref, cliqueFora, aoFechar: () => { if (aberto) fechar(); } };
-}
 
 function Linhas({ id, rotulos, email, linhas, mudar }: { id: string; rotulos: string[]; email?: boolean; linhas: Linha[]; mudar: (l: Linha[]) => void }){
   return (

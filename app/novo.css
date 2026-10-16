@@ -5,3 +5,6 @@
 .novo-lista a{ color:var(--ink); font-weight:500; }
 .tag.novo-atual{ color:var(--muted); background:var(--paper); border:1px solid var(--item-line); text-transform:none; letter-spacing:0; }
 .tag.novo-pronta{ color:var(--ok); background:var(--ok-soft); text-transform:none; letter-spacing:0; }
+
+/* Brasão da folha impressa (no sistema atual é um svg dentro da página) */
+@media print{ .pr-logo img{ width:44px; height:auto; display:block; } }
