@@ -506,5 +506,3 @@ recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrel
 - Os prêmios ficam em `ORG_PREMIOS`, no `index.html`. Os marcos de bichinho (3, 55, 75 e 100) se
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
-- O protótipo usado para testar a regra fica em `prototipo/gamificacao.html` (dados simulados, não
-  usa o Supabase).
