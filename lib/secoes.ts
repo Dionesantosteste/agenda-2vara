@@ -3,7 +3,7 @@
 export type Secao = { id: string; nome: string; novo: boolean };
 
 export const SECOES: Secao[] = [
-  { id: 'agenda', nome: 'Agenda', novo: false },
+  { id: 'agenda', nome: 'Agenda', novo: true },
   { id: 'audiencias', nome: 'Audiências', novo: false },
   { id: 'pericias', nome: 'Perícias', novo: false },
   { id: 'prazos', nome: 'Prazos', novo: true },

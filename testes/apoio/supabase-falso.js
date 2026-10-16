@@ -167,7 +167,7 @@ class SupabaseFalso {
       const total = linhas.length;
       const off = Number(sp.get('offset') || 0), lim = sp.get('limit') ? Number(sp.get('limit')) : undefined;
       linhas = linhas.slice(off, lim === undefined ? undefined : off + lim);
-      const headers = { 'content-range': (linhas.length ? off + '-' + (off + linhas.length - 1) : '*') + '/' + (/count=/.test(prefer) ? total : '*') };
+      const headers = { 'access-control-expose-headers': 'content-range', 'content-range': (linhas.length ? off + '-' + (off + linhas.length - 1) : '*') + '/' + (/count=/.test(prefer) ? total : '*') };
       if (metodo === 'HEAD') return route.fulfill({ status: 200, headers, body: '' });
       return route.fulfill({ status: 200, headers, json: umSo ? (projeta(linhas, sp.get('select'))[0] || null) : projeta(linhas, sp.get('select')) });
     }

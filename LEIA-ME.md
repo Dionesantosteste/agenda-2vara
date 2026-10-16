@@ -468,6 +468,9 @@ O sistema está passando aos poucos de um arquivo HTML único para Next.js:
   para comparar com a atual. As contas são as mesmas, e o calendário da vara (recesso, suspensões
   e feriados da comarca) é o mesmo nos dois, porque os dois leem e gravam a tabela `prazos_config`.
   O endereço principal continua abrindo os Prazos do sistema atual até a troca ser liberada.
+- **Agenda** também tem a versão nova, em `/novo/agenda` (código em `lib/agenda.ts` e
+  `componentes/agenda/`). Usa as mesmas tabelas `contacts` e `categories`: um contato criado num
+  sistema aparece no outro.
 - A aparência escolhida (tema e cor de fundo) vale nos dois, porque fica guardada no navegador com
   os mesmos nomes.
 - Durante a migração, as novidades grandes ficam pausadas na seção que está sendo migrada.
