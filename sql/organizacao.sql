@@ -575,6 +575,7 @@ begin
     'status', 'ok',
     'gestor', ac.o_gestor,
     'pessoa', (select jsonb_build_object('id', p.id, 'nome', p.nome) from org_pessoas p where p.id = ac.o_dono),
+    'estrelas', org_estrelas_resumo(ac.o_dono),
     'notas', coalesce((select jsonb_agg(to_jsonb(n) order by n.fixada desc, n.created_at desc) from org_notas n where n.dono is not distinct from ac.o_dono), '[]'::jsonb),
     'tarefas', coalesce((select jsonb_agg(to_jsonb(t) order by t.prazo nulls last, t.created_at) from org_tarefas t where t.dono is not distinct from ac.o_dono
                            and (ac.o_gestor or t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
@@ -2046,6 +2047,151 @@ grant execute on function org_ordenar_colunas(text, uuid, text[]) to anon, authe
 grant execute on function org_excluir_coluna(text, uuid, text) to anon, authenticated;
 grant execute on function org_salvar_pessoa(text, uuid, uuid, text, boolean) to anon, authenticated;
 grant execute on function org_excluir_pessoa(text, uuid, uuid) to anon, authenticated;
+
+-- ---------- estrelas e bichinhos (gamificação) ----------
+-- A pessoa da equipe ganha 1 estrela no dia em que conclui 10 tarefas. Só contam as tarefas
+-- concluídas naquele mesmo dia (horário da vara); dias passados não entram na conta.
+-- No máximo 5 estrelas por semana (segunda a domingo): a contagem da semana zera toda segunda.
+-- O total acumulado nunca zera e libera os prêmios (bichinhos, caminha, potinho...), definidos
+-- em ORG_PREMIOS no index.html. Os marcos de bichinho (3, 55, 75 e 100) se repetem em
+-- org_escolher_bicho, abaixo: se mudar lá, mude aqui também.
+-- Quem dá a estrela é o banco, na hora em que a 10ª tarefa do dia vai para Feito (gatilho abaixo),
+-- e ela fica guardada: não some se depois a tarefa voltar de coluna, for arquivada ou excluída.
+-- O quadro do gestor não ganha estrelas.
+create table if not exists org_estrelas (
+  dono uuid not null references org_pessoas(id) on delete cascade,
+  dia date not null,
+  created_at timestamptz not null default now(),
+  primary key (dono, dia)
+);
+alter table org_estrelas enable row level security;
+
+-- bichinhos que a pessoa escolheu (gato, cachorro, raposa, leoa), na ordem da escolha
+create table if not exists org_bichos (
+  dono uuid not null references org_pessoas(id) on delete cascade,
+  tipo text not null check (tipo in ('gato', 'cachorro', 'raposa', 'leoa')),
+  created_at timestamptz not null default now(),
+  primary key (dono, tipo)
+);
+alter table org_bichos enable row level security;
+-- qual bichinho fica no quadro: null = o primeiro escolhido; '' = nenhum (escondido)
+alter table org_pessoas add column if not exists bicho_quadro text;
+
+create or replace function org_estrela_confere()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  hoje date := org_hoje();
+  ini timestamptz := hoje::timestamp at time zone 'America/Cuiaba';
+  fim timestamptz := (hoje + 1)::timestamp at time zone 'America/Cuiaba';
+  semana date := date_trunc('week', hoje)::date;
+begin
+  if new.dono is null or new.feita_em is null or new.feita_em < ini or new.feita_em > now() then
+    return null;
+  end if;
+  if tg_op = 'UPDATE' and old.feita_em is not distinct from new.feita_em then
+    return null;
+  end if;
+  if exists (select 1 from org_estrelas where dono = new.dono and dia = hoje) then
+    return null;
+  end if;
+  if (select count(*) from org_estrelas where dono = new.dono and dia >= semana and dia < semana + 7) >= 5 then
+    return null;
+  end if;
+  if (select count(*) from org_tarefas where dono = new.dono and feita_em >= ini and feita_em < fim and feita_em <= now()) >= 10 then
+    insert into org_estrelas (dono, dia) values (new.dono, hoje) on conflict do nothing;
+  end if;
+  return null;
+end;
+$$;
+revoke all on function org_estrela_confere() from public, anon, authenticated;
+
+drop trigger if exists org_tarefas_estrela on org_tarefas;
+create trigger org_tarefas_estrela
+  after insert or update of feita_em on org_tarefas
+  for each row execute function org_estrela_confere();
+
+-- Resumo para a tela da pessoa (vai junto em org_carregar; o quadro do gestor não tem estrelas)
+create or replace function org_estrelas_resumo(p_dono uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, extensions
+as $$
+  select case when p_dono is null then null else jsonb_build_object(
+    'total', (select count(*) from org_estrelas e where e.dono = p_dono),
+    'semana', (select count(*) from org_estrelas e where e.dono = p_dono and e.dia >= date_trunc('week', org_hoje())::date),
+    'hoje', exists (select 1 from org_estrelas e where e.dono = p_dono and e.dia = org_hoje()),
+    'bichos', coalesce((select jsonb_agg(b.tipo order by b.created_at) from org_bichos b where b.dono = p_dono), '[]'::jsonb),
+    'no_quadro', (select p.bicho_quadro from org_pessoas p where p.id = p_dono)
+  ) end;
+$$;
+revoke all on function org_estrelas_resumo(uuid) from public, anon, authenticated;
+
+-- A pessoa escolhe um bichinho quando as estrelas acumuladas liberam uma vaga (3, 55, 75 e 100).
+-- Só a própria pessoa escolhe (o gestor, vendo a tela dela, não escolhe por ela).
+create or replace function org_escolher_bicho(p_pin text, p_pessoa uuid, p_tipo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  total int;
+  vagas int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só a própria pessoa escolhe o bichinho dela.');
+  end if;
+  if p_tipo is null or p_tipo not in ('gato', 'cachorro', 'raposa', 'leoa') then
+    return jsonb_build_object('status', 'erro', 'message', 'Bichinho desconhecido.');
+  end if;
+  select count(*) into total from org_estrelas where dono = ac.o_dono;
+  vagas := (total >= 3)::int + (total >= 55)::int + (total >= 75)::int + (total >= 100)::int;
+  if (select count(*) from org_bichos where dono = ac.o_dono) >= vagas then
+    return jsonb_build_object('status', 'erro', 'message', 'Ainda faltam estrelas para um novo bichinho.');
+  end if;
+  insert into org_bichos (dono, tipo) values (ac.o_dono, p_tipo) on conflict do nothing;
+  update org_pessoas set bicho_quadro = p_tipo where id = ac.o_dono;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- Qual bichinho fica no quadro ('' esconde). Só a própria pessoa muda.
+create or replace function org_bicho_no_quadro(p_pin text, p_pessoa uuid, p_tipo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só a própria pessoa muda o bichinho do quadro dela.');
+  end if;
+  if coalesce(p_tipo, '') <> '' and not exists (select 1 from org_bichos where dono = ac.o_dono and tipo = p_tipo) then
+    return jsonb_build_object('status', 'erro', 'message', 'Esse bichinho ainda não é seu.');
+  end if;
+  update org_pessoas set bicho_quadro = coalesce(p_tipo, '') where id = ac.o_dono;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+grant execute on function org_escolher_bicho(text, uuid, text) to anon, authenticated;
+grant execute on function org_bicho_no_quadro(text, uuid, text) to anon, authenticated;
 
 -- =====================================================================
 -- TROCAR A SENHA (ou criar uma nova se esquecer): rode só a linha abaixo,
