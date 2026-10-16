@@ -5,7 +5,7 @@ export type Secao = { id: string; nome: string; novo: boolean };
 export const SECOES: Secao[] = [
   { id: 'agenda', nome: 'Agenda', novo: true },
   { id: 'audiencias', nome: 'Audiências', novo: true },
-  { id: 'pericias', nome: 'Perícias', novo: false },
+  { id: 'pericias', nome: 'Perícias', novo: true },
   { id: 'prazos', nome: 'Prazos', novo: true },
   { id: 'organizacao', nome: 'Organização', novo: false }
 ];
