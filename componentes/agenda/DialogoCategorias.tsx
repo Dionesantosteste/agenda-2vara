@@ -2,7 +2,7 @@
 // Janela de categorias: acrescentar, renomear (os contatos acompanham) e excluir
 import { useEffect, useRef, useState } from 'react';
 import { useAviso } from '@/componentes/Avisos';
-import { useJanela } from './DialogoContato';
+import { useJanela } from '@/componentes/useJanela';
 
 export function DialogoCategorias({ aberto, fechar, categorias, acrescentar, renomear, excluir }: {
   aberto: boolean; fechar: () => void; categorias: string[];

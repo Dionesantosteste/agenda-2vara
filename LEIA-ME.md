@@ -471,6 +471,9 @@ O sistema está passando aos poucos de um arquivo HTML único para Next.js:
 - **Agenda** também tem a versão nova, em `/novo/agenda` (código em `lib/agenda.ts` e
   `componentes/agenda/`). Usa as mesmas tabelas `contacts` e `categories`: um contato criado num
   sistema aparece no outro.
+- **Audiências** também, em `/novo/audiencias` (código em `lib/audiencias.ts` e
+  `componentes/audiencias/`), com as tabelas `audiencias` e `audiencias_tipos`, a impressão da
+  pauta e o campo do processo que coloca pontos e traço enquanto se digita.
 - A aparência escolhida (tema e cor de fundo) vale nos dois, porque fica guardada no navegador com
   os mesmos nomes.
 - Durante a migração, as novidades grandes ficam pausadas na seção que está sendo migrada.
