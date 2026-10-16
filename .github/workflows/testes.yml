@@ -1,5 +1,5 @@
-# Roda os testes automáticos (pasta testes/) em cada pull request e em cada mudança no main.
-# Os testes usam um Supabase simulado: não encostam no banco de verdade.
+# Roda os testes automáticos em cada pull request e em cada mudança no main.
+# Os testes de navegador usam um Supabase simulado: não encostam no banco de verdade.
 name: Testes
 
 on:
@@ -10,20 +10,30 @@ on:
 jobs:
   testes:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: testes
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: testes/package-lock.json
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test
+          cache-dependency-path: |
+            package-lock.json
+            testes/package-lock.json
+      - name: Instalar o site
+        run: npm ci
+      - name: Conferir os tipos (TypeScript)
+        run: npm run tipos
+      - name: Testes de unidade
+        run: npm test
+      - name: Instalar os testes de navegador
+        working-directory: testes
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+      - name: Testes de navegador (montam o site e testam)
+        working-directory: testes
+        run: npx playwright test
       - name: Guardar o relatório quando algum teste falha
         if: failure()
         uses: actions/upload-artifact@v4

@@ -1,0 +1,24 @@
+{
+  "name": "agenda-2vara",
+  "private": true,
+  "description": "Portal da secretaria da 2ª Vara (Agenda, Audiências, Perícias, Prazos e Organização).",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "tipos": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types --no-warnings=ExperimentalWarning \"lib/**/*.test.ts\""
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.118.0",
+    "next": "16.3.8",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.3",
+    "typescript": "6.0.3"
+  }
+}
