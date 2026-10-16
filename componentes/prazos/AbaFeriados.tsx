@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { OPCIONAIS, type Calendario, type ConfigCalendario } from '@/lib/prazos/calendario';
 import { D, diaDaSemana, fmt, hoje, lerData } from '@/lib/prazos/datas';
 import { useAviso } from '@/componentes/Avisos';
+import type { ErroCalendario } from '@/componentes/useCalendario';
 
-export type ErroCalendario = { message?: string; code?: string } | null;
 
 function novoId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
