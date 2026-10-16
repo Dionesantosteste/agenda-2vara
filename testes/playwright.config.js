@@ -1,5 +1,6 @@
-// Testes do sistema. Por padrão testam o index.html deste repositório (servido em localhost:4173).
-// Para testar outro endereço (ex.: o sistema novo), use SITE_URL=http://localhost:3000 npm test
+// Testes do sistema. Por padrão montam o site (Next.js, pasta acima) e testam em localhost:4173:
+// o endereço principal entrega o sistema atual (public/legado.html) e /novo a base nova.
+// Para testar um site que já está rodando, use SITE_URL=http://localhost:3000 npm test
 const { defineConfig, devices } = require('@playwright/test');
 
 const SITE_URL = process.env.SITE_URL;
@@ -22,8 +23,10 @@ module.exports = defineConfig({
     { name: 'computador', use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } } }
   ],
   webServer: SITE_URL ? undefined : {
-    command: 'node apoio/servidor.js',
-    url: 'http://localhost:4173',
-    reuseExistingServer: !process.env.CI
+    command: 'npm --prefix .. run build && npm --prefix .. run start -- -p 4173',
+    url: 'http://localhost:4173/novo',
+    timeout: 180000,
+    reuseExistingServer: !process.env.CI,
+    env: { NEXT_TELEMETRY_DISABLED: '1' }
   }
 });

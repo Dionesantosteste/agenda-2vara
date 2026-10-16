@@ -1,4 +1,4 @@
-# Agenda 2ª Vara — versão para hospedar você mesmo (Supabase + Vercel/GitHub Pages)
+# Agenda 2ª Vara — versão para hospedar você mesmo (Supabase + Vercel)
 
 Esta versão do arquivo (`agenda_supabase.html`) usa o [Supabase](https://supabase.com) como
 banco de dados, para que **qualquer pessoa com o link** possa acessar — sem precisar estar
@@ -93,7 +93,7 @@ alter publication supabase_realtime add table audiencias;
 
 Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo para rodar este SQL.
 
-Para mudar a lista de status, edite `STATUSES` no `index.html` (o primeiro da lista é o padrão de uma audiência nova).
+Para mudar a lista de status, edite `STATUSES` no `public/legado.html` (o primeiro da lista é o padrão de uma audiência nova).
 
 ## Passo 2.1.1 — Tipos de audiência (lista própria)
 
@@ -168,7 +168,7 @@ No **Quadro**:
 - Filtros no topo: texto ou nº do processo, responsável, Atrasadas, Vence hoje, Próximos 7 dias, Urgentes e Paradas.
 - Selos de prazo: vermelho (atrasada), laranja (vence hoje) e amarelo (vence em até 2 dias úteis).
 - Cartão sem mudança há 7 dias ou mais fica esmaecido, com "Parada há X dias".
-- Mais de 8 tarefas em Fazendo deixa a coluna vermelha. Os números ficam em `ORG_LIMITE_FAZENDO` e `ORG_DIAS_PARADO`, no `index.html`.
+- Mais de 8 tarefas em Fazendo deixa a coluna vermelha. Os números ficam em `ORG_LIMITE_FAZENDO` e `ORG_DIAS_PARADO`, no `public/legado.html`.
 - **Etiquetas:** o botão **Etiquetas** cria, renomeia, troca a cor e exclui etiquetas. Elas são marcadas na janela da tarefa e podem ser usadas no filtro.
 - **Colunas:** o botão **Colunas** cria colunas com qualquer nome, renomeia e muda a ordem com ← →. Também dá para renomear com **dois cliques no nome da coluna**.
   - A primeira coluna (A fazer) e a última (Feito) são fixas: não mudam de lugar nem de nome.
@@ -299,7 +299,7 @@ No **Quadro**:
   - **Avisar no Windows:** botão no alto da tela da pessoa (aparece enquanto o navegador não tiver respondido). Com a permissão dada, chega também um aviso do Windows quando a aba do site não está na frente.
   - A página precisa estar aberta em alguma aba. Com o site fechado não há aviso.
 - **Tarefa para conferir** (na tela do gestor): quando alguém da equipe envia uma tarefa para conferência, toca o mesmo som e aparece o aviso "Chegou tarefa para conferir" com o título e o nome. Se a tarefa for devolvida e enviada de novo, avisa de novo. Os botões **Som** e **Avisar no Windows** também aparecem para o gestor.
-- O intervalo fica em `ORG_NOVIDADES_MS`, no `index.html`.
+- O intervalo fica em `ORG_NOVIDADES_MS`, no `public/legado.html`.
 
 **Aniversariantes** (precisa do `sql/organizacao.sql` atualizado):
 - Na Organização do gestor, aba **Aniversariantes** (depois de Rotinas): escreva o nome, o dia/mês (ex.: `15/10`) e, se quiser, um complemento curto (ex.: "Juiz", "estagiária"). Pode ser qualquer pessoa, não só quem tem tela na Organização. Só dia e mês, sem o ano.
@@ -307,7 +307,7 @@ No **Quadro**:
 - A barra da esquerda do site mostra os aniversariantes do mês para **todos que abrem o site**, sem senha. Quem faz aniversário no dia aparece em destaque; os dias que já passaram ficam mais claros. Nos meses sem ninguém, o bloco some.
 - A aba não aparece para a equipe nem quando o gestor está vendo a tela de alguém.
 
-**Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `index.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
+**Correção ao salvar:** títulos de tarefas, notas do mural, lembretes e rotinas começam sempre com letra maiúscula, e as palavras comuns da vara ganham acento sozinhas (ex.: "intimacao" vira "intimação", "audiencia" vira "audiência", "certidao" vira "certidão"). A lista fica em `ORG_ACENTOS`, no `public/legado.html`; para acrescentar uma palavra, ponha `"sem acento": "com acento"`. Só entram palavras que sem acento não existem, para não "corrigir" o que estava certo. O corretor do navegador (sublinhado vermelho) continua valendo para o resto. Os modelos de texto não são alterados.
 
 **Trocar a senha (ou criar uma nova se esquecer)** — rode no SQL Editor, trocando `000000`:
 
@@ -332,7 +332,7 @@ Como funciona:
   seguinte à realização. Não contam sábados, domingos, feriados nacionais (inclusive Carnaval,
   Sexta-feira Santa e Corpus Christi) e o recesso forense de 20/12 a 20/01.
 - Feriados estaduais ou municipais entram pela seção **Prazos → Feriados e suspensões** (vale para todos).
-  Também dá para fixá-los na lista `FERIADOS_EXTRAS` do `index.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
+  Também dá para fixá-los na lista `FERIADOS_EXTRAS` do `public/legado.html` (formato `"MM-DD"`, por exemplo `"11-08"`).
 - Cada mudança de situação entra sozinha no **Andamento** da perícia; também dá para registrar
   andamentos à mão.
 - **Cores das situações:**
@@ -392,7 +392,7 @@ Para o calendário ser o mesmo para toda a equipe, rode uma vez [`sql/prazos.sql
 do calendário ficam só no navegador de quem mexeu (a aba avisa). Esse mesmo calendário passa a valer para o
 prazo do laudo em Perícias e para os dias úteis da Organização.
 
-Para acrescentar ou corrigir um prazo da tabela, edite a lista `ATOS` no `index.html`.
+Para acrescentar ou corrigir um prazo da tabela, edite a lista `ATOS` no `public/legado.html`.
 
 ## Busca e número do processo
 
@@ -421,7 +421,7 @@ sem nada no Supabase e sem mudar a tela dos colegas.
 
 ### Como adicionar novas seções ao portal depois
 
-No `index.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
+No `public/legado.html`, cada seção tem três partes (Agenda, Audiências e Organização seguem esse padrão):
 1. um link no menu lateral (`<a class="nav-item" href="#nome" data-route="nome">`);
 2. um bloco `<section id="view-nome" hidden>` com o conteúdo;
 3. uma entrada em `ROUTES` no script.
@@ -432,42 +432,53 @@ No `index.html`, cada seção tem três partes (Agenda, Audiências e Organizaç
 2. Copie o valor de **Project URL** (algo como `https://xxxxxxxx.supabase.co`).
 3. Copie o valor de **anon public** (uma chave longa, começa geralmente com `eyJ...`).
 
-## Passo 4 — Configurar o arquivo
+## Passo 4 — Configurar a conexão com o Supabase
 
-1. Abra `agenda_supabase.html` num editor de texto (Bloco de Notas, VS Code, etc.).
-2. Procure por `SUPABASE_URL` e `SUPABASE_ANON_KEY` perto do final do arquivo.
-3. Cole os valores que você copiou no passo anterior, entre aspas:
+O endereço do projeto e a chave pública do Supabase ficam em dois lugares (os mesmos valores):
 
-```js
-var SUPABASE_URL = "https://xxxxxxxx.supabase.co";
-var SUPABASE_ANON_KEY = "eyJhbGciOiJI...";
-```
+- `public/legado.html` (o sistema atual): procure `SUPABASE_URL` e `SUPABASE_ANON_KEY` perto do
+  final do arquivo e cole os valores entre aspas:
 
-4. Salve o arquivo.
+  ```js
+  var SUPABASE_URL = "https://xxxxxxxx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJI...";
+  ```
 
-## Passo 5 — Publicar (Vercel — mais simples)
+- `lib/supabase.ts` (o sistema novo): os mesmos dois valores. Também dá para usar as variáveis
+  `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` nas configurações da Vercel.
+
+## Passo 5 — Publicar (Vercel)
+
+O site é um projeto **Next.js** guardado no GitHub e publicado pela Vercel:
 
 1. Crie uma conta grátis em https://vercel.com (pode usar login do GitHub).
-2. Clique em **Add New → Project**.
-3. Escolha **"Deploy without Git"** (ou arraste a pasta) e envie o arquivo
-   `agenda_supabase.html` renomeado para `index.html`.
-4. A Vercel te dará um link público (ex: `agenda-2vara.vercel.app`) — é esse que você compartilha
-   com quem precisar acessar.
+2. Clique em **Add New → Project** e escolha este repositório do GitHub.
+3. A Vercel reconhece o projeto pelo arquivo `vercel.json` e monta o site sozinha a cada mudança
+   no `main`. Cada pull request ganha um endereço de prévia para testar antes.
 
-### Alternativa — GitHub Pages
+### Sistema atual e sistema novo
 
-1. Crie um repositório novo no GitHub.
-2. Suba o arquivo renomeado para `index.html`.
-3. Vá em **Settings → Pages**, escolha a branch `main` e salve.
-4. O GitHub te dará o link público em alguns minutos.
+O sistema está passando aos poucos de um arquivo HTML único para Next.js:
+
+- O **endereço principal** (`/`) continua entregando o sistema atual, que fica em
+  `public/legado.html`. Nada muda para quem usa.
+- A **base do sistema novo** fica em `/novo`. As seções passam para lá uma de cada vez; enquanto
+  uma seção não foi migrada, o menu do sistema novo leva para ela no sistema atual.
+- A aparência escolhida (tema e cor de fundo) vale nos dois, porque fica guardada no navegador com
+  os mesmos nomes.
+- Durante a migração, as novidades grandes ficam pausadas na seção que está sendo migrada.
+
+Para rodar no computador: `npm install` e depois `npm run dev` (abre em http://localhost:3000).
+Outros comandos: `npm test` (testes de unidade), `npm run tipos` (confere o TypeScript) e os testes
+de navegador na pasta `testes/`.
 
 ## Depois de publicado
 
 - Qualquer pessoa com o link poderá ver e editar os contatos (ler o aviso de segurança acima).
 - Se quiser trocar as categorias iniciais, edite a lista `DEFAULT_CATEGORIES` no arquivo antes
   de publicar, ou simplesmente use o botão "⚙ categorias" depois de publicado.
-- Para atualizar o site depois (ex: mudar uma cor, adicionar um campo), me peça a alteração,
-  eu atualizo o arquivo e você só precisa subir a nova versão no Vercel/GitHub no lugar da antiga.
+- Para atualizar o site depois (ex: mudar uma cor, adicionar um campo), a mudança entra por um
+  pull request no GitHub; depois do merge a Vercel publica sozinha.
 
 ## Estrelas e bichinhos (gamificação)
 
@@ -501,9 +512,9 @@ operacional vê o bichinho parado.
 desde **15/10/2026**: ao rodar o arquivo, quem já tinha concluído 10 tarefas num dia a partir dessa data
 recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrela.
 
-- A meta e o limite ficam no banco (função `org_estrela_confere`) e repetidos no `index.html`
+- A meta e o limite ficam no banco (função `org_estrela_confere`) e repetidos no `public/legado.html`
   (`ORG_ESTRELA_META` e `ORG_ESTRELA_SEMANA`) só para mostrar na tela. Se mudar, mude nos dois.
-- Os prêmios ficam em `ORG_PREMIOS`, no `index.html`. Os marcos de bichinho (3, 55, 75 e 100) se
+- Os prêmios ficam em `ORG_PREMIOS`, no `public/legado.html`. Os marcos de bichinho (3, 55, 75 e 100) se
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
 
