@@ -9,14 +9,14 @@ function equipe(banco, extra = {}){
   semearOrg(banco.org, Object.assign({ pessoas: [{ id: ANA, nome: 'Ana Souza' }, { id: BIA, nome: 'Bia Lima' }] }, extra));
 }
 // Entra pela tela de entrada, clicando no nome (como a equipe faz)
-async function entrarComoPessoa(page, nome){
-  await page.goto('/#organizacao');
+async function entrarComoPessoa(page, nome, endereco = '/#organizacao'){
+  await page.goto(endereco);
   await page.locator('#orgEntrarLista button', { hasText: nome }).click();
   await expect(page.locator('#orgContent')).toBeVisible();
 }
 // Digitar os 6 números já envia a senha (não precisa clicar em Entrar)
-async function entrarComoGestor(page, pin = PIN_GESTOR){
-  await page.goto('/#organizacao');
+async function entrarComoGestor(page, pin = PIN_GESTOR, endereco = '/#organizacao'){
+  await page.goto(endereco);
   await page.locator('#orgPin').pressSequentially(pin);
 }
 async function abaOrg(page, tab){

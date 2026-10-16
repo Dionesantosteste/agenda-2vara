@@ -8,3 +8,7 @@
 
 /* Brasão da folha impressa (no sistema atual é um svg dentro da página) */
 @media print{ .pr-logo img{ width:44px; height:auto; display:block; } }
+
+/* Organização: abas que ainda ficam no sistema atual */
+.org-no-atual{ gap:12px; }
+.org-no-atual p{ margin:0; color:var(--muted); }
