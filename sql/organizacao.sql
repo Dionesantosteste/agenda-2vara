@@ -595,6 +595,7 @@ begin
     'nota_titulo', true,
     'ordem_lista', true,
     'lote', true,
+    'enviar_gestor', true,
     'aniversarios', case when ac.o_gestor then coalesce((select jsonb_agg(to_jsonb(a) order by a.mes, a.dia, lower(a.nome)) from org_aniversarios a), '[]'::jsonb) end,
     'assinatura', org_assinatura(ac.o_dono, ac.o_gestor),
     'txt_modelos', coalesce((select jsonb_agg(to_jsonb(m) order by lower(m.nome)) from org_txt_modelos m), '[]'::jsonb),
@@ -713,7 +714,10 @@ begin
                              and (t.aparece_em is null or t.aparece_em <= org_hoje())), '[]'::jsonb),
     -- gestor: tarefas da equipe esperando a conferência dele (para tocar o aviso quando chega uma nova)
     'conferir', case when ac.o_gestor then coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo, 'dono', t.dono)) from org_tarefas t
-                           where t.dono is not null and t.conferencia = 'enviada' and t.arquivada_em is null), '[]'::jsonb) end);
+                           where t.dono is not null and t.conferencia = 'enviada' and t.arquivada_em is null), '[]'::jsonb) end,
+    -- gestor: tarefas que alguém da equipe mandou para o quadro dele (para tocar o aviso quando chega uma nova)
+    'enviadas', case when ac.o_gestor then coalesce((select jsonb_agg(jsonb_build_object('id', t.id, 'titulo', t.titulo, 'de', t.enviada_por)) from org_tarefas t
+                           where t.dono is null and t.enviada_por is not null and t.etapa <> 'feito' and t.arquivada_em is null), '[]'::jsonb) end);
 end;
 $$;
 
@@ -1306,7 +1310,7 @@ begin
   end if;
   update org_tarefas
      set dono = p_destino, do_gestor = true, etapa = 'afazer', feita_em = null, posicao = null,
-         etiquetas = '{}', conclusao = null, updated_at = now()
+         etiquetas = '{}', conclusao = null, enviada_por = null, recado_gestor = null, enviada_em = null, updated_at = now()
    where id = p_id and dono is null;
   get diagnostics n = row_count;
   return jsonb_build_object('status', 'ok', 'n', n);
@@ -2218,6 +2222,57 @@ end;
 $$;
 grant execute on function org_escolher_bicho(text, uuid, text) to anon, authenticated;
 grant execute on function org_bicho_no_quadro(text, uuid, text) to anon, authenticated;
+
+-- ---------- a pessoa manda uma tarefa para o gestor ----------
+-- A tarefa sai do quadro da pessoa e vai para a primeira coluna do quadro do gestor, com um recado
+-- (obrigatório) e a marca de quem mandou. Só valem as tarefas que a própria pessoa criou: as que
+-- vieram do gestor voltam para ele só pela conferência.
+alter table org_tarefas add column if not exists enviada_por uuid references org_pessoas(id) on delete set null;
+alter table org_tarefas add column if not exists recado_gestor text;
+alter table org_tarefas add column if not exists enviada_em timestamptz;
+
+create or replace function org_enviar_ao_gestor(p_pin text, p_pessoa uuid, p_id uuid, p_recado text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  t record;
+  rec text := left(btrim(coalesce(p_recado, '')), 1000);
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só a pessoa da equipe manda tarefa do quadro dela para o gestor.');
+  end if;
+  if rec = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'Escreva um recado para o gestor saber o que precisa.');
+  end if;
+  select * into t from org_tarefas where id = p_id and dono = ac.o_dono;
+  if not found then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa não existe mais.');
+  end if;
+  if t.do_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Tarefa mandada pelo gestor volta para ele só pela conferência.');
+  end if;
+  if t.etapa = 'feito' or t.arquivada_em is not null then
+    return jsonb_build_object('status', 'erro', 'message', 'Tarefa concluída ou arquivada não pode ser mandada para o gestor.');
+  end if;
+  if t.conferencia = 'enviada' then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta tarefa está em conferência com o gestor. Espere a resposta ou cancele o envio.');
+  end if;
+  update org_tarefas
+     set dono = null, do_gestor = false, etapa = 'afazer', feita_em = null, posicao = null, ordem_lista = null,
+         etiquetas = '{}', aparece_em = null, enviada_por = ac.o_dono, recado_gestor = rec, enviada_em = now(), updated_at = now()
+   where id = p_id;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+grant execute on function org_enviar_ao_gestor(text, uuid, uuid, text) to anon, authenticated;
 
 -- =====================================================================
 -- TROCAR A SENHA (ou criar uma nova se esquecer): rode só a linha abaixo,

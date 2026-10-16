@@ -506,3 +506,19 @@ recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrel
 - Os prêmios ficam em `ORG_PREMIOS`, no `index.html`. Os marcos de bichinho (3, 55, 75 e 100) se
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
+
+## Mandar tarefa para o gestor
+
+A pessoa da equipe pode mandar para o gestor uma tarefa que **ela mesma criou**: no cartão da tarefa,
+botão **"Mandar para o gestor…"**, com um **recado obrigatório** (ex.: "preciso da sua assinatura no
+ofício"). A tarefa **sai do quadro da pessoa** e vai para a primeira coluna do quadro do gestor, com a
+marca **"De Ana"** e o recado no cartão. O gestor recebe o aviso (som e, se liberado, notificação do
+Windows), como já acontece com a conferência.
+
+- Tarefa que veio do gestor não pode ser mandada de volta por aqui: ela volta só pela **conferência**.
+- Tarefa concluída, arquivada ou em conferência também não.
+- Para devolver ou passar adiante, o gestor usa o "Mandar para a tela de" do próprio cartão (a marca
+  e o recado saem quando ele faz isso).
+
+**Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria as colunas
+`enviada_por`, `recado_gestor` e `enviada_em` em `org_tarefas` e a função `org_enviar_ao_gestor`).

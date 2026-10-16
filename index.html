@@ -1291,6 +1291,9 @@
   @media (max-width:900px){ .pn-grid{ grid-template-columns:minmax(0,1fr); } .pn-kpis{ grid-template-columns:repeat(3, minmax(0,1fr)); } }
   @media (max-width:520px){ .pn-kpis{ grid-template-columns:repeat(2, minmax(0,1fr)); } }
   .conf-box .conf-st{ font-weight:600; }
+  /* tarefa mandada por alguém da equipe para o quadro do gestor */
+  .tag.da-equipe{ color:var(--warn); background:var(--warn-soft); text-transform:none; letter-spacing:0; }
+  .krecado{ flex-basis:100%; min-width:0; font-size:12.5px; color:var(--ink); background:var(--warn-soft); border-radius:6px; padding:3px 8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .conf-box .conf-txt{ background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 9px; white-space:pre-wrap; overflow-wrap:anywhere; }
   .conf-acts{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; margin-top:2px; }
   .conf-acts .btn{ height:36px; }
@@ -2830,6 +2833,7 @@
     </div>
     <div class="oc-fech" id="ocFech" hidden></div>
     <div class="oc-fech conf-box" id="ocConf" hidden></div>
+    <div class="oc-fech conf-box" id="ocGestor" hidden></div>
     <div class="field">
       <label for="ocProc">Nº do processo</label>
       <input data-cnj id="ocProc" class="mono" maxlength="40" placeholder="opcional" />
@@ -4652,6 +4656,7 @@
       conclusao: t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : null,
       conferencia: t.conferencia || null, confHist: Array.isArray(t.conf_hist) ? t.conf_hist : [],
       modeloTexto: t.modelo_texto || null,
+      enviadaPor: t.enviada_por || null, recadoGestor: t.recado_gestor || '', enviadaEm: t.enviada_em ? new Date(t.enviada_em) : null,
       apareceEm: t.aparece_em ? new Date(String(t.aparece_em).slice(0, 10) + 'T00:00') : null,
       criada: t.created_at ? new Date(t.created_at) : null, atualizada: t.updated_at ? new Date(t.updated_at) : null };
   }
@@ -4662,6 +4667,7 @@
     org.temAgenda = r.agenda === true;   // tarefas agendadas (SQL atualizado)
     org.temNotaTitulo = r.nota_titulo === true;   // título no post-it (SQL atualizado)
     org.temOrdemLista = r.ordem_lista === true;
+    org.temEnviarGestor = r.enviar_gestor === true;   // a pessoa manda tarefa para o gestor (SQL atualizado)
     org.temLote = r.lote === true;   // tarefas em lote: mandar várias e agir nas marcadas (SQL atualizado)   // arrastar na lista "Tarefas e mural" (SQL atualizado)
     // aniversariantes: só o gestor recebe a lista (SQL atualizado)
     org.aniv = Array.isArray(r.aniversarios) ? r.aniversarios.map(function(a){ return { id: a.id, nome: a.nome || '', dia: +a.dia, mes: +a.mes, obs: a.obs || '' }; }) : null;
@@ -4925,7 +4931,7 @@
       '<button type="button" class="check" role="checkbox" aria-checked="' + !!t.feitaEm + '" data-act="feita" data-id="' + t.id + '" aria-label="Marcar como feita">' + (t.feitaEm ? ICON_CHECK : '') + '</button>' +
       '<div style="min-width:0"><div class="t-title"><span class="editable" contenteditable="' + ORG_CE + '" data-edit="tarefa" data-id="' + t.id + '" title="Clique para editar o texto">' + escapeHtml(t.titulo) + '</span></div>' +
       (meta.length ? '<div class="t-meta">' + meta.join('') + '</div>' : '') + '</div>' +
-      '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+      '<div class="t-side">' + orgConfTag(t) + orgPrioTag(t, !t.feitaEm) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') + orgDaEquipeTag(t) +
       (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
       '<button type="button" class="icon-btn" data-act="editar" data-id="' + t.id + '" title="Editar prazo, prioridade, responsável…" aria-label="Editar tarefa">' + ICON_PENCIL + '</button>' +
       (org.temOrdemLista && !t.feitaEm ? '<span class="t-grip" draggable="true" tabindex="0" role="button" data-tgrip="' + t.id + '" title="Arraste para mudar a ordem (ou use as setas ↑ ↓)" aria-label="Mudar a ordem de ' + escapeHtml(t.titulo) + ' com as setas para cima e para baixo">' + ICON_GRIP + '</span>' : '') +
@@ -5866,10 +5872,11 @@
           (orgPodeArquivar(t) && !orgEmConf(t) ? '<button type="button" class="icon-btn" data-act="arquivar-card" data-id="' + t.id + '" title="Arquivar (vai para o Histórico)" aria-label="Arquivar tarefa">' + ICON_ARQ + '</button>' : '') +
           '</span></div>' +
           '<div class="t-meta">' + orgConfTag(t) + (selo ? '<span class="kprazo' + (selo.cls ? ' ' + selo.cls : '') + '">' + selo.txt + '</span>' : '') +
-          orgPrioTag(t, aberta) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') +
+          orgPrioTag(t, aberta) + orgAgendaTag(t) + (t.doGestor && org.modo === 'pessoa' ? '<span class="tag gestor">Do gestor</span>' : '') + orgDaEquipeTag(t) +
           (t.responsavel && !orgAlheia() ? '<span class="tag resp">' + escapeHtml(t.responsavel) + '</span>' : '') +
           (t.processo ? procCopyBtn(t.processo) : '') + orgModeloBtn(t) +
           orgKBadges(t) + orgKVinc(t) +
+          orgRecadoLinha(t) +
           (parado ? '<span class="kparado" title="Sem mudança desde ' + formatDataHora(t.atualizada) + '">Parada há ' + parado + ' dias</span>' : '') +
           (t.feitaEm && !aberta ? '<span class="doneat">Feita em ' + formatDataHora(t.feitaEm) + '</span>' : '') + '</div>' +
           (trava ? '<div class="kconf-espera">Aguardando o gestor conferir</div></div>' : '') +
@@ -6211,6 +6218,9 @@
     var confHtml = org.temConf && orgAlheia() ? orgConfBoxHtml(t, org.modo === 'gestor') : '';
     document.getElementById('ocConf').hidden = !confHtml;
     document.getElementById('ocConf').innerHTML = confHtml;
+    var gestorHtml = orgGestorBoxHtml(t);
+    document.getElementById('ocGestor').hidden = !gestorHtml;
+    document.getElementById('ocGestor').innerHTML = gestorHtml;
     OC.etapa.disabled = orgTravada(t);
     OC.etapa.title = OC.etapa.disabled ? 'Em conferência com o gestor: a etapa fica parada até a resposta' : '';
     renderOcVinc();
@@ -8245,6 +8255,40 @@
     return h + orgConfHistHtml(t);
   }
 
+  // ---- a pessoa manda uma tarefa que ela criou para o quadro do gestor (sai do quadro dela) ----
+  // As que vieram do gestor voltam para ele só pela conferência.
+  function orgPodeMandarGestor(t){
+    return !!org.temEnviarGestor && org.modo === 'pessoa' && !t.doGestor && t.etapa !== 'feito' && !t.arquivadaEm && !orgEmConf(t);
+  }
+  // No quadro do próprio gestor: de quem veio
+  function orgDaEquipeTag(t){
+    if (!t.enviadaPor || org.modo !== 'gestor' || org.ver) return '';
+    var nome = orgNomePessoa(t.enviadaPor);
+    return '<span class="tag da-equipe" title="' + escapeHtml(t.recadoGestor ? 'Recado: ' + t.recadoGestor : 'Mandada por alguém da equipe') + '">De ' + escapeHtml(nome ? nome.split(' ')[0] : 'alguém da equipe') + '</span>';
+  }
+  function orgRecadoLinha(t){
+    if (!t.enviadaPor || !t.recadoGestor || org.modo !== 'gestor' || org.ver || t.etapa === 'feito') return '';
+    return '<span class="krecado" title="' + escapeHtml(t.recadoGestor) + '">“' + escapeHtml(t.recadoGestor) + '”</span>';
+  }
+  function orgGestorBoxHtml(t){
+    if (t.enviadaPor && org.modo === 'gestor' && !org.ver){
+      var nome = orgNomePessoa(t.enviadaPor) || 'Alguém da equipe';
+      return '<div><span class="conf-st">Mandada por ' + escapeHtml(nome) + '</span>' + (t.enviadaEm ? ' em ' + formatDataHora(t.enviadaEm) : '') + '</div>' +
+        (t.recadoGestor ? '<div class="conf-txt">' + escapeHtml(t.recadoGestor) + '</div>' : '') +
+        '<div class="field-hint">Para mandar de volta ou para outra pessoa, use "Mandar para a tela de", acima.</div>';
+    }
+    if (!orgPodeMandarGestor(t)) return '';
+    return '<div class="field-hint">Precisa que o gestor faça? A tarefa sai do seu quadro e vai para o dele, com um recado seu.</div>' +
+      '<div class="conf-acts"><button type="button" class="btn" data-gestor-enviar="' + t.id + '">Mandar para o gestor…</button></div>';
+  }
+  async function orgEnviarAoGestor(id, recado){
+    var r = await orgCall('org_enviar_ao_gestor', { p_id: id, p_recado: recado });
+    if (!orgOk(r)) return false;
+    toast('Tarefa mandada para o gestor. Ela saiu do seu quadro.');
+    await orgLoad();
+    return true;
+  }
+
   var OCF = {
     dialog: document.getElementById('orgConfDialog'),
     form: document.getElementById('orgConfForm'),
@@ -8259,13 +8303,15 @@
   var confAlvo = null;
   function orgConfAbrir(t, modo){
     confAlvo = { id: t.id, modo: modo, dono: t.dono };
-    var dev = modo === 'devolver';
-    OCF.titulo.textContent = dev ? 'Devolver tarefa' : 'Enviar para conferência';
+    var dev = modo === 'devolver', ges = modo === 'gestor';
+    OCF.titulo.textContent = dev ? 'Devolver tarefa' : ges ? 'Mandar para o gestor' : 'Enviar para conferência';
     OCF.tarefa.textContent = t.titulo;
-    OCF.rotulo.textContent = dev ? 'Motivo da devolução' : 'Recado para o gestor (opcional)';
-    OCF.texto.placeholder = dev ? 'Ex.: corrigir o nome da parte no mandado' : 'Ex.: minuta pronta, falta só a assinatura';
-    OCF.dica.textContent = dev ? 'A tarefa continua na mesma coluna da pessoa, com o motivo.' : 'A tarefa fica parada na coluna em que está até o gestor aprovar ou devolver. Nos dois casos ela continua ali para você seguir.';
-    OCF.ok.textContent = dev ? 'Devolver' : 'Enviar';
+    OCF.rotulo.textContent = dev ? 'Motivo da devolução' : ges ? 'Recado para o gestor' : 'Recado para o gestor (opcional)';
+    OCF.texto.placeholder = dev ? 'Ex.: corrigir o nome da parte no mandado' : ges ? 'Ex.: preciso da sua assinatura no ofício' : 'Ex.: minuta pronta, falta só a assinatura';
+    OCF.dica.textContent = dev ? 'A tarefa continua na mesma coluna da pessoa, com o motivo.'
+      : ges ? 'A tarefa sai do seu quadro e vai para a primeira coluna do quadro do gestor, com este recado.'
+      : 'A tarefa fica parada na coluna em que está até o gestor aprovar ou devolver. Nos dois casos ela continua ali para você seguir.';
+    OCF.ok.textContent = dev ? 'Devolver' : ges ? 'Mandar para o gestor' : 'Enviar';
     OCF.ok.disabled = false;
     OCF.texto.value = '';
     OCF.dialog.showModal();
@@ -8288,8 +8334,9 @@
     if (!confAlvo) return;
     var txt = OCF.texto.value.trim();
     if (confAlvo.modo === 'devolver' && !txt){ toast('Escreva o motivo da devolução.'); OCF.texto.focus(); return; }
+    if (confAlvo.modo === 'gestor' && !txt){ toast('Escreva um recado para o gestor saber o que precisa.'); OCF.texto.focus(); return; }
     OCF.ok.disabled = true;
-    var ok = await orgConfAcao(confAlvo.id, confAlvo.modo, txt, confAlvo.dono);
+    var ok = confAlvo.modo === 'gestor' ? await orgEnviarAoGestor(confAlvo.id, txt) : await orgConfAcao(confAlvo.id, confAlvo.modo, txt, confAlvo.dono);
     OCF.ok.disabled = false;
     if (ok) OCF.dialog.close();
   });
@@ -8302,6 +8349,12 @@
     if (acao === 'enviar' || acao === 'devolver'){ orgConfAbrir(t, acao); return; }
     await orgConfAcao(t.id, acao, '', t.dono);
   }
+  document.getElementById('ocGestor').addEventListener('click', function(e){
+    var b = e.target.closest('[data-gestor-enviar]'); if (!b) return;
+    var t = orgFind(org.tarefas, b.getAttribute('data-gestor-enviar')); if (!t) return;
+    OC.dialog.close();
+    orgConfAbrir(t, 'gestor');
+  });
   document.getElementById('ocConf').addEventListener('click', function(e){
     var b = e.target.closest('[data-conf]'); if (b) orgConfClique(b, org.tarefas, OC.dialog);
   });
@@ -8801,7 +8854,7 @@
   // Se mudou, recarrega a tela em segundo plano, mas só quando ninguém está digitando, arrastando ou com uma janela aberta.
   // Na tela da pessoa, tarefa urgente nova do gestor toca um som (gerado pelo navegador, sem arquivo) e pode avisar no Windows.
   var ORG_NOVIDADES_MS = 60000;
-  var orgNov = { rodando: false, recarregar: false, sem: false, confQuem: null, confVistos: {} };
+  var orgNov = { rodando: false, recarregar: false, sem: false, confQuem: null, confVistos: {}, envQuem: null, envVistos: {} };
   var orgSom = { ligado: true, ctx: null };
   try { orgSom.ligado = localStorage.getItem('orgSom') !== '0'; } catch (e) {}
   var OS = { som: document.getElementById('orgSomBtn'), notif: document.getElementById('orgNotifBtn') };
@@ -8994,6 +9047,20 @@
   }
 
   // Gestor: chegou tarefa da equipe para conferir
+  // Gestor: alguém da equipe mandou tarefa para o quadro dele
+  function orgAvisaEnviadas(novas){
+    var tit = novas.map(function(u){ return (u.titulo || 'Tarefa') + (orgNomePessoa(u.de) ? ' (de ' + orgNomePessoa(u.de).split(' ')[0] + ')' : ''); });
+    orgSomToca();
+    toast(novas.length === 1 ? 'Chegou tarefa da equipe: ' + tit[0] : 'Chegaram ' + novas.length + ' tarefas da equipe no seu quadro');
+    try {
+      if ('Notification' in window && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
+        var n = new Notification(novas.length === 1 ? 'Tarefa da equipe para você' : novas.length + ' tarefas da equipe para você', { body: tit.join('\n'), tag: 'org-enviada' });
+        n.onclick = function(){ window.focus(); n.close(); };
+      }
+    } catch (e) {}
+    novas.forEach(function(u){ orgChegou[u.id] = true; });
+    setTimeout(function(){ novas.forEach(function(u){ delete orgChegou[u.id]; }); }, 4000);
+  }
   function orgAvisaConferir(novas){
     var tit = novas.map(function(u){ return (u.titulo || 'Tarefa') + (orgNomePessoa(u.dono) ? ' (' + orgNomePessoa(u.dono).split(' ')[0] + ')' : ''); });
     orgSomToca();
@@ -9043,6 +9110,15 @@
         orgNov.confVistos = {};
         r.conferir.forEach(function(u){ if (u && u.id) orgNov.confVistos[u.id] = true; });
         if (!primeira && chegaram.length) orgAvisaConferir(chegaram);
+      }
+      if (org.modo === 'gestor' && Array.isArray(r.enviadas)){
+        // mesma ideia: a primeira consulta só registra; avisa as que alguém mandar depois
+        var primeiraEnv = orgNov.envQuem !== quem;
+        if (primeiraEnv){ orgNov.envQuem = quem; orgNov.envVistos = {}; }
+        var mandaram = r.enviadas.filter(function(u){ return u && u.id && !orgNov.envVistos[u.id]; });
+        orgNov.envVistos = {};
+        r.enviadas.forEach(function(u){ if (u && u.id) orgNov.envVistos[u.id] = true; });
+        if (!primeiraEnv && mandaram.length) orgAvisaEnviadas(mandaram);
       }
       if (org.assinatura !== null && r.assinatura !== org.assinatura) orgNov.recarregar = true;
       await orgRecarregaDiscreto();
