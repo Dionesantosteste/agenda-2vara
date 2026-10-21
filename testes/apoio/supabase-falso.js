@@ -217,7 +217,7 @@ function notaPadrao(){ return { id: uuid(), texto: '', cor: 'amarelo', fixada: f
 function lembretePadrao(){ return { id: uuid(), texto: '', data: hojeVara(), hora: null, processo: '', feito_em: null, dono: null, created_at: agora(), updated_at: agora() }; }
 
 // Pessoas e tarefas para os testes da Organização
-function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [], etiquetas = [], colunas = [], anotacoes = [] } = {}){
+function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [], etiquetas = [], colunas = [], anotacoes = [], lembretes = [], rotinas = [] } = {}){
   pessoas.forEach(p => org.pessoas.push(Object.assign({ id: uuid(), nome: '', ativo: true, bicho_quadro: null, created_at: agora() }, p)));
   tarefas.forEach(t => org.tarefas.push(Object.assign(tarefaPadrao(), t)));
   notas.forEach(n => org.notas.push(Object.assign(notaPadrao(), n)));
@@ -225,6 +225,8 @@ function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [],
   bichos.forEach(b => org.bichos.push(Object.assign({ created_at: agora() }, b)));
   etiquetas.forEach(e => org.etiquetas.push(Object.assign({ id: uuid(), nome: '', cor: 'azul', dono: null }, e)));
   colunas.forEach(c => org.colunas.push(Object.assign({ dono: null, chave: '', nome: '', ordem: 10 }, c)));
+  lembretes.forEach(l => org.lembretes.push(Object.assign(lembretePadrao(), l)));
+  rotinas.forEach(r => org.rotinas.push(Object.assign({ id: uuid(), titulo: '', frequencia: 'mensal', feita_em: null, created_at: agora(), updated_at: agora() }, r)));
   anotacoes.forEach(n => org.anotacoes.push(Object.assign({ id: uuid(), tarefa_id: null, texto: '', created_at: agora() }, n)));
 }
 
@@ -552,6 +554,31 @@ const ORG_FUNCOES = {
     const ac = acesso(org, a);
     if (ac.st !== 'ok') return { status: ac.st };
     org.lembretes = org.lembretes.filter(l => !(l.id === a.p_id && (l.dono || null) === ac.dono));
+    return { status: 'ok' };
+  },
+  org_salvar_rotina(org, a){
+    if (a.p_pin !== org.pin) return { status: 'senha' };   // só o gestor tem rotinas
+    if (!a.p_id){
+      const x = { id: uuid(), titulo: a.p_titulo || '', frequencia: a.p_frequencia || 'mensal', feita_em: a.p_feita_em || null, created_at: agora(), updated_at: agora() };
+      org.rotinas.push(x);
+      return { status: 'ok', id: x.id };
+    }
+    const x = org.rotinas.find(r => r.id === a.p_id);
+    if (x) Object.assign(x, { titulo: a.p_titulo ?? x.titulo, frequencia: a.p_frequencia ?? x.frequencia, feita_em: a.p_feita_em ?? null, updated_at: agora() });
+    return { status: 'ok', id: a.p_id };
+  },
+  org_excluir_rotina(org, a){
+    if (a.p_pin !== org.pin) return { status: 'senha' };
+    org.rotinas = org.rotinas.filter(r => r.id !== a.p_id);
+    return { status: 'ok' };
+  },
+  org_ordenar_lista(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    (a.p_ids || []).forEach((id, i) => {
+      const t = org.tarefas.find(x => x.id === id && (x.dono || null) === ac.dono);
+      if (t) t.ordem_lista = (i + 1) * 10;
+    });
     return { status: 'ok' };
   },
   org_escolher_bicho(org, a){

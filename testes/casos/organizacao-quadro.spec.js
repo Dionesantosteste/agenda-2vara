@@ -382,7 +382,7 @@ test.describe('sistema novo: abas que ainda estão no sistema atual', () => {
     await entrarComoGestor(page, undefined, '/novo/organizacao');
     await expect(page.locator('#orgContent')).toBeVisible();
     await expect(page.locator('#orgTabs .org-tab')).toHaveText(['Tarefas da equipe', 'Tarefas e mural', 'Quadro', 'Lembretes', 'Modelos de texto', 'Rotinas', 'Aniversariantes']);
-    await abaOrg(page, 'lembretes');
+    await abaOrg(page, 'modelos');
     await expect(page.locator('#orgPaneAindaAtual')).toContainText('ainda está no sistema atual');
     await expect(page.locator('#orgPaneAindaAtual a')).toHaveAttribute('href', '/#organizacao');
     await expect(page.locator('.nav .nav-item').nth(4)).toHaveAttribute('href', '/#organizacao');

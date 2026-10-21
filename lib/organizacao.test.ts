@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Calendario, configPadrao } from './prazos/calendario.ts';
 import {
-  SEM_FILTRO, colunasDe, corrige, diasParado, lerDados, mensagemDoStatus, novaOrdem, ordenaColuna, paraSalvar, passaNoFiltro, pedeFechamento,
+  SEM_FILTRO, gruposDeLembretes, gruposDeTarefas, ordenaNotas, ordenaRotinas, paraSalvarLembrete, paraSalvarNota, paraSalvarRotina, colunasDe, corrige, diasParado, lerDados, mensagemDoStatus, novaOrdem, ordenaColuna, paraSalvar, passaNoFiltro, pedeFechamento,
   rotinaFeita, separaProcesso, seloPrazo, tarefaDe, travada, type Tarefa
 } from './organizacao.ts';
 
@@ -125,11 +125,11 @@ test('argumentos de org_salvar_tarefa', () => {
 });
 
 test('rotinas: feita no período atual', () => {
-  assert.equal(rotinaFeita({ id: 'r', frequencia: 'semanal', feitaEm: new Date(2026, 2, 9, 8) }, hoje), true);    // segunda desta semana
-  assert.equal(rotinaFeita({ id: 'r', frequencia: 'semanal', feitaEm: new Date(2026, 2, 8, 8) }, hoje), false);   // domingo passado
-  assert.equal(rotinaFeita({ id: 'r', frequencia: 'mensal', feitaEm: new Date(2026, 2, 1, 8) }, hoje), true);
-  assert.equal(rotinaFeita({ id: 'r', frequencia: 'trimestral', feitaEm: new Date(2025, 11, 31) }, hoje), false);
-  assert.equal(rotinaFeita({ id: 'r', frequencia: 'mensal', feitaEm: null }, hoje), false);
+  assert.equal(rotinaFeita({ id: 'r', titulo: 'r', frequencia: 'semanal', feitaEm: new Date(2026, 2, 9, 8) }, hoje), true);    // segunda desta semana
+  assert.equal(rotinaFeita({ id: 'r', titulo: 'r', frequencia: 'semanal', feitaEm: new Date(2026, 2, 8, 8) }, hoje), false);   // domingo passado
+  assert.equal(rotinaFeita({ id: 'r', titulo: 'r', frequencia: 'mensal', feitaEm: new Date(2026, 2, 1, 8) }, hoje), true);
+  assert.equal(rotinaFeita({ id: 'r', titulo: 'r', frequencia: 'trimestral', feitaEm: new Date(2025, 11, 31) }, hoje), false);
+  assert.equal(rotinaFeita({ id: 'r', titulo: 'r', frequencia: 'mensal', feitaEm: null }, hoje), false);
 });
 
 test('mensagens da entrada', () => {
@@ -137,4 +137,54 @@ test('mensagens da entrada', () => {
   assert.equal(mensagemDoStatus('senha', true), '');
   assert.match(mensagemDoStatus('bloqueado', false), /5 minutos/);
   assert.match(mensagemDoStatus('sem_pessoa', true), /gestor/);
+});
+
+test('lista de tarefas: grupos por prazo, ordem escolhida primeiro, concluídas limitadas e arquivadas fora', () => {
+  const dia = (n: number) => new Date(2026, 2, 10 + n);
+  const lista = [
+    tar({ id: 'atr', prazo: dia(-2) }), tar({ id: 'hoje', prazo: dia(0) }), tar({ id: 'p2', prazo: dia(5) }), tar({ id: 'p1', prazo: dia(2) }),
+    tar({ id: 'p3', prazo: dia(9), ordemLista: 10 }), tar({ id: 'solta' }), tar({ id: 'arq', arquivadaEm: dia(-1) }),
+    ...Array.from({ length: 17 }, (_, i) => tar({ id: 'f' + i, feitaEm: new Date(2026, 2, 1, 8, i), etapa: 'feito' }))
+  ];
+  const g = gruposDeTarefas(lista, hoje);
+  assert.deepEqual(g.map(x => x.nome), ['Atrasadas', 'Hoje', 'Próximas', 'Sem prazo', 'Concluídas']);
+  assert.deepEqual(g[2].itens.map(t => t.id), ['p3', 'p1', 'p2']);
+  assert.equal(g[4].itens.length, 15);
+  assert.equal(g[4].itens[0].id, 'f16');
+  assert.equal(g[4].concluidas, true);
+  assert.deepEqual(gruposDeTarefas([tar({ id: 'x', prazo: dia(1) })], hoje).map(x => x.nome), ['Próximas']);
+});
+
+test('lembretes: atrasados, hoje, próximos, o próximo do dia e o que já passou', () => {
+  const l = (id: string, data: Date, hora = '', feitoEm: Date | null = null) => ({ id, texto: id, data, hora, processo: '', feitoEm });
+  const dia = (n: number) => new Date(2026, 2, 10 + n);
+  const g = gruposDeLembretes([
+    l('atr', dia(-1)), l('feito-ontem', dia(-1), '', new Date()), l('manha', dia(0), '08:00'), l('tarde', dia(0), '15:00'), l('sem-hora', dia(0)),
+    l('feito', dia(0), '07:00', new Date()), l('amanha', dia(1)), l('depois', dia(1), '09:00')
+  ], hoje);   // hoje = 10:00
+  assert.deepEqual(g.atrasados.map(x => x.id), ['atr']);
+  assert.deepEqual(g.deHoje.map(x => x.id), ['sem-hora', 'feito', 'manha', 'tarde']);
+  assert.deepEqual(g.proximos.map(x => x.id), ['amanha', 'depois']);
+  assert.equal(g.proximo?.id, 'tarde');
+  assert.equal(g.passou, 2);   // "manha" (já passou) + 1 atrasado
+  assert.equal(g.horarioPassou(g.deHoje[2]), true);
+  assert.equal(g.horarioPassou(g.deHoje[1]), false);
+});
+
+test('rotinas: pendentes primeiro, mais frequentes antes, depois pelo título', () => {
+  const r = (titulo: string, frequencia: string, feitaEm: Date | null = null) => ({ id: titulo, titulo, frequencia, feitaEm });
+  const ordem = ordenaRotinas([r('B', 'mensal'), r('A', 'mensal'), r('Z', 'semanal'), r('feita', 'semanal', new Date(2026, 2, 9)), r('T', 'trimestral')], hoje);
+  assert.deepEqual(ordem.map(x => x.titulo), ['Z', 'A', 'B', 'T', 'feita']);
+});
+
+test('notas: fixadas primeiro e depois as mais novas', () => {
+  const n = (id: string, fixada: boolean, d: number) => ({ id, texto: id, titulo: '', cor: 'amarelo', fixada, criada: new Date(2026, 0, d) });
+  assert.deepEqual(ordenaNotas([n('a', false, 5), n('b', true, 1), n('c', false, 9), n('d', true, 3)]).map(x => x.id), ['d', 'b', 'c', 'a']);
+});
+
+test('argumentos de lembrete, rotina e nota: corrigem o texto', () => {
+  assert.deepEqual(paraSalvarLembrete({ texto: 'ligar para a audiencia', data: new Date(2026, 2, 12), hora: '', processo: '', feitoEm: null }),
+    { p_id: null, p_texto: 'Ligar para a audiência', p_data: '2026-03-12', p_hora: null, p_processo: '', p_feito_em: null });
+  assert.equal(paraSalvarRotina({ id: 'r', titulo: 'estatistica mensal', frequencia: 'mensal', feitaEm: null }).p_titulo, 'Estatística mensal');
+  assert.deepEqual(paraSalvarNota({ texto: 'malote sai as 15h', cor: 'verde', fixada: true }), { p_id: null, p_texto: 'Malote sai as 15h', p_cor: 'verde', p_fixada: true });
 });
