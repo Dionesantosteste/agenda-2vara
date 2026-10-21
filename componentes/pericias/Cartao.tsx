@@ -73,7 +73,6 @@ export function Cartao({ p, agora, util, perito, andamentos, aberto, alternar, s
     else { const rest = diasUteisEntre(agora, pr, util); meta.push(<span key="l" className={perto ? 'soonx' : ''}>{rest === 0 ? 'Laudo vence hoje' : 'Faltam ' + rest + (rest === 1 ? ' dia útil' : ' dias úteis')} para o laudo (até {dataBr(pr)})</span>); }
   }
   if (p.status === 'laudo_juntado' && p.laudoEm) meta.push(<span key="j" className="good">Laudo juntado em {dataBr(p.laudoEm)}</span>);
-  if (p.local) meta.push(<span key="o">{p.local}</span>);
   const passo = PER_FLUXO.indexOf(p.status);
 
   return (
