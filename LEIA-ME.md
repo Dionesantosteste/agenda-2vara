@@ -478,6 +478,15 @@ O sistema está passando aos poucos de um arquivo HTML único para Next.js:
   `componentes/pericias/`), com as tabelas `pericias`, `pericias_andamentos` e `peritos`. O prazo de
   30 dias úteis do laudo usa o mesmo calendário da vara da seção Prazos. A busca geral do topo
   (Ctrl+K), que procura em todas as seções, chega ao sistema novo na etapa da busca geral.
+- **Organização** está sendo migrada por partes. A primeira já existe em `/novo/organizacao` (código em
+  `lib/organizacao.ts` e `componentes/organizacao/`): a entrada (senha do gestor ou nome da pessoa, com o
+  mesmo acesso lembrado do sistema atual), o cabeçalho, as abas e o **Quadro** (cartões, filtros, mover
+  entre colunas e ↑ ↓, adicionar tarefa, renomear coluna, janela da tarefa com checklist e anotações,
+  aviso de processo repetido e fechamento da tarefa do gestor). Usa as mesmas funções `org_*` do banco.
+  Ainda no sistema atual: arrastar cartões, calendário, histórico e arquivo, etiquetas/colunas/modelos,
+  estrelas e bichinhos, aviso e atualização automática, e as abas Tarefas da equipe, Tarefas e mural,
+  Lembretes, Modelos de texto, Rotinas e Aniversariantes (nessas abas o sistema novo mostra o caminho
+  para o sistema atual). O menu e o endereço principal continuam levando ao sistema atual.
 - A aparência escolhida (tema e cor de fundo) vale nos dois, porque fica guardada no navegador com
   os mesmos nomes.
 - Durante a migração, as novidades grandes ficam pausadas na seção que está sendo migrada.
