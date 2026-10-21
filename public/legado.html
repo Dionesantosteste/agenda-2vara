@@ -1428,7 +1428,7 @@
   .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
   /* Estrelas (1 por dia com 10 tarefas concluídas no próprio dia, até 5 por semana) e bichinhos do quadro */
   :root{ --olho:#2A1E14; --brilho:#FFFFFF; --coracao:#E5484D; --ouro:#E8A317; --ouro-borda:#B97A0A; --ouro-txt:#9A6408;
-    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; --agua:#8FD3F4; --vidro:#4C93B8; --areia:#E8CF9B; --alga:#3FA564; }
+    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; --agua:#8FD3F4; --vidro:#4C93B8; --areia:#E8CF9B; --alga:#3FA564; --bau:#B87333; --bau-linha:#5A3416; }
   @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ouro-txt:#F5C866; } }
   :root[data-theme="dark"]{ --ouro-txt:#F5C866; }
   :root[data-theme="contraste"]{ --ouro-txt:#5C3B00; --ouro-borda:#000000; }
@@ -1481,6 +1481,29 @@
   .bx .ga{ fill:var(--agua); fill-opacity:.55; stroke:var(--vidro); stroke-width:1.4; }
   .bx .gs{ fill:var(--areia); }
   .bx .gv{ fill:none; stroke:var(--alga); stroke-width:1.7; stroke-linecap:round; }
+  .bx .gg{ fill:var(--ouro); }
+  .bx .gm{ fill:var(--bau); stroke:var(--bau-linha); stroke-width:1.1; stroke-linejoin:round; }
+  .bx .gh{ fill:#6B7889; stroke:#2E3640; stroke-width:1.1; stroke-linejoin:round; }
+  .bx .gha{ fill:none; stroke:#2E3640; stroke-width:1.6; stroke-linecap:round; }
+  .bx .pi{ display:none; }
+  .bx.tem-luz .pi-luz, .bx.tem-racao .pi-racao, .bx.tem-bau .pi-bau{ display:inline; }
+  .bx .pi-cone{ fill:var(--ouro); fill-opacity:.17; }
+  .bx .b-flocos circle{ opacity:0; }
+  .bx .b-brilho{ opacity:0; transform-box:fill-box; transform-origin:center; }
+  .bx .b-moeda{ opacity:0; stroke:var(--ouro-borda); stroke-width:.8; }
+  .bx .b-brilhinho{ opacity:0; transform-box:fill-box; transform-origin:center; animation:bBrilhinho 6s ease-in-out infinite; }
+  .bx .b-tampa{ transition:none; }
+  .bicho.dormindo[data-tipo="peixe"] .ga{ filter:brightness(.7); }
+  .bicho.dormindo[data-tipo="peixe"] .b-nada{ animation-duration:22s; }
+  .bicho.dormindo .pi-cone{ display:none; }
+  .bicho.dormindo .b-lampada{ fill:#9AA3AD; }
+  .bicho.peixe-racao .b-nada{ animation:bRacao 4.2s ease-in-out 1; }
+  .bicho.peixe-racao .b-flocos circle{ animation:bFlocos 3s ease-in 1; }
+  .bicho.peixe-racao .b-flocos circle:nth-child(2){ animation-delay:.4s; }
+  .bicho.peixe-racao .b-flocos circle:nth-child(3){ animation-delay:.8s; }
+  .bicho.peixe-bau .b-tampa{ animation:bTampa 3.8s ease-in-out 1; }
+  .bicho.peixe-bau .b-brilho{ animation:bBrilhoBau 3.8s ease-in-out 1; }
+  .bicho.peixe-bau .b-moeda{ animation:bMoeda 3.8s ease-out 1; }
   .bx .gbo{ fill:none; stroke:var(--brilho); stroke-width:.8; }
   .bx .gvi{ fill:none; stroke:var(--brilho); stroke-width:1.2; stroke-linecap:round; opacity:.7; }
   .bx .b-nada{ transform-box:fill-box; transform-origin:center; animation:bNada 8s ease-in-out infinite; }
@@ -1535,6 +1558,12 @@
   @keyframes bNada{ 0%{ transform:translate(0, 0) scaleX(1); } 42%{ transform:translate(30px, -3px) scaleX(1); } 50%{ transform:translate(30px, -3px) scaleX(-1); } 92%{ transform:translate(0, 3px) scaleX(-1); } 100%{ transform:translate(0, 0) scaleX(1); } }
   @keyframes bSalta{ 0%, 100%{ transform:translate(0, 0) rotate(0); } 35%{ transform:translate(8px, -22px) rotate(-30deg); } 55%{ transform:translate(15px, -26px) rotate(0); } 80%{ transform:translate(22px, -4px) rotate(35deg); } }
   @keyframes bBolha{ 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:.9; } 100%{ opacity:0; transform:translateY(-16px); } }
+  @keyframes bRacao{ 0%, 100%{ transform:translate(0, 0) scaleX(1) rotate(0); } 22%{ transform:translate(26px, -11px) scaleX(1) rotate(0); } 32%, 52%{ transform:translate(27px, -12px) scaleX(1) rotate(-8deg); } 42%, 62%{ transform:translate(26px, -10px) scaleX(1) rotate(6deg); } 80%{ transform:translate(20px, -6px) scaleX(1) rotate(0); } }
+  @keyframes bFlocos{ 0%{ opacity:0; transform:translateY(0); } 10%{ opacity:.95; } 55%{ opacity:.95; transform:translateY(9px); } 75%{ opacity:0; transform:translateY(12px); } 100%{ opacity:0; transform:translateY(12px); } }
+  @keyframes bTampa{ 0%, 100%{ transform:rotate(0); } 14%, 78%{ transform:rotate(62deg); } }
+  @keyframes bBrilhoBau{ 0%{ opacity:0; transform:scale(.6); } 18%{ opacity:.7; transform:scale(1); } 50%{ opacity:.45; transform:scale(1.12); } 78%{ opacity:.6; transform:scale(1); } 100%{ opacity:0; transform:scale(.8); } }
+  @keyframes bMoeda{ 0%, 14%{ opacity:0; transform:translateY(0); } 22%{ opacity:1; } 60%{ opacity:1; transform:translateY(-15px); } 80%, 100%{ opacity:0; transform:translateY(-17px); } }
+  @keyframes bBrilhinho{ 0%, 70%, 100%{ opacity:0; transform:scale(.2); } 80%{ opacity:1; transform:scale(1); } 90%{ opacity:0; transform:scale(.4) rotate(40deg); } }
   @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
   @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
   @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
@@ -5502,9 +5531,9 @@
   // Marcos pelas estrelas ACUMULADAS. Os de bichinho (3, 55, 75, 100) se repetem em org_escolher_bicho, no SQL.
   var ORG_PREMIOS = [
     { chave: 'bicho1',  estrelas: 3,   icone: '🐾', nome: 'um novo bichinho! Você escolhe qual.', bicho: true },
-    { chave: 'caminha', estrelas: 8,   icone: '🛏️', nome: 'Caminha' },
-    { chave: 'potinho', estrelas: 15,  icone: '🥣', nome: 'Potinho' },
-    { chave: 'bolinha', estrelas: 25,  icone: '🧶', nome: 'Bolinha' },
+    { chave: 'caminha', estrelas: 8,   icone: '🛏️', nome: 'Caminha', peixe: { icone: '💡', nome: 'Luminária do aquário' } },
+    { chave: 'potinho', estrelas: 15,  icone: '🥣', nome: 'Potinho', peixe: { icone: '🐟', nome: 'Pote de ração' } },
+    { chave: 'bolinha', estrelas: 25,  icone: '🧶', nome: 'Bolinha', peixe: { icone: '💎', nome: 'Baú do tesouro' } },
     { chave: 'cresce',  estrelas: 40,  icone: '✨', nome: 'seu bichinho cresceu: virou adulto' },
     { chave: 'bicho2',  estrelas: 55,  icone: '🐾', nome: 'um segundo bichinho! Você escolhe qual.', bicho: true },
     { chave: 'bicho3',  estrelas: 75,  icone: '🐾', nome: 'um terceiro bichinho! Você escolhe qual.', bicho: true },
@@ -5541,6 +5570,8 @@
     var e = org.estrelas; if (!e || !e.bichos.length || e.noQuadro === '') return null;
     return e.noQuadro && e.bichos.indexOf(e.noQuadro) !== -1 ? e.noQuadro : e.bichos[0];
   }
+  // Quem tem o peixinho no quadro ganha itens de aquário no lugar da caminha, do potinho e da bolinha
+  function orgPremioVista(p){ return p.peixe && orgBichoAtivo() === 'peixe' ? p.peixe : p; }
   function orgFeitasHoje(){
     var hoje = startOfDay(new Date()), n = 0;
     org.tarefas.forEach(function(t){ if (t.feitaEm && t.feitaEm >= hoje) n++; });
@@ -5581,13 +5612,13 @@
     var escolher = orgBichoMexe() && orgBichoPendentes() > 0;
     return { escolher: escolher, chegou: false,
       html: '<div class="festa-estrela">⭐ Você ganhou uma estrela!<span>' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana · ' + x.total + ' acumuladas</span></div>' +
-        x.premios.map(function(p){ return '<div class="festa-premio">' + p.icone + ' Conquistou: <b>' + escapeHtml(p.nome) + '</b></div>'; }).join('') };
+        x.premios.map(function(p){ p = orgPremioVista(p); return '<div class="festa-premio">' + p.icone + ' Conquistou: <b>' + escapeHtml(p.nome) + '</b></div>'; }).join('') };
   }
   // Ganhou sem banner (ex.: o gestor concluiu na tela da pessoa): só o aviso
   function orgEstrelaAvisa(){
     var x = org.estrelaNova; if (!x) return;
     org.estrelaNova = null;
-    var p = x.premios[x.premios.length - 1];
+    var p = x.premios[x.premios.length - 1]; if (p) p = orgPremioVista(p);
     toast('⭐ Nova estrela! ' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana' + (p ? ' · ' + p.icone + ' novo prêmio!' : ''));
   }
 
@@ -5653,10 +5684,19 @@
       '<rect class="ga" x="2" y="22" width="60" height="34" rx="5"/>' +
       '<path class="gs" d="M2.8 51Q32 47.8 61.2 51V51.6Q61.2 55.5 56.5 55.5H7.5Q2.8 55.5 2.8 51.6Z"/>' +
       '<path class="gv" d="M10 55Q6 49 10.5 43M14.5 55Q11 50 14.5 46"/><circle class="ge" cx="48" cy="53.2" r="1.6"/><circle class="ge" cx="53" cy="53.8" r="1.2"/>' +
+      '<path class="pi pi-luz pi-cone" d="M30.5 15L19 46H53L41.5 15Z"/>' +
+      '<g class="pi pi-bau"><ellipse class="gg b-brilho" cx="47.5" cy="43" rx="11" ry="8"/><rect class="gm" x="41" y="46" width="13" height="8.6" rx="1.2"/><rect class="gg" x="46.5" y="46" width="2" height="8.6"/>' +
+        '<ellipse class="gg" cx="47.5" cy="46.2" rx="5.5" ry="1.8"/><circle class="gg b-moeda" cx="47.5" cy="44" r="1.7"/>' +
+        '<g class="b-tampa" style="transform-origin:54px 46px"><path class="gm" d="M41 46Q41 39.5 47.5 39.5Q54 39.5 54 46Z"/><rect class="gg" x="46.5" y="42.3" width="2" height="3.7"/></g>' +
+        '<path class="gw b-brilhinho" d="M53.5 37l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z"/></g>' +
       '<circle class="gbo b-bolha" cx="50" cy="48" r="1.3"/><circle class="gbo b-bolha" style="animation-delay:1.2s" cx="46" cy="49" r=".9"/><circle class="gbo b-bolha" style="animation-delay:2.4s" cx="53" cy="49" r="1"/>' +
       '<g class="b-nada"><path class="gp" d="M13 38L5.5 32L5.5 44Z"/><ellipse class="gp" cx="20" cy="38" rx="8.5" ry="5.8"/><path class="gp" d="M17 33.5Q20.5 28 25 34Z"/>' +
         '<path class="gl" stroke-width="1.4" d="M17 33.6q-2 4.4 0 9M21 33q-1.6 5 0 10.4"/><circle class="go" cx="25" cy="36.6" r="1.5"/><circle class="gw" cx="25.5" cy="36" r=".5"/><path class="gt" d="M27.6 40q-1 .8-2 .4"/></g>' +
+      '<g class="pi pi-racao b-flocos"><circle class="racao" cx="51" cy="24.5" r="1"/><circle class="racao" cx="54" cy="24" r="1"/><circle class="racao" cx="56.5" cy="24.5" r="1"/></g>' +
+      '<g class="pi pi-luz"><path class="gha" d="M26 11H17Q13 11 13 15V22"/><path class="gh" d="M30 7.5h12l4.5 6.5H25.5z"/><ellipse class="gg b-lampada" cx="36" cy="14.3" rx="5.5" ry="1.4"/></g>' +
+      '<g class="pi pi-racao"><rect class="pote" x="50.8" y="14.2" width="10.4" height="1.8" rx=".6"/><path class="pote" d="M51.5 16h9l-1.2 6h-6.6z"/></g>' +
       '<path class="gvi" d="M6 27v12"/>' +
+      '<g class="b-zzz"><text x="62" y="15">z</text><text x="66.5" y="10">Z</text></g>' +
       '<g class="b-feliz b-respingo"><circle class="gbo" cx="30" cy="30" r="1.6"/><circle class="gbo" cx="38" cy="26" r="1.2"/><circle class="gbo" cx="45" cy="31" r="1.8"/></g>' +
       ORG_CORACAO + '</svg>';
   }
@@ -5756,13 +5796,16 @@
       orgBicho.el.title = 'Clique para fazer carinho';
     }
     orgBicho.el.classList.toggle('adulto', orgTemPremio('cresce'));
+    orgBicho.el.classList.toggle('tem-luz', orgTemPremio('caminha'));
+    orgBicho.el.classList.toggle('tem-racao', orgTemPremio('potinho'));
+    orgBicho.el.classList.toggle('tem-bau', orgTemPremio('bolinha'));
     orgBichoCantinho();
     OT.kanban.appendChild(orgBicho.el);
     orgBichoPosiciona(false);
     if (!orgBicho.tPasseio) orgBichoAgenda();
   }
   function orgBichoCantinho(){
-    var itens = (orgTemPremio('caminha') ? '<span data-item="cama">' + ORG_CAMA + '</span>' : '') + (orgTemPremio('potinho') ? '<span data-item="pote">' + ORG_POTE + '</span>' : '') +
+    var itens = orgBicho.tipo === 'peixe' ? '' : (orgTemPremio('caminha') ? '<span data-item="cama">' + ORG_CAMA + '</span>' : '') + (orgTemPremio('potinho') ? '<span data-item="pote">' + ORG_POTE + '</span>' : '') +
       (orgTemPremio('bolinha') ? '<span data-item="bola">' + ORG_NOVELO + '</span>' : '');
     if (!itens){ if (orgBicho.cant) orgBicho.cant.remove(); return; }
     if (!orgBicho.cant){ orgBicho.cant = document.createElement('div'); orgBicho.cant.className = 'cantinho'; orgBicho.cant.setAttribute('aria-hidden', 'true'); }
@@ -5812,7 +5855,8 @@
   function orgBichoPasseia(){
     orgBichoAgenda();
     var g = orgBicho.el;
-    if (orgBichoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden || orgBicho.andando || g.classList.contains('dormindo') || g.classList.contains('feliz') || orgBicho.tipo === 'peixe') return;   // o aquário fica parado
+    if (orgBichoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden || orgBicho.andando || g.classList.contains('dormindo') || g.classList.contains('feliz')) return;
+    if (orgBicho.tipo === 'peixe'){ orgPeixeEvento(); return; }   // o aquário fica parado: só acontecem coisas dentro dele
     var aqui = orgBichoColEl(orgBicho.col), outras = orgBichoCols().filter(function(c){ return c !== aqui; });
     // no celular as colunas ficam uma embaixo da outra: aí ele fica quieto na primeira
     if (!aqui || !outras.length || outras[0].offsetTop !== aqui.offsetTop) return;
@@ -5823,6 +5867,17 @@
     if (o === 'comer') orgBichoVaiPerto('pote', orgBichoCome);
     else if (o === 'brincar') orgBichoVaiPerto('bola', orgBichoBrinca);
     else orgBichoVai(outras[Math.floor(Math.random() * outras.length)].getAttribute('data-etapa'), null, false);
+  }
+  // De vez em quando: o peixinho sobe para comer a ração ou o baú abre e brilha (só com o item ganho)
+  function orgPeixeEvento(){
+    var g = orgBicho.el, opc = [];
+    if (orgTemPremio('potinho')) opc.push('peixe-racao');
+    if (orgTemPremio('bolinha')) opc.push('peixe-bau');
+    if (!opc.length || g.classList.contains('peixe-racao') || g.classList.contains('peixe-bau')) return;
+    var o = opc[Math.floor(Math.random() * opc.length)];
+    g.classList.add(o);
+    if (o === 'peixe-racao'){ orgBichoBalao('Nham nham!'); setTimeout(function(){ g.classList.remove(o); }, 4300); }
+    else { orgBichoFeliz('Um tesouro! ✨'); setTimeout(function(){ g.classList.remove(o); }, 3900); }
   }
   function orgBichoCome(){
     var g = orgBicho.el; if (!g) return;
@@ -5847,7 +5902,7 @@
   }
   function orgBichoOi(){ if (orgBicho.el && orgBicho.el.isConnected && orgBicho.tipo){ orgBichoAcorda(); orgBichoFeliz(ORG_BICHOS[orgBicho.tipo].frases[0] + ' Oi! 👋'); } }
   function orgBichoDorme(){
-    var g = orgBicho.el; if (!g || !g.isConnected || orgBicho.andando || orgBicho.tipo === 'peixe') return;   // peixe não dorme
+    var g = orgBicho.el; if (!g || !g.isConnected || orgBicho.andando) return;
     function deita(){ g.classList.remove('feliz'); g.classList.add('dormindo'); g.title = 'Shhh… está dormindo (clique para acordar)'; }
     var cama = orgBichoItem('cama'), c0 = orgBichoCols()[0];
     if (cama && c0 && !orgBicho.naCama && c0.offsetParent) orgBichoVai(c0.getAttribute('data-etapa'), orgBichoItemX(cama) + cama.offsetWidth / 2 - orgBichoTam() / 2, true, deita);
