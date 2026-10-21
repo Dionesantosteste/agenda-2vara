@@ -206,7 +206,7 @@ function Corpo(){
     const nomePerito = nomes.find(n => chaveNome(n) === f.perito) || '';
     imprimir('Perícias', textoDoFiltro(f, nomePerito), total + (total === 1 ? ' perícia' : ' perícias'), (
       <table className="pr-tab">
-        <thead><tr><th style={{ width: '13%' }}>Data e hora</th><th style={{ width: '27%' }}>Autor e processo</th><th style={{ width: '24%' }}>Perito e local</th><th style={{ width: '15%' }}>Situação</th><th>Laudo</th></tr></thead>
+        <thead><tr><th style={{ width: '13%' }}>Data e hora</th><th style={{ width: '27%' }}>Autor e processo</th><th style={{ width: '24%' }}>Perito</th><th style={{ width: '15%' }}>Situação</th><th>Laudo</th></tr></thead>
         <tbody>{grupos.flatMap((g, gi) => [
           <tr className="pr-dia" key={'g' + gi}><td colSpan={5}>{g.titulo}{g.rel && <> <span className="pr-rel">({g.rel})</span></>}</td></tr>,
           ...g.itens.map(p => {
@@ -217,7 +217,7 @@ function Corpo(){
               <tr key={p.id}>
                 <td className="pr-hora">{p.data ? <>{dataBr(p.data)}<div className="pr-sub">{hora(p.data)}</div></> : '—'}</td>
                 <td><b>{p.autor || 'Autor não informado'}</b><div className="pr-proc">{p.processo}</div></td>
-                <td>{p.perito || '—'}{p.especialidade && <> <span className="pr-sub">({p.especialidade})</span></>}{p.local && <div className="pr-sub">{p.local}</div>}</td>
+                <td>{p.perito || '—'}{p.especialidade && <> <span className="pr-sub">({p.especialidade})</span></>}</td>
                 <td className="pr-st">{PER_NOME[p.status] || ''}{p.realizadaEm && <div className="pr-sub">realizada em {dataBr(p.realizadaEm)}</div>}</td>
                 <td>{laudo}</td>
               </tr>
@@ -272,7 +272,7 @@ function Corpo(){
         <div className="searchbar">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input id="perSearch" type="text" autoComplete="off" value={f.busca} onChange={e => mudar({ busca: e.target.value })}
-            placeholder={naAbaPeritos ? 'Buscar perito por nome, especialidade ou contato…' : 'Buscar por autor, processo, perito, local ou observação…'} />
+            placeholder={naAbaPeritos ? 'Buscar perito por nome, especialidade ou contato…' : 'Buscar por autor, processo, perito ou observação…'} />
           <button className="clear-btn" id="perClearSearch" hidden={!f.busca} onClick={() => { mudar({ busca: '' }); document.getElementById('perSearch')?.focus(); }}>limpar</button>
         </div>
         <div className="filter-row" id="perSituacao" role="group" aria-label="Situação" hidden={naAbaPeritos}>

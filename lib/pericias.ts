@@ -181,7 +181,7 @@ export function passa(p: Pericia, f: Filtros, agora: Date, util: Util): boolean 
   if (!q) return true;
   const qd = soDigitos(q);
   if (qd.length >= 3 && soDigitos(p.processo).includes(qd)) return true;
-  return [p.autor, p.processo, p.perito, p.especialidade, p.local, p.observacoes].some(c => normalizar(c).includes(q));
+  return [p.autor, p.processo, p.perito, p.especialidade, p.observacoes].some(c => normalizar(c).includes(q));
 }
 // Data que define a ordem: agendada → data da perícia; realizada → prazo do laudo
 export function dataDeOrdem(p: Pericia, util: Util): Date | null {
