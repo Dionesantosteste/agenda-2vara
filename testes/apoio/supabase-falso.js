@@ -217,12 +217,15 @@ function notaPadrao(){ return { id: uuid(), texto: '', cor: 'amarelo', fixada: f
 function lembretePadrao(){ return { id: uuid(), texto: '', data: hojeVara(), hora: null, processo: '', feito_em: null, dono: null, created_at: agora(), updated_at: agora() }; }
 
 // Pessoas e tarefas para os testes da Organização
-function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [] } = {}){
+function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [], etiquetas = [], colunas = [], anotacoes = [] } = {}){
   pessoas.forEach(p => org.pessoas.push(Object.assign({ id: uuid(), nome: '', ativo: true, bicho_quadro: null, created_at: agora() }, p)));
   tarefas.forEach(t => org.tarefas.push(Object.assign(tarefaPadrao(), t)));
   notas.forEach(n => org.notas.push(Object.assign(notaPadrao(), n)));
   estrelas.forEach(e => org.estrelas.push(Object.assign({ created_at: agora() }, e)));
   bichos.forEach(b => org.bichos.push(Object.assign({ created_at: agora() }, b)));
+  etiquetas.forEach(e => org.etiquetas.push(Object.assign({ id: uuid(), nome: '', cor: 'azul', dono: null }, e)));
+  colunas.forEach(c => org.colunas.push(Object.assign({ dono: null, chave: '', nome: '', ordem: 10 }, c)));
+  anotacoes.forEach(n => org.anotacoes.push(Object.assign({ id: uuid(), tarefa_id: null, texto: '', created_at: agora() }, n)));
 }
 
 function acesso(org, a){
@@ -360,6 +363,73 @@ const ORG_FUNCOES = {
     if (!ac.gestor && org.tarefas.some(t => t.id === a.p_id && t.dono === ac.dono && t.do_gestor))
       return erro('Tarefa mandada pelo gestor não pode ser excluída. Se ela não for mais necessária, fale com o gestor.');
     org.tarefas = org.tarefas.filter(t => !(t.id === a.p_id && (t.dono || null) === ac.dono));
+    return { status: 'ok' };
+  },
+  org_checklist_tarefa(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const t = org.tarefas.find(x => x.id === a.p_id && (x.dono || null) === ac.dono);
+    if (t){
+      t.checklist = (Array.isArray(a.p_itens) ? a.p_itens : []).slice(0, 100)
+        .map(i => ({ t: String((i && i.t) || '').trim().slice(0, 200), ok: !!(i && i.ok) })).filter(i => i.t);
+      t.updated_at = agora();
+    }
+    return { status: 'ok' };
+  },
+  org_anotar(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const txt = String(a.p_texto || '').trim().slice(0, 2000);
+    if (!txt) return erro('Escreva a anotação.');
+    const t = org.tarefas.find(x => x.id === a.p_tarefa && (x.dono || null) === ac.dono);
+    if (!t) return erro('Esta tarefa não existe mais.');
+    const n = { id: uuid(), tarefa_id: t.id, texto: txt, created_at: agora() };
+    org.anotacoes.push(n);
+    t.updated_at = agora();
+    return { status: 'ok', id: n.id };
+  },
+  org_excluir_anotacao(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const donas = new Set(org.tarefas.filter(t => (t.dono || null) === ac.dono).map(t => t.id));
+    org.anotacoes = org.anotacoes.filter(n => !(n.id === a.p_id && donas.has(n.tarefa_id)));
+    return { status: 'ok' };
+  },
+  org_salvar_coluna(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const nome = String(a.p_nome || '').trim().slice(0, 40);
+    if (!nome) return erro('Dê um nome à coluna.');
+    let chave = a.p_chave;
+    if (!chave){
+      chave = 'c' + uuid().replace(/-/g, '');
+      const ordens = doDono(org.colunas, ac.dono).filter(c => c.chave !== 'feito').map(c => c.ordem || 0);
+      org.colunas.push({ dono: ac.dono, chave, nome, ordem: Math.max(0, ...ordens) + 10 });
+    } else {
+      const c = doDono(org.colunas, ac.dono).find(x => x.chave === chave);
+      if (c) c.nome = nome;
+      else org.colunas.push({ dono: ac.dono, chave, nome, ordem: chave === 'afazer' ? 0 : chave === 'feito' ? 999 : 10 });
+    }
+    return { status: 'ok', chave };
+  },
+  org_etiquetar_tarefa(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const t = org.tarefas.find(x => x.id === a.p_id && (x.dono || null) === ac.dono);
+    if (t){
+      const minhas = new Set(doDono(org.etiquetas, ac.dono).map(e => e.id));
+      t.etiquetas = (a.p_etiquetas || []).filter(id => minhas.has(id));
+      t.updated_at = agora();
+    }
+    return { status: 'ok' };
+  },
+  org_ordenar_tarefas(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    (a.p_ids || []).forEach((id, i) => {
+      const t = org.tarefas.find(x => x.id === id && (x.dono || null) === ac.dono);
+      if (t) t.posicao = (i + 1) * 10;
+    });
     return { status: 'ok' };
   },
   org_conferencia(org, a){
