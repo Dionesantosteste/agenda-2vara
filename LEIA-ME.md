@@ -508,12 +508,12 @@ acumulado. A trilha de prêmios não aparece; cada conquista é avisada no banne
 
 | Estrelas acumuladas | Prêmio |
 |---|---|
-| 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha e leoazinha |
-| 8 | Caminha (ele dorme nela quando o sistema fica parado) |
-| 15 | Potinho (de vez em quando vai comer) |
-| 25 | Bolinha (de vez em quando brinca) |
+| 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha, leoazinha, dragãozinho e peixinho (este mora num aquário e nada parado no lugar) |
+| 8 | Caminha (ele dorme nela quando o sistema fica parado). Para o peixinho: luminária do aquário, que apaga quando o sistema fica parado |
+| 15 | Potinho (de vez em quando vai comer). Para o peixinho: pote de ração, ele sobe para comer |
+| 25 | Bolinha (de vez em quando brinca). Para o peixinho: baú do tesouro, que de vez em quando abre e brilha |
 | 40 | Cresce: vira adulto |
-| 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem) |
+| 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem; são 6 no total) |
 
 O bichinho mora na borda de cima das colunas do Quadro: pisca, mexe o rabo, passeia, dorme quando
 ninguém mexe no sistema e comemora quando uma tarefa é concluída. Clicar nele faz carinho. Quem tem

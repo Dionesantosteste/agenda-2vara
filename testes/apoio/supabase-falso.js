@@ -488,7 +488,7 @@ const ORG_FUNCOES = {
     const ac = acesso(org, a);
     if (ac.st !== 'ok') return { status: ac.st };
     if (ac.gestor || !ac.dono) return erro('Só a própria pessoa escolhe o bichinho dela.');
-    if (!['gato', 'cachorro', 'raposa', 'leoa'].includes(a.p_tipo)) return erro('Bichinho desconhecido.');
+    if (!['gato', 'cachorro', 'raposa', 'leoa', 'dragao', 'peixe'].includes(a.p_tipo)) return erro('Bichinho desconhecido.');
     const total = org.estrelas.filter(e => e.dono === ac.dono).length;
     const vagas = [3, 55, 75, 100].filter(x => total >= x).length;
     if (org.bichos.filter(b => b.dono === ac.dono).length >= vagas) return erro('Ainda faltam estrelas para um novo bichinho.');
