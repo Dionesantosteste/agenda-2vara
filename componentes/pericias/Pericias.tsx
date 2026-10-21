@@ -5,7 +5,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   CONCLUIDAS, PER_NOME, SITUACOES, aberta, aplicarStatus, andamentoAoSalvar, chaveNome, dataBr, dataLocal, deLinha, deMinutos, hora, inicioDoDia,
-  laudoAtrasado, listaDePeritos, marcada, nomesDePeritos, ordemDoLote, paraGravar, paraMinutos, peritoCadastrado, peritoDeLinha, prazoLaudo, agrupar, resumo,
+  diasUteisEntre, laudoAtrasado, listaDePeritos, marcada, nomesDePeritos, ordemDoLote, paraGravar, paraMinutos, peritoCadastrado, peritoDeLinha, prazoLaudo, agrupar, resumo,
   textoDoFiltro, type Aba, type Andamento, type Concluidas, type Filtros, type Pericia, type Perito, type Situacao, type Status
 } from '@/lib/pericias';
 import { formatarDataHora } from '@/lib/datas';
@@ -211,7 +211,7 @@ function Corpo(){
           <tr className="pr-dia" key={'g' + gi}><td colSpan={5}>{g.titulo}{g.rel && <> <span className="pr-rel">({g.rel})</span></>}</td></tr>,
           ...g.itens.map(p => {
             const pr = prazoLaudo(p, util);
-            const laudo = p.status === 'realizada' && pr ? <>até {dataBr(pr)}{laudoAtrasado(p, agora, util) && <> <b>(atrasado)</b></>}</>
+            const laudo = p.status === 'realizada' && pr ? <>até {dataBr(pr)}{laudoAtrasado(p, agora, util) && (() => { const da = diasUteisEntre(pr, agora, util); return <> <b>({da} {da === 1 ? 'dia útil' : 'dias úteis'} de atraso)</b></>; })()}</>
               : p.status === 'laudo_juntado' && p.laudoEm ? 'juntado em ' + dataBr(p.laudoEm) : '—';
             return (
               <tr key={p.id}>

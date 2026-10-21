@@ -10449,7 +10449,7 @@
       h += '<tr class="pr-dia"><td colspan="5">' + escapeHtml(g.titulo) + (g.rel ? ' <span class="pr-rel">(' + escapeHtml(g.rel) + ')</span>' : '') + '</td></tr>';
       g.itens.forEach(function(p){
         var pr = prazoLaudo(p), laudo = '—';
-        if (p.status === 'realizada' && pr) laudo = 'até ' + fmtData(pr) + (laudoAtrasado(p) ? ' <b>(atrasado)</b>' : '');
+        if (p.status === 'realizada' && pr) laudo = 'até ' + fmtData(pr) + (laudoAtrasado(p) ? (function(){ var da = diasUteisEntre(pr, new Date()); return ' <b>(' + da + (da === 1 ? ' dia útil' : ' dias úteis') + ' de atraso)</b>'; })() : '');
         else if (p.status === 'laudo_juntado' && p.laudoEm) laudo = 'juntado em ' + fmtData(p.laudoEm);
         h += '<tr><td class="pr-hora">' + (p.data ? fmtData(p.data) + '<div class="pr-sub">' + prHora(p.data) + '</div>' : '—') + '</td>' +
           '<td><b>' + escapeHtml(p.autor || 'Autor não informado') + '</b><div class="pr-proc">' + escapeHtml(p.processo) + '</div></td>' +
