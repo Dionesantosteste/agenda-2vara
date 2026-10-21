@@ -314,7 +314,9 @@ for (const v of VERSOES){
         await pessoa(page);
         await cartao(page, 'Minuta de despacho').locator('.ktitle').click();
         await page.fill('#ocProc', '00012264320178110008');
+        const busca = page.waitForRequest(r => r.url().includes('org_processo_em_uso'));   // se falhar, mostra se o pedido saiu
         await page.locator('#orgCardForm button[type=submit]').click();
+        await busca;
         await expect(page.locator('#orgDupDialog')).toBeVisible();
         await expect(page.locator('#orgDupLista')).toContainText('Bia Lima');
         await page.locator('#orgDupDialog button[value="nao"]').click();
