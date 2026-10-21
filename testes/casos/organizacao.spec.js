@@ -135,7 +135,8 @@ test.describe('estrelas e bichinhos', () => {
 
     await page.locator('[data-festa-escolher]').click();
     await expect(page.locator('#orgBichoTit')).toHaveText('Escolha seu primeiro bichinho');
-    await expect(page.locator('.opcao')).toHaveCount(4);
+    await expect(page.locator('.opcao')).toHaveCount(5);
+    await expect(page.locator('[data-escolhe="dragao"]')).toContainText('Dragãozinho');
     await page.locator('[data-escolhe="raposa"]').click();
     await expect(page.locator('#orgKanban .bicho')).toHaveAttribute('data-tipo', 'raposa');
     expect(banco.org.bichos).toEqual([expect.objectContaining({ dono: ANA, tipo: 'raposa' })]);

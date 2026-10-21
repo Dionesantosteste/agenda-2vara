@@ -508,12 +508,12 @@ acumulado. A trilha de prêmios não aparece; cada conquista é avisada no banne
 
 | Estrelas acumuladas | Prêmio |
 |---|---|
-| 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha e leoazinha |
+| 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha, leoazinha e dragãozinho |
 | 8 | Caminha (ele dorme nela quando o sistema fica parado) |
 | 15 | Potinho (de vez em quando vai comer) |
 | 25 | Bolinha (de vez em quando brinca) |
 | 40 | Cresce: vira adulto |
-| 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem) |
+| 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem; são 5 no total) |
 
 O bichinho mora na borda de cima das colunas do Quadro: pisca, mexe o rabo, passeia, dorme quando
 ninguém mexe no sistema e comemora quando uma tarefa é concluída. Clicar nele faz carinho. Quem tem
