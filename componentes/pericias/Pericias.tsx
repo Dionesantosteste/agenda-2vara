@@ -336,7 +336,7 @@ function Corpo(){
         <BarraLote sel={selecionadas} aplicar={aplicarLote} limpar={() => setSel({})} sugestao={sugestao} />
       </section>
 
-      <DialogoPericia edicao={edicao} nomes={nomes} peritos={peritos} util={util} fechar={() => setEdicao(null)}
+      <DialogoPericia edicao={edicao} itens={itens} nomes={nomes} peritos={peritos} util={util} fechar={() => setEdicao(null)}
         salvar={(p, antes) => gravar(p, antes)}
         excluir={async id => {
           const res = await supabase().from('pericias').delete().eq('id', id);

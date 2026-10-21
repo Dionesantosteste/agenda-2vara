@@ -1,7 +1,7 @@
 'use client';
 // Janela de edição da perícia (datas, situação, prazo do laudo; excluir pede confirmação)
 import { useEffect, useRef, useState } from 'react';
-import { PER_STATUS, PRAZO_LAUDO, dataBr, dataLocal, hora, marcada, peritoCadastrado, somarDiasUteis, type Pericia, type Perito, type Status, type Util } from '@/lib/pericias';
+import { PER_STATUS, PRAZO_LAUDO, dataBr, dataLocal, hora, duplicadasDe, descrever, marcada, peritoCadastrado, somarDiasUteis, type Pericia, type Perito, type Status, type Util } from '@/lib/pericias';
 import { chaveDoDia } from '@/lib/datas';
 import { formatarProcesso } from '@/lib/processo';
 import { useAviso } from '@/componentes/Avisos';
@@ -11,8 +11,8 @@ import { SelectEspecialidade, SelectPerito } from './SelectPerito';
 
 export type Edicao = { base: Pericia; antes: Pericia } | null;
 
-export function DialogoPericia({ edicao, nomes, peritos, util, fechar, salvar, excluir }: {
-  edicao: Edicao; nomes: string[]; peritos: Perito[]; util: Util; fechar: () => void;
+export function DialogoPericia({ edicao, itens, nomes, peritos, util, fechar, salvar, excluir }: {
+  edicao: Edicao; itens: Pericia[]; nomes: string[]; peritos: Perito[]; util: Util; fechar: () => void;
   salvar: (p: Pericia, antes: Pericia) => Promise<boolean>; excluir: (id: string) => Promise<void>;
 }){
   const avisar = useAviso();
@@ -20,6 +20,7 @@ export function DialogoPericia({ edicao, nomes, peritos, util, fechar, salvar, e
   const [v, setV] = useState({ proc: '', autor: '', perito: '', esp: '', status: 'nao_agendada' as Status, data: '', hora: '', local: '', real: '', laudo: '', obs: '' });
   const [armado, setArmado] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const confirmouDup = useRef(false);
 
   useEffect(() => {
     if (!edicao) return;
@@ -28,6 +29,7 @@ export function DialogoPericia({ edicao, nomes, peritos, util, fechar, salvar, e
       data: p.data ? chaveDoDia(p.data) : '', hora: p.data ? hora(p.data) : '', local: p.local,
       real: p.realizadaEm ? chaveDoDia(p.realizadaEm) : '', laudo: p.laudoEm ? chaveDoDia(p.laudoEm) : '', obs: p.observacoes });
     setArmado(false);
+    confirmouDup.current = false;
     setTimeout(() => document.getElementById(marcada(p.status) && !p.data ? 'peData' : 'peProcesso')?.focus(), 30);
   }, [edicao]);
 
@@ -45,6 +47,10 @@ export function DialogoPericia({ edicao, nomes, peritos, util, fechar, salvar, e
     if (marcada(p.status) && !p.data){ avisar('Informe a data da perícia'); document.getElementById('peData')?.focus(); return; }
     if (p.status === 'realizada' && !p.realizadaEm){ avisar('Informe a data em que a perícia foi realizada'); document.getElementById('peRealizada')?.focus(); return; }
     if (p.status === 'laudo_juntado' && !p.laudoEm){ avisar('Informe a data em que o laudo foi juntado'); document.getElementById('peLaudo')?.focus(); return; }
+    if (p.processo !== edicao.base.processo && !confirmouDup.current){
+      const d = duplicadasDe(itens, p.processo, p.id);
+      if (d.length){ confirmouDup.current = true; avisar('Atenção: o processo ' + p.processo + ' já tem perícia ' + d.map(descrever).join('; ') + '. Clique em Salvar de novo para manter assim.'); return; }
+    }
     if (!(await salvar(p, edicao.antes))) return;
     fechar();
     avisar('Perícia atualizada');
@@ -57,7 +63,7 @@ export function DialogoPericia({ edicao, nomes, peritos, util, fechar, salvar, e
         <h2>Editar perícia</h2>
         <div className="field">
           <label htmlFor="peProcesso">Nº do processo</label>
-          <CampoProcesso id="peProcesso" className="mono" maxLength={40} required value={v.proc} onChange={x => setV(s => ({ ...s, proc: x }))} />
+          <CampoProcesso id="peProcesso" className="mono" maxLength={40} required value={v.proc} onChange={x => { confirmouDup.current = false; setV(s => ({ ...s, proc: x })); }} />
         </div>
         <div className="field">
           <label htmlFor="peAutor">Nome do autor</label>

@@ -154,11 +154,13 @@ export function andamentoAoSalvar(p: Pericia, antes: Pericia | null, novo: boole
 export function duplicadasDe(itens: Pericia[], proc: string, ignorarId?: string): Pericia[] {
   const k = soDigitos(proc);
   if (!k) return [];
-  return itens.filter(p => aberta(p) && p.id !== ignorarId && soDigitos(p.processo) === k);
+  return itens.filter(p => p.id !== ignorarId && soDigitos(p.processo) === k);
 }
 export function descrever(p: Pericia): string {
   const t = marcada(p.status) && p.data ? 'agendada para ' + dataBr(p.data) + ' às ' + hora(p.data)
     : p.status === 'realizada' && p.realizadaEm ? 'realizada em ' + dataBr(p.realizadaEm) + ' (aguardando laudo)'
+    : p.status === 'laudo_juntado' ? 'concluída (laudo juntado' + (p.laudoEm ? ' em ' + dataBr(p.laudoEm) : '') + ')'
+    : p.status === 'cancelada' ? 'cancelada'
     : 'cadastrada como Não agendada';
   return t + (p.perito ? ' com ' + p.perito : '');
 }
