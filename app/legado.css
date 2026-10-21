@@ -1395,7 +1395,7 @@
   .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
   /* Estrelas (1 por dia com 10 tarefas concluídas no próprio dia, até 5 por semana) e bichinhos do quadro */
   :root{ --olho:#2A1E14; --brilho:#FFFFFF; --coracao:#E5484D; --ouro:#E8A317; --ouro-borda:#B97A0A; --ouro-txt:#9A6408;
-    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; }
+    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; --agua:#8FD3F4; --vidro:#4C93B8; --areia:#E8CF9B; --alga:#3FA564; }
   @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ouro-txt:#F5C866; } }
   :root[data-theme="dark"]{ --ouro-txt:#F5C866; }
   :root[data-theme="contraste"]{ --ouro-txt:#5C3B00; --ouro-borda:#000000; }
@@ -1432,6 +1432,7 @@
   [data-tipo="cachorro"]{ --b-pelo:#C89160; --b-listra:#A8703F; --b-claro:#F6E4CC; --b-contorno:#4A3020; --b-escuro:#7E4F2B; --b-rosa:#F08A9A; }
   [data-tipo="raposa"]{ --b-pelo:#E8743B; --b-listra:#C2551F; --b-claro:#FFF4E8; --b-contorno:#5A2A12; --b-escuro:#3A2418; --b-rosa:#F4A3A8; }
   [data-tipo="dragao"]{ --b-pelo:#6DBE6A; --b-listra:#3E9150; --b-claro:#F4E7A6; --b-contorno:#1F4A2B; --b-escuro:#2F7A45; --b-rosa:#F28B82; }
+  [data-tipo="peixe"]{ --b-pelo:#F5923A; --b-listra:#E5601A; --b-claro:#FFE4B8; --b-contorno:#7A3A10; --b-escuro:#C2551F; --b-rosa:#F4A3A8; }
   [data-tipo="leoa"]{ --b-pelo:#D9AE6A; --b-listra:#B98A45; --b-claro:#F7E6C4; --b-contorno:#5A4220; --b-escuro:#7A5226; --b-rosa:#C9877A; }
   .bx svg{ display:block; width:100%; height:100%; overflow:visible; transform-origin:50% 90%; }
   .bx .gp{ fill:var(--b-pelo); stroke:var(--b-contorno); stroke-width:1.3; stroke-linejoin:round; }
@@ -1444,6 +1445,13 @@
   .bx .go{ fill:var(--olho); }
   .bx .gw{ fill:var(--brilho); }
   .bx .gf{ fill:var(--fogo); }
+  .bx .ga{ fill:var(--agua); fill-opacity:.55; stroke:var(--vidro); stroke-width:1.4; }
+  .bx .gs{ fill:var(--areia); }
+  .bx .gv{ fill:none; stroke:var(--alga); stroke-width:1.7; stroke-linecap:round; }
+  .bx .gbo{ fill:none; stroke:var(--brilho); stroke-width:.8; }
+  .bx .gvi{ fill:none; stroke:var(--brilho); stroke-width:1.2; stroke-linecap:round; opacity:.7; }
+  .bx .b-nada{ transform-box:fill-box; transform-origin:center; animation:bNada 8s ease-in-out infinite; }
+  .bx .b-bolha{ animation:bBolha 3.6s ease-in infinite; }
   .bx .gt{ fill:none; stroke:var(--olho); stroke-width:1.4; stroke-linecap:round; }
   .bx .gb{ fill:none; stroke:var(--b-contorno); stroke-width:.7; stroke-linecap:round; opacity:.55; }
   .bx .rc{ fill:none; stroke:var(--b-contorno); stroke-linecap:round; }
@@ -1460,6 +1468,9 @@
   .bx .b-asa{ animation:bAsa 3.2s ease-in-out infinite alternate; }
   .bicho.dormindo .b-asa{ animation-duration:7s; }
   .bicho.feliz .b-asa{ animation-duration:.4s; }
+  .bicho.feliz[data-tipo="peixe"] svg{ animation:none; }
+  .bicho.feliz[data-tipo="peixe"] .b-nada{ animation:bSalta 1.7s ease-in-out 1; }
+  .bicho.feliz[data-tipo="peixe"] .b-feliz.b-respingo{ animation:bBolha 1.2s ease-out 1; }
   .bicho.feliz[data-tipo="dragao"] svg{ animation:bVoa 1.7s ease-in-out 1; }
   .bicho.feliz[data-tipo="dragao"] .b-feliz.gf{ transform-origin:35px 29.8px; animation:bFogo 1.7s ease-out 1; }
   .bx .b-olhos{ transform-origin:32px 21.5px; animation:bPisca 4.6s infinite; }
@@ -1488,6 +1499,9 @@
   @keyframes bAsa{ from{ transform:rotate(0); } to{ transform:rotate(7deg); } }
   @keyframes bVoa{ 0%{ transform:translateY(0); } 25%, 75%{ transform:translateY(-18px) rotate(-3deg); } 50%{ transform:translateY(-22px) rotate(3deg); } 100%{ transform:translateY(0); } }
   @keyframes bFogo{ 0%, 20%{ opacity:0; transform:scale(.1); } 35%{ opacity:1; transform:scale(1.1, 1); } 55%{ opacity:.9; transform:scale(.85, 1.15); } 75%{ opacity:.8; transform:scale(1, .9); } 100%{ opacity:0; transform:scale(.2); } }
+  @keyframes bNada{ 0%{ transform:translate(0, 0) scaleX(1); } 42%{ transform:translate(30px, -3px) scaleX(1); } 50%{ transform:translate(30px, -3px) scaleX(-1); } 92%{ transform:translate(0, 3px) scaleX(-1); } 100%{ transform:translate(0, 0) scaleX(1); } }
+  @keyframes bSalta{ 0%, 100%{ transform:translate(0, 0) rotate(0); } 35%{ transform:translate(8px, -22px) rotate(-30deg); } 55%{ transform:translate(15px, -26px) rotate(0); } 80%{ transform:translate(22px, -4px) rotate(35deg); } }
+  @keyframes bBolha{ 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:.9; } 100%{ opacity:0; transform:translateY(-16px); } }
   @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
   @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
   @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }

@@ -1428,7 +1428,7 @@
   .ktitle{ all:unset; cursor:pointer; font:inherit; font-weight:500; overflow-wrap:anywhere; border-radius:4px; }
   /* Estrelas (1 por dia com 10 tarefas concluídas no próprio dia, até 5 por semana) e bichinhos do quadro */
   :root{ --olho:#2A1E14; --brilho:#FFFFFF; --coracao:#E5484D; --ouro:#E8A317; --ouro-borda:#B97A0A; --ouro-txt:#9A6408;
-    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; }
+    --cama:#C8553D; --cama-almofada:#F6D3C7; --pote:#3D7FC9; --racao:#9A6232; --novelo:#D45A8A; --novelo-l:#F7C1D6; --fogo:#F5A524; --agua:#8FD3F4; --vidro:#4C93B8; --areia:#E8CF9B; --alga:#3FA564; }
   @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ouro-txt:#F5C866; } }
   :root[data-theme="dark"]{ --ouro-txt:#F5C866; }
   :root[data-theme="contraste"]{ --ouro-txt:#5C3B00; --ouro-borda:#000000; }
@@ -1465,6 +1465,7 @@
   [data-tipo="cachorro"]{ --b-pelo:#C89160; --b-listra:#A8703F; --b-claro:#F6E4CC; --b-contorno:#4A3020; --b-escuro:#7E4F2B; --b-rosa:#F08A9A; }
   [data-tipo="raposa"]{ --b-pelo:#E8743B; --b-listra:#C2551F; --b-claro:#FFF4E8; --b-contorno:#5A2A12; --b-escuro:#3A2418; --b-rosa:#F4A3A8; }
   [data-tipo="dragao"]{ --b-pelo:#6DBE6A; --b-listra:#3E9150; --b-claro:#F4E7A6; --b-contorno:#1F4A2B; --b-escuro:#2F7A45; --b-rosa:#F28B82; }
+  [data-tipo="peixe"]{ --b-pelo:#F5923A; --b-listra:#E5601A; --b-claro:#FFE4B8; --b-contorno:#7A3A10; --b-escuro:#C2551F; --b-rosa:#F4A3A8; }
   [data-tipo="leoa"]{ --b-pelo:#D9AE6A; --b-listra:#B98A45; --b-claro:#F7E6C4; --b-contorno:#5A4220; --b-escuro:#7A5226; --b-rosa:#C9877A; }
   .bx svg{ display:block; width:100%; height:100%; overflow:visible; transform-origin:50% 90%; }
   .bx .gp{ fill:var(--b-pelo); stroke:var(--b-contorno); stroke-width:1.3; stroke-linejoin:round; }
@@ -1477,6 +1478,13 @@
   .bx .go{ fill:var(--olho); }
   .bx .gw{ fill:var(--brilho); }
   .bx .gf{ fill:var(--fogo); }
+  .bx .ga{ fill:var(--agua); fill-opacity:.55; stroke:var(--vidro); stroke-width:1.4; }
+  .bx .gs{ fill:var(--areia); }
+  .bx .gv{ fill:none; stroke:var(--alga); stroke-width:1.7; stroke-linecap:round; }
+  .bx .gbo{ fill:none; stroke:var(--brilho); stroke-width:.8; }
+  .bx .gvi{ fill:none; stroke:var(--brilho); stroke-width:1.2; stroke-linecap:round; opacity:.7; }
+  .bx .b-nada{ transform-box:fill-box; transform-origin:center; animation:bNada 8s ease-in-out infinite; }
+  .bx .b-bolha{ animation:bBolha 3.6s ease-in infinite; }
   .bx .gt{ fill:none; stroke:var(--olho); stroke-width:1.4; stroke-linecap:round; }
   .bx .gb{ fill:none; stroke:var(--b-contorno); stroke-width:.7; stroke-linecap:round; opacity:.55; }
   .bx .rc{ fill:none; stroke:var(--b-contorno); stroke-linecap:round; }
@@ -1493,6 +1501,9 @@
   .bx .b-asa{ animation:bAsa 3.2s ease-in-out infinite alternate; }
   .bicho.dormindo .b-asa{ animation-duration:7s; }
   .bicho.feliz .b-asa{ animation-duration:.4s; }
+  .bicho.feliz[data-tipo="peixe"] svg{ animation:none; }
+  .bicho.feliz[data-tipo="peixe"] .b-nada{ animation:bSalta 1.7s ease-in-out 1; }
+  .bicho.feliz[data-tipo="peixe"] .b-feliz.b-respingo{ animation:bBolha 1.2s ease-out 1; }
   .bicho.feliz[data-tipo="dragao"] svg{ animation:bVoa 1.7s ease-in-out 1; }
   .bicho.feliz[data-tipo="dragao"] .b-feliz.gf{ transform-origin:35px 29.8px; animation:bFogo 1.7s ease-out 1; }
   .bx .b-olhos{ transform-origin:32px 21.5px; animation:bPisca 4.6s infinite; }
@@ -1521,6 +1532,9 @@
   @keyframes bAsa{ from{ transform:rotate(0); } to{ transform:rotate(7deg); } }
   @keyframes bVoa{ 0%{ transform:translateY(0); } 25%, 75%{ transform:translateY(-18px) rotate(-3deg); } 50%{ transform:translateY(-22px) rotate(3deg); } 100%{ transform:translateY(0); } }
   @keyframes bFogo{ 0%, 20%{ opacity:0; transform:scale(.1); } 35%{ opacity:1; transform:scale(1.1, 1); } 55%{ opacity:.9; transform:scale(.85, 1.15); } 75%{ opacity:.8; transform:scale(1, .9); } 100%{ opacity:0; transform:scale(.2); } }
+  @keyframes bNada{ 0%{ transform:translate(0, 0) scaleX(1); } 42%{ transform:translate(30px, -3px) scaleX(1); } 50%{ transform:translate(30px, -3px) scaleX(-1); } 92%{ transform:translate(0, 3px) scaleX(-1); } 100%{ transform:translate(0, 0) scaleX(1); } }
+  @keyframes bSalta{ 0%, 100%{ transform:translate(0, 0) rotate(0); } 35%{ transform:translate(8px, -22px) rotate(-30deg); } 55%{ transform:translate(15px, -26px) rotate(0); } 80%{ transform:translate(22px, -4px) rotate(35deg); } }
+  @keyframes bBolha{ 0%{ opacity:0; transform:translateY(0); } 15%{ opacity:.9; } 100%{ opacity:0; transform:translateY(-16px); } }
   @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
   @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
   @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
@@ -5501,9 +5515,10 @@
     cachorro: { nome: 'Cachorrinho', icone: '🐶', jeito: 'Animado, abana o rabo', frases: ['Au au!', 'Rrr… 🦴', 'Au! ♥', 'Vamos trabalhar?', 'Uau!'] },
     raposa:   { nome: 'Raposinha',   icone: '🦊', jeito: 'Esperta e brincalhona', frases: ['Yip!', 'Hehe 🦊', 'Yip yip ♥', 'Achei um prazo!', 'Hmm…'] },
     leoa:     { nome: 'Leoazinha',   icone: '🦁', jeito: 'Corajosa e protetora',  frases: ['Rawr!', 'Grrr ♥', 'Rawr? 🍖', 'Deixa comigo!', 'Rrr…'] },
-    dragao:   { nome: 'Dragãozinho', icone: '🐲', jeito: 'Valente e faiscante',   frases: ['Rawr!', 'Fuuu… 🔥', 'Rrr ♥', 'Prazo na mira!', 'Hmm… 🔥'] }
+    dragao:   { nome: 'Dragãozinho', icone: '🐲', jeito: 'Valente e faiscante',   frases: ['Rawr!', 'Fuuu… 🔥', 'Rrr ♥', 'Prazo na mira!', 'Hmm… 🔥'] },
+    peixe:    { nome: 'Peixinho',    icone: '🐠', jeito: 'Calmo, mora no aquário', frases: ['Blub!', 'Blub blub 🫧', 'Glub ♥', 'Nadando nos prazos!', 'Blub… 🐟'] }
   };
-  var ORG_BICHOS_ORDEM = ['gato', 'cachorro', 'raposa', 'leoa', 'dragao'];
+  var ORG_BICHOS_ORDEM = ['gato', 'cachorro', 'raposa', 'leoa', 'dragao', 'peixe'];
   var ORG_BICHO_SONO_MS = 90000;               // sem mexer no sistema por esse tempo, ele vai dormir (na caminha, se tiver)
   var ORG_BICHO_PASSEIO_MS = [25000, 55000];   // intervalo entre um passeio e outro (mín., máx.)
   var ICON_ESTRELA = '<path d="M10 1.8l2.5 5.2 5.7.8-4.1 4 1 5.6L10 14.7l-5.1 2.7 1-5.6-4.1-4 5.7-.8z" stroke-width="1.3" stroke-linejoin="round"/>';
@@ -5631,7 +5646,22 @@
   // Desenho dos bichinhos: todos sentados do mesmo jeito (patas na borda, y = 56); mudam as
   // orelhas, o rabo, o focinho e as cores. Cada bicho novo é só um desenho a mais aqui.
   // ---------------------------------------------------------------------
+    var ORG_CORACAO = '<path class="b-coracao" d="M52 15c-2.5-1.8-5-3.4-5-5.6 0-1.4 1.1-2.4 2.4-2.4.9 0 1.9.5 2.6 1.4.7-.9 1.7-1.4 2.6-1.4 1.3 0 2.4 1 2.4 2.4 0 2.2-2.5 3.8-5 5.6Z"/>';
+  // O peixinho não senta na borda: mora num aquário (mesma altura dos outros) e nada de um lado para o outro
+  function orgPeixeSvg(){
+    return '<svg viewBox="0 0 64 72" aria-hidden="true" focusable="false">' +
+      '<rect class="ga" x="2" y="22" width="60" height="34" rx="5"/>' +
+      '<path class="gs" d="M2.8 51Q32 47.8 61.2 51V51.6Q61.2 55.5 56.5 55.5H7.5Q2.8 55.5 2.8 51.6Z"/>' +
+      '<path class="gv" d="M10 55Q6 49 10.5 43M14.5 55Q11 50 14.5 46"/><circle class="ge" cx="48" cy="53.2" r="1.6"/><circle class="ge" cx="53" cy="53.8" r="1.2"/>' +
+      '<circle class="gbo b-bolha" cx="50" cy="48" r="1.3"/><circle class="gbo b-bolha" style="animation-delay:1.2s" cx="46" cy="49" r=".9"/><circle class="gbo b-bolha" style="animation-delay:2.4s" cx="53" cy="49" r="1"/>' +
+      '<g class="b-nada"><path class="gp" d="M13 38L5.5 32L5.5 44Z"/><ellipse class="gp" cx="20" cy="38" rx="8.5" ry="5.8"/><path class="gp" d="M17 33.5Q20.5 28 25 34Z"/>' +
+        '<path class="gl" stroke-width="1.4" d="M17 33.6q-2 4.4 0 9M21 33q-1.6 5 0 10.4"/><circle class="go" cx="25" cy="36.6" r="1.5"/><circle class="gw" cx="25.5" cy="36" r=".5"/><path class="gt" d="M27.6 40q-1 .8-2 .4"/></g>' +
+      '<path class="gvi" d="M6 27v12"/>' +
+      '<g class="b-feliz b-respingo"><circle class="gbo" cx="30" cy="30" r="1.6"/><circle class="gbo" cx="38" cy="26" r="1.2"/><circle class="gbo" cx="45" cy="31" r="1.8"/></g>' +
+      ORG_CORACAO + '</svg>';
+  }
   function orgBichoSvg(tipo){
+    if (tipo === 'peixe') return orgPeixeSvg();
     var rabo, orelhas, orelhasDepois = '', marcas = '', focinho, bigode = '', extra = '';
     var olhos = '<g class="b-olhos"><ellipse class="go" cx="25.5" cy="21.5" rx="2.2" ry="2.8"/><ellipse class="go" cx="38.5" cy="21.5" rx="2.2" ry="2.8"/>' +
       '<circle class="gw" cx="26.3" cy="20.4" r=".8"/><circle class="gw" cx="39.3" cy="20.4" r=".8"/></g>' +
@@ -5685,8 +5715,7 @@
         '<ellipse class="gc" cx="32" cy="47" rx="7.5" ry="8.5"/><ellipse class="gcl" cx="26" cy="55" rx="4.6" ry="2.8"/><ellipse class="gcl" cx="38" cy="55" rx="4.6" ry="2.8"/></g>' +
       '<g class="b-cabeca">' + orelhas + '<ellipse class="gp" cx="32" cy="22" rx="16" ry="13"/>' + orelhasDepois + marcas + focinho + olhos + extra + bigode + '</g>' +
       '<g class="b-zzz"><text x="46" y="15">z</text><text x="51" y="10">Z</text></g>' +
-      '<path class="b-coracao" d="M52 15c-2.5-1.8-5-3.4-5-5.6 0-1.4 1.1-2.4 2.4-2.4.9 0 1.9.5 2.6 1.4.7-.9 1.7-1.4 2.6-1.4 1.3 0 2.4 1 2.4 2.4 0 2.2-2.5 3.8-5 5.6Z"/>' +
-      '</svg>';
+      ORG_CORACAO + '</svg>';
   }
   var ORG_CAMA = '<svg width="66" height="24" viewBox="0 0 66 24" aria-hidden="true"><ellipse class="cama-borda" cx="33" cy="15" rx="31" ry="8.4"/><ellipse class="cama-almofada" cx="33" cy="13" rx="24" ry="4.6"/><path class="cama-borda" d="M2.2 15.4Q33 31 63.8 15.4Q63 22 33 23.4Q3 22 2.2 15.4Z"/></svg>';
   var ORG_POTE = '<svg width="28" height="15" viewBox="0 0 28 15" aria-hidden="true"><circle class="racao" cx="9" cy="5" r="2.3"/><circle class="racao" cx="13.5" cy="4" r="2.3"/><circle class="racao" cx="18" cy="5" r="2.3"/><path class="pote" d="M2 6h24l-3.4 8.4H5.4Z"/></svg>';
@@ -5783,7 +5812,7 @@
   function orgBichoPasseia(){
     orgBichoAgenda();
     var g = orgBicho.el;
-    if (orgBichoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden || orgBicho.andando || g.classList.contains('dormindo') || g.classList.contains('feliz')) return;
+    if (orgBichoReduz || !g || !g.isConnected || g.hidden || !g.offsetParent || document.hidden || orgBicho.andando || g.classList.contains('dormindo') || g.classList.contains('feliz') || orgBicho.tipo === 'peixe') return;   // o aquário fica parado
     var aqui = orgBichoColEl(orgBicho.col), outras = orgBichoCols().filter(function(c){ return c !== aqui; });
     // no celular as colunas ficam uma embaixo da outra: aí ele fica quieto na primeira
     if (!aqui || !outras.length || outras[0].offsetTop !== aqui.offsetTop) return;
@@ -5818,7 +5847,7 @@
   }
   function orgBichoOi(){ if (orgBicho.el && orgBicho.el.isConnected && orgBicho.tipo){ orgBichoAcorda(); orgBichoFeliz(ORG_BICHOS[orgBicho.tipo].frases[0] + ' Oi! 👋'); } }
   function orgBichoDorme(){
-    var g = orgBicho.el; if (!g || !g.isConnected || orgBicho.andando) return;
+    var g = orgBicho.el; if (!g || !g.isConnected || orgBicho.andando || orgBicho.tipo === 'peixe') return;   // peixe não dorme
     function deita(){ g.classList.remove('feliz'); g.classList.add('dormindo'); g.title = 'Shhh… está dormindo (clique para acordar)'; }
     var cama = orgBichoItem('cama'), c0 = orgBichoCols()[0];
     if (cama && c0 && !orgBicho.naCama && c0.offsetParent) orgBichoVai(c0.getAttribute('data-etapa'), orgBichoItemX(cama) + cama.offsetWidth / 2 - orgBichoTam() / 2, true, deita);
@@ -5835,7 +5864,7 @@
     orgBichoAcorda();
     var msg = ORG_BICHOS[orgBicho.tipo].frases[0] + ' Mais uma!';
     var feito = orgBichoColEl('feito'), aqui = orgBichoColEl(orgBicho.col);
-    if (feito && aqui && feito.offsetTop === aqui.offsetTop && !orgBichoReduz && (feito !== aqui || orgBicho.x !== null)) orgBichoVai('feito', null, false, function(){ orgBichoFeliz(msg); });
+    if (feito && aqui && orgBicho.tipo !== 'peixe' && feito.offsetTop === aqui.offsetTop && !orgBichoReduz && (feito !== aqui || orgBicho.x !== null)) orgBichoVai('feito', null, false, function(){ orgBichoFeliz(msg); });
     else orgBichoFeliz(msg);
   }
   ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(function(ev){

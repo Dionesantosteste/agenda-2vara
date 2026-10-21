@@ -2071,17 +2071,17 @@ create table if not exists org_estrelas (
 );
 alter table org_estrelas enable row level security;
 
--- bichinhos que a pessoa escolheu (gato, cachorro, raposa, leoa, dragao), na ordem da escolha
+-- bichinhos que a pessoa escolheu (gato, cachorro, raposa, leoa, dragao, peixe), na ordem da escolha
 create table if not exists org_bichos (
   dono uuid not null references org_pessoas(id) on delete cascade,
-  tipo text not null check (tipo in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao')),
+  tipo text not null check (tipo in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao', 'peixe')),
   created_at timestamptz not null default now(),
   primary key (dono, tipo)
 );
 alter table org_bichos enable row level security;
--- bancos que já tinham a tabela: libera o dragão
+-- bancos que já tinham a tabela: libera o dragão e o peixe
 alter table org_bichos drop constraint if exists org_bichos_tipo_check;
-alter table org_bichos add constraint org_bichos_tipo_check check (tipo in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao'));
+alter table org_bichos add constraint org_bichos_tipo_check check (tipo in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao', 'peixe'));
 -- qual bichinho fica no quadro: null = o primeiro escolhido; '' = nenhum (escondido)
 alter table org_pessoas add column if not exists bicho_quadro text;
 
@@ -2185,7 +2185,7 @@ begin
   if ac.o_gestor or ac.o_dono is null then
     return jsonb_build_object('status', 'erro', 'message', 'Só a própria pessoa escolhe o bichinho dela.');
   end if;
-  if p_tipo is null or p_tipo not in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao') then
+  if p_tipo is null or p_tipo not in ('gato', 'cachorro', 'raposa', 'leoa', 'dragao', 'peixe') then
     return jsonb_build_object('status', 'erro', 'message', 'Bichinho desconhecido.');
   end if;
   select count(*) into total from org_estrelas where dono = ac.o_dono;
