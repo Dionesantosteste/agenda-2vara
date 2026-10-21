@@ -1426,6 +1426,8 @@
   .kanban{ position:relative; }
   .kanban.com-bicho{ padding-top:50px; }
   .kanban.com-bicho.adulto{ padding-top:60px; }
+  .kanban.com-bicho.dragao{ padding-top:74px; }
+  .kanban.com-bicho.dragao.adulto{ padding-top:84px; }
   [data-tipo="gato"]{ --b-pelo:#F2A65A; --b-listra:#C9722E; --b-claro:#FFE9CC; --b-contorno:#5A3A1E; --b-escuro:#C9722E; --b-rosa:#F4A3A8; }
   [data-tipo="cachorro"]{ --b-pelo:#C89160; --b-listra:#A8703F; --b-claro:#F6E4CC; --b-contorno:#4A3020; --b-escuro:#7E4F2B; --b-rosa:#F08A9A; }
   [data-tipo="raposa"]{ --b-pelo:#E8743B; --b-listra:#C2551F; --b-claro:#FFF4E8; --b-contorno:#5A2A12; --b-escuro:#3A2418; --b-rosa:#F4A3A8; }
@@ -1458,6 +1460,8 @@
   .bx .b-asa{ animation:bAsa 3.2s ease-in-out infinite alternate; }
   .bicho.dormindo .b-asa{ animation-duration:7s; }
   .bicho.feliz .b-asa{ animation-duration:.4s; }
+  .bicho.feliz[data-tipo="dragao"] svg{ animation:bVoa 1.7s ease-in-out 1; }
+  .bicho.feliz[data-tipo="dragao"] .b-feliz.gf{ transform-origin:35px 29.8px; animation:bFogo 1.7s ease-out 1; }
   .bx .b-olhos{ transform-origin:32px 21.5px; animation:bPisca 4.6s infinite; }
   .bx .b-orelha{ animation:bOrelha 7.3s infinite; }
   .bx .b-corpo{ transform-origin:32px 56px; animation:bRespira 3.4s ease-in-out infinite; }
@@ -1482,6 +1486,8 @@
   .balao.show{ opacity:1; transform:none; }
   @keyframes bRabo{ from{ transform:rotate(-8deg); } to{ transform:rotate(14deg); } }
   @keyframes bAsa{ from{ transform:rotate(0); } to{ transform:rotate(7deg); } }
+  @keyframes bVoa{ 0%{ transform:translateY(0); } 25%, 75%{ transform:translateY(-18px) rotate(-3deg); } 50%{ transform:translateY(-22px) rotate(3deg); } 100%{ transform:translateY(0); } }
+  @keyframes bFogo{ 0%, 20%{ opacity:0; transform:scale(.1); } 35%{ opacity:1; transform:scale(1.1, 1); } 55%{ opacity:.9; transform:scale(.85, 1.15); } 75%{ opacity:.8; transform:scale(1, .9); } 100%{ opacity:0; transform:scale(.2); } }
   @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
   @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
   @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }

@@ -1459,6 +1459,8 @@
   .kanban{ position:relative; }
   .kanban.com-bicho{ padding-top:50px; }
   .kanban.com-bicho.adulto{ padding-top:60px; }
+  .kanban.com-bicho.dragao{ padding-top:74px; }
+  .kanban.com-bicho.dragao.adulto{ padding-top:84px; }
   [data-tipo="gato"]{ --b-pelo:#F2A65A; --b-listra:#C9722E; --b-claro:#FFE9CC; --b-contorno:#5A3A1E; --b-escuro:#C9722E; --b-rosa:#F4A3A8; }
   [data-tipo="cachorro"]{ --b-pelo:#C89160; --b-listra:#A8703F; --b-claro:#F6E4CC; --b-contorno:#4A3020; --b-escuro:#7E4F2B; --b-rosa:#F08A9A; }
   [data-tipo="raposa"]{ --b-pelo:#E8743B; --b-listra:#C2551F; --b-claro:#FFF4E8; --b-contorno:#5A2A12; --b-escuro:#3A2418; --b-rosa:#F4A3A8; }
@@ -1491,6 +1493,8 @@
   .bx .b-asa{ animation:bAsa 3.2s ease-in-out infinite alternate; }
   .bicho.dormindo .b-asa{ animation-duration:7s; }
   .bicho.feliz .b-asa{ animation-duration:.4s; }
+  .bicho.feliz[data-tipo="dragao"] svg{ animation:bVoa 1.7s ease-in-out 1; }
+  .bicho.feliz[data-tipo="dragao"] .b-feliz.gf{ transform-origin:35px 29.8px; animation:bFogo 1.7s ease-out 1; }
   .bx .b-olhos{ transform-origin:32px 21.5px; animation:bPisca 4.6s infinite; }
   .bx .b-orelha{ animation:bOrelha 7.3s infinite; }
   .bx .b-corpo{ transform-origin:32px 56px; animation:bRespira 3.4s ease-in-out infinite; }
@@ -1515,6 +1519,8 @@
   .balao.show{ opacity:1; transform:none; }
   @keyframes bRabo{ from{ transform:rotate(-8deg); } to{ transform:rotate(14deg); } }
   @keyframes bAsa{ from{ transform:rotate(0); } to{ transform:rotate(7deg); } }
+  @keyframes bVoa{ 0%{ transform:translateY(0); } 25%, 75%{ transform:translateY(-18px) rotate(-3deg); } 50%{ transform:translateY(-22px) rotate(3deg); } 100%{ transform:translateY(0); } }
+  @keyframes bFogo{ 0%, 20%{ opacity:0; transform:scale(.1); } 35%{ opacity:1; transform:scale(1.1, 1); } 55%{ opacity:.9; transform:scale(.85, 1.15); } 75%{ opacity:.8; transform:scale(1, .9); } 100%{ opacity:0; transform:scale(.2); } }
   @keyframes bPisca{ 0%, 93%, 100%{ transform:scaleY(1); } 95.5%{ transform:scaleY(.1); } }
   @keyframes bOrelha{ 0%, 88%, 100%{ transform:rotate(0); } 91%{ transform:rotate(-12deg); } 94%{ transform:rotate(3deg); } }
   @keyframes bRespira{ 0%, 100%{ transform:scale(1); } 50%{ transform:scale(1.025, 1.04); } }
@@ -5663,7 +5669,7 @@
       marcas = '<path class="ge" d="M29.5 9.8L32 4.8L34.5 9.8Z"/>';
       focinho = '<ellipse class="gc" cx="32" cy="28" rx="7.5" ry="5"/>';
       extra = '<circle class="go" cx="29.8" cy="25.6" r=".9"/><circle class="go" cx="34.2" cy="25.6" r=".9"/>' + boca.replace(/27\.2/g, '29') +
-        '<path class="gw" d="M29.3 30.2l.9 1.7.9-1.7z"/><path class="b-feliz gf" d="M32 32.5C29.5 35 30 38 32 39.5C34 38 34.5 35 32 32.5Z"/>';
+        '<path class="gw" d="M29.3 30.2l.9 1.7.9-1.7z"/><path class="b-feliz gf" d="M35 29C38 21.5 48 20.5 57 26.5C49 29 46 36 35 31.8Z"/>';
     } else {
       rabo = '<g class="b-rabo" style="transform-origin:45px 50px"><path class="rc" stroke-width="5.2" d="M45 50C55 50 57 58 53 66"/><path class="rp" stroke-width="2.8" d="M45 50C55 50 57 58 53 66"/><ellipse class="gel" cx="52.6" cy="68" rx="3.4" ry="4"/></g>';
       orelhas = '<g class="b-orelha" style="transform-origin:21px 14px"><circle class="gp" cx="20.5" cy="12.5" r="5.2"/><circle class="gr" cx="20.8" cy="12.8" r="2.6"/></g>' +
@@ -5710,6 +5716,7 @@
     var tipo = orgBichoAtivo(), mostra = !!tipo;
     OT.kanban.classList.toggle('com-bicho', mostra);
     OT.kanban.classList.toggle('adulto', mostra && orgTemPremio('cresce'));
+    OT.kanban.classList.toggle('dragao', tipo === 'dragao');   // sobra espaço em cima para ele voar
     if (!mostra){ if (orgBicho.el) orgBicho.el.remove(); if (orgBicho.cant) orgBicho.cant.remove(); return; }
     if (!orgBicho.el) orgBicho.el = orgBichoCria();
     if (orgBicho.tipo !== tipo){
