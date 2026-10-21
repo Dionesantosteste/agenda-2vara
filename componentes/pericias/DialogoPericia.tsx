@@ -103,10 +103,6 @@ export function DialogoPericia({ edicao, itens, nomes, peritos, util, fechar, sa
             <input id="peHora" type="time" value={v.hora} onChange={campo('hora')} />
           </div>
         </div>
-        <div className="field">
-          <label htmlFor="peLocal">Local</label>
-          <input id="peLocal" maxLength={160} value={v.local} onChange={campo('local')} />
-        </div>
         <div className="field-row">
           <div className="field">
             <label htmlFor="peRealizada">Realizada em</label>
