@@ -2,7 +2,7 @@
 // Cadastro de perícia: uma de cada vez (com aviso de processo repetido) ou várias de uma vez (colando uma lista)
 import { useRef, useState } from 'react';
 import {
-  descrever, duplicadasDe, especialidadeDoPerito, peritoCadastrado, previaDoLote, resumoDoLote, type Pericia, type Perito
+  PER_NOME, PER_STATUS, aplicarStatus, descrever, duplicadasDe, especialidadeDoPerito, marcada, peritoCadastrado, previaDoLote, resumoDoLote, type Pericia, type Perito, type Status
 } from '@/lib/pericias';
 import { formatarProcesso } from '@/lib/processo';
 import { useAviso } from '@/componentes/Avisos';
@@ -12,7 +12,7 @@ import { NOVO_PERITO, SelectEspecialidade, SelectPerito } from './SelectPerito';
 export type NovaPericia = Omit<Pericia, 'id'> & { id?: string };
 export type Gravar = (p: NovaPericia, antes: Pericia | null, semRecarregar?: boolean) => Promise<boolean>;
 
-const VAZIO = { proc: '', autor: '', perito: '', novoPerito: '', esp: '', data: '', hora: '', local: '', obs: '' };
+const VAZIO = { proc: '', autor: '', perito: '', novoPerito: '', esp: '', data: '', hora: '', status: '' as Status | '', obs: '' };
 
 export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarregar }: {
   itens: Pericia[]; peritos: Perito[]; nomes: string[]; gravar: Gravar;
@@ -26,7 +26,7 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
   const [dup, setDup] = useState<{ proc: string; texto: string; confirmar: boolean } | null>(null);
   const confirmouDup = useRef(false);
   // várias de uma vez
-  const [l, setL] = useState({ perito: '', esp: '', data: '', hora: '08:00', intervalo: '10', local: '', texto: '' });
+  const [l, setL] = useState({ perito: '', esp: '', data: '', hora: '08:00', intervalo: '10', status: '' as Status | '', texto: '' });
   const [forcar, setForcar] = useState<Record<number, boolean>>({});
   const [cadastrando, setCadastrando] = useState(false);
 
@@ -53,11 +53,14 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
       else if (!(await salvarPerito({ nome: nomePerito, especialidade: v.esp }))) return;
     }
     confirmouDup.current = false;
-    const p: NovaPericia = { processo: proc, autor: v.autor.trim(), perito: nomePerito, especialidade: v.esp, status: data ? 'agendada' : 'nao_agendada',
-      data, local: v.local.trim(), realizadaEm: null, laudoEm: null, observacoes: v.obs.trim(), conferidaEm: null };
+    const status: Status = v.status || (data ? 'agendada' : 'nao_agendada');
+    if (marcada(status) && !data){ avisar('Informe a data da perícia'); document.getElementById('pData')?.focus(); return; }
+    const base: Pericia = { id: '', processo: proc, autor: v.autor.trim(), perito: nomePerito, especialidade: v.esp, status: 'nao_agendada',
+      data, local: '', realizadaEm: null, laudoEm: null, observacoes: v.obs.trim(), conferidaEm: null };
+    const { id: _id, ...p } = aplicarStatus(base, status, new Date());
     if (!p.processo || !p.autor || !p.perito){ avisar('Informe o processo, o autor e o perito'); return; }
     if (!(await gravar(p, null))) return;
-    avisar(data ? 'Perícia cadastrada como Agendada' : 'Perícia cadastrada como Não agendada');
+    avisar('Perícia cadastrada como ' + PER_STATUS.find(x => x[0] === status)![1]);
     esconderDup();
     setV(VAZIO);
     focarProc();
@@ -68,13 +71,16 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
   async function cadastrarLote(){
     const alvo = previa.linhas.filter(r => r.incluir);
     if (!alvo.length || !l.perito) return;
+    const statusLote: Status = l.status || (l.data ? 'agendada' : 'nao_agendada');
+    if (marcada(statusLote) && !l.data){ avisar('Informe a data da perícia'); document.getElementById('lData')?.focus(); return; }
     setCadastrando(true);
     let ok = 0;
     for (const r of alvo){
       const h = r.horaCalc || l.hora || '08:00';
       const data = l.data ? new Date(l.data + 'T' + h) : null;
-      const p: NovaPericia = { processo: r.processo, autor: r.autor, perito: l.perito, especialidade: l.esp, status: data ? 'agendada' : 'nao_agendada',
-        data, local: l.local.trim(), realizadaEm: null, laudoEm: null, observacoes: '', conferidaEm: null };
+      const base: Pericia = { id: '', processo: r.processo, autor: r.autor, perito: l.perito, especialidade: l.esp, status: 'nao_agendada',
+        data, local: '', realizadaEm: null, laudoEm: null, observacoes: '', conferidaEm: null };
+      const { id: _id, ...p } = aplicarStatus(base, statusLote, new Date());
       if (await gravar(p, null, true)) ok++;
       else break;
     }
@@ -141,8 +147,11 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
           <input id="pHora" type="time" value={v.hora} onChange={e => setV(s => ({ ...s, hora: e.target.value }))} />
         </div>
         <div className="field pg-local">
-          <label htmlFor="pLocal">Local</label>
-          <input id="pLocal" maxLength={160} placeholder="Endereço, consultório ou virtual" value={v.local} onChange={e => setV(s => ({ ...s, local: e.target.value }))} />
+          <label htmlFor="pStatus">Andamento</label>
+          <select id="pStatus" value={v.status} onChange={e => setV(s => ({ ...s, status: e.target.value as Status | '' }))}>
+            <option value="">Automático (pela data)</option>
+            {PER_STATUS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}
+          </select>
         </div>
         <div className="field pg-obs">
           <label htmlFor="pObs">Observações</label>
@@ -171,7 +180,11 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
           <div className="field lt-data"><label htmlFor="lData">Data da perícia</label><input id="lData" type="date" value={l.data} onChange={e => setL(s => ({ ...s, data: e.target.value }))} /></div>
           <div className="field lt-hora"><label htmlFor="lHora">Hora da primeira</label><input id="lHora" type="time" value={l.hora} onChange={e => setL(s => ({ ...s, hora: e.target.value }))} /></div>
           <div className="field lt-int"><label htmlFor="lIntervalo">Intervalo (min)</label><input id="lIntervalo" type="number" min={0} max={240} step={5} value={l.intervalo} onChange={e => setL(s => ({ ...s, intervalo: e.target.value }))} /></div>
-          <div className="field lt-local"><label htmlFor="lLocal">Local</label><input id="lLocal" maxLength={160} placeholder="Igual para todas (opcional)" value={l.local} onChange={e => setL(s => ({ ...s, local: e.target.value }))} /></div>
+          <div className="field lt-local"><label htmlFor="lStatus">Andamento</label>
+            <select id="lStatus" value={l.status} onChange={e => setL(s => ({ ...s, status: e.target.value as Status | '' }))}>
+              <option value="">Automático (pela data)</option>
+              {PER_STATUS.map(([k, n]) => <option key={k} value={k}>{n}</option>)}
+            </select></div>
         </div>
         <div className="field">
           <label htmlFor="lTexto">Processos (um por linha: nº do processo, nome do autor e, se quiser, a hora)</label>
@@ -189,7 +202,7 @@ export function Cadastro({ itens, peritos, nomes, gravar, salvarPerito, recarreg
               {r.erro ? <span className="st bad">{r.erro}</span>
                 : r.aviso ? <span className="st warn">{r.aviso}<br /><label><input type="checkbox" data-forcar={i} checked={!!forcar[i]}
                     onChange={e => setForcar(f => { const n = { ...f }; if (e.target.checked) n[i] = true; else delete n[i]; return n; })} /> cadastrar mesmo assim</label></span>
-                : <span className="st ok">Pronta{l.data ? '' : ' · entra como Não agendada'}</span>}
+                : <span className="st ok">Pronta{l.status ? ' · entra como ' + PER_NOME[l.status] : l.data ? '' : ' · entra como Não agendada'}</span>}
             </div>
           ))}
         </div>
