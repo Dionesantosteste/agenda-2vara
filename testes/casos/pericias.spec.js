@@ -5,7 +5,7 @@ const { test, expect, hojeVara } = require('../apoio/teste');
 
 const VERSOES = [
   { nome: 'sistema atual', endereco: '/#pericias' },
-  { nome: 'sistema novo', endereco: '/novo/pericias', semLocal: true }
+  { nome: 'sistema novo', endereco: '/novo/pericias' }
 ];
 
 function diaMais(n){ return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Cuiaba' }).format(new Date(Date.now() + n * 86400000)); }
@@ -37,8 +37,7 @@ for (const v of VERSOES){
       test('mostra as perícias em andamento', async ({ page }) => {
         await abrir(page);
         await expect(page.locator('#perGroups')).toContainText('Maria Aparecida dos Santos');
-        if (v.semLocal) await expect(page.locator('#perGroups')).not.toContainText('Consultório central');
-        else await expect(page.locator('#perGroups')).toContainText('Consultório central');
+        await expect(page.locator('#perGroups')).not.toContainText('Consultório central');
         // o telefone do perito cadastrado aparece no cartão
         await expect(cartao(page, 'Maria Aparecida')).toContainText('(65) 99900-1122');
         await expect(cartao(page, 'Maria Aparecida').locator('.pwhen')).toContainText('08:00');
@@ -211,7 +210,7 @@ for (const v of VERSOES){
         await page.selectOption('#perFiltroPerito', { label: 'Todos os peritos' });
         await page.fill('#perSearch', '100234650');
         await expect(page.locator('#perCount')).toHaveText('1 perícia');
-        await page.fill('#perSearch', v.semLocal ? 'paula andrade' : 'consultorio');
+        await page.fill('#perSearch', 'paula andrade');
         await expect(page.locator('#perGroups')).toContainText('Maria Aparecida');
         await page.click('#perClearSearch');
         await expect(page.locator('#perCount')).toHaveText('2 perícias');
@@ -374,7 +373,7 @@ for (const v of VERSOES){
       await expect(page.locator('#perCount')).toHaveText('1 perícia');
     });
 
-    if (v.semLocal) test('cadastra escolhendo o andamento e avisa processo já concluído', async ({ page, banco }) => {
+    test('cadastra escolhendo o andamento e avisa processo já concluído', async ({ page, banco }) => {
       banco.semear('peritos', PERITOS);
       banco.semear('pericias', [{ ...JOSE, status: 'laudo_juntado', laudo_em: diaMais(-3) }]);
       await page.goto(v.endereco);
