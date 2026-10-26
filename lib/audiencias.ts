@@ -154,3 +154,16 @@ export function erroDosTipos(err: { message?: string; code?: string } | null): s
     : /audiencias_tipos|42P01|PGRST205/.test(m) ? 'Falta a tabela de tipos no Supabase. Rode o SQL do LEIA-ME.md (tipos de audiência).'
     : 'Não foi possível salvar: ' + (err?.message);
 }
+
+// ---- audiência repetida ----
+// Mesmo processo no mesmo dia ou com o mesmo tipo (o mesmo processo pode ter outras audiências em outras datas/tipos)
+export function repetidasDe(itens: Audiencia[], processo: string, date: Date, tipo: string, ignorarId?: string | null): Audiencia[] {
+  const k = soDigitos(processo);
+  if (!k) return [];
+  const dia = (d: Date) => d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+  return itens.filter(a => a.id !== ignorarId && soDigitos(a.processo) === k && (dia(a.date) === dia(date) || (!!tipo && a.tipo === tipo)));
+}
+export function descreverAudiencia(a: Audiencia): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return p(a.date.getDate()) + '/' + p(a.date.getMonth() + 1) + '/' + a.date.getFullYear() + ' às ' + hora(a.date) + (a.tipo ? ' (' + a.tipo + ')' : '');
+}

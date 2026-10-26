@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { combina, deLinha, nomesTipos, noPeriodo, pauta, pendente, resumo, rotuloDoDia, textoDoFiltro, type Audiencia, type Filtros } from './audiencias.ts';
+import { combina, deLinha, nomesTipos, noPeriodo, pauta, pendente, repetidasDe, resumo, rotuloDoDia, textoDoFiltro, type Audiencia, type Filtros } from './audiencias.ts';
 
 const agora = new Date(2026, 9, 16, 10, 0);   // sexta, 16/10/2026 10:00
 const aud = (dia: number, mes = 9, extra: Partial<Audiencia> = {}): Audiencia =>
@@ -62,4 +62,13 @@ test('rótulo do dia e tipos', () => {
 test('texto do filtro para a impressão', () => {
   assert.equal(textoDoFiltro({ ...F, tipo: 'Conciliação', conf: 'nao', busca: ' x ' }), 'Próximas · Tipo: Conciliação · Não conferidas · Busca: "x"');
   assert.equal(textoDoFiltro({ ...F, periodo: 'intervalo', de: '2026-10-01', ate: '' }), 'De 01/10/2026 a …');
+});
+
+test('audiência repetida: mesmo processo no mesmo dia ou com o mesmo tipo', () => {
+  const base = [aud(20, 9), aud(25, 9, { tipo: 'Instrução' }), aud(20, 9, { id: 'x', processo: '9999999-99.2026.8.11.0041' })];
+  const proc = '10023456720268110041';
+  assert.equal(repetidasDe(base, proc, new Date(2026, 9, 20, 14, 0), 'Outro').length, 1, 'mesmo dia');
+  assert.equal(repetidasDe(base, proc, new Date(2026, 10, 3, 14, 0), 'Conciliação').length, 1, 'mesmo tipo');
+  assert.equal(repetidasDe(base, proc, new Date(2026, 10, 3, 14, 0), 'Outro').length, 0);
+  assert.equal(repetidasDe(base, proc, new Date(2026, 9, 20, 9, 0), 'Conciliação', '20-9').length, 0, 'ignora a própria');
 });

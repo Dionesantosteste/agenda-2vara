@@ -38,8 +38,7 @@ export function DialogoAudiencia({ audiencia, nomes, fechar, salvar, excluir, no
         if (isNaN(date.getTime())){ avisar('Informe data e hora válidas'); return; }
         const processo = formatarProcesso(v.processo);
         if (!processo){ avisar('Informe o número do processo'); return; }
-        salvar(audiencia.id, { processo, date, tipo: v.tipo.trim(), status: v.status, observacoes: v.obs.trim() });
-        fechar();
+        salvar(audiencia.id, { processo, date, tipo: v.tipo.trim(), status: v.status, observacoes: v.obs.trim() }).then(ok => { if (ok) fechar(); });
       }}>
         <h2 id="audDialogTitle">Editar audiência</h2>
         <div className="field" ref={procRef}>

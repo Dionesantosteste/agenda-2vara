@@ -1,14 +1,14 @@
 'use client';
 // Seção Audiências do sistema novo: pauta, cadastro rápido, filtros, resumo, conferência, tipos e impressão.
 // Usa as mesmas tabelas do Supabase (audiencias e audiencias_tipos).
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CONF_FILTROS, JANELA_DIAS, PERIODOS, STATUSES, STATUS_PADRAO, TODOS, dataDaImpressao, deLinha, diaMes, erroDosTipos, hora,
-  nomesTipos, pauta, pendente, resumo, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
+  descreverAudiencia, nomesTipos, pauta, pendente, repetidasDe, resumo, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
 } from '@/lib/audiencias';
 import { destaque } from '@/lib/agenda';
 import { chaveDoDia, formatarDataHora } from '@/lib/datas';
-import { formatarProcesso } from '@/lib/processo';
+import { formatarProcesso, soDigitos } from '@/lib/processo';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { CampoProcesso } from '@/componentes/CampoProcesso';
@@ -120,7 +120,17 @@ function Corpo(){
 
   const nomes = nomesTipos(tipos.carregado && !tipos.erro ? tipos.lista.map(t => t.nome) : null, itens);
 
+  // repetida: avisa uma vez; salvar de novo a mesma coisa confirma
+  const avisouRepetida = useRef('');
   const salvar: Salvar = async (id, d) => {
+    const rep = repetidasDe(itens, d.processo, d.date, d.tipo, id);
+    const chave = [id, soDigitos(d.processo), d.date.getTime(), d.tipo].join('|');
+    if (rep.length && avisouRepetida.current !== chave){
+      avisouRepetida.current = chave;
+      avisar('Atenção: o processo ' + d.processo + ' já tem audiência em ' + rep.map(descreverAudiencia).join('; ') + '. Salve de novo para manter assim.');
+      return false;
+    }
+    avisouRepetida.current = '';
     const payload = { processo: d.processo, data_hora: d.date.toISOString(), tipo: d.tipo, status: d.status, observacoes: d.observacoes, updated_at: new Date().toISOString() };
     const res = id ? await supabase().from('audiencias').update(payload).eq('id', id) : await supabase().from('audiencias').insert(payload);
     if (res.error){ avisar('Não foi possível salvar: ' + res.error.message); return false; }
