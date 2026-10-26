@@ -2,7 +2,7 @@
 // As datas seguem o relógio do computador, como no sistema atual (a vara usa o horário de Cuiabá).
 import { normalizar } from './agenda.ts';
 import { chaveDoDia } from './datas.ts';
-import { soDigitos } from './processo.ts';
+import { formatarProcesso, soDigitos } from './processo.ts';
 
 export const STATUSES = ['A cumprir', 'Intimações feitas', 'Pronto para audiência', 'Redesignada', 'Cancelada'];
 export const STATUS_PADRAO = STATUSES[0];
@@ -30,7 +30,7 @@ export const CONF_FILTROS: { key: Conf; label: string }[] = [
   { key: 'sim', label: 'Conferidas' }
 ];
 
-export type Audiencia = { id: string; processo: string; date: Date; tipo: string; status: string; observacoes: string; conferidaEm: Date | null };
+export type Audiencia = { id: string; processo: string; date: Date; tipo: string; status: string; observacoes: string; conferidaEm: Date | null; responsavelId: string | null; tarefaId: string | null };
 export type Filtros = { periodo: Periodo; de: string; ate: string; status: string; tipo: string; conf: Conf; busca: string };
 
 export function deLinha(r: Record<string, unknown>): Audiencia {
@@ -42,7 +42,9 @@ export function deLinha(r: Record<string, unknown>): Audiencia {
     tipo: (r.tipo as string) || '',
     status: STATUS_ANTIGOS[st] || st || STATUS_PADRAO,
     observacoes: (r.observacoes as string) || '',
-    conferidaEm: r.conferida_em ? new Date(r.conferida_em as string) : null
+    conferidaEm: r.conferida_em ? new Date(r.conferida_em as string) : null,
+    responsavelId: r.responsavel_id ? String(r.responsavel_id) : null,
+    tarefaId: r.tarefa_id ? String(r.tarefa_id) : null
   };
 }
 
@@ -166,4 +168,62 @@ export function repetidasDe(itens: Audiencia[], processo: string, date: Date, ti
 export function descreverAudiencia(a: Audiencia): string {
   const p = (n: number) => String(n).padStart(2, '0');
   return p(a.date.getDate()) + '/' + p(a.date.getMonth() + 1) + '/' + a.date.getFullYear() + ' às ' + hora(a.date) + (a.tipo ? ' (' + a.tipo + ')' : '');
+}
+
+// Título da tarefa criada no Quadro da pessoa quando a audiência é atribuída
+export function tituloDaTarefa(tipo: string, date: Date): string {
+  const p = (n: number) => String(n).padStart(2, '0');
+  return ('Audiência' + (tipo ? ' de ' + tipo : '') + ' · ' + p(date.getDate()) + '/' + p(date.getMonth() + 1) + '/' + date.getFullYear() + ' às ' + hora(date)).slice(0, 160);
+}
+
+// ---- cadastro em lote ----
+const RE_PROC = /\d{7}-?\d{2}\.?\d{4}\.?\d\.?\d{2}\.?\d{4}/;
+const RE_HORA = /(^|[^\d])([01]?\d|2[0-3])\s*[:hH]\s*([0-5]\d)(?!\d)/;
+const RE_DATA = /(^|[^\d/])(\d{1,2})\/(\d{1,2})(?:\/(\d{4}|\d{2}))?(?![\d/])/;
+// Uma linha: nº do processo, e se quiser a hora (14:30), a data (20/10 ou 20/10/2026) e o resto vira observação
+export function interpretarLinha(txt: string, ano: number){
+  let resto = txt, processo = '', h = '', data = '';
+  const m = resto.match(RE_PROC);
+  if (m){ processo = formatarProcesso(m[0]); resto = resto.replace(m[0], ' '); }
+  const mh = resto.match(RE_HORA);
+  if (mh){ h = doisDigitos(+mh[2]) + ':' + mh[3]; resto = resto.replace(mh[0], mh[1] + ' '); }
+  const md = resto.match(RE_DATA);
+  if (md){
+    const a = md[4] ? (md[4].length === 2 ? 2000 + +md[4] : +md[4]) : ano;
+    const dia = +md[2], mes = +md[3], d = new Date(a, mes - 1, dia);
+    if (d.getFullYear() === a && d.getMonth() === mes - 1 && d.getDate() === dia){
+      data = a + '-' + doisDigitos(mes) + '-' + doisDigitos(dia);
+      resto = resto.replace(md[0], md[1] + ' ');
+    }
+  }
+  const obs = resto.replace(/[;\t|]+/g, ' ').replace(/\s+/g, ' ').trim().replace(/^[-–—,.:]+\s*|\s*[-–—,.:]+$/g, '').trim();
+  return { texto: txt.trim(), processo, hora: h, data, obs };
+}
+export type LinhaLote = ReturnType<typeof interpretarLinha> & { erro: string; aviso: string; incluir: boolean; date: Date | null };
+export function previaDoLote(texto: string, itens: Audiencia[], forcar: Record<number, boolean>, base: { data: string; hora: string; tipo: string }){
+  const ano = base.data ? +base.data.slice(0, 4) : new Date().getFullYear();
+  const linhas: LinhaLote[] = texto.split(/\r?\n/).map(t => t.trim()).filter(Boolean)
+    .map(t => ({ ...interpretarLinha(t, ano), erro: '', aviso: '', incluir: false, date: null }));
+  const anteriores: Audiencia[] = [];
+  let prontas = 0, repetidas = 0, problemas = 0;
+  linhas.forEach((r, i) => {
+    const dia = r.data || base.data, hh = r.hora || base.hora;
+    r.date = dia && hh ? new Date(dia + 'T' + hh) : null;
+    r.erro = !r.processo ? 'Nº do processo não reconhecido' : !dia ? 'Falta a data' : !hh ? 'Falta a hora' : !r.date || isNaN(r.date.getTime()) ? 'Data ou hora inválida' : '';
+    if (!r.erro && r.date){
+      const rep = repetidasDe([...itens, ...anteriores], r.processo, r.date, base.tipo);
+      if (rep.length) r.aviso = 'Já tem audiência em ' + rep.map(descreverAudiencia).join('; ');
+      anteriores.push({ id: 'lote-' + i, processo: r.processo, date: r.date, tipo: base.tipo, status: STATUS_PADRAO, observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null });
+    }
+    r.incluir = !r.erro && (!r.aviso || !!forcar[i]);
+    if (r.erro) problemas++; else if (r.aviso && !r.incluir) repetidas++; else prontas++;
+  });
+  return { linhas, prontas, repetidas, problemas };
+}
+export function resumoDoLote(n: { linhas: unknown[]; prontas: number; repetidas: number; problemas: number }): string {
+  if (!n.linhas.length) return '';
+  const pl = (k: number, um: string, v: string) => k + ' ' + (k === 1 ? um : v);
+  return pl(n.prontas, 'pronta', 'prontas') +
+    (n.repetidas ? ' · ' + pl(n.repetidas, 'repetida (não será cadastrada)', 'repetidas (não serão cadastradas)') : '') +
+    (n.problemas ? ' · ' + pl(n.problemas, 'com problema', 'com problema') : '');
 }

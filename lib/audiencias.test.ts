@@ -1,10 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { combina, deLinha, nomesTipos, noPeriodo, pauta, pendente, repetidasDe, resumo, rotuloDoDia, textoDoFiltro, type Audiencia, type Filtros } from './audiencias.ts';
+import { combina, deLinha, nomesTipos, noPeriodo, pauta, interpretarLinha, pendente, previaDoLote, repetidasDe, resumo, tituloDaTarefa, rotuloDoDia, textoDoFiltro, type Audiencia, type Filtros } from './audiencias.ts';
 
 const agora = new Date(2026, 9, 16, 10, 0);   // sexta, 16/10/2026 10:00
 const aud = (dia: number, mes = 9, extra: Partial<Audiencia> = {}): Audiencia =>
-  ({ id: String(dia) + '-' + mes, processo: '1002345-67.2026.8.11.0041', date: new Date(2026, mes, dia, 9, 0), tipo: 'Conciliação', status: 'A cumprir', observacoes: '', conferidaEm: null, ...extra });
+  ({ id: String(dia) + '-' + mes, processo: '1002345-67.2026.8.11.0041', date: new Date(2026, mes, dia, 9, 0), tipo: 'Conciliação', status: 'A cumprir', observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null, ...extra });
 const F: Filtros = { periodo: 'proximas', de: '', ate: '', status: 'Todos', tipo: 'Todos', conf: 'todas', busca: '' };
 
 test('status antigos são convertidos ao carregar', () => {
@@ -71,4 +71,21 @@ test('audiência repetida: mesmo processo no mesmo dia ou com o mesmo tipo', () 
   assert.equal(repetidasDe(base, proc, new Date(2026, 10, 3, 14, 0), 'Conciliação').length, 1, 'mesmo tipo');
   assert.equal(repetidasDe(base, proc, new Date(2026, 10, 3, 14, 0), 'Outro').length, 0);
   assert.equal(repetidasDe(base, proc, new Date(2026, 9, 20, 9, 0), 'Conciliação', '20-9').length, 0, 'ignora a própria');
+});
+
+test('lote: interpreta a linha e confere a prévia', () => {
+  const l = interpretarLinha('1002345-67.2026.8.11.0041 14:30 20/10 intimar testemunhas', 2026);
+  assert.deepEqual([l.processo, l.hora, l.data, l.obs], ['1002345-67.2026.8.11.0041', '14:30', '2026-10-20', 'intimar testemunhas']);
+  const base = { data: '2026-11-10', hora: '09:00', tipo: 'Outro' };
+  const p = previaDoLote('1002345-67.2026.8.11.0041\n8888888-88.2026.8.11.0041 10:00\n8888888-88.2026.8.11.0041 11:00\nsem número', [aud(20, 9)], {}, base);
+  assert.equal(p.prontas, 2);
+  assert.equal(p.repetidas, 1, 'repetida dentro da lista (mesmo dia)');
+  assert.equal(p.problemas, 1);
+  assert.equal(p.linhas[0].incluir, true);
+  assert.equal(previaDoLote('8888888-88.2026.8.11.0041', [], {}, { ...base, hora: '' }).problemas, 1, 'sem hora');
+  assert.equal(previaDoLote('1002345-67.2026.8.11.0041', [aud(20, 9)], { 0: true }, { ...base, data: '2026-10-20' }).prontas, 1, 'forçar repetida');
+});
+
+test('título da tarefa da audiência', () => {
+  assert.equal(tituloDaTarefa('Instrução', new Date(2026, 9, 20, 14, 5)), 'Audiência de Instrução · 20/10/2026 às 14:05');
 });
