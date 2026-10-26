@@ -95,6 +95,18 @@ Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo pa
 
 Para mudar a lista de status, edite `STATUSES` no `public/legado.html` (o primeiro da lista é o padrão de uma audiência nova).
 
+## Passo 2.1.2 — Atribuir audiências a alguém da Organização
+
+Para o gestor atribuir audiências à equipe ao cadastrar (uma ou várias de uma vez), rode no SQL Editor, **depois** do
+`sql/organizacao.sql`, o arquivo [`sql/audiencias_tarefas.sql`](sql/audiencias_tarefas.sql). Ele cria a função e duas
+colunas em `audiencias` (`responsavel_id`, `tarefa_id`).
+
+No site (`/novo/audiencias`): entre antes como gestor em **Organização** (a senha fica guardada na aba). No cadastro
+aparece **"Atribuir a"**; ao cadastrar, cria-se uma tarefa com o processo no Quadro da pessoa e o cartão da audiência
+mostra "Com: nome". Em **"Várias de uma vez"** cole uma audiência por linha (nº do processo e, se quiser, hora, data e
+observação); repetidas (mesmo processo no mesmo dia ou com o mesmo tipo) ficam de fora, a menos que marque "cadastrar
+mesmo assim".
+
 ## Passo 2.1.1 — Tipos de audiência (lista própria)
 
 Para cadastrar novos tipos de audiência pelo site, rode no SQL Editor o arquivo

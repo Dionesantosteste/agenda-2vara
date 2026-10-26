@@ -1,24 +1,25 @@
 'use client';
 // Seção Audiências do sistema novo: pauta, cadastro rápido, filtros, resumo, conferência, tipos e impressão.
 // Usa as mesmas tabelas do Supabase (audiencias e audiencias_tipos).
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CONF_FILTROS, JANELA_DIAS, PERIODOS, STATUSES, STATUS_PADRAO, TODOS, dataDaImpressao, deLinha, diaMes, erroDosTipos, hora,
-  nomesTipos, pauta, pendente, resumo, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
+  descreverAudiencia, nomesTipos, pauta, pendente, previaDoLote, repetidasDe, resumo, resumoDoLote, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
 } from '@/lib/audiencias';
 import { destaque } from '@/lib/agenda';
 import { chaveDoDia, formatarDataHora } from '@/lib/datas';
-import { formatarProcesso } from '@/lib/processo';
+import { formatarProcesso, soDigitos } from '@/lib/processo';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useImpressao } from '@/componentes/Impressao';
 import { IconeEngrenagem } from '@/componentes/Icones';
 import { DialogoAudiencia } from './DialogoAudiencia';
+import { atribuirAudiencias, pessoasAtivas, senhaDoGestor, type Pessoa } from './atribuir';
 import { DialogoTipos, type Tipo } from './DialogoTipos';
 import { SelectTipo } from './SelectTipo';
 
-export type Salvar = (id: string | null, d: { processo: string; date: Date; tipo: string; status: string; observacoes: string }) => Promise<boolean>;
+export type Salvar = (id: string | null, d: { processo: string; date: Date; tipo: string; status: string; observacoes: string }, para?: string) => Promise<boolean>;
 
 export function Destacado({ texto, busca }: { texto: string; busca: string }){
   const d = destaque(texto, busca);
@@ -43,7 +44,7 @@ function BotaoConferir({ a, alternar }: { a: Audiencia; alternar: () => void }){
   return <button type="button" className="conf-btn" onClick={clique} title="Marcar como conferida (grava a data e a hora de agora)"><IconeCheck /><span>Conferir</span></button>;
 }
 
-function Cartao({ a, agora, busca, mudarStatus, conferir, editar }: { a: Audiencia; agora: Date; busca: string; mudarStatus: (s: string) => void; conferir: () => void; editar: () => void }){
+function Cartao({ a, agora, busca, com, mudarStatus, conferir, editar }: { a: Audiencia; agora: Date; busca: string; com: string; mudarStatus: (s: string) => void; conferir: () => void; editar: () => void }){
   const pend = pendente(a, agora);
   const opcoes = STATUSES.includes(a.status) ? STATUSES : [...STATUSES, a.status];
   return (
@@ -53,6 +54,7 @@ function Cartao({ a, agora, busca, mudarStatus, conferir, editar }: { a: Audienc
         <div className="hproc"><Destacado texto={a.processo || 'Processo não informado'} busca={busca} /></div>
         {a.tipo && <div className="htipo"><Destacado texto={a.tipo} busca={busca} /></div>}
         {a.observacoes && <div className="hobs" title={a.observacoes}><Destacado texto={a.observacoes} busca={busca} /></div>}
+        {com && <div className="hobs" title="Tarefa criada no Quadro desta pessoa">Com: {com}</div>}
         {pend && <span className="flag">Já passou — atualize o status</span>}
       </div>
       <div className="hside">
@@ -68,6 +70,21 @@ function Cartao({ a, agora, busca, mudarStatus, conferir, editar }: { a: Audienc
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// "Atribuir a": só aparece para o gestor (que entrou em Organização nesta aba)
+function ParaQuem({ gestor, pessoas, valor, mudar, id }: { gestor: boolean; pessoas: Pessoa[]; valor: string; mudar: (v: string) => void; id: string }){
+  if (!gestor) return <span className="field-hint">Para atribuir a alguém da equipe, entre como gestor em Organização (a senha fica guardada nesta aba).</span>;
+  return (
+    <div className="field">
+      <label htmlFor={id}>Atribuir a</label>
+      <select id={id} value={valor} onChange={e => mudar(e.target.value)}>
+        <option value="">Ninguém (só cadastrar)</option>
+        {pessoas.map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+      </select>
+      <span className="field-hint">Cria uma tarefa com o processo no Quadro da pessoa.</span>
     </div>
   );
 }
@@ -90,6 +107,15 @@ function Corpo(){
   const [agora, setAgora] = useState(() => new Date());
   // cadastro rápido (a data fica para a próxima)
   const [q, setQ] = useState(() => ({ processo: '', data: chaveDoDia(new Date()), hora: '', status: STATUS_PADRAO, tipo: '', obs: '' }));
+  // cadastro: uma de cada vez ou várias de uma vez; "para" = pessoa da Organização que recebe a tarefa (só o gestor)
+  const [modo, setModo] = useState<'uma' | 'varias'>('uma');
+  const [pessoas, setPessoas] = useState<Pessoa[]>([]);
+  const [paraRapido, setParaRapido] = useState('');
+  const [l, setL] = useState(() => ({ data: chaveDoDia(new Date()), hora: '', status: STATUS_PADRAO, tipo: '', para: '', texto: '' }));
+  const [forcar, setForcar] = useState<Record<number, boolean>>({});
+  const [cadastrando, setCadastrando] = useState(false);
+  const gestor = !!senhaDoGestor();
+  const nomeDe = (id: string | null) => (id ? pessoas.find(p => p.id === id)?.nome || '' : '');
   const [editando, setEditando] = useState<Audiencia | null>(null);
   // janela de tipos: aberta, e para qual lista de tipo vai o tipo novo
   const [tiposAberto, setTiposAberto] = useState<null | { destino: null | ((nome: string) => void) }>(null);
@@ -108,7 +134,7 @@ function Corpo(){
     setTipos({ carregado: true, erro: res.error || null, lista: (res.data || []).map(t => ({ id: String(t.id), nome: (t.nome as string) || '' })) });
   }, []);
   useEffect(() => {
-    carregar(); carregarTipos();
+    carregar(); carregarTipos(); pessoasAtivas().then(setPessoas);
     const canal = supabase().channel('audiencias')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audiencias' }, () => { carregar(); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'audiencias_tipos' }, () => { carregarTipos(); })
@@ -120,11 +146,25 @@ function Corpo(){
 
   const nomes = nomesTipos(tipos.carregado && !tipos.erro ? tipos.lista.map(t => t.nome) : null, itens);
 
-  const salvar: Salvar = async (id, d) => {
+  // repetida: avisa uma vez; salvar de novo a mesma coisa confirma
+  const avisouRepetida = useRef('');
+  const salvar: Salvar = async (id, d, para) => {
+    const rep = repetidasDe(itens, d.processo, d.date, d.tipo, id);
+    const chave = [id, soDigitos(d.processo), d.date.getTime(), d.tipo].join('|');
+    if (rep.length && avisouRepetida.current !== chave){
+      avisouRepetida.current = chave;
+      avisar('Atenção: o processo ' + d.processo + ' já tem audiência em ' + rep.map(descreverAudiencia).join('; ') + '. Salve de novo para manter assim.');
+      return false;
+    }
+    avisouRepetida.current = '';
     const payload = { processo: d.processo, data_hora: d.date.toISOString(), tipo: d.tipo, status: d.status, observacoes: d.observacoes, updated_at: new Date().toISOString() };
-    const res = id ? await supabase().from('audiencias').update(payload).eq('id', id) : await supabase().from('audiencias').insert(payload);
+    const res = id ? await supabase().from('audiencias').update(payload).eq('id', id) : await supabase().from('audiencias').insert(payload).select('id');
     if (res.error){ avisar('Não foi possível salvar: ' + res.error.message); return false; }
-    avisar(id ? 'Audiência atualizada' : 'Audiência cadastrada');
+    const novo = !id && Array.isArray(res.data) ? res.data[0] as { id: string } | undefined : undefined;
+    if (para && novo){
+      const m = await atribuirAudiencias([{ id: String(novo.id), processo: d.processo, date: d.date, tipo: d.tipo }], para);
+      avisar(m ? 'Audiência cadastrada, mas não foi atribuída: ' + m : 'Audiência cadastrada e atribuída a ' + nomeDe(para));
+    } else avisar(id ? 'Audiência atualizada' : 'Audiência cadastrada');
     await carregar();
     return true;
   };
@@ -164,10 +204,41 @@ function Corpo(){
     const processo = formatarProcesso(q.processo);
     if (!processo){ avisar('Informe o número do processo'); document.getElementById('qProcesso')?.focus(); return; }
     if (!q.tipo){ avisar('Escolha o tipo da audiência'); document.getElementById('qTipo')?.focus(); return; }
-    const ok = await salvar(null, { processo, date, tipo: q.tipo.trim(), status: q.status, observacoes: q.obs.trim() });
+    const ok = await salvar(null, { processo, date, tipo: q.tipo.trim(), status: q.status, observacoes: q.obs.trim() }, paraRapido || undefined);
     if (!ok) return;
     setQ(v => ({ ...v, processo: '', hora: '', tipo: '', obs: '', status: STATUS_PADRAO }));
     document.getElementById('qProcesso')?.focus();
+  }
+
+  const previa = previaDoLote(l.texto, itens, forcar, { data: l.data, hora: l.hora, tipo: l.tipo.trim() });
+  async function cadastrarLote(){
+    const alvo = previa.linhas.filter(r => r.incluir && r.date);
+    if (!alvo.length) return;
+    if (!l.tipo){ avisar('Escolha o tipo da audiência'); document.getElementById('lTipo')?.focus(); return; }
+    setCadastrando(true);
+    const agoraIso = new Date().toISOString();
+    const res = await supabase().from('audiencias')
+      .insert(alvo.map(r => ({ processo: r.processo, data_hora: r.date!.toISOString(), tipo: l.tipo.trim(), status: l.status, observacoes: r.obs, updated_at: agoraIso }))).select('id');
+    if (res.error){ setCadastrando(false); avisar('Não foi possível cadastrar: ' + res.error.message); return; }
+    let extra = '';
+    if (l.para){
+      const ids = (res.data || []).map(x => String(x.id));
+      const m = await atribuirAudiencias(alvo.map((r, i) => ({ id: ids[i], processo: r.processo, date: r.date!, tipo: l.tipo.trim() })), l.para);
+      extra = m ? ' · não foram atribuídas: ' + m : ' · atribuídas a ' + nomeDe(l.para);
+    }
+    await carregar();
+    // tira da caixa só as cadastradas; as repetidas ou com problema ficam para corrigir
+    const feitas: Record<string, number> = {};
+    alvo.forEach(r => { feitas[r.texto] = (feitas[r.texto] || 0) + 1; });
+    setL(x => ({ ...x, texto: x.texto.split(/\r?\n/).filter(t => {
+      const k = t.trim(); if (!k) return false;
+      if (feitas[k]){ feitas[k]--; return false; }
+      return true;
+    }).join('\n') }));
+    setForcar({});
+    setCadastrando(false);
+    const ign = previa.linhas.length - alvo.length;
+    avisar(alvo.length + (alvo.length === 1 ? ' audiência cadastrada' : ' audiências cadastradas') + extra + (ign ? ' · ' + ign + (ign === 1 ? ' linha ficou' : ' linhas ficaram') + ' na caixa (repetidas ou com problema)' : ''));
   }
 
   function escolherPeriodo(p: Periodo){
@@ -225,12 +296,17 @@ function Corpo(){
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir</button></div>
         </header>
 
-        <form className="quick" id="quickForm" autoComplete="off" aria-labelledby="quickTitle" onSubmit={e => { e.preventDefault(); cadastrarRapido(); }}>
+        <form className="quick" id="quickForm" autoComplete="off" aria-labelledby="quickTitle" noValidate={modo === 'varias'}
+          onSubmit={e => { e.preventDefault(); if (modo === 'uma') cadastrarRapido(); }}>
           <div className="quick-head">
             <h2 id="quickTitle">Cadastrar audiência</h2>
-            <span className="quick-hint">Enter salva · a data fica para a próxima</span>
+            <div className="per-modos" role="tablist" aria-label="Forma de cadastro">
+              <button type="button" className="per-modo" role="tab" aria-selected={modo === 'uma'} onClick={() => setModo('uma')}>Uma audiência</button>
+              <button type="button" className="per-modo" role="tab" aria-selected={modo === 'varias'}
+                onClick={() => { setModo('varias'); setTimeout(() => document.getElementById('lTexto')?.focus(), 0); }}>Várias de uma vez</button>
+            </div>
           </div>
-          <div className="quick-grid">
+          <div className="quick-grid" hidden={modo !== 'uma'}>
             <div className="field q-proc">
               <label htmlFor="qProcesso">Nº do processo</label>
               <CampoProcesso id="qProcesso" className="mono" maxLength={40} placeholder="0000000-00.0000.0.00.0000" required value={q.processo} onChange={v => setQ(x => ({ ...x, processo: v }))} />
@@ -259,6 +335,47 @@ function Corpo(){
               <input id="qObs" maxLength={4000} placeholder="Ex.: intimar testemunhas; por videoconferência" value={q.obs} onChange={e => setQ(x => ({ ...x, obs: e.target.value }))} />
             </div>
             <button type="submit" className="btn primary q-save">Cadastrar</button>
+          </div>
+          {modo === 'uma' && <ParaQuem gestor={gestor} pessoas={pessoas} valor={paraRapido} mudar={setParaRapido} id="qPara" />}
+          <div className="lote" hidden={modo !== 'varias'}>
+            <div className="lote-grid">
+              <div className="field"><label htmlFor="lData">Data (padrão)</label><input id="lData" type="date" value={l.data} onChange={e => setL(x => ({ ...x, data: e.target.value }))} /></div>
+              <div className="field"><label htmlFor="lHora">Hora (padrão)</label><input id="lHora" type="time" value={l.hora} onChange={e => setL(x => ({ ...x, hora: e.target.value }))} /></div>
+              <div className="field"><label htmlFor="lTipo">Tipo</label>
+                <SelectTipo id="lTipo" nomes={nomes} value={l.tipo} onChange={v => setL(x => ({ ...x, tipo: v }))}
+                  novoTipo={() => setTiposAberto({ destino: nome => setL(x => ({ ...x, tipo: nome })) })} /></div>
+              <div className="field"><label htmlFor="lStatus">Status</label>
+                <select id="lStatus" value={l.status} onChange={e => setL(x => ({ ...x, status: e.target.value }))}>
+                  {STATUSES.map(st => <option key={st} value={st}>{st}</option>)}
+                </select></div>
+            </div>
+            <ParaQuem gestor={gestor} pessoas={pessoas} valor={l.para} mudar={v => setL(x => ({ ...x, para: v }))} id="lPara" />
+            <div className="field">
+              <label htmlFor="lTexto">Audiências (uma por linha: nº do processo e, se quiser, hora, data e observação)</label>
+              <textarea id="lTexto" rows={7} spellCheck={false} value={l.texto} onChange={e => { setL(x => ({ ...x, texto: e.target.value })); setForcar({}); }}
+                placeholder={'1002345-67.2026.8.11.0041 14:30\n1002346-50.2026.8.11.0041 15:00 21/10 intimar testemunhas\n10023471220268110041 16:00'} />
+              <span className="field-hint">Pode colar de uma planilha ou de um e-mail. Hora e data na linha valem só para ela; sem isso vale o padrão acima. O que sobrar vira observação.</span>
+            </div>
+            <div className="lote-previa">
+              {previa.linhas.map((r, i) => (
+                <div key={i} className={'lrow' + (r.erro ? ' bad' : '') + (!r.incluir ? ' skip' : '')}>
+                  <span className="n">{i + 1}</span>
+                  <span className="proc">{r.processo || <i>{r.texto.slice(0, 40)}</i>}</span>
+                  <span className="autor">{r.date && !r.erro ? diaMes(r.date) + ' ' + hora(r.date) : '—'}{r.obs ? ' · ' + r.obs : ''}</span>
+                  <span className="hora" />
+                  {r.erro ? <span className="st bad">{r.erro}</span>
+                    : r.aviso ? <span className="st warn">{r.aviso}<br /><label><input type="checkbox" checked={!!forcar[i]}
+                        onChange={e => setForcar(fc => { const n = { ...fc }; if (e.target.checked) n[i] = true; else delete n[i]; return n; })} /> cadastrar mesmo assim</label></span>
+                    : <span className="st ok">Pronta</span>}
+                </div>
+              ))}
+            </div>
+            <div className="lote-acoes">
+              <span className="lote-resumo">{resumoDoLote(previa)}</span>
+              <button type="button" className="btn primary" disabled={cadastrando || !previa.prontas} onClick={cadastrarLote}>
+                {cadastrando ? 'Cadastrando…' : previa.prontas ? 'Cadastrar ' + previa.prontas + (previa.prontas === 1 ? ' audiência' : ' audiências') : 'Cadastrar audiências'}
+              </button>
+            </div>
           </div>
         </form>
 
@@ -309,7 +426,7 @@ function Corpo(){
               <div className="day" key={d.chave}>
                 <div className="day-label"><span className="d">{rot.texto}</span>{rot.rel && <span className="rel">{rot.rel}</span>}</div>
                 <div className="cards">
-                  {d.itens.map(a => <Cartao key={a.id} a={a} agora={agora} busca={f.busca} mudarStatus={s => mudarStatus(a, s)} conferir={() => conferir(a)} editar={() => setEditando(a)} />)}
+                  {d.itens.map(a => <Cartao key={a.id} a={a} agora={agora} busca={f.busca} com={nomeDe(a.responsavelId)} mudarStatus={s => mudarStatus(a, s)} conferir={() => conferir(a)} editar={() => setEditando(a)} />)}
                 </div>
               </div>
             );
