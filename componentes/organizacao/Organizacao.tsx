@@ -1,6 +1,6 @@
 'use client';
-// Seção Organização do sistema novo. Nesta etapa: a entrada (senha do gestor ou nome da pessoa),
-// o cabeçalho, as abas e o Quadro. As outras abas ainda estão no sistema atual.
+// Seção Organização do sistema novo. Já migradas: a entrada (senha do gestor ou nome da pessoa), o cabeçalho,
+// as abas e as abas Tarefas e mural, Quadro, Lembretes e Rotinas. As outras abas ainda estão no sistema atual.
 // Usa as mesmas funções do Supabase (org_*) e guarda o acesso do mesmo jeito que o sistema atual
 // (senha na aba do navegador, pessoa no navegador), então quem entra num sistema já entra no outro.
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
@@ -8,7 +8,10 @@ import { diasAte, iniciais, lerDados, mensagemDoStatus, rotinaFeita, type Dados 
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { useCalendario } from '@/componentes/useCalendario';
+import { Lembretes } from './Lembretes';
+import { ListaMural } from './ListaMural';
 import { Quadro } from './Quadro';
+import { Rotinas } from './Rotinas';
 
 export type Resposta = { status: string; message?: string; codigo?: string; [campo: string]: any };
 export type Sessao = { modo: 'gestor' | 'pessoa'; pin: string | null; eu: string | null; ver: string | null };
@@ -253,9 +256,11 @@ function Corpo(){
             ))}
           </div>
         </div>
-        {abaAtual === 'quadro'
-          ? <Quadro key={versao} dados={dados} setDados={setDados} pessoa={pessoa} alheia={alheia} eu={sessao.eu} hoje={hoje} util={util} banco={banco} />
-          : <AindaNoAtual aba={ABAS.find(a => a.id === abaAtual)?.nome || ''} />}
+        {abaAtual === 'quadro' && <Quadro key={versao} dados={dados} setDados={setDados} pessoa={pessoa} alheia={alheia} eu={sessao.eu} hoje={hoje} util={util} banco={banco} />}
+        {abaAtual === 'lista' && <ListaMural key={versao} dados={dados} setDados={setDados} pessoa={pessoa} alheia={alheia} eu={sessao.eu} hoje={hoje} banco={banco} />}
+        {abaAtual === 'lembretes' && <Lembretes key={versao} dados={dados} setDados={setDados} hoje={hoje} banco={banco} />}
+        {abaAtual === 'rotinas' && <Rotinas key={versao} dados={dados} setDados={setDados} hoje={hoje} banco={banco} />}
+        {!['quadro', 'lista', 'lembretes', 'rotinas'].includes(abaAtual) && <AindaNoAtual aba={ABAS.find(a => a.id === abaAtual)?.nome || ''} />}
       </div>
     </section>
   );

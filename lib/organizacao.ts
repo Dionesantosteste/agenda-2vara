@@ -22,6 +22,10 @@ export const CORES_ETIQUETA: [string, string, string][] = [['vermelho', 'Vermelh
 export const corDaEtiqueta = (cor: string) => (CORES_ETIQUETA.find(x => x[0] === cor) || [0, 0, '#64748B'])[2] as string;
 
 export const FREQ: Record<string, string> = { semanal: 'Semanal', mensal: 'Mensal', trimestral: 'Trimestral' };
+export const PERIODO: Record<string, string> = { semanal: 'nesta semana', mensal: 'neste mês', trimestral: 'neste trimestre' };
+export const CORES_NOTA = ['amarelo', 'verde', 'rosa', 'azul'];
+export const ROTACAO_NOTA = ['-0.8deg', '0.6deg', '-0.3deg', '0.9deg', '-0.6deg', '0.4deg'];
+export const FEITAS_VISIVEIS = 15;   // a lista mostra só as últimas tarefas concluídas
 
 // ---- correção ao salvar: primeira letra maiúscula e acento das palavras comuns da vara ----
 // Só entram palavras que SEM acento não existem (ou quase não se usam); acrescente outras aqui: "sem acento": "com acento"
@@ -74,11 +78,13 @@ export type Coluna = { chave: string; nome: string };
 export type Etiqueta = { id: string; nome: string; cor: string };
 export type Anotacao = { id: string; tarefa: string; texto: string; criada: Date };
 export type Pessoa = { id: string; nome: string; ativo: boolean };
-export type Lembrete = { id: string; data: Date; feitoEm: Date | null };
-export type Rotina = { id: string; frequencia: string; feitaEm: Date | null };
+export type Nota = { id: string; texto: string; titulo: string; cor: string; fixada: boolean; criada: Date };
+export type Lembrete = { id: string; texto: string; data: Date; hora: string; processo: string; feitoEm: Date | null };
+export type Rotina = { id: string; titulo: string; frequencia: string; feitaEm: Date | null };
 export type Dados = {
-  tarefas: Tarefa[]; colunas: Coluna[]; etiquetas: Etiqueta[]; anotacoes: Anotacao[]; pessoas: Pessoa[]; lembretes: Lembrete[]; rotinas: Rotina[];
+  tarefas: Tarefa[]; notas: Nota[]; colunas: Coluna[]; etiquetas: Etiqueta[]; anotacoes: Anotacao[]; pessoas: Pessoa[]; lembretes: Lembrete[]; rotinas: Rotina[];
   euNome: string; temEquipe: boolean; temConf: boolean; temCadastro: boolean; temOrdem: boolean; temChecklist: boolean; temExtras: boolean; arqLivre: boolean;
+  temNotaTitulo: boolean; temOrdemLista: boolean;
   aniversarios: { mes: number }[] | null; aConferir: number;
 };
 type Linha = Record<string, any>;   // resposta do banco (org_carregar), que traz vários formatos
@@ -124,11 +130,14 @@ export function lerDados(r: Linha): Dados {
     colunas: q.colunas, etiquetas: q.etiquetas, temCadastro: q.temCadastro,
     anotacoes: (r.anotacoes || []).map((a: Linha) => ({ id: a.id, tarefa: a.tarefa_id, texto: a.texto || '', criada: new Date(a.created_at) })),
     pessoas: (r.pessoas || []).map((p: Linha) => ({ id: p.id, nome: p.nome || '', ativo: p.ativo !== false })),
-    lembretes: (r.lembretes || []).map((l: Linha) => ({ id: l.id, data: new Date(l.data + 'T00:00'), feitoEm: l.feito_em ? new Date(l.feito_em) : null })),
-    rotinas: (r.rotinas || []).map((x: Linha) => ({ id: x.id, frequencia: FREQ[x.frequencia] ? x.frequencia : 'mensal', feitaEm: x.feita_em ? new Date(x.feita_em) : null })),
+    notas: (r.notas || []).map((n: Linha) => ({ id: n.id, texto: n.texto || '', titulo: n.titulo || '', cor: CORES_NOTA.includes(n.cor) ? n.cor : 'amarelo', fixada: !!n.fixada, criada: new Date(n.created_at) })),
+    lembretes: (r.lembretes || []).map((l: Linha) => ({ id: l.id, texto: l.texto || '', data: new Date(l.data + 'T00:00'), hora: l.hora ? String(l.hora).slice(0, 5) : '',
+      processo: l.processo || '', feitoEm: l.feito_em ? new Date(l.feito_em) : null })),
+    rotinas: (r.rotinas || []).map((x: Linha) => ({ id: x.id, titulo: x.titulo || '', frequencia: FREQ[x.frequencia] ? x.frequencia : 'mensal', feitaEm: x.feita_em ? new Date(x.feita_em) : null })),
     euNome: r.pessoa && r.pessoa.nome ? r.pessoa.nome : '',
     temEquipe: r.equipe === true, temConf: r.conferencia === true, temOrdem: r.ordem === true, temChecklist: r.checklist === true,
     temExtras: Array.isArray(r.modelos), arqLivre: r.arquivar_livre === true,
+    temNotaTitulo: r.nota_titulo === true, temOrdemLista: r.ordem_lista === true,
     aniversarios: Array.isArray(r.aniversarios) ? r.aniversarios.map((a: Linha) => ({ mes: +a.mes })) : null,
     aConferir: typeof r.equipe_conferir === 'number' ? r.equipe_conferir : 0
   };
@@ -274,3 +283,64 @@ export function iniciais(nome: string): string {
   if (!p.length) return '?';
   return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[p.length - 1][0]).toUpperCase();
 }
+
+// ---- mural ----
+// Fixadas primeiro, depois as mais novas
+export const ordenaNotas = (notas: Nota[]) => notas.slice().sort((a, b) => (Number(b.fixada) - Number(a.fixada)) || (b.criada.getTime() - a.criada.getTime()));
+export const paraSalvarNota = (n: { id?: string | null; texto: string; cor: string; fixada: boolean }) =>
+  ({ p_id: n.id || null, p_texto: corrige(n.texto), p_cor: n.cor, p_fixada: !!n.fixada });
+
+// ---- lista "Tarefas e mural" ----
+export type GrupoTarefas = { nome: string; itens: Tarefa[]; concluidas: boolean };
+// Atrasadas, Hoje, Próximas, Sem prazo e Concluídas. A ordem escolhida pela pessoa vem primeiro;
+// o resto segue por prazo e prioridade. Só entram as tarefas que não foram arquivadas.
+export function gruposDeTarefas(tarefas: Tarefa[], hoje: Date): GrupoTarefas[] {
+  const dd = (t: Tarefa) => (t.prazo ? diasAte(t.prazo, hoje) : null);
+  const definicao: [string, (t: Tarefa) => boolean, boolean][] = [
+    ['Atrasadas', t => !t.feitaEm && t.prazo !== null && dd(t)! < 0, false],
+    ['Hoje', t => !t.feitaEm && t.prazo !== null && dd(t) === 0, false],
+    ['Próximas', t => !t.feitaEm && t.prazo !== null && dd(t)! > 0, false],
+    ['Sem prazo', t => !t.feitaEm && !t.prazo, false],
+    ['Concluídas', t => !!t.feitaEm, true]
+  ];
+  const vivas = tarefas.filter(t => !t.arquivadaEm);
+  const grupos: GrupoTarefas[] = [];
+  definicao.forEach(([nome, quais, concluidas]) => {
+    let itens = vivas.filter(quais).sort((a, b) => {
+      if (concluidas) return (b.feitaEm?.getTime() || 0) - (a.feitaEm?.getTime() || 0);
+      const oa = a.ordemLista === null ? 1e9 : a.ordemLista, ob = b.ordemLista === null ? 1e9 : b.ordemLista;
+      return (oa - ob) || ((a.prazo?.getTime() || 0) - (b.prazo?.getTime() || 0)) || (prioNivel(b) - prioNivel(a));
+    });
+    if (!itens.length) return;
+    if (concluidas && itens.length > FEITAS_VISIVEIS) itens = itens.slice(0, FEITAS_VISIVEIS);
+    grupos.push({ nome, itens, concluidas });
+  });
+  return grupos;
+}
+export const emAberto = (tarefas: Tarefa[]) => tarefas.filter(t => !t.feitaEm && !t.arquivadaEm).length;
+
+// ---- lembretes ----
+export const horaDe = (d: Date) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+export const ordemLembretes = (a: Lembrete, b: Lembrete) => (a.data.getTime() - b.data.getTime()) || (a.hora < b.hora ? -1 : a.hora > b.hora ? 1 : 0);
+export const lembretesAte = (ls: Lembrete[], dias: number, hoje: Date) => ls.filter(l => !l.feitoEm && diasAte(l.data, hoje) <= dias);
+export function gruposDeLembretes(ls: Lembrete[], hoje: Date){
+  const hm = horaDe(hoje);
+  const deHoje = ls.filter(l => diasAte(l.data, hoje) === 0).sort(ordemLembretes);
+  const atrasados = ls.filter(l => !l.feitoEm && diasAte(l.data, hoje) < 0).sort(ordemLembretes);
+  const proximos = ls.filter(l => !l.feitoEm && diasAte(l.data, hoje) > 0).sort(ordemLembretes);
+  const pendentesHoje = deHoje.filter(l => !l.feitoEm);
+  const horarioPassou = (l: Lembrete) => !l.feitoEm && !!l.hora && l.hora < hm;
+  const proximo = pendentesHoje.find(l => l.hora && l.hora >= hm) || null;
+  return { hm, deHoje, atrasados, proximos, pendentesHoje, proximo, horarioPassou,
+    passou: pendentesHoje.filter(horarioPassou).length + atrasados.length };
+}
+export const paraSalvarLembrete = (l: { id?: string | null; texto: string; data: Date; hora: string; processo: string; feitoEm: Date | null }) =>
+  ({ p_id: l.id || null, p_texto: corrige(l.texto), p_data: chaveDoDia(l.data), p_hora: l.hora || null, p_processo: l.processo || '', p_feito_em: l.feitoEm ? l.feitoEm.toISOString() : null });
+
+// ---- rotinas ----
+const ORDEM_FREQ: Record<string, number> = { semanal: 0, mensal: 1, trimestral: 2 };
+// Pendentes primeiro, depois da mais frequente para a menos, depois pelo título
+export const ordenaRotinas = (rs: Rotina[], hoje: Date) => rs.slice().sort((a, b) =>
+  (Number(rotinaFeita(a, hoje)) - Number(rotinaFeita(b, hoje))) || (ORDEM_FREQ[a.frequencia] - ORDEM_FREQ[b.frequencia]) || a.titulo.localeCompare(b.titulo));
+export const paraSalvarRotina = (x: { id?: string | null; titulo: string; frequencia: string; feitaEm: Date | null }) =>
+  ({ p_id: x.id || null, p_titulo: corrige(x.titulo), p_frequencia: x.frequencia, p_feita_em: x.feitaEm ? x.feitaEm.toISOString() : null });
