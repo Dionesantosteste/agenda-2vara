@@ -992,6 +992,17 @@
   .anot p{ margin:0; grid-column:1; white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
   .anot .icon-btn{ grid-column:2; grid-row:1 / span 2; align-self:start; }
   .anot .icon-btn.armed{ width:auto; padding:0 8px; font-size:12px; color:var(--danger); }
+  .anot-acts{ grid-column:2; grid-row:1 / span 2; align-self:start; display:flex; gap:2px; }
+  .anot.edit{ display:block; }
+  .anot.edit time{ display:block; margin-bottom:6px; }
+  .anot.edit textarea{ width:100%; }
+  .anot-edit-acts{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .anot mark, .anot-prev mark{ background:#FFF176; color:#2A2A1E; border-radius:3px; padding:0 2px; }
+  .fmt-bar{ display:flex; gap:4px; margin-bottom:4px; }
+  .fmt-btn{ min-width:30px; height:28px; padding:0 8px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
+  .fmt-btn:hover{ background:var(--sunken); }
+  .fmt-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .fmt-btn[data-fmt="m"] span{ background:#FFF176; color:#2A2A1E; border-radius:3px; padding:0 4px; }
   .t-meta .kcheck, .t-meta .knotas{ display:inline-flex; align-items:center; gap:3px; font-variant-numeric:tabular-nums; }
   .t-meta .kcheck.ok{ color:var(--ok); font-weight:600; }
   .kview{ display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); flex:none; }
