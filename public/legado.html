@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script>
+/* Acesso só por convite: sem login neste aparelho, vai para a tela de entrada antes de mostrar qualquer coisa */
+try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/.test(k); })) location.replace('/entrar?volta='+encodeURIComponent(location.pathname+location.search+location.hash)); }catch(e){}
+</script>
 <title>Portal 2ª Vara</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22a%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFF4C2%22%2F%3E%3Cstop%20offset%3D%22.45%22%20stop-color%3D%22%23D4A63A%22%2F%3E%3Cstop%20offset%3D%22.7%22%20stop-color%3D%22%239C7019%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23E7C063%22%2F%3E%3C%2FlinearGradient%3E%3CradialGradient%20id%3D%22b%22%20cx%3D%22.42%22%20cy%3D%22.3%22%20r%3D%22.9%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%233569BE%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%231E4A92%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%230A1F4A%22%2F%3E%3C%2FradialGradient%3E%3ClinearGradient%20id%3D%22c%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23FFF1B8%22%2F%3E%3Cstop%20offset%3D%22.5%22%20stop-color%3D%22%23E2B850%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23A97A1C%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M32%202%20L60%2010%20L60%2034%20C60%2049%2048%2058%2032%2063%20C16%2058%204%2049%204%2034%20L4%2010%20Z%22%20fill%3D%22url%28%23a%29%22%2F%3E%3Cpath%20d%3D%22M32%207%20L55%2013.5%20L55%2034%20C55%2046%2045%2053.5%2032%2058%20C19%2053.5%209%2046%209%2034%20L9%2013.5%20Z%22%20fill%3D%22url%28%23b%29%22%2F%3E%3Cpath%20d%3D%22M27.955078125%2041.6328125%2030.306640625%2041.98828125V43.0H21.296875V41.98828125L23.6484375%2041.6328125V26.033203125L21.296875%2025.6640625V24.666015625H30.306640625V25.6640625L27.955078125%2026.033203125ZM40.3515625%2041.6328125%2042.703125%2041.98828125V43.0H33.693359375V41.98828125L36.044921875%2041.6328125V26.033203125L33.693359375%2025.6640625V24.666015625H42.703125V25.6640625L40.3515625%2026.033203125Z%22%20fill%3D%22url%28%23c%29%22%2F%3E%3C%2Fsvg%3E">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -1875,6 +1879,8 @@
         <span class="apar-lbl" id="aparFundoLbl">Fundo da página</span>
         <div class="cor-sws" id="aparFundo" role="group" aria-labelledby="aparFundoLbl"></div>
       </div>
+      <a class="apar-btn" id="acessosLink" href="/novo/acesso" hidden>Acessos</a>
+      <button type="button" class="apar-btn" id="sairBtn">Sair</button>
     </div>
   </aside>
   <button type="button" class="scrim" id="scrim" aria-label="Fechar menu" tabindex="-1"></button>
@@ -3162,6 +3168,18 @@
   }
 
   var supabase = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+  // Login: sessão perdida ou saída = volta para a tela de entrada; administrador vê o link "Acessos"
+  function irParaEntrar(){ location.replace('/entrar?volta=' + encodeURIComponent(location.pathname + location.search + location.hash)); }
+  if (supabase){
+    supabase.auth.getSession().then(function(r){
+      var ses = r.data && r.data.session;
+      if (!ses) return irParaEntrar();
+      if (ses.user && ses.user.app_metadata && ses.user.app_metadata.admin === true) document.getElementById('acessosLink').hidden = false;
+    });
+    supabase.auth.onAuthStateChange(function(ev){ if (ev === 'SIGNED_OUT') irParaEntrar(); });
+    document.getElementById('sairBtn').addEventListener('click', function(){ supabase.auth.signOut().then(function(){ location.replace('/entrar'); }); });
+  }
 
   var banner = document.getElementById('setupBanner');
   if (configured) banner.hidden = true;

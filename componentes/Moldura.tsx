@@ -4,12 +4,14 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { SECOES, enderecoDaSecao } from '@/lib/secoes';
 import { dataPorExtenso } from '@/lib/datas';
 import { Aparencia } from './Aparencia';
+import { useSessao } from './Porteiro';
 import { IconeMenu, IconeSecao } from './Icones';
 
 // largura: "medio" (Prazos) ou "wide" (Organização), como no sistema atual
 export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: string; secaoAtual?: string; largura?: 'medio' | 'wide'; children: ReactNode }){
   const [menuAberto, setMenuAberto] = useState(false);
   const [hoje, setHoje] = useState('');
+  const { email, admin, sair } = useSessao();
   useEffect(() => {
     const atualiza = () => setHoje(dataPorExtenso());
     atualiza();
@@ -41,6 +43,8 @@ export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: str
         <div className="sidebar-foot">
           <strong id="todayLong">{hoje}</strong>
           <Aparencia />
+          {admin && <a className="apar-btn" id="acessosLink" href="/novo/acesso" aria-current={secaoAtual === 'acesso' ? 'page' : undefined}>Acessos</a>}
+          <button type="button" className="apar-btn" id="sairBtn" title={email ? 'Conta: ' + email : undefined} onClick={sair}>Sair</button>
         </div>
       </aside>
       <button type="button" className="scrim" id="scrim" aria-label="Fechar menu" tabIndex={-1} onClick={() => setMenuAberto(false)} />

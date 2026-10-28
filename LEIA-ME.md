@@ -52,9 +52,8 @@ alter publication supabase_realtime add table categories;
 
 > ⚠️ **Atenção de segurança:** essas políticas deixam o banco **totalmente aberto** — qualquer
 > pessoa que descobrir a URL do seu projeto Supabase (não só o link do site) pode ler, criar,
-> editar e apagar contatos, mesmo sem abrir o site. Isso é intencional, porque você pediu acesso
-> livre para qualquer pessoa. Se depois quiser restringir (por exemplo, exigir login), me avise
-> que eu ajusto o código para usar autenticação do Supabase.
+> editar e apagar contatos, mesmo sem abrir o site. Isso vale até você fazer o
+> **Passo 2.6 (acesso só por convite)**, que fecha o banco para quem não estiver logado.
 
 ## Passo 2.1 — Tabela de Audiências (portal)
 
@@ -88,8 +87,8 @@ alter publication supabase_realtime add table audiencias;
 ```
 
 > ⚠️ Assim como os contatos, essas políticas deixam as audiências **abertas para qualquer
-> pessoa** que tenha a URL do Supabase. Como a pauta traz números de processo, considere
-> ativar login (Supabase Auth) — é só pedir que o código é ajustado.
+> pessoa** que tenha a URL do Supabase. Como a pauta traz números de processo, faça o
+> **Passo 2.6** (acesso só por convite).
 
 Se a tabela ainda não existir, a tela de Audiências mostra um aviso pedindo para rodar este SQL.
 
@@ -437,6 +436,60 @@ No `public/legado.html`, cada seção tem três partes (Agenda, Audiências e Or
 1. um link no menu lateral (`<a class="nav-item" href="#nome" data-route="nome">`);
 2. um bloco `<section id="view-nome" hidden>` com o conteúdo;
 3. uma entrada em `ROUTES` no script.
+
+## Passo 2.6 — Acesso só por convite (login com e-mail e senha)
+
+Com este passo, **só entra no sistema quem você convidar**. Quem tiver apenas o endereço do site
+(ou da URL do Supabase) não vê nem altera nada. Cada pessoa recebe um e-mail, cria a própria senha e
+entra com e-mail e senha de qualquer computador. Dentro do sistema continua tudo como antes (a
+pessoa escolhe o próprio nome na Organização, sem senha).
+
+Faça na ordem. Se o site já está no ar, faça tudo de uma vez, porque o passo 4 fecha o banco.
+
+**1. Variável na Vercel** (Settings → Environment Variables), para o botão de convidar funcionar:
+
+- `SUPABASE_SERVICE_ROLE_KEY` = a chave **service_role** (Supabase → Settings → API Keys).
+  Ela dá poder total sobre o projeto: **nunca** cole no código, no GitHub nem em mensagens. Só na Vercel.
+- Depois de salvar, faça um novo deploy (Deployments → Redeploy).
+
+**2. Configurar o Supabase** (Authentication):
+
+- **Sign In / Providers → Email**: deixe ligado e **desligue "Allow new users to sign up"**
+  (assim ninguém cria conta sozinho; só entra por convite). A confirmação de e-mail pode ficar ligada.
+- **URL Configuration**: em *Site URL* ponha o endereço do site (ex.: `https://sua-vara.vercel.app`)
+  e em *Redirect URLs* acrescente `https://sua-vara.vercel.app/definir-senha`
+  (e `http://localhost:3000/definir-senha` se for testar no computador).
+- **Email Templates** (opcional): traduza os modelos "Invite user" e "Reset password".
+  Mantenha o link `{{ .ConfirmationURL }}`.
+- O e-mail padrão do Supabase tem limite baixo de envios por hora. Para uso diário, configure um
+  SMTP próprio em *Authentication → Emails → SMTP Settings* (Gmail, Resend, etc.).
+
+**3. Convidar o primeiro administrador**: Authentication → Users → **Invite user** → seu e-mail.
+Abra o e-mail, clique no link e crie sua senha. Em seguida, no SQL Editor, rode (trocando o e-mail):
+
+```sql
+update auth.users
+   set raw_app_meta_data = coalesce(raw_app_meta_data, '{}'::jsonb) || '{"admin": true}'::jsonb
+ where email = 'seu-email@exemplo.com';
+```
+
+Saia e entre de novo para o sistema reconhecer. Aparece então o botão **Acessos** no menu.
+
+**4. Fechar o banco**: cole o conteúdo de `sql/acesso.sql` no SQL Editor e rode **uma vez**.
+Isso tira de "qualquer pessoa" o direito de ler e gravar. **Rode de novo sempre que rodar outro
+arquivo da pasta `sql/`**, porque eles recriam as regras abertas. Para conferir, as duas consultas
+comentadas no final do arquivo têm de voltar vazias.
+
+**5. Convidar a equipe**: no sistema, menu **Acessos** → digite o e-mail → **Enviar convite**.
+A pessoa abre o e-mail, cria a senha e entra. Na mesma tela dá para ver quem já aceitou,
+**reenviar** um convite pendente e **remover** o acesso de quem saiu.
+
+Dia a dia:
+- **Esqueceu a senha?** Na tela de entrada, clique em *Esqueci minha senha*; chega um link por e-mail.
+- **Outro computador?** Basta abrir o endereço do site e entrar com e-mail e senha.
+- **Sair:** botão *Sair* no rodapé do menu. Sem clicar, o aparelho continua entrando direto por meses.
+- O link do e-mail vale por pouco tempo e funciona **uma vez**. Se aparecer "Link vencido", peça outro
+  (*Esqueci minha senha*, ou *Reenviar convite* na tela Acessos).
 
 ## Passo 3 — Pegar a URL e a chave do projeto
 
