@@ -107,6 +107,16 @@ mostra "Com: nome". Em **"Várias de uma vez"** cole uma audiência por linha (n
 observação); repetidas (mesmo processo no mesmo dia ou com o mesmo tipo) ficam de fora, a menos que marque "cadastrar
 mesmo assim".
 
+## Organização: editar anotações e formatar o texto
+
+Para editar uma anotação já feita na tarefa do Quadro, rode no SQL Editor, depois do `sql/organizacao.sql`, o arquivo
+[`sql/organizacao_anotacoes.sql`](sql/organizacao_anotacoes.sql) (cria a função `org_editar_anotacao`; o `organizacao.sql`
+atualizado também já a inclui).
+
+Nas anotações: **B** (negrito, Ctrl+B), *I* (itálico, Ctrl+I) e **A** com fundo amarelo (marcador). O texto é guardado
+com marcas simples (`**negrito**`, `*itálico*`, `==marcado==`) e aparece formatado depois de registrado. Para editar,
+use o lápis ao lado da anotação (Ctrl+Enter salva, Esc cancela).
+
 ## Passo 2.1.1 — Tipos de audiência (lista própria)
 
 Para cadastrar novos tipos de audiência pelo site, rode no SQL Editor o arquivo

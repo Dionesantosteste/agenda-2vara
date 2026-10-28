@@ -274,3 +274,26 @@ export function iniciais(nome: string): string {
   if (!p.length) return '?';
   return (p.length === 1 ? p[0].slice(0, 2) : p[0][0] + p[p.length - 1][0]).toUpperCase();
 }
+
+// ---- formatação das anotações: **negrito**, *itálico* e ==marcador amarelo== (guardado como texto simples) ----
+export type ParteNota = { t: string; f: '' | 'b' | 'i' | 'm' };
+export const MARCAS_NOTA = { b: '**', i: '*', m: '==' } as const;
+const RE_NOTA = /\*\*([\s\S]+?)\*\*|==([\s\S]+?)==|\*(?!\s)([^*]+?)(?<!\s)\*/g;
+export function partesDaNota(texto: string): ParteNota[] {
+  const out: ParteNota[] = [];
+  let pos = 0;
+  for (const m of texto.matchAll(RE_NOTA)){
+    if (m.index! > pos) out.push({ t: texto.slice(pos, m.index), f: '' });
+    out.push(m[1] != null ? { t: m[1], f: 'b' } : m[2] != null ? { t: m[2], f: 'm' } : { t: m[3], f: 'i' });
+    pos = m.index! + m[0].length;
+  }
+  if (pos < texto.length) out.push({ t: texto.slice(pos), f: '' });
+  return out;
+}
+// Envolve o trecho selecionado com a marca (ou tira a marca, se já estiver envolvido). Sem seleção, abre o par com o cursor no meio.
+export function aplicarMarca(texto: string, ini: number, fim: number, marca: string): { texto: string; ini: number; fim: number } {
+  const l = marca.length, sel = texto.slice(ini, fim);
+  if (sel.length >= 2 * l && sel.startsWith(marca) && sel.endsWith(marca))
+    return { texto: texto.slice(0, ini) + sel.slice(l, sel.length - l) + texto.slice(fim), ini, fim: fim - 2 * l };
+  return { texto: texto.slice(0, ini) + marca + sel + marca + texto.slice(fim), ini: ini + l, fim: fim + l };
+}

@@ -1025,6 +1025,17 @@
   .anot p{ margin:0; grid-column:1; white-space:pre-wrap; overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
   .anot .icon-btn{ grid-column:2; grid-row:1 / span 2; align-self:start; }
   .anot .icon-btn.armed{ width:auto; padding:0 8px; font-size:12px; color:var(--danger); }
+  .anot-acts{ grid-column:2; grid-row:1 / span 2; align-self:start; display:flex; gap:2px; }
+  .anot.edit{ display:block; }
+  .anot.edit time{ display:block; margin-bottom:6px; }
+  .anot.edit textarea{ width:100%; }
+  .anot-edit-acts{ display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .anot mark, .anot-prev mark{ background:#FFF176; color:#2A2A1E; border-radius:3px; padding:0 2px; }
+  .fmt-bar{ display:flex; gap:4px; margin-bottom:4px; }
+  .fmt-btn{ min-width:30px; height:28px; padding:0 8px; border:1px solid var(--line); border-radius:7px; background:var(--paper); color:var(--ink); font:inherit; font-size:13px; cursor:pointer; }
+  .fmt-btn:hover{ background:var(--sunken); }
+  .fmt-btn:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
+  .fmt-btn[data-fmt="m"] span{ background:#FFF176; color:#2A2A1E; border-radius:3px; padding:0 4px; }
   .t-meta .kcheck, .t-meta .knotas{ display:inline-flex; align-items:center; gap:3px; font-variant-numeric:tabular-nums; }
   .t-meta .kcheck.ok{ color:var(--ok); font-weight:600; }
   .kview{ display:inline-flex; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:var(--paper); flex:none; }
@@ -2938,6 +2949,11 @@
     </div>
     <div class="field oc-extra" id="ocNotasWrap" hidden>
       <label for="ocNotaTxt">Anotações <span class="oc-n" id="ocNotasN"></span></label>
+      <div class="fmt-bar" data-alvo="ocNotaTxt" role="group" aria-label="Formatar anotação">
+        <button type="button" class="fmt-btn" data-fmt="b" title="Negrito (Ctrl+B)" aria-label="Negrito"><b>B</b></button>
+        <button type="button" class="fmt-btn" data-fmt="i" title="Itálico (Ctrl+I)" aria-label="Itálico"><i>I</i></button>
+        <button type="button" class="fmt-btn" data-fmt="m" title="Marcador amarelo" aria-label="Marcador amarelo"><span>A</span></button>
+      </div>
       <div class="ck-add">
         <textarea id="ocNotaTxt" rows="2" maxlength="2000" placeholder="Ex.: ofício enviado por malote; aguardando resposta" aria-describedby="ocNotaDica"></textarea>
         <button type="button" class="btn" id="ocNotaAdd">Anotar</button>
@@ -6490,11 +6506,60 @@
     }).join('');
     var notas = orgNotasDe(t.id);
     OCX.notasN.textContent = notas.length ? String(notas.length) : '';
+    // mantém o que foi digitado na edição, se a lista for redesenhada (ex.: ao marcar um item do checklist)
+    var edAberto = document.getElementById('ocNotaEdit');
+    if (edAberto && ocNotaEdit) ocNotaEdit.txt = edAberto.value;
+    if (ocNotaEdit && (ocNotaEdit.tarefa !== t.id || !notas.some(function(a){ return a.id === ocNotaEdit.id; }))) ocNotaEdit = null;
     OCX.notasList.innerHTML = notas.map(function(a){
-      return '<div class="anot"><time>' + formatDataHora(a.criada) + '</time><p>' + escapeHtml(a.texto) + '</p>' +
-        '<button type="button" class="icon-btn" data-nota="' + a.id + '" title="Excluir anotação" aria-label="Excluir anotação">' + ICON_X + '</button></div>';
+      if (ocNotaEdit && ocNotaEdit.id === a.id){
+        return '<div class="anot edit"><time>' + formatDataHora(a.criada) + '</time>' + fmtBarraHtml('ocNotaEdit') +
+          '<textarea id="ocNotaEdit" rows="4" maxlength="2000" aria-label="Editar anotação">' + escapeHtml(ocNotaEdit.txt) + '</textarea>' +
+          '<div class="anot-edit-acts"><button type="button" class="btn" data-nota-cancelar>Cancelar</button><button type="button" class="btn primary" data-nota-salvar="' + a.id + '">Salvar</button></div></div>';
+      }
+      return '<div class="anot"><time>' + formatDataHora(a.criada) + '</time><p>' + fmtNota(a.texto) + '</p>' +
+        '<div class="anot-acts"><button type="button" class="icon-btn" data-nota-editar="' + a.id + '" title="Editar anotação" aria-label="Editar anotação">' + ICON_PENCIL + '</button>' +
+        '<button type="button" class="icon-btn" data-nota="' + a.id + '" title="Excluir anotação" aria-label="Excluir anotação">' + ICON_X + '</button></div></div>';
     }).join('');
   }
+
+  // ---- formatação das anotações: **negrito**, *itálico* e ==marcador amarelo== (guardado como texto simples) ----
+  var ocNotaEdit = null;   // { id, tarefa, txt } da anotação em edição
+  var FMT_MARCAS = { b: '**', i: '*', m: '==' };
+  function fmtNota(txt){
+    return escapeHtml(txt).replace(/\*\*([\s\S]+?)\*\*|==([\s\S]+?)==|\*(?!\s)([^*]+?)(?<!\s)\*/g, function(_, b, m, i){
+      return b != null ? '<strong>' + b + '</strong>' : m != null ? '<mark>' + m + '</mark>' : '<em>' + i + '</em>';
+    });
+  }
+  function fmtBarraHtml(alvo){
+    return '<div class="fmt-bar" data-alvo="' + alvo + '" role="group" aria-label="Formatar anotação">' +
+      '<button type="button" class="fmt-btn" data-fmt="b" title="Negrito (Ctrl+B)" aria-label="Negrito"><b>B</b></button>' +
+      '<button type="button" class="fmt-btn" data-fmt="i" title="Itálico (Ctrl+I)" aria-label="Itálico"><i>I</i></button>' +
+      '<button type="button" class="fmt-btn" data-fmt="m" title="Marcador amarelo" aria-label="Marcador amarelo"><span>A</span></button></div>';
+  }
+  // Envolve o trecho selecionado (ou desfaz, se já estiver envolvido); sem seleção, abre o par de marcas com o cursor no meio
+  function fmtAplicar(ta, tipo){
+    var m = FMT_MARCAS[tipo], l = m.length, ini = ta.selectionStart, fim = ta.selectionEnd, v = ta.value, sel = v.slice(ini, fim);
+    if (sel.length >= 2 * l && sel.indexOf(m) === 0 && sel.lastIndexOf(m) === sel.length - l){
+      ta.value = v.slice(0, ini) + sel.slice(l, sel.length - l) + v.slice(fim);
+      ta.setSelectionRange(ini, fim - 2 * l);
+    } else {
+      ta.value = v.slice(0, ini) + m + sel + m + v.slice(fim);
+      ta.setSelectionRange(ini + l, fim + l);
+    }
+    ta.focus();
+  }
+  function fmtAtalho(e, ta){
+    if (!(e.ctrlKey || e.metaKey) || e.shiftKey || e.altKey) return false;
+    var k = e.key.toLowerCase();
+    if (k !== 'b' && k !== 'i') return false;
+    e.preventDefault(); fmtAplicar(ta, k);
+    return true;
+  }
+  OCX.notasWrap.addEventListener('click', function(e){
+    var b = e.target.closest('.fmt-btn[data-fmt]'); if (!b) return;
+    var ta = document.getElementById(b.closest('.fmt-bar').getAttribute('data-alvo'));
+    if (ta) fmtAplicar(ta, b.getAttribute('data-fmt'));
+  });
 
   // Mostra na hora e grava o checklist inteiro no banco
   async function ocSalvarChecklist(t, lista){
@@ -6563,10 +6628,39 @@
   OCX.notaAdd.addEventListener('click', function(){ ocAnotar(); });
   // Enter registra a anotação; Shift+Enter pula linha
   OCX.notaTxt.addEventListener('keydown', function(e){
+    if (fmtAtalho(e, OCX.notaTxt)) return;
     if (e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); ocAnotar(); }
   });
 
+  async function ocSalvarNotaEditada(id){
+    var ta = document.getElementById('ocNotaEdit'), txt = ta ? ta.value.trim() : '';
+    if (!txt){ toast('A anotação não pode ficar vazia.'); if (ta) ta.focus(); return; }
+    var r = await orgCall('org_editar_anotacao', { p_id: id, p_texto: txt });
+    if (!orgOk(r)) return;
+    var a = org.anotacoes.filter(function(x){ return x.id === id; })[0];
+    if (a){ a.texto = txt.slice(0, 2000); var t = orgFind(org.tarefas, a.tarefa); if (t) t.atualizada = new Date(); }
+    ocNotaEdit = null;
+    renderOcExtras(); renderOrgKanban();
+    toast('Anotação atualizada');
+  }
+  OCX.notasList.addEventListener('keydown', function(e){
+    if (e.target.id !== 'ocNotaEdit' || !ocNotaEdit) return;
+    if (fmtAtalho(e, e.target)) return;
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); ocSalvarNotaEditada(ocNotaEdit.id); }
+    if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); ocNotaEdit = null; renderOcExtras(); }
+  });
   OCX.notasList.addEventListener('click', async function(e){
+    var ed = e.target.closest('[data-nota-editar]');
+    if (ed){
+      var alvo = org.anotacoes.filter(function(x){ return x.id === ed.getAttribute('data-nota-editar'); })[0]; if (!alvo) return;
+      ocNotaEdit = { id: alvo.id, tarefa: alvo.tarefa, txt: alvo.texto };
+      renderOcExtras();
+      var ta = document.getElementById('ocNotaEdit'); if (ta){ ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+      return;
+    }
+    if (e.target.closest('[data-nota-cancelar]')){ ocNotaEdit = null; renderOcExtras(); return; }
+    var sv = e.target.closest('[data-nota-salvar]');
+    if (sv){ ocSalvarNotaEditada(sv.getAttribute('data-nota-salvar')); return; }
     var b = e.target.closest('[data-nota]'); if (!b) return;
     if (!b.classList.contains('armed')){ b.classList.add('armed'); b.textContent = 'Excluir?'; return; }
     var id = b.getAttribute('data-nota');

@@ -9,6 +9,7 @@ import { useAviso } from '@/componentes/Avisos';
 import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useJanela } from '@/componentes/useJanela';
 import type { Banco } from './Organizacao';
+import { BarraFormato, TextoNota, atalhoDeFormato } from './FormatoNota';
 
 const dois = (n: number) => (n < 10 ? '0' : '') + n;
 const CONFORMIDADE: Record<string, string> = { sim: 'Sim', parcialmente: 'Parcialmente', nao: 'Não' };
@@ -29,6 +30,8 @@ function Fechamento({ c }: { c: Conclusao }){
     </>
   );
 }
+
+const Lapis = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" /></svg>;
 
 function ExcluirAnotacao({ excluir }: { excluir: () => void }){
   const [armado, setArmado] = useState(false);
@@ -59,6 +62,7 @@ function FormTarefa({ tarefa: t, dados, setDados, pessoa, banco, confereDup, abr
   const [v, setV] = useState(() => ({ titulo: t.titulo, etapa: t.etapa, prazo: t.prazo ? chaveDoDia(t.prazo) : '', prio: t.prioridade as string, resp: t.responsavel, proc: t.processo, etq: t.etiquetas.slice(), novoItem: '', nota: '' }));
   const [armado, setArmado] = useState(false);
   const [gravando, setGravando] = useState(false);
+  const [edNota, setEdNota] = useState<{ id: string; txt: string } | null>(null);   // anotação em edição
   useEffect(() => { const t = setTimeout(() => document.getElementById('ocTitulo')?.focus(), 30); return () => clearTimeout(t); }, []);
 
   const mudarTarefa = (tid: string, patch: Partial<Tarefa>) => setDados(d => d && { ...d, tarefas: d.tarefas.map(x => (x.id === tid ? { ...x, ...patch } : x)) });
@@ -79,6 +83,17 @@ function FormTarefa({ tarefa: t, dados, setDados, pessoa, banco, confereDup, abr
     setV(s => ({ ...s, novoItem: '' }));
     salvarChecklist(t.checklist.concat([{ t: txt, ok: false }]));
     document.getElementById('ocCheckNovo')?.focus();
+  }
+  async function salvarNotaEditada(){
+    if (!edNota) return;
+    const txt = edNota.txt.trim();
+    if (!txt){ avisar('A anotação não pode ficar vazia.'); document.getElementById('ocNotaEdit')?.focus(); return; }
+    const r = await banco.chamar('org_editar_anotacao', { p_id: edNota.id, p_texto: txt });
+    if (!banco.ok(r)) return;
+    setDados(d => d && { ...d, anotacoes: d.anotacoes.map(x => (x.id === edNota.id ? { ...x, texto: txt.slice(0, 2000) } : x)),
+      tarefas: d.tarefas.map(x => (x.id === t.id ? { ...x, atualizada: new Date() } : x)) });
+    setEdNota(null);
+    avisar('Anotação atualizada');
   }
   // junto = chamada pelo "Salvar" da tarefa: só grava (a janela fecha e o quadro recarrega em seguida)
   async function anotar(junto: boolean): Promise<boolean> {
@@ -231,23 +246,43 @@ function FormTarefa({ tarefa: t, dados, setDados, pessoa, banco, confereDup, abr
       </div>
       <div className="field oc-extra" id="ocNotasWrap" hidden={!dados.temChecklist}>
         <label htmlFor="ocNotaTxt">Anotações <span className="oc-n" id="ocNotasN">{notas.length ? notas.length : ''}</span></label>
+        <BarraFormato alvo="ocNotaTxt" valor={v.nota} gravar={x => setV(s => ({ ...s, nota: x }))} />
         <div className="ck-add">
           <textarea id="ocNotaTxt" rows={2} maxLength={2000} placeholder="Ex.: ofício enviado por malote; aguardando resposta" aria-describedby="ocNotaDica" value={v.nota}
             onChange={e => setV(s => ({ ...s, nota: e.target.value }))}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing){ e.preventDefault(); anotar(false); } }} />
+            onKeyDown={e => { if (atalhoDeFormato(e, 'ocNotaTxt', v.nota, x => setV(s => ({ ...s, nota: x })))) return; if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing){ e.preventDefault(); anotar(false); } }} />
           <button type="button" className="btn" id="ocNotaAdd" onClick={() => anotar(false)}>Anotar</button>
         </div>
         <span className="field-hint" id="ocNotaDica">Enter registra a anotação (Shift+Enter pula linha). Se clicar em Salvar com algo escrito aqui, ela é salva junto.</span>
         <div className="anot-list" id="ocNotasList">
-          {notas.map(a => (
+          {notas.map(a => edNota?.id === a.id ? (
+            <div key={a.id} className="anot edit">
+              <time>{formatarDataHora(a.criada)}</time>
+              <BarraFormato alvo="ocNotaEdit" valor={edNota.txt} gravar={x => setEdNota(e => e && { ...e, txt: x })} />
+              <textarea id="ocNotaEdit" rows={4} maxLength={2000} aria-label="Editar anotação" autoFocus value={edNota.txt}
+                onChange={e => setEdNota({ id: a.id, txt: e.target.value })}
+                onKeyDown={e => {
+                  if (atalhoDeFormato(e, 'ocNotaEdit', edNota.txt, x => setEdNota(en => en && { ...en, txt: x }))) return;
+                  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); salvarNotaEditada(); }
+                  if (e.key === 'Escape'){ e.preventDefault(); e.stopPropagation(); setEdNota(null); }
+                }} />
+              <div className="anot-edit-acts">
+                <button type="button" className="btn" onClick={() => setEdNota(null)}>Cancelar</button>
+                <button type="button" className="btn primary" onClick={salvarNotaEditada}>Salvar</button>
+              </div>
+            </div>
+          ) : (
             <div key={a.id} className="anot">
-              <time>{formatarDataHora(a.criada)}</time><p>{a.texto}</p>
-              <ExcluirAnotacao excluir={async () => {
-                const r = await banco.chamar('org_excluir_anotacao', { p_id: a.id });
-                if (!banco.ok(r)) return;
-                setDados(d => d && { ...d, anotacoes: d.anotacoes.filter(x => x.id !== a.id) });
-                avisar('Anotação excluída');
-              }} />
+              <time>{formatarDataHora(a.criada)}</time><p><TextoNota texto={a.texto} /></p>
+              <div className="anot-acts">
+                <button type="button" className="icon-btn" title="Editar anotação" aria-label="Editar anotação" onClick={() => setEdNota({ id: a.id, txt: a.texto })}><Lapis /></button>
+                <ExcluirAnotacao excluir={async () => {
+                  const r = await banco.chamar('org_excluir_anotacao', { p_id: a.id });
+                  if (!banco.ok(r)) return;
+                  setDados(d => d && { ...d, anotacoes: d.anotacoes.filter(x => x.id !== a.id) });
+                  avisar('Anotação excluída');
+                }} />
+              </div>
             </div>
           ))}
         </div>
