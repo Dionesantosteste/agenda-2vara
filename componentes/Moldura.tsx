@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { SECOES, enderecoDaSecao } from '@/lib/secoes';
 import { dataPorExtenso } from '@/lib/datas';
 import { Aparencia } from './Aparencia';
+import { ProximosDias } from './ProximosDias';
 import { IconeMenu, IconeSecao } from './Icones';
 
 // largura: "medio" (Prazos) ou "wide" (Organização), como no sistema atual
@@ -38,6 +39,7 @@ export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: str
             </a>
           ))}
         </nav>
+        <ProximosDias />
         <div className="sidebar-foot">
           <strong id="todayLong">{hoje}</strong>
           <Aparencia />
