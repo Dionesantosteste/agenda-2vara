@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { Calendario, configPadrao } from './prazos/calendario.ts';
 import {
   agrupar, andamentoAoSalvar, aplicarStatus, dataSugerida, deLinha, diasUteisEntre, interpretarLinha, laudoAtrasado, ordemDoLote,
-  previaDoLote, prazoLaudo, resumoDoLote, somarDiasUteis, textoDoFiltro, type Filtros, type Pericia
+  passa, previaDoLote, prazoLaudo, resumoDoLote, somarDiasUteis, textoDoFiltro, type Filtros, type Pericia
 } from './pericias.ts';
 
 const cal = new Calendario(configPadrao());
@@ -82,4 +82,13 @@ test('situação desconhecida vira "Não agendada"; texto do filtro', () => {
   assert.equal(deLinha({ id: 1, realizada_em: '2026-03-02' }).realizadaEm!.getDate(), 2);
   assert.equal(textoDoFiltro({ ...F, situacao: 'realizada', perito: 'x', busca: ' ana ' }, 'Dr. X'), 'Em andamento: Aguardando laudo · Perito: Dr. X · Busca: "ana"');
   assert.equal(textoDoFiltro({ ...F, aba: 'concluidas' }, ''), 'Concluídas');
+});
+
+test('filtro por data (card "Próximos 7 dias")', () => {
+  const mk = (id: string, d: Date | null): Pericia => ({ id, processo: id, autor: '', perito: '', especialidade: '', status: 'agendada', data: d, local: '', realizadaEm: null, laudoEm: null, observacoes: '', conferidaEm: null });
+  const f = { aba: 'andamento', situacao: 'andamento', concl: 'todas', perito: '', busca: '', de: '2026-10-30', ate: '2026-10-30' } as const;
+  const util = () => true;
+  assert.ok(passa(mk('a', new Date(2026, 9, 30, 8, 0)), f, new Date(2026, 9, 28), util));
+  assert.ok(!passa(mk('b', new Date(2026, 9, 31, 8, 0)), f, new Date(2026, 9, 28), util));
+  assert.ok(!passa(mk('c', null), f, new Date(2026, 9, 28), util));
 });

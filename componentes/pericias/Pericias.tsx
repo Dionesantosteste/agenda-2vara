@@ -9,6 +9,7 @@ import {
   textoDoFiltro, type Aba, type Andamento, type Concluidas, type Filtros, type Pericia, type Perito, type Situacao, type Status
 } from '@/lib/pericias';
 import { formatarDataHora } from '@/lib/datas';
+import { lerPeriodoDoHash } from '@/lib/proximos';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { useImpressao } from '@/componentes/Impressao';
@@ -20,6 +21,7 @@ import { DialogoPericia, type Edicao } from './DialogoPericia';
 import { Peritos } from './Peritos';
 
 type Erro = { message?: string; code?: string } | null;
+const diaDoFiltro = (k?: string) => (k ? k.slice(8, 10) + '/' + k.slice(5, 7) : '');
 
 export function Pericias(){
   // A tela depende do relógio e do navegador: só aparece depois de carregar no navegador
@@ -46,6 +48,18 @@ function Corpo(){
   const [edicao, setEdicao] = useState<Edicao>(null);
   const [agora, setAgora] = useState(() => new Date());
   const mudar = (x: Partial<Filtros>) => setF(v => ({ ...v, ...x }));
+  // vindo do card "Próximos 7 dias" (/novo/pericias#2026-11-02): mostra só as perícias daquele dia (ou dos 7 dias)
+  useEffect(() => {
+    const aplicar = () => {
+      const p = lerPeriodoDoHash(location.hash);
+      if (!p) return;
+      setF(v => ({ ...v, aba: 'andamento', situacao: 'andamento', perito: '', busca: '', de: p.de, ate: p.ate }));
+      setSel({});
+    };
+    aplicar();
+    window.addEventListener('hashchange', aplicar);
+    return () => window.removeEventListener('hashchange', aplicar);
+  }, []);
 
   const carregar = useCallback(async () => {
     const res = await supabase().from('pericias').select('*').order('created_at', { ascending: true });
@@ -274,6 +288,11 @@ function Corpo(){
           <input id="perSearch" type="text" autoComplete="off" value={f.busca} onChange={e => mudar({ busca: e.target.value })}
             placeholder={naAbaPeritos ? 'Buscar perito por nome, especialidade ou contato…' : 'Buscar por autor, processo, perito ou observação…'} />
           <button className="clear-btn" id="perClearSearch" hidden={!f.busca} onClick={() => { mudar({ busca: '' }); document.getElementById('perSearch')?.focus(); }}>limpar</button>
+        </div>
+        <div className="filter-row" id="perDiaRow" hidden={naAbaPeritos || !(f.de || f.ate)}>
+          <span className="filter-label">Data</span>
+          <span id="perDiaTxt">{diaDoFiltro(f.de)}{f.ate && f.ate !== f.de ? ' a ' + diaDoFiltro(f.ate) : ''}</span>
+          <button type="button" className="chip" id="perDiaLimpar" onClick={() => mudar({ de: '', ate: '' })}>Limpar data</button>
         </div>
         <div className="filter-row" id="perSituacao" role="group" aria-label="Situação" hidden={naAbaPeritos}>
           <span className="filter-label">Situação</span>

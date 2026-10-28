@@ -515,11 +515,11 @@
   .px-bloco.per{ --c:var(--t-per); --c-soft:var(--t-per-soft); }
   .px-bloco + .px-bloco{ border-top:1px solid var(--line); }
   .px-bloco h3{ margin:0; font-size:12px; font-weight:600; background:var(--c-soft); color:var(--c); }
-  .px-bloco h3 button{ all:unset; box-sizing:border-box; display:flex; justify-content:space-between; gap:8px; width:100%; padding:7px 12px; cursor:pointer; font-size:12px; font-weight:600; }
-  .px-bloco h3 button:hover span:first-child{ text-decoration:underline; }
-  .px-bloco h3 button:focus-visible{ outline:2px solid var(--c); outline-offset:-2px; }
+  .px-bloco h3 button, .px-bloco h3 a{ all:unset; box-sizing:border-box; display:flex; justify-content:space-between; gap:8px; width:100%; padding:7px 12px; cursor:pointer; font-size:12px; font-weight:600; }
+  .px-bloco h3 button:hover span:first-child, .px-bloco h3 a:hover span:first-child{ text-decoration:underline; }
+  .px-bloco h3 button:focus-visible, .px-bloco h3 a:focus-visible{ outline:2px solid var(--c); outline-offset:-2px; }
   .px-bloco ul{ list-style:none; margin:0; padding:6px; }
-  .px-item{ display:flex; align-items:center; gap:10px; width:100%; text-align:left; font:inherit; color:var(--ink); background:transparent; border:0; border-radius:9px; padding:6px; cursor:pointer; }
+  .px-item{ display:flex; align-items:center; gap:10px; width:100%; box-sizing:border-box; text-align:left; font:inherit; color:var(--ink); text-decoration:none; background:transparent; border:0; border-radius:9px; padding:6px; cursor:pointer; }
   .px-item:hover{ background:var(--sunken); }
   .px-item:focus-visible{ outline:2px solid var(--focus); outline-offset:1px; }
   .px-chip{ flex:none; min-width:58px; text-align:center; border-radius:8px; padding:4px 5px; font-size:12px; font-weight:600; color:var(--u); background:var(--u-soft); border:1px solid var(--u-line); }
