@@ -21,10 +21,24 @@ export function DefinirSenha(){
     let acabou = false;
     const aceita = (e: string | undefined) => { if (acabou || !e) return; acabou = true; setEmail(e); setEstado('pronto'); };
     const { data: ass } = auth.onAuthStateChange((_ev, s) => aceita(s?.user.email));
-    auth.getSession().then(({ data }) => aceita(data.session?.user.email));
-    // sem sessão depois de alguns segundos: o link venceu ou já foi usado
-    const t = setTimeout(() => { if (!acabou) setEstado('invalido'); }, 4000);
-    return () => { clearTimeout(t); ass.subscription.unsubscribe(); };
+    // Link do e-mail que aponta direto para o site (?token_hash=...&type=invite|recovery): o código é conferido aqui.
+    // Assim o link não passa pelo endereço do Supabase e o verificador de links do e-mail não gasta o código.
+    const params = new URLSearchParams(location.search);
+    const tokenHash = params.get('token_hash');
+    const tipo = params.get('type');
+    let t: ReturnType<typeof setTimeout> | undefined;
+    if (tokenHash && (tipo === 'invite' || tipo === 'recovery')){
+      auth.verifyOtp({ token_hash: tokenHash, type: tipo }).then(({ data, error }) => {
+        if (error || !data.session) { if (!acabou) { acabou = true; setEstado('invalido'); } return; }
+        history.replaceState(null, '', '/definir-senha');   // tira o código do endereço
+        aceita(data.session.user.email);
+      });
+    } else {
+      auth.getSession().then(({ data }) => aceita(data.session?.user.email));
+      // sem sessão depois de alguns segundos: o link venceu ou já foi usado
+      t = setTimeout(() => { if (!acabou) setEstado('invalido'); }, 4000);
+    }
+    return () => { if (t) clearTimeout(t); ass.subscription.unsubscribe(); };
   }, []);
 
   async function salvar(e: FormEvent){

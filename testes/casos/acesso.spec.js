@@ -40,6 +40,23 @@ test.describe('sem login', () => {
     await expect(page.getByRole('heading', { name: 'Link vencido' })).toBeVisible({ timeout: 8000 });
   });
 
+  test('link do convite que aponta direto para o site abre a criação de senha', async ({ page }) => {
+    let pedido = null;
+    await page.route('**/auth/v1/verify*', route => { pedido = JSON.parse(route.request().postData()); return route.fulfill({ json: sessaoFalsa(false) }); });
+    await page.route('**/auth/v1/user*', route => route.fulfill({ json: sessaoFalsa(false).user }));
+    await page.goto('/definir-senha?token_hash=abc123&type=invite');
+    await expect(page.getByRole('heading', { name: 'Criar senha' })).toBeVisible();
+    await expect(page.getByLabel('Nova senha')).toBeVisible();
+    expect(pedido).toMatchObject({ token_hash: 'abc123', type: 'invite' });
+    await expect(page).toHaveURL(/\/definir-senha$/);   // o código sai do endereço
+  });
+
+  test('link com código inválido mostra link vencido', async ({ page }) => {
+    await page.route('**/auth/v1/verify*', route => route.fulfill({ status: 403, json: { error: 'otp_expired', error_description: 'Email link is invalid or has expired' } }));
+    await page.goto('/definir-senha?token_hash=velho&type=invite');
+    await expect(page.getByRole('heading', { name: 'Link vencido' })).toBeVisible();
+  });
+
   test('não volta para outro site depois de entrar', async ({ page }) => {
     await page.route('**/auth/v1/token*', route => route.fulfill({ json: sessaoFalsa(false) }));
     await page.goto('/entrar?volta=' + encodeURIComponent('https://outro.com/x'));

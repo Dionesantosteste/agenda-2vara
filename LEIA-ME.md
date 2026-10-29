@@ -469,8 +469,11 @@ Faça na ordem. Se o site já está no ar, faça tudo de uma vez, porque o passo
 - **URL Configuration**: em *Site URL* ponha o endereço do site (ex.: `https://sua-vara.vercel.app`)
   e em *Redirect URLs* acrescente `https://sua-vara.vercel.app/definir-senha`
   (e `http://localhost:3000/definir-senha` se for testar no computador).
-- **Email Templates** (opcional): traduza os modelos "Invite user" e "Reset password".
-  Mantenha o link `{{ .ConfirmationURL }}`.
+- **Email Templates** (recomendado): em **Invite user** e em **Reset password**, troque o botão/link
+  `{{ .ConfirmationURL }}` por um link que aponta direto para o site. Assim o Gmail/Outlook não mostram
+  "não conseguimos verificar a segurança deste site" nem gastam o link antes de você clicar. Aproveite e traduza o texto.
+  - Invite user: `<a href="{{ .SiteURL }}/definir-senha?token_hash={{ .TokenHash }}&type=invite">Aceitar convite</a>`
+  - Reset password: `<a href="{{ .SiteURL }}/definir-senha?token_hash={{ .TokenHash }}&type=recovery">Criar nova senha</a>`
 - O e-mail padrão do Supabase tem limite baixo de envios por hora. Para uso diário, configure um
   SMTP próprio em *Authentication → Emails → SMTP Settings* (Gmail, Resend, etc.).
 
