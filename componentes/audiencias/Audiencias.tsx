@@ -8,6 +8,7 @@ import {
 } from '@/lib/audiencias';
 import { destaque } from '@/lib/agenda';
 import { chaveDoDia, formatarDataHora } from '@/lib/datas';
+import { lerPeriodoDoHash } from '@/lib/proximos';
 import { formatarProcesso, soDigitos } from '@/lib/processo';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
@@ -121,6 +122,17 @@ function Corpo(){
   const [tiposAberto, setTiposAberto] = useState<null | { destino: null | ((nome: string) => void) }>(null);
 
   const mudar = (x: Partial<Filtros>) => setF(v => ({ ...v, ...x }));
+  // vindo do card "Próximos 7 dias" (/novo/audiencias#2026-11-02): mostra só aquele dia (ou os 7 dias)
+  useEffect(() => {
+    const aplicar = () => {
+      const p = lerPeriodoDoHash(location.hash);
+      if (!p) return;
+      setF(v => ({ ...v, periodo: 'intervalo', de: p.de, ate: p.ate, status: TODOS, tipo: TODOS, conf: 'todas', busca: '' }));
+    };
+    aplicar();
+    window.addEventListener('hashchange', aplicar);
+    return () => window.removeEventListener('hashchange', aplicar);
+  }, []);
 
   const carregar = useCallback(async () => {
     const res = await supabase().from('audiencias').select('*').order('data_hora', { ascending: true });

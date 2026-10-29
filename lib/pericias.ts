@@ -166,7 +166,8 @@ export function descrever(p: Pericia): string {
 }
 
 // ---- lista da tela ----
-export type Filtros = { aba: Aba; situacao: Situacao; concl: Concluidas; perito: string; busca: string };
+// de/ate (AAAA-MM-DD): só as perícias com data nesse período (vem do card "Próximos 7 dias")
+export type Filtros = { aba: Aba; situacao: Situacao; concl: Concluidas; perito: string; busca: string; de?: string; ate?: string };
 export function passa(p: Pericia, f: Filtros, agora: Date, util: Util): boolean {
   if (f.aba === 'concluidas'){
     if (aberta(p)) return false;
@@ -177,6 +178,11 @@ export function passa(p: Pericia, f: Filtros, agora: Date, util: Util): boolean 
     if (f.situacao !== 'andamento' && f.situacao !== 'atrasado' && p.status !== f.situacao) return false;
   }
   if (f.perito && chaveNome(p.perito) !== f.perito) return false;
+  if (f.de || f.ate){
+    if (!p.data) return false;
+    const k = chaveDoDia(p.data);
+    if ((f.de && k < f.de) || (f.ate && k > f.ate)) return false;
+  }
   const q = normalizar(f.busca).trim();
   if (!q) return true;
   const qd = soDigitos(q);

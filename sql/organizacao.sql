@@ -1583,6 +1583,36 @@ begin
 end;
 $$;
 
+create or replace function org_editar_anotacao(p_pin text, p_pessoa uuid, p_id uuid, p_texto text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  txt text := left(btrim(coalesce(p_texto, '')), 2000);
+  tarefa uuid;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if txt = '' then
+    return jsonb_build_object('status', 'erro', 'message', 'A anotação não pode ficar vazia.');
+  end if;
+  update org_anotacoes x set texto = txt
+   from org_tarefas t
+   where x.id = p_id and t.id = x.tarefa_id and t.dono is not distinct from ac.o_dono
+   returning x.tarefa_id into tarefa;
+  if tarefa is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Esta anotação não existe mais.');
+  end if;
+  update org_tarefas set updated_at = now() where id = tarefa;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
 -- Arquiva (p_arquivar = true) ou devolve ao quadro as tarefas indicadas (de qualquer coluna)
 create or replace function org_arquivar_tarefas(p_pin text, p_pessoa uuid, p_ids uuid[], p_arquivar boolean)
 returns jsonb
@@ -2043,6 +2073,7 @@ grant execute on function org_ordenar_tarefas(text, uuid, uuid[]) to anon, authe
 grant execute on function org_checklist_tarefa(text, uuid, uuid, jsonb) to anon, authenticated;
 grant execute on function org_anotar(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_excluir_anotacao(text, uuid, uuid) to anon, authenticated;
+grant execute on function org_editar_anotacao(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_arquivar_tarefas(text, uuid, uuid[], boolean) to anon, authenticated;
 grant execute on function org_salvar_modelo(text, uuid, uuid, text, jsonb) to anon, authenticated;
 grant execute on function org_excluir_modelo(text, uuid, uuid) to anon, authenticated;

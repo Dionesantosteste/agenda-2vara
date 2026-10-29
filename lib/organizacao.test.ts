@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Calendario, configPadrao } from './prazos/calendario.ts';
 import {
-  SEM_FILTRO, colunasDe, corrige, diasParado, lerDados, mensagemDoStatus, novaOrdem, ordenaColuna, paraSalvar, passaNoFiltro, pedeFechamento,
+  SEM_FILTRO, aplicarMarca, colunasDe, corrige, diasParado, lerDados, mensagemDoStatus, novaOrdem, ordenaColuna, paraSalvar, partesDaNota, passaNoFiltro, pedeFechamento,
   rotinaFeita, separaProcesso, seloPrazo, tarefaDe, travada, type Tarefa
 } from './organizacao.ts';
 
@@ -137,4 +137,16 @@ test('mensagens da entrada', () => {
   assert.equal(mensagemDoStatus('senha', true), '');
   assert.match(mensagemDoStatus('bloqueado', false), /5 minutos/);
   assert.match(mensagemDoStatus('sem_pessoa', true), /gestor/);
+});
+
+test('anotação: negrito, itálico e marcador', () => {
+  assert.deepEqual(partesDaNota('Ofício **enviado** por *malote*; ==urgente== 2 * 3 * 4'),
+    [{ t: 'Ofício ', f: '' }, { t: 'enviado', f: 'b' }, { t: ' por ', f: '' }, { t: 'malote', f: 'i' }, { t: '; ', f: '' }, { t: 'urgente', f: 'm' }, { t: ' 2 * 3 * 4', f: '' }]);
+  assert.deepEqual(partesDaNota('sem marcas'), [{ t: 'sem marcas', f: '' }]);
+  assert.deepEqual(partesDaNota('<b>x</b> **a**'), [{ t: '<b>x</b> ', f: '' }, { t: 'a', f: 'b' }]);
+});
+test('anotação: aplicar e tirar a marca', () => {
+  assert.deepEqual(aplicarMarca('um dois três', 3, 7, '**'), { texto: 'um **dois** três', ini: 5, fim: 9 });
+  assert.deepEqual(aplicarMarca('um **dois** três', 3, 11, '**'), { texto: 'um dois três', ini: 3, fim: 7 });
+  assert.deepEqual(aplicarMarca('abc', 1, 1, '=='), { texto: 'a====bc', ini: 3, fim: 3 });
 });
