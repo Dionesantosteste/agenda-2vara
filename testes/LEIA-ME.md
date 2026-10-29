@@ -40,6 +40,6 @@ relatório fica disponível para download na própria execução.
 
 - `casos/`: os testes, um arquivo por seção.
 - `apoio/supabase-falso.js`: o Supabase simulado.
-- `apoio/teste.js`: a base de todos os testes (banco novo por teste, bloqueio da internet).
+- `apoio/teste.js`: a base de todos os testes (banco novo por teste, bloqueio da internet e uma sessão de login de mentira, já que o site só abre para quem entrou).
 - `apoio/org.js`: atalhos da Organização (entrar como pessoa ou gestor, cartões, colunas).
 - O site é montado e servido pelo próprio Next.js (`npm run build` e `npm start` na pasta de cima).

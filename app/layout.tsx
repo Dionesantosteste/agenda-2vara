@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
 import { SCRIPT_APARENCIA } from '@/lib/aparencia';
 import { Avisos } from '@/componentes/Avisos';
+import { Porteiro } from '@/componentes/Porteiro';
 import './legado.css';
 import './novo.css';
 
@@ -21,7 +22,7 @@ export default function Raiz({ children }: { children: ReactNode }){
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" />
       </head>
       <body>
-        <Avisos>{children}</Avisos>
+        <Avisos><Porteiro>{children}</Porteiro></Avisos>
       </body>
     </html>
   );
