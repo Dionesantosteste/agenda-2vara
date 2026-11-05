@@ -280,6 +280,32 @@ const ORG_FUNCOES = {
     const mes = Number(hojeVara().slice(5, 7));
     return { status: 'ok', aniversariantes: org.aniversarios.filter(a => a.mes === mes) };
   },
+  // Relatório de produtividade: concluídas no período (horário da vara), recebidas e em aberto hoje
+  org_relatorio(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor tira o relatório de produtividade.');
+    if (!a.p_de || !a.p_ate || a.p_de > a.p_ate) return erro('Escolha um período válido (a data inicial não pode ser depois da final).');
+    if (somaDias(a.p_de, 366) < a.p_ate) return erro('O período pode ter no máximo um ano.');
+    const hoje = hojeVara();
+    const noPeriodo = iso => { const d = diaVara(iso); return !!d && d >= a.p_de && d <= a.p_ate; };
+    const conta = (lista, campos) => Object.values(lista.reduce((acc, t) => {
+      const x = acc[t.dono] || (acc[t.dono] = Object.assign({ dono: t.dono }, ...Object.keys(campos).map(k => ({ [k]: 0 }))));
+      Object.entries(campos).forEach(([k, f]) => { if (f(t)) x[k]++; });
+      return acc;
+    }, {}));
+    const hist = (t, acao) => (t.conf_hist || []).some(h => h.a === acao);
+    return {
+      status: 'ok', de: a.p_de, ate: a.p_ate, hoje,
+      tarefas: org.tarefas.filter(t => t.dono && noPeriodo(t.feita_em)).sort((x, y) => x.feita_em < y.feita_em ? -1 : 1).map(t => ({
+        id: t.id, dono: t.dono, titulo: t.titulo, processo: t.processo, prazo: t.prazo, prioridade: t.prioridade, do_gestor: t.do_gestor,
+        created_at: t.created_at, feita_em: t.feita_em, dia: diaVara(t.feita_em), conclusao: copia(t.conclusao),
+        devolvida: hist(t, 'devolvida'), aprovada: hist(t, 'aprovada'), arquivada: !!t.arquivada_em })),
+      recebidas: conta(org.tarefas.filter(t => t.dono && noPeriodo(t.created_at)), { n: () => true, do_gestor: t => t.do_gestor }),
+      abertas: conta(org.tarefas.filter(t => t.dono && !t.arquivada_em && t.etapa !== 'feito' && (!t.aparece_em || t.aparece_em <= hoje)),
+        { n: () => true, atrasadas: t => !!t.prazo && t.prazo < hoje })
+    };
+  },
   org_carregar(org, a){
     const ac = acesso(org, a);
     if (ac.st !== 'ok') return { status: ac.st };
