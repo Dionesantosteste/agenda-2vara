@@ -32,7 +32,7 @@ const copia = x => JSON.parse(JSON.stringify(x));
 
 // Valores padrão das colunas (como os "default" do SQL)
 const PADROES = {
-  contacts: () => ({ id: uuid(), name: '', phones: [], emails: [], category: '', created_at: agora() }),
+  contacts: () => ({ id: uuid(), name: '', phones: [], emails: [], category: '', service_hours: '', has_on_call: false, on_call_phone: '', created_at: agora() }),
   categories: () => ({ id: uuid(), name: '' }),
   audiencias: () => ({ id: uuid(), processo: '', tipo: '', status: 'A cumprir', observacoes: '', conferida_em: null, created_at: agora(), updated_at: agora() }),
   audiencias_tipos: () => ({ id: uuid(), nome: '', created_at: agora() }),

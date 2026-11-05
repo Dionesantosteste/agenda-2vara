@@ -55,6 +55,20 @@ alter publication supabase_realtime add table categories;
 > editar e apagar contatos, mesmo sem abrir o site. Isso vale até você fazer o
 > **Passo 2.6 (acesso só por convite)**, que fecha o banco para quem não estiver logado.
 
+## Passo 2.0.1 — Agenda: horário de atendimento e plantão
+
+O cadastro de contato tem os campos **Horário de atendimento**, **Tem plantão** e **Telefone do plantão**.
+Para eles serem gravados, rode uma vez no SQL Editor o arquivo
+[`sql/agenda_atendimento.sql`](sql/agenda_atendimento.sql) (copie pelo botão **Raw** do GitHub). Ele só
+acrescenta três colunas na tabela `contacts`; nada é apagado. Enquanto ele não rodar, o contato é salvo
+normalmente, sem esses três campos, e aparece um aviso.
+
+Os telefones ganham a máscara sozinhos enquanto você digita: com 10 dígitos vira fixo, **(65) 3333-3333**,
+e com 11 dígitos (começando com 9 depois do DDD) vira celular, **(65) 99999-9999**. O rótulo da linha
+acompanha (**Fixo** ou **Celular**); se você escolher **Fax** ou **Outro**, ele não muda. Números que começam
+com 0 (0800, 0300) ficam como foram digitados. Contatos antigos com rótulo **Casa** ou **Trabalho** continuam
+com ele até você trocar.
+
 ## Passo 2.1 — Tabela de Audiências (portal)
 
 O site agora é um **portal** com menu lateral: **Agenda** (contatos) e **Audiências**.

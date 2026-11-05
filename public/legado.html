@@ -382,6 +382,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .card .meta a:hover{ color:var(--accent); text-decoration:underline; }
   .card .meta .phone{ font-family:var(--font-data); font-variant-numeric:tabular-nums; }
   .card .meta .more{ color:var(--muted); opacity:.8; }
+  .card .meta-extra{ font-size:12.5px; }
+  .card .meta-extra .on-call{ color:var(--accent); }
   .badge{
     font-family:var(--font-ui); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase;
     color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap; justify-self:end;
@@ -421,6 +423,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .field input.mono{ font-family:var(--font-data); font-size:14.5px; letter-spacing:.01em; }
   .field-row{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; }
   .field-hint{ font-size:12px; color:var(--muted); }
+  .field .check-inline{ display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:14px; color:var(--ink); cursor:pointer; }
+  .field .check-inline input{ width:auto; padding:0; margin:0; accent-color:var(--accent); }
 
   .multi-block{ display:flex; flex-direction:column; gap:8px; }
   .multi-head{ display:flex; justify-content:space-between; align-items:center; }
@@ -2778,6 +2782,19 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     </div>
 
     <div class="field">
+      <label for="fHours">Horário de atendimento</label>
+      <input id="fHours" maxlength="120" placeholder="Seg a sex, 8h às 18h" />
+    </div>
+
+    <div class="field">
+      <label class="check-inline" for="fOnCall"><input id="fOnCall" type="checkbox" /> Tem plantão</label>
+    </div>
+    <div class="field" id="onCallWrap" hidden>
+      <label for="fOnCallPhone">Telefone do plantão</label>
+      <input id="fOnCallPhone" type="tel" inputmode="tel" placeholder="(65) 99999-9999" />
+    </div>
+
+    <div class="field">
       <label for="fCategory">Categoria</label>
       <select id="fCategory"></select>
     </div>
@@ -3252,6 +3269,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     addPhoneRow: document.getElementById('addPhoneRow'),
     addEmailRow: document.getElementById('addEmailRow'),
     fCategory: document.getElementById('fCategory'),
+    fHours: document.getElementById('fHours'),
+    fOnCall: document.getElementById('fOnCall'),
+    onCallWrap: document.getElementById('onCallWrap'),
+    fOnCallPhone: document.getElementById('fOnCallPhone'),
     inlineCatWrap: document.getElementById('inlineCatWrap'),
     inlineCatInput: document.getElementById('inlineCatInput'),
     deleteBtn: document.getElementById('deleteBtn'),
@@ -3266,7 +3287,38 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   };
 
   var ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ#".split("");
-  var PHONE_LABELS = ["Celular","Casa","Trabalho","Fax","Outro"];
+  var PHONE_LABELS = ["Celular","Fixo","Fax","Outro"];
+
+  // Máscara de telefone enquanto digita: fixo (65) 3333-3333 ou celular (65) 99999-9999.
+  // Números que começam com 0 (0800, 0300…) ou com mais de 11 dígitos ficam como foram digitados.
+  function formatPhone(text){
+    var d = String(text || '').replace(/\D/g, '');
+    if (!d || d[0] === '0' || d.length > 11) return text;
+    if (d.length <= 2) return '(' + d;
+    var ddd = d.slice(0, 2), rest = d.slice(2);
+    if (rest.length <= 4) return '(' + ddd + ') ' + rest;
+    var cut = rest.length === 9 ? 5 : 4;
+    return '(' + ddd + ') ' + rest.slice(0, cut) + '-' + rest.slice(cut);
+  }
+  // Fixo ou celular pelo número completo (com DDD); null se ainda não dá para saber
+  function phoneKind(text){
+    var d = String(text || '').replace(/\D/g, '');
+    if (d[0] === '0') return null;
+    if (d.length === 11 && d[2] === '9') return 'Celular';
+    if (d.length === 10) return 'Fixo';
+    return null;
+  }
+  // Máscara num campo, mantendo o cursor no fim do que já foi digitado
+  function maskPhoneInput(input){
+    var before = input.value, pos = input.selectionStart;
+    var digitsBefore = before.slice(0, pos == null ? before.length : pos).replace(/\D/g, '').length;
+    var after = formatPhone(before);
+    if (after === before) return;
+    input.value = after;
+    var i = 0, seen = 0;
+    while (i < after.length && seen < digitsBefore){ if (/\d/.test(after[i])) seen++; i++; }
+    if (document.activeElement === input) input.setSelectionRange(i, i);
+  }
   var EMAIL_LABELS = ["Pessoal","Trabalho","Outro"];
   var DEFAULT_CATEGORIES = ["Perito","Advogado","Magistrado","Secretarias","Gabinetes","Diretorias","Cidades"];
 
@@ -3329,7 +3381,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         name: row.name || "",
         phones: row.phones || [],
         emails: row.emails || [],
-        category: row.category || ""
+        category: row.category || "",
+        service_hours: row.service_hours || "",
+        has_on_call: !!row.has_on_call,
+        on_call_phone: row.on_call_phone || ""
       };
     });
     render();
@@ -3362,7 +3417,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         phones: [{ label: "Celular", value: "(65) 99722-4455" }],
         emails: [{ label: "Trabalho", value: "carla.souza@advocacia.com" }] },
       { name: "Secretaria da 2ª Vara Cível", category: "Secretarias",
-        phones: [{ label: "Trabalho", value: "(65) 99544-8899" }],
+        phones: [{ label: "Celular", value: "(65) 99544-8899" }],
         emails: [{ label: "Trabalho", value: "2vara.civel@tjmt.jus.br" }] }
     ];
     await supabase.from('contacts').insert(examples);
@@ -3370,10 +3425,20 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
 
   async function upsertContact(id, data){
     if (!supabase) { toast('Configure o Supabase primeiro (veja LEIA-ME.md)'); return; }
-    var payload = { name: data.name, phones: data.phones, emails: data.emails, category: data.category };
-    var res = id
-      ? await supabase.from('contacts').update(payload).eq('id', id)
-      : await supabase.from('contacts').insert(payload);
+    function save(payload){
+      return id ? supabase.from('contacts').update(payload).eq('id', id) : supabase.from('contacts').insert(payload);
+    }
+    var basic = { name: data.name, phones: data.phones, emails: data.emails, category: data.category };
+    var res = await save(Object.assign({ service_hours: data.service_hours, has_on_call: data.has_on_call, on_call_phone: data.on_call_phone }, basic));
+    // Banco ainda sem as colunas novas (sql/agenda_atendimento.sql não rodou): salva o resto e avisa
+    if (res.error && /service_hours|has_on_call|on_call_phone/.test(res.error.message || '')){
+      res = await save(basic);
+      if (!res.error){
+        toast('Contato salvo, mas sem horário e plantão: rode o sql/agenda_atendimento.sql no Supabase');
+        await loadContacts();
+        return;
+      }
+    }
     if (res.error){ toast('Não foi possível salvar: ' + res.error.message); return; }
     toast(id ? 'Contato atualizado' : 'Contato adicionado');
     await loadContacts();
@@ -3447,6 +3512,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     if (!catOk) return false;
     if (!q) return true;
     if (normalize(c.name).indexOf(q) !== -1) return true;
+    if (c.has_on_call && normalize(c.on_call_phone).indexOf(q) !== -1) return true;
     var phones = contactPhones(c), emails = contactEmails(c);
     for (var i=0;i<phones.length;i++){ if (normalize(phones[i].value).indexOf(q) !== -1) return true; }
     for (var j=0;j<emails.length;j++){ if (normalize(emails[j].value).indexOf(q) !== -1) return true; }
@@ -3558,6 +3624,21 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         info.appendChild(nameEl);
         info.appendChild(meta);
 
+        // Horário de atendimento e plantão
+        if (c.service_hours || c.has_on_call){
+          var extraEl = document.createElement('div');
+          extraEl.className = 'meta meta-extra';
+          var xs = [];
+          if (c.service_hours) xs.push('<span class="hours">Atendimento: ' + escapeHtml(c.service_hours) + '</span>');
+          if (c.has_on_call){
+            xs.push('<span class="on-call">Plantão' + (c.on_call_phone
+              ? ': <a class="phone" href="tel:' + encodeURIComponent(c.on_call_phone) + '">' + highlight(c.on_call_phone, state.query) + '</a>'
+              : '') + '</span>');
+          }
+          extraEl.innerHTML = xs.join('');
+          info.appendChild(extraEl);
+        }
+
         var right = document.createElement('div');
         right.style.display = 'flex';
         right.style.flexDirection = 'column';
@@ -3604,13 +3685,29 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       opt.value = l; opt.textContent = l;
       select.appendChild(opt);
     });
+    // rótulo antigo (Casa, Trabalho…) continua aparecendo no contato que já o usa
+    if (entry && entry.label && labels.indexOf(entry.label) === -1){
+      var old = document.createElement('option');
+      old.value = entry.label; old.textContent = entry.label;
+      select.appendChild(old);
+    }
     select.value = entry && entry.label ? entry.label : labels[0];
 
+    var isEmail = labels === EMAIL_LABELS;
     var input = document.createElement('input');
-    input.type = (labels === EMAIL_LABELS) ? 'email' : 'text';
-    input.placeholder = (labels === EMAIL_LABELS) ? 'nome@email.com' : '(65) 99999-0000';
+    input.type = isEmail ? 'email' : 'tel';
+    if (!isEmail) input.inputMode = 'tel';
+    input.placeholder = isEmail ? 'nome@email.com' : '(65) 99999-9999';
     input.value = entry && entry.value ? entry.value : '';
     input.className = 'row-value';
+    if (!isEmail){
+      // máscara e rótulo automático: só troca entre Fixo e Celular (Fax, Outro etc. ficam como estão)
+      input.addEventListener('input', function(){
+        maskPhoneInput(input);
+        var kind = phoneKind(input.value);
+        if (kind && (select.value === 'Fixo' || select.value === 'Celular')) select.value = kind;
+      });
+    }
 
     var removeBtn = document.createElement('button');
     removeBtn.type = 'button';
@@ -3637,6 +3734,11 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   }
 
   els.addPhoneRow.addEventListener('click', function(){ makeMultiRow(els.phoneRows, PHONE_LABELS, null); });
+  els.fOnCall.addEventListener('change', function(){
+    els.onCallWrap.hidden = !els.fOnCall.checked;
+    if (els.fOnCall.checked) setTimeout(function(){ els.fOnCallPhone.focus(); }, 20);
+  });
+  els.fOnCallPhone.addEventListener('input', function(){ maskPhoneInput(els.fOnCallPhone); });
   els.addEmailRow.addEventListener('click', function(){ makeMultiRow(els.emailRows, EMAIL_LABELS, null); });
 
   function populateCategorySelect(selected){
@@ -3691,6 +3793,9 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     els.emailRows.innerHTML = "";
     els.inlineCatWrap.hidden = true;
     populateCategorySelect();
+    els.fHours.value = '';
+    els.fOnCall.checked = false;
+    els.fOnCallPhone.value = '';
 
     if (contact){
       els.dialogTitle.textContent = 'Editar contato';
@@ -3707,6 +3812,9 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         els.fCategory.insertBefore(opt, els.fCategory.lastChild);
       }
       els.fCategory.value = contact.category || '';
+      els.fHours.value = contact.service_hours || '';
+      els.fOnCall.checked = !!contact.has_on_call;
+      els.fOnCallPhone.value = contact.on_call_phone || '';
       els.deleteBtn.hidden = false;
     } else {
       els.dialogTitle.textContent = 'Novo contato';
@@ -3716,6 +3824,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       els.fCategory.value = "";
       els.deleteBtn.hidden = true;
     }
+    els.onCallWrap.hidden = !els.fOnCall.checked;
     els.dialog.showModal();
     setTimeout(function(){ els.fName.focus(); }, 30);
   }
@@ -3743,7 +3852,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       name: els.fName.value.trim(),
       phones: readMultiRows(els.phoneRows),
       emails: readMultiRows(els.emailRows),
-      category: els.fCategory.value
+      category: els.fCategory.value,
+      service_hours: els.fHours.value.trim(),
+      has_on_call: els.fOnCall.checked,
+      on_call_phone: els.fOnCall.checked ? els.fOnCallPhone.value.trim() : ''
     };
     if (!data.name && data.phones.length === 0 && data.emails.length === 0){
       toast('Preencha ao menos um campo');

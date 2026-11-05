@@ -102,7 +102,7 @@ for (const v of VERSOES){
         await page.click('#addBtn');
         await page.fill('#fName', 'Daniel Rocha');
         await page.locator('#phoneRows .row-value').first().fill('(65) 3000-1000');
-        await page.locator('#phoneRows select').first().selectOption('Trabalho');
+        await expect(page.locator('#phoneRows select').first()).toHaveValue('Fixo');
         await page.click('#addPhoneRow');
         await page.locator('#phoneRows .row-value').nth(1).fill('(65) 99000-2000');
         await page.click('#addEmailRow');
@@ -114,9 +114,78 @@ for (const v of VERSOES){
         await salvar(page);
         await expect(page.locator('#count')).toHaveText(/4 contatos/);
         const salvo = banco.tabelas.contacts.find(c => c.name === 'Daniel Rocha');
-        expect(salvo.phones).toEqual([{ label: 'Trabalho', value: '(65) 3000-1000' }, { label: 'Celular', value: '(65) 99000-2000' }]);
+        expect(salvo.phones).toEqual([{ label: 'Fixo', value: '(65) 3000-1000' }, { label: 'Celular', value: '(65) 99000-2000' }]);
         expect(salvo.emails).toEqual([{ label: 'Pessoal', value: 'daniel@exemplo.com' }]);
         await expect(page.locator('#groups .card', { hasText: 'Daniel Rocha' }).locator('.meta .more')).toHaveText('+1');
+      });
+
+      test('telefone: máscara enquanto digita e separação entre fixo e celular', async ({ page, banco }) => {
+        await abrir(page);
+        await page.click('#addBtn');
+        await page.fill('#fName', 'Fórum de Cuiabá');
+        const tel = page.locator('#phoneRows .row-value'), rot = page.locator('#phoneRows select');
+        await tel.first().pressSequentially('6533221100');
+        await expect(tel.first()).toHaveValue('(65) 3322-1100');
+        await expect(rot.first()).toHaveValue('Fixo');
+        await page.click('#addPhoneRow');
+        await tel.nth(1).pressSequentially('65998887777');
+        await expect(tel.nth(1)).toHaveValue('(65) 99888-7777');
+        await expect(rot.nth(1)).toHaveValue('Celular');
+        // Fax não muda sozinho
+        await page.click('#addPhoneRow');
+        await rot.nth(2).selectOption('Fax');
+        await tel.nth(2).pressSequentially('6533334444');
+        await expect(tel.nth(2)).toHaveValue('(65) 3333-4444');
+        await expect(rot.nth(2)).toHaveValue('Fax');
+        await salvar(page);
+        await expect(page.locator('#count')).toHaveText(/4 contatos/);
+        expect(banco.tabelas.contacts.find(c => c.name === 'Fórum de Cuiabá').phones).toEqual([
+          { label: 'Fixo', value: '(65) 3322-1100' }, { label: 'Celular', value: '(65) 99888-7777' }, { label: 'Fax', value: '(65) 3333-4444' }
+        ]);
+      });
+
+      test('rótulo antigo (Trabalho) continua no contato que já o usa', async ({ page }) => {
+        await abrir(page);
+        await page.locator('#groups .card', { hasText: 'Bruno Costa' }).locator('.card-actions .icon-btn').click();
+        await expect(page.locator('#phoneRows select').first()).toHaveValue('Trabalho');
+      });
+
+      test('horário de atendimento e plantão', async ({ page, banco }) => {
+        await abrir(page);
+        await page.click('#addBtn');
+        await expect(page.locator('#onCallWrap')).toBeHidden();
+        await page.fill('#fName', 'Delegacia de Plantão');
+        await page.fill('#fHours', 'Seg a sex, 8h às 18h');
+        await page.check('#fOnCall');
+        await expect(page.locator('#onCallWrap')).toBeVisible();
+        await page.locator('#fOnCallPhone').pressSequentially('65999991234');
+        await expect(page.locator('#fOnCallPhone')).toHaveValue('(65) 99999-1234');
+        await salvar(page);
+        await expect(page.locator('#count')).toHaveText(/4 contatos/);
+        expect(banco.tabelas.contacts.find(c => c.name === 'Delegacia de Plantão'))
+          .toMatchObject({ service_hours: 'Seg a sex, 8h às 18h', has_on_call: true, on_call_phone: '(65) 99999-1234' });
+
+        const cartao = page.locator('#groups .card', { hasText: 'Delegacia de Plantão' });
+        await expect(cartao.locator('.meta-extra')).toContainText('Atendimento: Seg a sex, 8h às 18h');
+        await expect(cartao.locator('.meta-extra a.phone')).toHaveAttribute('href', 'tel:' + encodeURIComponent('(65) 99999-1234'));
+        await page.fill('#search', '1234');
+        await expect(page.locator('#count')).toHaveText('1 contato');
+
+        // editar: vem preenchido; desmarcar o plantão apaga o telefone do plantão
+        await cartao.locator('.card-actions .icon-btn').click();
+        await expect(page.locator('#fHours')).toHaveValue('Seg a sex, 8h às 18h');
+        await expect(page.locator('#fOnCall')).toBeChecked();
+        await expect(page.locator('#fOnCallPhone')).toHaveValue('(65) 99999-1234');
+        await page.uncheck('#fOnCall');
+        await expect(page.locator('#onCallWrap')).toBeHidden();
+        await salvar(page);
+        await expect.poll(() => banco.tabelas.contacts.find(c => c.name === 'Delegacia de Plantão'))
+          .toMatchObject({ has_on_call: false, on_call_phone: '' });
+
+        // contato novo vem em branco
+        await page.click('#addBtn');
+        await expect(page.locator('#fHours')).toHaveValue('');
+        await expect(page.locator('#fOnCall')).not.toBeChecked();
       });
 
       test('não salva contato vazio', async ({ page, banco }) => {

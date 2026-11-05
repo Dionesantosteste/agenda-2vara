@@ -345,6 +345,8 @@
   .card .meta a:hover{ color:var(--accent); text-decoration:underline; }
   .card .meta .phone{ font-family:var(--font-data); font-variant-numeric:tabular-nums; }
   .card .meta .more{ color:var(--muted); opacity:.8; }
+  .card .meta-extra{ font-size:12.5px; }
+  .card .meta-extra .on-call{ color:var(--accent); }
   .badge{
     font-family:var(--font-ui); font-size:11.5px; letter-spacing:.04em; text-transform:uppercase;
     color:var(--muted); border:1px solid var(--line); border-radius:999px; padding:2px 8px; white-space:nowrap; justify-self:end;
@@ -384,6 +386,8 @@
   .field input.mono{ font-family:var(--font-data); font-size:14.5px; letter-spacing:.01em; }
   .field-row{ display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap:12px; }
   .field-hint{ font-size:12px; color:var(--muted); }
+  .field .check-inline{ display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:0; font-size:14px; color:var(--ink); cursor:pointer; }
+  .field .check-inline input{ width:auto; padding:0; margin:0; accent-color:var(--accent); }
 
   .multi-block{ display:flex; flex-direction:column; gap:8px; }
   .multi-head{ display:flex; justify-content:space-between; align-items:center; }
