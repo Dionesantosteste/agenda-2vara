@@ -1,7 +1,7 @@
 'use client';
 // Seção Agenda do sistema novo: contatos e categorias, nas mesmas tabelas do Supabase (contacts e categories).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ALFABETO, CATEGORIAS_PADRAO, EXEMPLOS, TODOS, agrupar, deLinha, destaque, type Contato } from '@/lib/agenda';
+import { ALFABETO, CATEGORIAS_PADRAO, EXEMPLOS, TODOS, agrupar, deLinha, destaque, faltaColunaAtendimento, type Contato } from '@/lib/agenda';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { IconeEngrenagem } from '@/componentes/Icones';
@@ -69,8 +69,19 @@ export function Agenda(){
   }, [carregarCategorias, carregarContatos]);
 
   async function salvarContato(id: string | null, d: DadosContato){
-    const payload = { name: d.name, phones: d.phones, emails: d.emails, category: d.category };
-    const res = id ? await supabase().from('contacts').update(payload).eq('id', id) : await supabase().from('contacts').insert(payload);
+    const gravar = (payload: Record<string, unknown>) =>
+      id ? supabase().from('contacts').update(payload).eq('id', id) : supabase().from('contacts').insert(payload);
+    const basico = { name: d.name, phones: d.phones, emails: d.emails, category: d.category };
+    let res = await gravar({ ...basico, service_hours: d.service_hours, has_on_call: d.has_on_call, on_call_phone: d.on_call_phone });
+    // Banco ainda sem as colunas novas (sql/agenda_atendimento.sql não rodou): salva o resto e avisa
+    if (res.error && faltaColunaAtendimento(res.error.message)){
+      res = await gravar(basico);
+      if (!res.error){
+        avisar('Contato salvo, mas sem horário e plantão: rode o sql/agenda_atendimento.sql no Supabase');
+        await carregarContatos();
+        return;
+      }
+    }
     if (res.error){ avisar('Não foi possível salvar: ' + res.error.message); return; }
     avisar(id ? 'Contato atualizado' : 'Contato adicionado');
     await carregarContatos();
@@ -163,6 +174,16 @@ export function Agenda(){
                           <div className="info">
                             <div className="name"><Destacado texto={c.name} busca={busca} /></div>
                             <div className="meta">{partes.length ? partes.flatMap((p, i) => (i ? [' · ', p] : [p])) : <span className="more">sem contato salvo</span>}</div>
+                            {(c.service_hours || c.has_on_call) && (
+                              <div className="meta meta-extra">
+                                {c.service_hours && <span className="hours">Atendimento: {c.service_hours}</span>}
+                                {c.has_on_call && (
+                                  <span className="on-call">Plantão{c.on_call_phone ? ': ' : ''}
+                                    {c.on_call_phone && <a className="phone" href={'tel:' + encodeURIComponent(c.on_call_phone)}><Destacado texto={c.on_call_phone} busca={busca} /></a>}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
                             <span className="badge">{c.category || 'Sem categoria'}</span>
