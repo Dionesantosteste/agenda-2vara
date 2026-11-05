@@ -1248,6 +1248,33 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .eq-st[data-k="agend"]{ background:var(--accent-soft); color:var(--accent); border:1px dashed var(--accent); }
   .eq-mais{ display:flex; align-items:center; justify-content:center; gap:12px; padding:12px 0 2px; flex-wrap:wrap; }
 
+  /* ---- Relatório de produtividade (aba Tarefas da equipe) ---- */
+  .rel-form{ display:flex; flex-direction:column; gap:12px; }
+  .rel-chk{ display:inline-flex; align-items:center; gap:6px; font-size:13.5px; color:var(--ink); min-height:36px; cursor:pointer; }
+  .rel-chk input{ width:16px; height:16px; accent-color:var(--accent); }
+  .rel-saida:not(:empty){ margin-top:14px; display:flex; flex-direction:column; gap:14px; }
+  .rel-tit{ font-size:13px; color:var(--muted); }
+  .rel-tit b{ color:var(--ink); }
+  .rel-saida .pn-tab tbody tr{ cursor:default; }
+  .rel-saida .pn-tab th{ white-space:normal; vertical-align:bottom; line-height:1.3; }
+  .rel-saida .pn-tab th:not(:first-child){ max-width:92px; }
+  .rel-saida .pn-tab tfoot td{ padding:8px; text-align:right; font-weight:600; border-top:2px solid var(--line); white-space:nowrap; }
+  .rel-saida .pn-tab tfoot td:first-child{ text-align:left; }
+  .rel-pessoa h3{ margin:0 0 6px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .rel-lista{ width:100%; border-collapse:collapse; font-size:13px; }
+  .rel-lista th{ text-align:left; font-size:11.5px; font-weight:500; color:var(--muted); padding:5px 8px; border-bottom:1px solid var(--line); }
+  .rel-lista td{ padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .rel-lista .proc, .rel-lista .dt{ font-family:var(--font-data); font-size:12.5px; white-space:nowrap; }
+  .rel-tag{ font-size:11px; font-weight:600; border-radius:999px; padding:1px 7px; margin-left:4px; white-space:nowrap; }
+  .rel-tag.atr{ color:var(--danger); background:var(--urgent-bg); }
+  .rel-tag.dev{ color:var(--warn); background:var(--warn-soft); }
+  .rel-vazio{ font-size:13.5px; color:var(--muted); }
+  .rel-acoes{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  @media print{
+    .pr-sec{ font-size:10.5pt; font-weight:700; margin:12px 0 4px; }
+    .pr-num td, .pr-num th{ text-align:right; }
+    .pr-num td:first-child, .pr-num th:first-child{ text-align:left; }
+  }
   /* ---- Painel da equipe (aba Tarefas da equipe) ---- */
   .pn-kpis{ display:grid; grid-template-columns:repeat(5, minmax(0,1fr)); gap:10px; }
   .pn-kpi{ text-align:left; background:var(--sunken); border:1px solid transparent; border-radius:12px; padding:10px 12px; color:var(--ink); display:flex; flex-direction:column; gap:2px; font-family:var(--font-ui); }
@@ -2503,6 +2530,31 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
               <div class="pn-scroll" id="orgPnDesemp"></div>
             </details>
           </div>
+          </div>
+        </div>
+        <div class="panel" id="orgRel">
+          <div class="panel-head"><h2>Relatório de produtividade</h2>
+            <span>Tarefas concluídas por pessoa no período, inclusive as já arquivadas.</span></div>
+          <form class="rel-form" id="orgRelForm" novalidate>
+            <div class="kchips" id="orgRelAtalhos" role="group" aria-label="Período pronto">
+              <button type="button" class="chip" data-relp="mes" aria-pressed="false">Este mês</button>
+              <button type="button" class="chip" data-relp="mes_ant" aria-pressed="false">Mês passado</button>
+              <button type="button" class="chip" data-relp="30" aria-pressed="false">Últimos 30 dias</button>
+              <button type="button" class="chip" data-relp="ano" aria-pressed="false">Este ano</button>
+            </div>
+            <div class="eq-ctrls">
+              <label class="eq-ctrl">De<input class="org-in" type="date" id="orgRelDe" /></label>
+              <label class="eq-ctrl">Até<input class="org-in" type="date" id="orgRelAte" /></label>
+              <label class="eq-ctrl">Pessoa<select class="org-in" id="orgRelPessoa"></select></label>
+              <label class="rel-chk"><input type="checkbox" id="orgRelLista" /> Listar as tarefas de cada pessoa</label>
+              <button type="submit" class="btn primary" id="orgRelGerar">Gerar relatório</button>
+            </div>
+          </form>
+          <div class="rel-saida" id="orgRelSaida" aria-live="polite"></div>
+          <div class="rel-acoes" id="orgRelAcoes" hidden>
+            <button type="button" class="btn" id="orgRelImprimir">Imprimir ou salvar em PDF</button>
+            <button type="button" class="btn" id="orgRelCsvResumo">Baixar planilha do resumo</button>
+            <button type="button" class="btn" id="orgRelCsvTarefas">Baixar planilha das tarefas</button>
           </div>
         </div>
         <div class="panel">
@@ -4858,6 +4910,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     org.modo = 'gestor'; org.eu = null; org.euNome = ''; org.ver = null; org.pessoas = []; org.eqTarefas = [];
     org.txt.valores = {}; org.txt.editando = null; org.txt.atual = null;
     org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0; org.painel = null;
+    orgRelLimpa();
     document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
@@ -7719,6 +7772,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     OE.chips.querySelectorAll('[data-eqf]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-eqf') === org.eqf.sit)); });
     document.getElementById('orgEqConfN').textContent = orgParaConferir() || '';
     renderOrgPainel();
+    orgRelPessoas();
     orgLtModo();
 
     var base = org.eqTarefas.filter(function(t){ return (!org.eqf.pessoa || t.dono === org.eqf.pessoa) && orgEqBuscaPassa(t); });
@@ -8147,6 +8201,221 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     var b = e.target.closest('[data-pnper]'); if (!b) return;
     org.pnPer = Number(b.getAttribute('data-pnper')) === 30 ? 30 : 7;
     renderOrgPainel();
+  });
+
+  // ---- Relatório de produtividade: concluídas por pessoa num período (dados de org_relatorio) ----
+  var OR = {
+    form: document.getElementById('orgRelForm'),
+    atalhos: document.getElementById('orgRelAtalhos'),
+    de: document.getElementById('orgRelDe'),
+    ate: document.getElementById('orgRelAte'),
+    pessoa: document.getElementById('orgRelPessoa'),
+    lista: document.getElementById('orgRelLista'),
+    gerar: document.getElementById('orgRelGerar'),
+    saida: document.getElementById('orgRelSaida'),
+    acoes: document.getElementById('orgRelAcoes')
+  };
+  org.rel = null;
+  // Período pronto -> [de, até] no formato 2026-10-01
+  function orgRelPeriodo(k){
+    var h = startOfDay(new Date()), de = new Date(h), ate = new Date(h);
+    if (k === 'mes'){ de.setDate(1); }
+    else if (k === 'mes_ant'){ de = new Date(h.getFullYear(), h.getMonth() - 1, 1); ate = new Date(h.getFullYear(), h.getMonth(), 0); }
+    else if (k === '30'){ de.setDate(de.getDate() - 29); }
+    else if (k === 'ano'){ de = new Date(h.getFullYear(), 0, 1); }
+    return [dayKey(de), dayKey(ate)];
+  }
+  function orgRelMarcaAtalho(){
+    OR.atalhos.querySelectorAll('[data-relp]').forEach(function(b){
+      var p = orgRelPeriodo(b.getAttribute('data-relp'));
+      b.setAttribute('aria-pressed', String(OR.de.value === p[0] && OR.ate.value === p[1]));
+    });
+  }
+  (function(){ var p = orgRelPeriodo('mes'); OR.de.value = p[0]; OR.ate.value = p[1]; orgRelMarcaAtalho(); })();
+  OR.atalhos.addEventListener('click', function(e){
+    var b = e.target.closest('[data-relp]'); if (!b) return;
+    var p = orgRelPeriodo(b.getAttribute('data-relp'));
+    OR.de.value = p[0]; OR.ate.value = p[1];
+    orgRelMarcaAtalho();
+  });
+  [OR.de, OR.ate].forEach(function(el){ el.addEventListener('change', orgRelMarcaAtalho); });
+  OR.lista.addEventListener('change', function(){ if (org.rel) renderOrgRel(); });
+  // Lista de pessoas do relatório (chamada junto com a aba Tarefas da equipe)
+  function orgRelPessoas(){
+    var v = OR.pessoa.value;
+    OR.pessoa.innerHTML = '<option value="">Todas as pessoas</option>' + org.pessoas.map(function(p){
+      return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.nome) + (p.ativo ? '' : ' (desativada)') + '</option>';
+    }).join('');
+    if (v && orgPessoa(v)) OR.pessoa.value = v;
+  }
+  // (orgLock pode chamar antes de OR existir)
+  function orgRelLimpa(){ org.rel = null; if (!OR) return; OR.saida.innerHTML = ''; OR.acoes.hidden = true; }
+
+  OR.form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    var de = OR.de.value, ate = OR.ate.value;
+    if (!de || !ate){ toast('Escolha as datas de início e de fim.'); return; }
+    if (de > ate){ toast('A data inicial não pode ser depois da final.'); return; }
+    OR.gerar.disabled = true; OR.gerar.textContent = 'Gerando…';
+    var r = await orgCall('org_relatorio', { p_de: de, p_ate: ate });
+    OR.gerar.disabled = false; OR.gerar.textContent = 'Gerar relatório';
+    if (r.status === 'erro' && r.codigo === 'PGRST202'){
+      orgRelLimpa();
+      OR.saida.innerHTML = '<div class="rel-vazio">Para usar o relatório, rode no Supabase o arquivo <b>sql/organizacao_relatorio.sql</b> (veja o LEIA-ME.md).</div>';
+      return;
+    }
+    if (!orgOk(r)) return;
+    org.rel = { de: de, ate: ate, pessoa: OR.pessoa.value, hoje: r.hoje ? String(r.hoje).slice(0, 10) : dayKey(new Date()),
+      tarefas: Array.isArray(r.tarefas) ? r.tarefas : [], recebidas: Array.isArray(r.recebidas) ? r.recebidas : [],
+      abertas: Array.isArray(r.abertas) ? r.abertas : [] };
+    renderOrgRel();
+  });
+
+  // Minutos informados ao concluir (horas e minutos da janela de conclusão)
+  function orgRelMin(t){
+    var c = t.conclusao; if (!c || typeof c !== 'object') return 0;
+    return (Number(c.horas) || 0) * 60 + (Number(c.minutos) || 0);
+  }
+  function orgRelDuracao(min){
+    if (!min) return '';
+    var h = Math.floor(min / 60), m = min % 60;
+    return h ? h + 'h' + (m ? ' ' + pad(m) + 'min' : '') : m + 'min';
+  }
+  function orgRelDia(t){ return t.dia ? String(t.dia).slice(0, 10) : (t.feita_em ? dayKey(new Date(t.feita_em)) : ''); }
+  function orgRelAtrasada(t){ var p = t.prazo ? String(t.prazo).slice(0, 10) : ''; return !!p && orgRelDia(t) > p; }
+  function orgRelPctTxt(n, d){ return d ? Math.round(n / d * 100) + '%' : '—'; }
+  function orgRelNum(v){ return String(v).replace('.', ','); }
+  // Linhas do resumo: uma por pessoa (as escolhidas, as ativas e quem concluiu algo no período)
+  function orgRelResumo(){
+    var R = org.rel;
+    var ids = R.pessoa ? [R.pessoa] : org.pessoas.filter(function(p){
+      return p.ativo || R.tarefas.some(function(t){ return t.dono === p.id; });
+    }).map(function(p){ return p.id; });
+    return ids.map(function(id){
+      var ts = R.tarefas.filter(function(t){ return t.dono === id; });
+      var comPrazo = ts.filter(function(t){ return t.prazo; });
+      var atr = comPrazo.filter(orgRelAtrasada).length;
+      var dias = ts.map(function(t){ return (new Date(t.feita_em) - new Date(t.created_at)) / 86400000; }).filter(function(d){ return d >= 0; });
+      var rec = R.recebidas.filter(function(x){ return x.dono === id; })[0] || {};
+      var ab = R.abertas.filter(function(x){ return x.dono === id; })[0] || {};
+      return {
+        id: id, nome: orgNomePessoa(id) || '—', tarefas: ts,
+        concluidas: ts.length, comPrazo: comPrazo.length, noPrazo: comPrazo.length - atr, atrasadas: atr,
+        dias: dias.length ? Math.round(dias.reduce(function(a, b){ return a + b; }, 0) / dias.length * 10) / 10 : null,
+        devolvidas: ts.filter(function(t){ return t.devolvida; }).length,
+        dificuldade: ts.filter(function(t){ return t.conclusao && t.conclusao.dificuldade; }).length,
+        minutos: ts.reduce(function(a, t){ return a + orgRelMin(t); }, 0),
+        recebidas: rec.n || 0, abertas: ab.n || 0, abertasAtr: ab.atrasadas || 0
+      };
+    });
+  }
+  function orgRelPeriodoTxt(){ return 'De ' + prIso(org.rel.de) + ' a ' + prIso(org.rel.ate); }
+  function orgRelZ(n, cls){ return n ? '<span' + (cls ? ' class="' + cls + '"' : '') + '>' + n + '</span>' : '<span class="pn-z">0</span>'; }
+
+  function renderOrgRel(){
+    var R = org.rel; if (!R) return;
+    var linhas = orgRelResumo(), tot = { c: 0, cp: 0, np: 0, dev: 0, min: 0, rec: 0, ab: 0 };
+    linhas.forEach(function(l){ tot.c += l.concluidas; tot.cp += l.comPrazo; tot.np += l.noPrazo; tot.dev += l.devolvidas; tot.min += l.minutos; tot.rec += l.recebidas; tot.ab += l.abertas; });
+    var quem = R.pessoa ? orgNomePessoa(R.pessoa) : 'todas as pessoas';
+    var h = '<div class="rel-tit">' + escapeHtml(orgRelPeriodoTxt()) + ' · ' + escapeHtml(quem) + ' · <b>' + tot.c + (tot.c === 1 ? ' tarefa concluída' : ' tarefas concluídas') + '</b></div>';
+    if (!linhas.length){
+      OR.saida.innerHTML = h + '<div class="rel-vazio">Nenhuma pessoa cadastrada.</div>';
+      OR.acoes.hidden = true; return;
+    }
+    h += '<div class="pn-scroll"><table class="pn-tab"><thead><tr><th>Pessoa</th><th>Concluídas</th><th>No prazo</th><th>Concluídas com atraso</th>' +
+      '<th>Tempo médio</th><th>Devolvidas na conferência</th><th>Tempo informado</th><th>Recebidas no período</th><th>Em aberto hoje</th></tr></thead><tbody>' +
+      linhas.map(function(l){
+        var pct = l.comPrazo ? Math.round(l.noPrazo / l.comPrazo * 100) : null;
+        return '<tr data-relp="' + escapeHtml(l.id) + '"><td><span class="eq-quem">' + orgAvatar(l.nome, true) + escapeHtml(l.nome) + '</span></td>' +
+          '<td>' + orgRelZ(l.concluidas) + '</td>' +
+          '<td>' + (pct === null ? '<span class="pn-z">—</span>' : '<span class="' + (pct >= 85 ? 'pn-ok' : pct >= 60 ? 'pn-mid' : 'pn-red') + '" title="' + l.noPrazo + ' de ' + l.comPrazo + ' com prazo">' + pct + '%</span>') + '</td>' +
+          '<td>' + orgRelZ(l.atrasadas, 'pn-red') + '</td>' +
+          '<td>' + (l.dias === null ? '<span class="pn-z">—</span>' : orgRelNum(l.dias) + ' dias') + '</td>' +
+          '<td>' + orgRelZ(l.devolvidas, 'pn-red') + '</td>' +
+          '<td>' + (l.minutos ? orgRelDuracao(l.minutos) : '<span class="pn-z">—</span>') + '</td>' +
+          '<td>' + orgRelZ(l.recebidas) + '</td>' +
+          '<td>' + orgRelZ(l.abertas) + (l.abertasAtr ? ' <span class="pn-red" title="atrasadas">(' + l.abertasAtr + ' atras.)</span>' : '') + '</td></tr>';
+      }).join('') + '</tbody>' +
+      (linhas.length > 1 ? '<tfoot><tr><td>Total</td><td>' + tot.c + '</td><td>' + orgRelPctTxt(tot.np, tot.cp) + '</td><td>' + (tot.cp - tot.np) + '</td><td></td><td>' + tot.dev +
+        '</td><td>' + (orgRelDuracao(tot.min) || '—') + '</td><td>' + tot.rec + '</td><td>' + tot.ab + '</td></tr></tfoot>' : '') + '</table></div>' +
+      '<div class="pn-leg pn-sec-dica">No prazo: entre as concluídas que tinham prazo. Tempo médio: da criação da tarefa até a conclusão. ' +
+      'Tempo informado: soma das horas que a pessoa anotou ao concluir. Recebidas: tarefas que entraram no quadro no período.</div>';
+    if (OR.lista.checked){
+      h += linhas.filter(function(l){ return l.tarefas.length; }).map(function(l){
+        return '<div class="rel-pessoa"><h3>' + orgAvatar(l.nome, true) + escapeHtml(l.nome) + ' <span class="pn-z">· ' + l.tarefas.length + '</span></h3>' +
+          '<div class="pn-scroll"><table class="rel-lista"><thead><tr><th>Concluída em</th><th>Tarefa</th><th>Processo</th><th>Prazo</th><th>Tempo</th></tr></thead><tbody>' +
+          l.tarefas.map(function(t){
+            return '<tr><td class="dt">' + prIso(orgRelDia(t)) + '</td><td>' + escapeHtml(t.titulo || '(sem título)') +
+              (orgRelAtrasada(t) ? '<span class="rel-tag atr">com atraso</span>' : '') + (t.devolvida ? '<span class="rel-tag dev">devolvida</span>' : '') + '</td>' +
+              '<td class="proc">' + escapeHtml(t.processo || '') + '</td><td class="dt">' + (t.prazo ? prIso(String(t.prazo).slice(0, 10)) : '') + '</td>' +
+              '<td class="dt">' + orgRelDuracao(orgRelMin(t)) + '</td></tr>';
+          }).join('') + '</tbody></table></div></div>';
+      }).join('') || '<div class="rel-vazio">Nenhuma tarefa concluída no período.</div>';
+    }
+    OR.saida.innerHTML = h;
+    OR.acoes.hidden = false;
+  }
+
+  document.getElementById('orgRelImprimir').addEventListener('click', function(){
+    var R = org.rel; if (!R) return;
+    var linhas = orgRelResumo(), tot = 0;
+    linhas.forEach(function(l){ tot += l.concluidas; });
+    var corpo = '<table class="pr-tab pr-num"><thead><tr><th style="width:24%">Pessoa</th><th>Concluídas</th><th>No prazo</th><th>Com atraso</th><th>Tempo médio</th><th>Devolvidas</th><th>Tempo informado</th><th>Recebidas</th><th>Em aberto hoje</th></tr></thead><tbody>' +
+      linhas.map(function(l){
+        return '<tr><td>' + escapeHtml(l.nome) + '</td><td>' + l.concluidas + '</td><td>' + orgRelPctTxt(l.noPrazo, l.comPrazo) + '</td><td>' + l.atrasadas + '</td>' +
+          '<td>' + (l.dias === null ? '—' : orgRelNum(l.dias) + ' d') + '</td><td>' + l.devolvidas + '</td><td>' + (orgRelDuracao(l.minutos) || '—') + '</td>' +
+          '<td>' + l.recebidas + '</td><td>' + l.abertas + (l.abertasAtr ? ' (' + l.abertasAtr + ' atras.)' : '') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    if (OR.lista.checked){
+      linhas.filter(function(l){ return l.tarefas.length; }).forEach(function(l){
+        corpo += '<div class="pr-sec">' + escapeHtml(l.nome) + ' — ' + l.tarefas.length + (l.tarefas.length === 1 ? ' concluída' : ' concluídas') + '</div>' +
+          '<table class="pr-tab"><thead><tr><th style="width:13%">Concluída em</th><th>Tarefa</th><th style="width:24%">Processo</th><th style="width:11%">Prazo</th><th style="width:10%">Tempo</th></tr></thead><tbody>' +
+          l.tarefas.map(function(t){
+            return '<tr><td class="pr-hora">' + prIso(orgRelDia(t)) + '</td><td>' + escapeHtml(t.titulo || '(sem título)') +
+              (orgRelAtrasada(t) ? ' <span class="pr-sub">(com atraso)</span>' : '') + (t.devolvida ? ' <span class="pr-sub">(devolvida na conferência)</span>' : '') + '</td>' +
+              '<td class="pr-proc">' + escapeHtml(t.processo || '') + '</td><td class="pr-hora">' + (t.prazo ? prIso(String(t.prazo).slice(0, 10)) : '') + '</td>' +
+              '<td>' + orgRelDuracao(orgRelMin(t)) + '</td></tr>';
+          }).join('') + '</tbody></table>';
+      });
+    }
+    imprimir('Relatório de produtividade', orgRelPeriodoTxt() + ' · ' + (R.pessoa ? orgNomePessoa(R.pessoa) : 'Todas as pessoas'),
+      tot + (tot === 1 ? ' tarefa concluída' : ' tarefas concluídas'), corpo);
+  });
+
+  // Planilha (CSV com ";" e acentos, abre direto no Excel)
+  function orgRelCsv(nome, cab, linhas){
+    var cel = function(v){ v = v === null || v === undefined ? '' : String(v); return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+    var txt = '﻿' + [cab].concat(linhas).map(function(l){ return l.map(cel).join(';'); }).join('\r\n');
+    var url = URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+  function orgRelArquivo(tipo){ return 'produtividade-' + tipo + '-' + org.rel.de + '-a-' + org.rel.ate + '.csv'; }
+  document.getElementById('orgRelCsvResumo').addEventListener('click', function(){
+    if (!org.rel) return;
+    orgRelCsv(orgRelArquivo('resumo'), ['Pessoa', 'Concluídas', 'Com prazo', 'No prazo', 'No prazo (%)', 'Concluídas com atraso', 'Tempo médio (dias)',
+      'Devolvidas na conferência', 'Com dificuldade', 'Tempo informado (min)', 'Recebidas no período', 'Em aberto hoje', 'Atrasadas hoje'],
+      orgRelResumo().map(function(l){
+        return [l.nome, l.concluidas, l.comPrazo, l.noPrazo, l.comPrazo ? Math.round(l.noPrazo / l.comPrazo * 100) : '', l.atrasadas,
+          l.dias === null ? '' : orgRelNum(l.dias), l.devolvidas, l.dificuldade, l.minutos, l.recebidas, l.abertas, l.abertasAtr];
+      }));
+  });
+  document.getElementById('orgRelCsvTarefas').addEventListener('click', function(){
+    if (!org.rel) return;
+    var linhas = [];
+    orgRelResumo().forEach(function(l){
+      l.tarefas.forEach(function(t){
+        var c = t.conclusao && typeof t.conclusao === 'object' ? t.conclusao : {};
+        linhas.push([l.nome, prIso(orgRelDia(t)), t.titulo || '', t.processo || '', t.prazo ? prIso(String(t.prazo).slice(0, 10)) : '',
+          t.prazo ? (orgRelAtrasada(t) ? 'Não' : 'Sim') : '', t.prioridade || '', t.do_gestor ? 'Gestor' : 'Própria',
+          t.created_at ? prIso(dayKey(new Date(t.created_at))) : '', orgRelMin(t) || '',
+          { sim: 'Sim', parcialmente: 'Parcialmente', nao: 'Não' }[c.conformidade] || '', c.dificuldade ? (c.dificuldade_desc || 'Sim') : '',
+          t.devolvida ? 'Sim' : '', t.arquivada ? 'Sim' : '']);
+      });
+    });
+    orgRelCsv(orgRelArquivo('tarefas'), ['Pessoa', 'Concluída em', 'Tarefa', 'Processo', 'Prazo', 'No prazo', 'Prioridade', 'Origem', 'Criada em',
+      'Tempo informado (min)', 'Conforme', 'Dificuldade', 'Devolvida na conferência', 'Arquivada'], linhas);
   });
 
   // Lê o texto digitado: "Fazer intimação, 0001226-43.2017.8.11.0008, urgente, Ana, amanhã"

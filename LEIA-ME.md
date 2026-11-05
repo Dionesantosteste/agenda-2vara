@@ -130,6 +130,19 @@ Nas anotações: **B** (negrito, Ctrl+B), *I* (itálico, Ctrl+I) e **A** com fun
 com marcas simples (`**negrito**`, `*itálico*`, `==marcado==`) e aparece formatado depois de registrado. Para editar,
 use o lápis ao lado da anotação (Ctrl+Enter salva, Esc cancela).
 
+## Organização: relatório de produtividade por pessoa
+
+Na aba **Tarefas da equipe** (só o gestor) fica o quadro **Relatório de produtividade**. Para ele funcionar, rode
+uma vez no SQL Editor, depois do `sql/organizacao.sql`, o arquivo [`sql/organizacao_relatorio.sql`](sql/organizacao_relatorio.sql)
+(cria a função `org_relatorio`; o `organizacao.sql` atualizado também já a inclui).
+
+Escolha o período (atalhos **Este mês**, **Mês passado**, **Últimos 30 dias**, **Este ano** ou as datas **De** e **Até**,
+até um ano) e, se quiser, uma pessoa, e clique em **Gerar relatório**. Para cada pessoa aparecem: tarefas concluídas
+no período (inclusive as já arquivadas), quantas foram no prazo, quantas com atraso, o tempo médio da criação até a
+conclusão, as devolvidas na conferência, a soma do tempo informado ao concluir, as recebidas no período e o que está
+em aberto hoje. Marque **Listar as tarefas de cada pessoa** para ver tarefa por tarefa. Os botões embaixo imprimem
+(ou salvam em PDF) e baixam duas planilhas (resumo e tarefas), que abrem direto no Excel.
+
 ## Passo 2.1.1 — Tipos de audiência (lista própria)
 
 Para cadastrar novos tipos de audiência pelo site, rode no SQL Editor o arquivo
