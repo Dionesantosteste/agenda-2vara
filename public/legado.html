@@ -1334,6 +1334,11 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .pn-barra span[data-k="and"]{ background:var(--pn-and); } .pn-barra span[data-k="conf"]{ background:var(--pn-conf); }
   .pn-z{ color:var(--muted); opacity:.55; }
   .pn-red{ color:var(--danger); font-weight:600; }
+  .pn-est{ display:inline-flex; align-items:center; gap:6px; justify-content:flex-end; }
+  .pn-est svg{ width:15px; height:15px; flex:none; }
+  .pn-est .cheia{ fill:var(--ouro); stroke:var(--ouro-borda); }
+  .pn-est-sem{ font-size:12px; color:var(--muted); }
+  .pn-est .btn{ padding:3px 10px; font-size:12.5px; min-height:28px; }
   .pn-pill{ font-size:11px; font-weight:600; border-radius:999px; padding:1px 8px; margin-left:4px; }
   .pn-pill.cheia{ color:var(--danger); background:var(--urgent-bg); }
   .pn-pill.livre{ color:var(--ok); background:var(--ok-soft); }
@@ -1525,6 +1530,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .kbichos button[aria-pressed="true"]{ background:var(--accent); color:var(--accent-ink); }
   .org-festa-card .festa-estrela{ font-size:17px; font-weight:600; color:var(--ouro-txt); }
   .org-festa-card .festa-estrela span{ display:block; font-size:13.5px; font-weight:400; color:var(--muted); }
+  .org-festa-card .festa-motivo{ font-size:16px; color:var(--ink); font-style:italic; max-width:420px; overflow-wrap:anywhere; }
   .org-festa-card .festa-premio{ font-size:16px; background:var(--accent-soft); color:var(--ink); border-radius:12px; padding:8px 14px; }
   .org-festa-card .festa-botoes{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
   .org-festa-card .festa-botoes .btn{ margin-top:8px; }
@@ -4969,7 +4975,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     // estrelas e bichinhos da pessoa dona da tela (o quadro do gestor não tem; SQL antigo também não manda)
     var re = r.estrelas;
     org.estrelas = re && typeof re.total === 'number' && r.pessoa ? { dono: r.pessoa.id, total: re.total, semana: re.semana || 0, hoje: re.hoje === true,
-      bichos: (Array.isArray(re.bichos) ? re.bichos : []).filter(function(b){ return !!ORG_BICHOS[b]; }), noQuadro: typeof re.no_quadro === 'string' ? re.no_quadro : null } : null;
+      bichos: (Array.isArray(re.bichos) ? re.bichos : []).filter(function(b){ return !!ORG_BICHOS[b]; }), noQuadro: typeof re.no_quadro === 'string' ? re.no_quadro : null,
+      ultima: re.ultima && typeof re.ultima === 'object' ? { manual: re.ultima.manual === true, motivo: re.ultima.motivo || '' } : null } : null;
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqCarregado = Array.isArray(r.equipe_tarefas);
     org.eqCompleta = r.equipe_completa !== false;
@@ -5831,7 +5838,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   function orgEstrelaConfere(antes){
     var e = org.estrelas;
     if (!e || !antes || antes.dono !== e.dono || e.total <= antes.total) return;
-    org.estrelaNova = { semana: e.semana, total: e.total,
+    org.estrelaNova = { semana: e.semana, total: e.total, manual: !!(e.ultima && e.ultima.manual), motivo: e.ultima ? e.ultima.motivo : '',
       premios: ORG_PREMIOS.filter(function(p){ return p.estrelas > antes.total && p.estrelas <= e.total; }) };
   }
   // Pedaço do banner de parabéns (a 10ª tarefa do dia é a mesma hora da estrela)
@@ -5846,9 +5853,39 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   // Ganhou sem banner (ex.: o gestor concluiu na tela da pessoa): só o aviso
   function orgEstrelaAvisa(){
     var x = org.estrelaNova; if (!x) return;
+    if (x.manual && org.modo === 'pessoa'){ orgEstrelaPresente(); return; }
     org.estrelaNova = null;
     var p = x.premios[x.premios.length - 1]; if (p) p = orgPremioVista(p);
     toast('⭐ Nova estrela! ' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana' + (p ? ' · ' + p.icone + ' novo prêmio!' : ''));
+  }
+
+  // Estrela dada pelo gestor (Painel da equipe): banner com o motivo que ele escreveu
+  function orgEstrelaPresente(){
+    var x = org.estrelaNova; if (!x) return;
+    org.estrelaNova = null;
+    var velho = document.querySelector('.org-festa'); if (velho) velho.remove();
+    var nome = String(org.euNome || '').trim().split(/\s+/)[0];
+    var escolher = orgBichoMexe() && orgBichoPendentes() > 0;
+    var f = document.createElement('div');
+    f.className = 'org-festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'orgFestaTit');
+    f.innerHTML = '<div class="org-festa-card">' +
+      '<h2 id="orgFestaTit">Parabéns' + (nome ? ', ' + escapeHtml(nome) : '') + '!</h2>' +
+      '<div class="festa-estrela">⭐ O gestor te deu uma estrela!<span>' + x.semana + ' de ' + ORG_ESTRELA_SEMANA + ' nesta semana · ' + x.total + ' acumuladas</span></div>' +
+      (x.motivo ? '<p class="festa-motivo">“' + escapeHtml(x.motivo) + '”</p>' : '') +
+      x.premios.map(function(p){ p = orgPremioVista(p); return '<div class="festa-premio">' + p.icone + ' Conquistou: <b>' + escapeHtml(p.nome) + '</b></div>'; }).join('') +
+      (escolher ? '<div class="festa-botoes"><button type="button" class="btn primary" data-festa-escolher>🐾 Escolher meu bichinho</button><button type="button" class="btn" data-festa-ok>Depois</button></div>'
+        : '<button type="button" class="btn primary" data-festa-ok>Continuar</button>') + '</div>';
+    document.body.appendChild(f);
+    function fechar(){ f.remove(); document.removeEventListener('keydown', esc, true); }
+    function esc(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
+    f.addEventListener('click', function(e){
+      if (e.target.closest('[data-festa-escolher]')){ fechar(); orgBichoEscolha(); return; }
+      if (e.target === f || e.target.closest('[data-festa-ok]')) fechar();
+    });
+    document.addEventListener('keydown', esc, true);
+    (f.querySelector('[data-festa-escolher]') || f.querySelector('[data-festa-ok]')).focus();
+    orgFestaSom(true);
+    if (!orgFestaReduz) orgConfete(innerWidth * 0.5, innerHeight * 0.8, 90);
   }
 
   // ---- escolha do bichinho ----
@@ -8052,11 +8089,37 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       var a = P.agendadas.filter(function(z){ return z.dono === id; })[0], px = a ? orgPnDia(a.proxima) : null;
       return a && a.n ? '<span title="A próxima aparece em ' + (px ? fmtDia(px) : '') + '">' + a.n + (px ? ' <span class="pn-dt">(' + fmtDia(px) + ')</span>' : '') + '</span>' : '<span class="pn-z">0</span>';
     }
+    // Estrelas: só com o SQL atualizado. O gestor dá a estrela do dia escolhido em "Feitas em"
+    // (mesmas regras da automática: uma por dia, até ORG_ESTRELA_SEMANA por semana).
+    var temEst = Array.isArray(P.estrelas);
+    function orgPnEstrela(p){
+      var minhas = P.estrelas.filter(function(z){ return z.dono === p.id; });
+      var seg = new Date(diaD); seg.setDate(seg.getDate() - (seg.getDay() + 6) % 7);
+      var segK = dayKey(seg), fimD = new Date(seg); fimD.setDate(fimD.getDate() + 7);
+      var fimK = dayKey(fimD);
+      var nSem = minhas.filter(function(z){ var d = String(z.dia).slice(0, 10); return d >= segK && d < fimK; }).length;
+      var doDia = minhas.filter(function(z){ return String(z.dia).slice(0, 10) === diaK; })[0];
+      var primeiro = escapeHtml(p.nome.split(' ')[0]);
+      var h = '<span class="pn-est"><span class="pn-est-sem" title="' + nSem + ' de ' + ORG_ESTRELA_SEMANA + ' estrelas nessa semana">' + nSem + '/' + ORG_ESTRELA_SEMANA + '</span>';
+      if (doDia){
+        h += '<span role="img" aria-label="' + (doDia.manual ? 'Estrela dada por você' : 'Estrela conquistada') + '" title="' +
+          escapeHtml(doDia.manual ? 'Dada por você' + (doDia.motivo ? ': ' + doDia.motivo : '') : 'Conquistada com ' + ORG_ESTRELA_META + ' tarefas') + '">' + orgEstrelaSvg('cheia') + '</span>';
+        if (doDia.manual) h += '<button type="button" class="btn" data-pnestrela-tirar="' + escapeHtml(p.id) + '" title="Desfazer a estrela que você deu a ' + primeiro + '">Desfazer</button>';
+      } else if (!p.ativo || diaK < '2026-10-15'){
+        h += '<span class="pn-z">—</span>';
+      } else if (nSem >= ORG_ESTRELA_SEMANA){
+        h += '<span class="pn-est-sem">semana completa</span>';
+      } else {
+        h += '<button type="button" class="btn" data-pnestrela="' + escapeHtml(p.id) + '" title="Dar a estrela ' + (ehHoje ? 'de hoje' : diaTxt === 'ontem' ? 'de ontem' : 'de ' + fmtDia(diaD)) + ' a ' + primeiro + '">⭐ Dar</button>';
+      }
+      return h + '</span>';
+    }
     function cheia(c){ return c.total >= media * 1.5 && c.total - media >= 3; }
     if (!cargas.length){
       OP.carga.innerHTML = '<div class="pn-vazio">Cadastre a equipe no botão "Pessoas" para ver a carga de cada um.</div>';
     } else {
-      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th><th title="Tarefas concluídas no dia escolhido em Feitas em">Feitas ' + diaTxt + '</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') + '</tr></thead><tbody>' +
+      OP.carga.innerHTML = '<table class="pn-tab"><thead><tr><th>Pessoa</th><th class="pn-c-barra">Em aberto</th><th>A fazer</th><th>Andamento</th><th>Conferir</th><th>Atrasadas</th><th>Urgentes</th><th>Próx. prazo</th><th title="Tarefas concluídas no dia escolhido em Feitas em">Feitas ' + diaTxt + '</th>' + (temAg ? '<th title="Ainda não aparecem na tela da pessoa">Agendadas</th>' : '') +
+        (temEst ? '<th title="Estrelas da semana do dia escolhido (máximo ' + ORG_ESTRELA_SEMANA + ') e a estrela do dia">Estrela ' + diaTxt + '</th>' : '') + '</tr></thead><tbody>' +
         cargas.map(function(x){
           var c = x.c, w = function(n){ return (n / maxAb * 100).toFixed(1) + '%'; };
           var pill = !x.p.ativo ? '<span class="pn-pill">desativada</span>' : c.total === 0 ? '<span class="pn-pill livre">livre</span>' : cheia(c) ? '<span class="pn-pill cheia">sobrecarregada</span>' : '';
@@ -8069,7 +8132,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
             '<td><b>' + orgPnN(c.afazer) + '</b></td><td>' + orgPnN(c.andamento) + '</td><td>' + orgPnN(c.conferir) + '</td>' +
             '<td>' + orgPnN(c.atrasadas, 'pn-red') + '</td><td>' + orgPnN(c.urgentes, 'pn-red') + '</td><td>' + prox + '</td>' +
             '<td>' + (orgPnFeitasHoje(x.p.id) === null ? '<span class="pn-z">…</span>' : orgPnN(orgPnFeitasHoje(x.p.id), 'pn-ok')) + '</td>' +
-            (temAg ? '<td>' + orgPnAg(x.p.id) + '</td>' : '') + '</tr>';
+            (temAg ? '<td>' + orgPnAg(x.p.id) + '</td>' : '') + (temEst ? '<td>' + orgPnEstrela(x.p) + '</td>' : '') + '</tr>';
         }).join('') + '</tbody></table>';
     }
 
@@ -8186,13 +8249,27 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     renderOrgEquipe();
   });
   function orgPnPessoaClique(e){
-    var tr = e.target.closest('[data-pnp]'); if (!tr) return;
+    var tr = e.target.closest('[data-pnp]'); if (!tr || e.target.closest('button')) return;
     if (e.type === 'keydown'){ if (e.key !== 'Enter' && e.key !== ' ') return; e.preventDefault(); }
     var id = tr.getAttribute('data-pnp');
     org.eqf.pessoa = org.eqf.pessoa === id ? '' : id;
     org.eqLimite = ORG_EQ_PAGINA;
     renderOrgEquipe();
   }
+  OP.carga.addEventListener('click', async function(e){
+    var b = e.target.closest('[data-pnestrela]'), t = e.target.closest('[data-pnestrela-tirar]');
+    var hojeK = org.painel && org.painel.hoje ? String(org.painel.hoje).slice(0, 10) : dayKey(new Date());
+    var dia = org.pnDia && org.pnDia < hojeK ? org.pnDia : hojeK;
+    if (b){ orgEstrelaDarAbrir(b.getAttribute('data-pnestrela'), dia); return; }
+    if (!t) return;
+    var id = t.getAttribute('data-pnestrela-tirar'), nome = orgNomePessoa(id) || 'essa pessoa';
+    if (!confirm('Desfazer a estrela que você deu a ' + nome + ' em ' + fmtDia(new Date(dia + 'T00:00')) + '?')) return;
+    t.disabled = true;
+    var r = await orgCall('org_tirar_estrela', { p_pessoa: id, p_dia: dia });
+    if (!orgOk(r)){ t.disabled = false; return; }
+    toast('Estrela desfeita.');
+    await orgLoad();
+  });
   [OP.carga, OP.desemp].forEach(function(el){
     el.addEventListener('click', orgPnPessoaClique);
     el.addEventListener('keydown', orgPnPessoaClique);
@@ -8931,6 +9008,28 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     ok: document.getElementById('ocfOk')
   };
   var confAlvo = null;
+  function orgEstrelaDarAbrir(dono, dia){
+    var nome = orgNomePessoa(dono) || 'essa pessoa', d = new Date(dia + 'T00:00');
+    confAlvo = { modo: 'estrela', dono: dono, dia: dia };
+    OCF.titulo.textContent = 'Dar estrela';
+    OCF.tarefa.textContent = 'Para ' + nome + ', estrela ' + (orgDiff(d) === 0 ? 'de hoje' : orgDiff(d) === -1 ? 'de ontem' : 'de ' + fmtDia(d)) + '.';
+    OCF.rotulo.textContent = 'Motivo (opcional)';
+    OCF.texto.placeholder = 'Ex.: ficou na tarefa urgente que eu pedi';
+    OCF.dica.textContent = 'A pessoa recebe o aviso com o motivo. Vale como a estrela do dia e entra no limite de ' + ORG_ESTRELA_SEMANA + ' por semana.';
+    OCF.ok.textContent = 'Dar estrela';
+    OCF.texto.maxLength = 300;
+    OCF.ok.disabled = false;
+    OCF.texto.value = '';
+    OCF.dialog.showModal();
+    setTimeout(function(){ OCF.texto.focus(); }, 30);
+  }
+  async function orgEstrelaDar(dono, dia, motivo){
+    var r = await orgCall('org_dar_estrela', { p_pessoa: dono, p_dia: dia, p_motivo: motivo });
+    if (!orgOk(r)) return false;
+    toast('⭐ Estrela dada a ' + (orgNomePessoa(dono) || 'essa pessoa') + '.');
+    await orgLoad();
+    return true;
+  }
   function orgConfAbrir(t, modo){
     confAlvo = { id: t.id, modo: modo, dono: t.dono };
     var dev = modo === 'devolver', ges = modo === 'gestor';
@@ -8942,6 +9041,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       : ges ? 'A tarefa sai do seu quadro e vai para a primeira coluna do quadro do gestor, com este recado.'
       : 'A tarefa fica parada na coluna em que está até o gestor aprovar ou devolver. Nos dois casos ela continua ali para você seguir.';
     OCF.ok.textContent = dev ? 'Devolver' : ges ? 'Mandar para o gestor' : 'Enviar';
+    OCF.texto.maxLength = 1000;
     OCF.ok.disabled = false;
     OCF.texto.value = '';
     OCF.dialog.showModal();
@@ -8966,7 +9066,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     if (confAlvo.modo === 'devolver' && !txt){ toast('Escreva o motivo da devolução.'); OCF.texto.focus(); return; }
     if (confAlvo.modo === 'gestor' && !txt){ toast('Escreva um recado para o gestor saber o que precisa.'); OCF.texto.focus(); return; }
     OCF.ok.disabled = true;
-    var ok = confAlvo.modo === 'gestor' ? await orgEnviarAoGestor(confAlvo.id, txt) : await orgConfAcao(confAlvo.id, confAlvo.modo, txt, confAlvo.dono);
+    var ok = confAlvo.modo === 'estrela' ? await orgEstrelaDar(confAlvo.dono, confAlvo.dia, txt)
+      : confAlvo.modo === 'gestor' ? await orgEnviarAoGestor(confAlvo.id, txt) : await orgConfAcao(confAlvo.id, confAlvo.modo, txt, confAlvo.dono);
     OCF.ok.disabled = false;
     if (ok) OCF.dialog.close();
   });

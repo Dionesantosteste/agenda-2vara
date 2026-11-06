@@ -221,7 +221,7 @@ function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [],
   pessoas.forEach(p => org.pessoas.push(Object.assign({ id: uuid(), nome: '', ativo: true, bicho_quadro: null, created_at: agora() }, p)));
   tarefas.forEach(t => org.tarefas.push(Object.assign(tarefaPadrao(), t)));
   notas.forEach(n => org.notas.push(Object.assign(notaPadrao(), n)));
-  estrelas.forEach(e => org.estrelas.push(Object.assign({ created_at: agora() }, e)));
+  estrelas.forEach(e => org.estrelas.push(Object.assign({ manual: false, motivo: null, created_at: agora() }, e)));
   bichos.forEach(b => org.bichos.push(Object.assign({ created_at: agora() }, b)));
   etiquetas.forEach(e => org.etiquetas.push(Object.assign({ id: uuid(), nome: '', cor: 'azul', dono: null }, e)));
   colunas.forEach(c => org.colunas.push(Object.assign({ dono: null, chave: '', nome: '', ordem: 10 }, c)));
@@ -251,7 +251,7 @@ function confereEstrela(org, t, antes){
   const seg = segundaDe(hoje), fim = somaDias(seg, 7);
   if (org.estrelas.filter(e => e.dono === t.dono && e.dia >= seg && e.dia < fim).length >= 5) return;
   const n = org.tarefas.filter(x => x.dono === t.dono && x.feita_em && diaVara(x.feita_em) === hoje).length;
-  if (n >= 10) org.estrelas.push({ dono: t.dono, dia: hoje, created_at: agora() });
+  if (n >= 10) org.estrelas.push({ dono: t.dono, dia: hoje, manual: false, motivo: null, created_at: agora() });
 }
 function resumoEstrelas(org, dono){
   if (!dono) return null;
@@ -262,14 +262,39 @@ function resumoEstrelas(org, dono){
     semana: org.estrelas.filter(e => e.dono === dono && e.dia >= seg).length,
     hoje: org.estrelas.some(e => e.dono === dono && e.dia === hoje),
     bichos: org.bichos.filter(b => b.dono === dono).sort((a, b) => a.created_at.localeCompare(b.created_at)).map(b => b.tipo),
-    no_quadro: p ? (p.bicho_quadro ?? null) : null
+    no_quadro: p ? (p.bicho_quadro ?? null) : null,
+    ultima: (u => u ? { dia: u.dia, manual: !!u.manual, motivo: u.motivo ?? null } : null)(
+      org.estrelas.filter(e => e.dono === dono).sort((a, b) => b.created_at.localeCompare(a.created_at))[0])
   };
 }
 function assinatura(org, dono, gestor){
   const ts = org.tarefas.filter(t => gestor || ((t.dono || null) === (dono || null) && (!t.aparece_em || t.aparece_em <= hojeVara())));
   const ns = doDono(org.notas, dono);
   const max = l => l.reduce((m, x) => x.updated_at > m ? x.updated_at : m, '');
-  return ts.length + '|' + max(ts) + '|' + ns.length + '|' + max(ns) + '|' + hojeVara();
+  return ts.length + '|' + max(ts) + '|' + ns.length + '|' + max(ns) + '|' + org.estrelas.filter(e => e.dono === dono).length + '|' + hojeVara();
+}
+
+// org_painel_equipe, resumido: a carga em aberto, as concluídas de hoje e as estrelas dos últimos 120 dias
+function painelEquipe(org){
+  const hoje = hojeVara();
+  const abertas = org.tarefas.filter(t => t.dono && !t.arquivada_em && t.etapa !== 'feito' && !(t.aparece_em && t.aparece_em > hoje));
+  const porDono = {};
+  abertas.forEach(t => {
+    const x = porDono[t.dono] || (porDono[t.dono] = { dono: t.dono, afazer: 0, andamento: 0, conferir: 0, atrasadas: 0, hoje: 0, urgentes: 0, prox_prazo: null });
+    if (t.conferencia === 'enviada') x.conferir++; else if (t.etapa === 'afazer') x.afazer++; else if (t.etapa === 'fazendo') x.andamento++;
+    if (t.prazo && t.prazo < hoje) x.atrasadas++;
+    if (t.prazo === hoje) x.hoje++;
+    if (t.prioridade === 'urgente') x.urgentes++;
+  });
+  const feitas = {};
+  org.tarefas.filter(t => t.dono && diaVara(t.feita_em) === hoje).forEach(t => {
+    (feitas[t.dono] = feitas[t.dono] || { dono: t.dono, hoje: 0, n7: 0, n30: 0 }); feitas[t.dono].hoje++; feitas[t.dono].n7++; feitas[t.dono].n30++;
+  });
+  return {
+    hoje, abertas: Object.values(porDono), agendadas: [], prazos: [], paradas: [], feitas: Object.values(feitas), semanas: [],
+    estrelas: org.estrelas.filter(e => e.dia >= somaDias(hoje, -120)).sort((a, b) => a.dia.localeCompare(b.dia))
+      .map(e => ({ dono: e.dono, dia: e.dia, manual: !!e.manual, motivo: e.motivo ?? null }))
+  };
 }
 
 const ORG_FUNCOES = {
@@ -339,6 +364,7 @@ const ORG_FUNCOES = {
       res.equipe_tarefas = copia(org.tarefas.filter(t => t.dono && (t.do_gestor || t.conferencia) && !t.arquivada_em));
       res.equipe_colunas = org.colunas.filter(c => c.dono).map(c => ({ dono: c.dono, chave: c.chave, nome: c.nome }));
       res.equipe_modelos = copia(org.modelos.filter(m => !m.dono));
+      res.equipe_painel = painelEquipe(org);
     }
     return res;
   },
@@ -590,6 +616,38 @@ const ORG_FUNCOES = {
     if (org.bichos.filter(b => b.dono === ac.dono).length >= vagas) return erro('Ainda faltam estrelas para um novo bichinho.');
     if (!org.bichos.some(b => b.dono === ac.dono && b.tipo === a.p_tipo)) org.bichos.push({ dono: ac.dono, tipo: a.p_tipo, created_at: agora() });
     org.pessoas.find(p => p.id === ac.dono).bicho_quadro = a.p_tipo;
+    return { status: 'ok' };
+  },
+  org_feitas_dia(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor vê as tarefas concluídas da equipe.');
+    return { status: 'ok', dia: a.p_dia, tarefas: org.tarefas.filter(t => t.dono && diaVara(t.feita_em) === a.p_dia)
+      .map(t => ({ id: t.id, dono: t.dono, titulo: t.titulo, processo: t.processo, prazo: t.prazo, feita_em: t.feita_em, do_gestor: t.do_gestor, arquivada: !!t.arquivada_em })) };
+  },
+  // Estrela dada pelo gestor: uma por pessoa e por dia, até 5 por semana, de 15/10/2026 até hoje
+  org_dar_estrela(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor dá estrelas.');
+    if (!ac.dono) return erro('Escolha a pessoa que vai receber a estrela.');
+    if (!a.p_dia || a.p_dia > hojeVara() || a.p_dia < '2026-10-15') return erro('Escolha hoje ou um dia passado (as estrelas valem desde 15/10/2026).');
+    if (org.estrelas.some(e => e.dono === ac.dono && e.dia === a.p_dia)) return erro('Essa pessoa já tem a estrela desse dia.');
+    const seg = segundaDe(a.p_dia), fim = somaDias(seg, 7);
+    if (org.estrelas.filter(e => e.dono === ac.dono && e.dia >= seg && e.dia < fim).length >= 5) return erro('Essa pessoa já tem as 5 estrelas dessa semana.');
+    const motivo = String(a.p_motivo || '').trim().slice(0, 300);
+    org.estrelas.push({ dono: ac.dono, dia: a.p_dia, manual: true, motivo: motivo || null, created_at: agora() });
+    return { status: 'ok' };
+  },
+  org_tirar_estrela(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor || !ac.dono) return erro('Só o gestor desfaz a estrela que deu.');
+    if (!org.estrelas.some(e => e.dono === ac.dono && e.dia === a.p_dia && e.manual)) return erro('Não há estrela dada pelo gestor nesse dia.');
+    const total = org.estrelas.filter(e => e.dono === ac.dono).length - 1;
+    if (org.bichos.filter(b => b.dono === ac.dono).length > [3, 55, 75, 100].filter(x => total >= x).length)
+      return erro('Essa estrela já foi usada para escolher um bichinho e não pode ser desfeita.');
+    org.estrelas = org.estrelas.filter(e => !(e.dono === ac.dono && e.dia === a.p_dia && e.manual));
     return { status: 'ok' };
   },
   org_bicho_no_quadro(org, a){

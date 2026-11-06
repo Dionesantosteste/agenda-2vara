@@ -423,6 +423,19 @@ end;
 $$;
 revoke all on function org_verifica(text) from public, anon, authenticated;
 
+-- estrelas da gamificação (explicação completa na parte "estrelas e bichinhos", mais abaixo).
+-- Fica aqui em cima porque o Painel da equipe e a assinatura das telas leem esta tabela.
+create table if not exists org_estrelas (
+  dono uuid not null references org_pessoas(id) on delete cascade,
+  dia date not null,
+  created_at timestamptz not null default now(),
+  primary key (dono, dia)
+);
+alter table org_estrelas enable row level security;
+-- estrela dada pelo gestor no Painel da equipe (manual = true), com o motivo que ele escreveu (opcional)
+alter table org_estrelas add column if not exists manual boolean not null default false;
+alter table org_estrelas add column if not exists motivo text;
+
 -- ---------- quem está pedindo e de qual tela (uso interno) ----------
 -- Com senha (gestor): o_dono = a tela escolhida (vazio = a do gestor).
 -- Sem senha: só a própria tela de uma pessoa ativa.
@@ -532,6 +545,9 @@ as $$
                count(*) filter (where f.feita_em >= now() - interval '7 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev7,
                count(*) filter (where f.feita_em >= now() - interval '30 days' and f.conf_hist @> '[{"a": "devolvida"}]') as dev30
           from feitas f group by f.dono) x), '[]'::jsonb),
+    -- estrelas dos últimos 120 dias (automáticas e dadas pelo gestor), para a coluna Estrelas
+    'estrelas', coalesce((select jsonb_agg(jsonb_build_object('dono', e.dono, 'dia', e.dia, 'manual', e.manual, 'motivo', e.motivo) order by e.dia)
+        from org_estrelas e where e.dia >= org_hoje() - 120), '[]'::jsonb),
     -- concluídas por semana nas últimas 8 semanas (s = 0 é a semana mais recente)
     'semanas', coalesce((select jsonb_agg(x) from (
         select f.dono, floor(extract(epoch from now() - f.feita_em) / 604800)::int as s, count(*) as n
@@ -551,6 +567,7 @@ as $$
   select (select count(*)::text || '|' || coalesce(max(t.updated_at)::text, '') from org_tarefas t
            where p_gestor or (t.dono is not distinct from p_dono and (t.aparece_em is null or t.aparece_em <= org_hoje())))
          || '|' || (select count(*)::text || '|' || coalesce(max(n.updated_at)::text, '') from org_notas n where n.dono is not distinct from p_dono)
+         || '|' || (select count(*)::text from org_estrelas e where e.dono = p_dono)
          || '|' || org_hoje()::text;
 $$;
 revoke all on function org_assinatura(uuid, boolean) from public, anon, authenticated;
@@ -2093,14 +2110,8 @@ grant execute on function org_excluir_pessoa(text, uuid, uuid) to anon, authenti
 -- Valem desde 15/10/2026 (veja o bloco logo depois do gatilho).
 -- Quem dá a estrela é o banco, na hora em que a 10ª tarefa do dia vai para Feito (gatilho abaixo),
 -- e ela fica guardada: não some se depois a tarefa voltar de coluna, for arquivada ou excluída.
--- O quadro do gestor não ganha estrelas.
-create table if not exists org_estrelas (
-  dono uuid not null references org_pessoas(id) on delete cascade,
-  dia date not null,
-  created_at timestamptz not null default now(),
-  primary key (dono, dia)
-);
-alter table org_estrelas enable row level security;
+-- O quadro do gestor não ganha estrelas. O gestor também pode dar uma estrela à mão (org_dar_estrela).
+-- (a tabela org_estrelas é criada lá em cima, junto com as outras tabelas)
 
 -- bichinhos que a pessoa escolheu (gato, cachorro, raposa, leoa, dragao, peixe), na ordem da escolha
 create table if not exists org_bichos (
@@ -2191,10 +2202,89 @@ as $$
     'semana', (select count(*) from org_estrelas e where e.dono = p_dono and e.dia >= date_trunc('week', org_hoje())::date),
     'hoje', exists (select 1 from org_estrelas e where e.dono = p_dono and e.dia = org_hoje()),
     'bichos', coalesce((select jsonb_agg(b.tipo order by b.created_at) from org_bichos b where b.dono = p_dono), '[]'::jsonb),
-    'no_quadro', (select p.bicho_quadro from org_pessoas p where p.id = p_dono)
+    'no_quadro', (select p.bicho_quadro from org_pessoas p where p.id = p_dono),
+    -- a mais recente: se foi o gestor que deu, a tela da pessoa mostra o motivo no aviso
+    'ultima', (select jsonb_build_object('dia', e.dia, 'manual', e.manual, 'motivo', e.motivo)
+                 from org_estrelas e where e.dono = p_dono order by e.created_at desc limit 1)
   ) end;
 $$;
 revoke all on function org_estrelas_resumo(uuid) from public, anon, authenticated;
+
+-- O gestor dá uma estrela à mão, pelo Painel da equipe (ex.: a pessoa não fez as 10 tarefas porque
+-- estava numa tarefa que ele pediu). Segue as mesmas regras da automática: uma por pessoa e por dia
+-- (se já tem a do dia, não dá outra) e entra no limite de 5 por semana. O motivo é opcional e aparece
+-- para a pessoa. Vale para hoje ou um dia passado, a partir de 15/10/2026. p_pessoa = quem recebe.
+create or replace function org_dar_estrela(p_pin text, p_pessoa uuid, p_dia date, p_motivo text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  semana date;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor dá estrelas.');
+  end if;
+  if ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Escolha a pessoa que vai receber a estrela.');
+  end if;
+  if p_dia is null or p_dia > org_hoje() or p_dia < date '2026-10-15' then
+    return jsonb_build_object('status', 'erro', 'message', 'Escolha hoje ou um dia passado (as estrelas valem desde 15/10/2026).');
+  end if;
+  if exists (select 1 from org_estrelas where dono = ac.o_dono and dia = p_dia) then
+    return jsonb_build_object('status', 'erro', 'message', 'Essa pessoa já tem a estrela desse dia.');
+  end if;
+  semana := date_trunc('week', p_dia)::date;
+  if (select count(*) from org_estrelas where dono = ac.o_dono and dia >= semana and dia < semana + 7) >= 5 then
+    return jsonb_build_object('status', 'erro', 'message', 'Essa pessoa já tem as 5 estrelas dessa semana.');
+  end if;
+  insert into org_estrelas (dono, dia, manual, motivo)
+  values (ac.o_dono, p_dia, true, nullif(left(btrim(coalesce(p_motivo, '')), 300), ''))
+  on conflict do nothing;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+
+-- O gestor desfaz uma estrela que ele mesmo deu (a automática não sai). Não desfaz se a pessoa já
+-- usou essa estrela para escolher um bichinho.
+create or replace function org_tirar_estrela(p_pin text, p_pessoa uuid, p_dia date)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  total int;
+  vagas int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor desfaz a estrela que deu.');
+  end if;
+  if not exists (select 1 from org_estrelas where dono = ac.o_dono and dia = p_dia and manual) then
+    return jsonb_build_object('status', 'erro', 'message', 'Não há estrela dada pelo gestor nesse dia.');
+  end if;
+  total := (select count(*) from org_estrelas where dono = ac.o_dono) - 1;
+  vagas := (total >= 3)::int + (total >= 55)::int + (total >= 75)::int + (total >= 100)::int;
+  if (select count(*) from org_bichos where dono = ac.o_dono) > vagas then
+    return jsonb_build_object('status', 'erro', 'message', 'Essa estrela já foi usada para escolher um bichinho e não pode ser desfeita.');
+  end if;
+  delete from org_estrelas where dono = ac.o_dono and dia = p_dia and manual;
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+grant execute on function org_dar_estrela(text, uuid, date, text) to anon, authenticated;
+grant execute on function org_tirar_estrela(text, uuid, date) to anon, authenticated;
 
 -- A pessoa escolhe um bichinho quando as estrelas acumuladas liberam uma vaga (3, 55, 75 e 100).
 -- Só a própria pessoa escolhe (o gestor, vendo a tela dela, não escolhe por ela).

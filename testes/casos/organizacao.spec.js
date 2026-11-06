@@ -157,6 +157,65 @@ test.describe('estrelas e bichinhos', () => {
   });
 });
 
+test.describe('estrela dada pelo gestor', () => {
+  const linhaPainel = (page, nome) => page.locator('#orgPnCarga tr', { hasText: nome });
+
+  test('o gestor dá a estrela no Painel da equipe, com motivo, e pode desfazer', async ({ page, banco }) => {
+    equipe(banco, { tarefas: [{ dono: ANA, titulo: 'Tarefa urgente do gestor', do_gestor: true }] });
+    await entrarComoGestor(page);
+    await abaOrg(page, 'equipe');
+    const ana = linhaPainel(page, 'Ana Souza');
+    await expect(ana).toContainText('0/5');
+    await ana.locator('[data-pnestrela]').click();
+    await expect(page.locator('#orgConfDialog')).toBeVisible();
+    await expect(page.locator('#ocfTitulo')).toHaveText('Dar estrela');
+    await page.fill('#ocfTexto', 'Ficou na tarefa urgente que eu pedi');
+    await page.click('#ocfOk');
+    await expect(page.locator('#orgConfDialog')).toBeHidden();
+    await expect(ana).toContainText('1/5');
+    expect(banco.org.estrelas).toEqual([expect.objectContaining({ dono: ANA, dia: hojeVara(), manual: true, motivo: 'Ficou na tarefa urgente que eu pedi' })]);
+
+    page.once('dialog', d => d.accept());
+    await ana.locator('[data-pnestrela-tirar]').click();
+    await expect(ana.locator('[data-pnestrela]')).toBeVisible();
+    expect(banco.org.estrelas).toEqual([]);
+  });
+
+  test('o motivo é opcional, e a estrela automática não pode ser desfeita', async ({ page, banco }) => {
+    equipe(banco, { estrelas: [{ dono: BIA, dia: hojeVara() }] });
+    await entrarComoGestor(page);
+    await abaOrg(page, 'equipe');
+    await expect(linhaPainel(page, 'Bia Lima').locator('[data-pnestrela], [data-pnestrela-tirar]')).toHaveCount(0);
+    await linhaPainel(page, 'Ana Souza').locator('[data-pnestrela]').click();
+    await page.click('#ocfOk');
+    await expect(page.locator('#orgConfDialog')).toBeHidden();
+    expect(banco.org.estrelas.find(e => e.dono === ANA)).toMatchObject({ manual: true, motivo: null });
+  });
+
+  test('com as 5 da semana não dá para dar outra', async ({ page, banco }) => {
+    const { segundaDe, somaDias } = require('../apoio/supabase-falso');
+    const seg = segundaDe(hojeVara());
+    const dias = [0, 1, 2, 3, 4, 5, 6].map(n => somaDias(seg, n)).filter(d => d !== hojeVara()).slice(0, 5);
+    equipe(banco, { estrelas: dias.map(dia => ({ dono: ANA, dia })) });
+    await entrarComoGestor(page);
+    await abaOrg(page, 'equipe');
+    await expect(linhaPainel(page, 'Ana Souza')).toContainText('semana completa');
+    await expect(linhaPainel(page, 'Ana Souza').locator('[data-pnestrela]')).toHaveCount(0);
+  });
+
+  test('a pessoa recebe o aviso com o motivo', async ({ page, banco }) => {
+    equipe(banco);
+    await entrarComoPessoa(page, 'Ana Souza');
+    await expect(page.locator('#orgEstrelas')).toContainText(/Acumuladas\s*0/);
+    banco.org.estrelas.push({ dono: ANA, dia: hojeVara(), manual: true, motivo: 'Obrigado pela ajuda no mutirão', created_at: new Date().toISOString() });
+    await page.evaluate(() => document.dispatchEvent(new Event('visibilitychange')));
+    await expect(page.locator('.org-festa-card')).toContainText('O gestor te deu uma estrela!');
+    await expect(page.locator('.org-festa-card')).toContainText('Obrigado pela ajuda no mutirão');
+    await page.locator('[data-festa-ok]').click();
+    await expect(page.locator('#orgEstrelas')).toContainText('Estrela de hoje conquistada');
+  });
+});
+
 test.describe('gestor e equipe', () => {
   test('a pessoa conclui tarefa do gestor respondendo o fechamento', async ({ page, banco }) => {
     equipe(banco, { tarefas: [{ dono: ANA, titulo: 'Expedir mandado', do_gestor: true }] });
