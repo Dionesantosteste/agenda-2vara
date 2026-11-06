@@ -646,6 +646,27 @@ recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrel
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
 
+### Estrela dada pelo gestor
+
+O gestor também pode **dar uma estrela à mão**, por exemplo para quem não fez as 10 tarefas porque
+estava numa tarefa que ele pediu. Fica no **Painel da equipe** (aba Tarefas da equipe), na última coluna
+da tabela "Carga por pessoa":
+
+- **"⭐ Dar"** abre uma janelinha com o **motivo, que é opcional** (ex.: "ficou na tarefa urgente que eu
+  pedi"). A pessoa recebe um banner de parabéns com o motivo assim que a tela dela atualizar (em até
+  1 minuto, ou ao voltar para a aba).
+- A estrela vale para o **dia escolhido em "Feitas em"** (hoje, por padrão). Dá para dar a de ontem ou
+  de outro dia passado, a partir de 15/10/2026.
+- Segue as mesmas regras da automática: **uma estrela por pessoa e por dia** (se a pessoa já ganhou a do
+  dia, não dá outra) e **entra no limite de 5 por semana**. A coluna mostra quantas a pessoa tem na
+  semana (ex.: 3/5) e avisa "semana completa".
+- A estrela dada pelo gestor pode ser **desfeita** no botão "Desfazer", na mesma linha. A automática
+  não sai, e a dada pelo gestor também não sai se a pessoa já a usou para escolher um bichinho.
+
+**Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor. Ele acrescenta à tabela
+`org_estrelas` as colunas `manual` e `motivo` e cria as funções `org_dar_estrela` e `org_tirar_estrela`.
+Sem isso, a coluna de estrelas não aparece no painel.
+
 ## Mandar tarefa para o gestor
 
 A pessoa da equipe pode mandar para o gestor uma tarefa que **ela mesma criou**: no cartão da tarefa,
