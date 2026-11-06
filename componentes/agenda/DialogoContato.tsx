@@ -66,7 +66,9 @@ export function DialogoContato({ contato, categorias, fechar, salvar, excluir, n
     setPlantao(!!contato?.has_on_call);
     setTelPlantao(contato?.on_call_phone || '');
     setNova(null);
-    setTimeout(() => nomeRef.current?.focus(), 30);
+    // Só põe o foco no Nome se ele ainda não está em algum campo da janela: quem já começou a
+    // digitar em outro campo (ex.: o telefone) não perde o que está digitando.
+    setTimeout(() => { if (!ref.current?.contains(document.activeElement) || document.activeElement === ref.current) nomeRef.current?.focus(); }, 30);
   }, [aberto, contato]);
 
   function confirmarNova(){
