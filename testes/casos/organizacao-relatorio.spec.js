@@ -3,6 +3,15 @@ const fs = require('fs');
 const { test, expect, hojeVara } = require('../apoio/teste');
 const { ANA, BIA, equipe, entrarComoGestor, abaOrg } = require('../apoio/org');
 
+// O relatório fica na sanfona do Painel da equipe, logo abaixo de Desempenho
+async function abrirRelatorio(page){
+  await abaOrg(page, 'equipe');
+  const sec = page.locator('#orgPnSecs details[data-sec="relatorio"]');
+  await expect(sec.locator('xpath=preceding-sibling::details[1]')).toHaveAttribute('data-sec', 'desempenho');
+  await sec.locator('summary').click();
+  await expect(page.locator('#orgRelGerar')).toBeVisible();
+}
+
 // Meio-dia de um dia (horário da vara) N dias antes de hoje
 function diasAtras(n){
   const [a, m, d] = hojeVara().split('-').map(Number);
@@ -28,7 +37,7 @@ function semear(banco){
 test('o gestor tira o relatório do período, por pessoa, e imprime', async ({ page, banco }) => {
   semear(banco);
   await entrarComoGestor(page);
-  await abaOrg(page, 'equipe');
+  await abrirRelatorio(page);
   await page.locator('#orgRelAtalhos [data-relp="30"]').click();
   await expect(page.locator('#orgRelAtalhos [data-relp="30"]')).toHaveAttribute('aria-pressed', 'true');
   await page.locator('#orgRelGerar').click();
@@ -65,7 +74,7 @@ test('o gestor tira o relatório do período, por pessoa, e imprime', async ({ p
 test('filtra por pessoa e baixa as planilhas', async ({ page, banco }) => {
   semear(banco);
   await entrarComoGestor(page);
-  await abaOrg(page, 'equipe');
+  await abrirRelatorio(page);
   await page.locator('#orgRelDe').fill(dia(diasAtras(7)));
   await page.locator('#orgRelAte').fill(hojeVara());
   await page.locator('#orgRelPessoa').selectOption(ANA);
@@ -88,7 +97,7 @@ test('filtra por pessoa e baixa as planilhas', async ({ page, banco }) => {
 test('período invertido não chama o banco', async ({ page, banco }) => {
   semear(banco);
   await entrarComoGestor(page);
-  await abaOrg(page, 'equipe');
+  await abrirRelatorio(page);
   await page.locator('#orgRelDe').fill(hojeVara());
   await page.locator('#orgRelAte').fill(dia(diasAtras(3)));
   await page.locator('#orgRelGerar').click();

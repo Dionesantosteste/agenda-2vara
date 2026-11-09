@@ -2535,32 +2535,32 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
               </div>
               <div class="pn-scroll" id="orgPnDesemp"></div>
             </details>
+            <details class="pn-sec" data-sec="relatorio" id="orgRel">
+              <summary><span class="pn-sec-t">Relatório de produtividade</span><span class="pn-sum">por pessoa e período, com impressão e planilha</span></summary>
+              <div class="pn-leg pn-sec-dica">Tarefas concluídas por pessoa no período escolhido, inclusive as já arquivadas.</div>
+              <form class="rel-form" id="orgRelForm" novalidate>
+                <div class="kchips" id="orgRelAtalhos" role="group" aria-label="Período pronto">
+                  <button type="button" class="chip" data-relp="mes" aria-pressed="false">Este mês</button>
+                  <button type="button" class="chip" data-relp="mes_ant" aria-pressed="false">Mês passado</button>
+                  <button type="button" class="chip" data-relp="30" aria-pressed="false">Últimos 30 dias</button>
+                  <button type="button" class="chip" data-relp="ano" aria-pressed="false">Este ano</button>
+                </div>
+                <div class="eq-ctrls">
+                  <label class="eq-ctrl">De<input class="org-in" type="date" id="orgRelDe" /></label>
+                  <label class="eq-ctrl">Até<input class="org-in" type="date" id="orgRelAte" /></label>
+                  <label class="eq-ctrl">Pessoa<select class="org-in" id="orgRelPessoa"></select></label>
+                  <label class="rel-chk"><input type="checkbox" id="orgRelLista" /> Listar as tarefas de cada pessoa</label>
+                  <button type="submit" class="btn primary" id="orgRelGerar">Gerar relatório</button>
+                </div>
+              </form>
+              <div class="rel-saida" id="orgRelSaida" aria-live="polite"></div>
+              <div class="rel-acoes" id="orgRelAcoes" hidden>
+                <button type="button" class="btn" id="orgRelImprimir">Imprimir ou salvar em PDF</button>
+                <button type="button" class="btn" id="orgRelCsvResumo">Baixar planilha do resumo</button>
+                <button type="button" class="btn" id="orgRelCsvTarefas">Baixar planilha das tarefas</button>
+              </div>
+            </details>
           </div>
-          </div>
-        </div>
-        <div class="panel" id="orgRel">
-          <div class="panel-head"><h2>Relatório de produtividade</h2>
-            <span>Tarefas concluídas por pessoa no período, inclusive as já arquivadas.</span></div>
-          <form class="rel-form" id="orgRelForm" novalidate>
-            <div class="kchips" id="orgRelAtalhos" role="group" aria-label="Período pronto">
-              <button type="button" class="chip" data-relp="mes" aria-pressed="false">Este mês</button>
-              <button type="button" class="chip" data-relp="mes_ant" aria-pressed="false">Mês passado</button>
-              <button type="button" class="chip" data-relp="30" aria-pressed="false">Últimos 30 dias</button>
-              <button type="button" class="chip" data-relp="ano" aria-pressed="false">Este ano</button>
-            </div>
-            <div class="eq-ctrls">
-              <label class="eq-ctrl">De<input class="org-in" type="date" id="orgRelDe" /></label>
-              <label class="eq-ctrl">Até<input class="org-in" type="date" id="orgRelAte" /></label>
-              <label class="eq-ctrl">Pessoa<select class="org-in" id="orgRelPessoa"></select></label>
-              <label class="rel-chk"><input type="checkbox" id="orgRelLista" /> Listar as tarefas de cada pessoa</label>
-              <button type="submit" class="btn primary" id="orgRelGerar">Gerar relatório</button>
-            </div>
-          </form>
-          <div class="rel-saida" id="orgRelSaida" aria-live="polite"></div>
-          <div class="rel-acoes" id="orgRelAcoes" hidden>
-            <button type="button" class="btn" id="orgRelImprimir">Imprimir ou salvar em PDF</button>
-            <button type="button" class="btn" id="orgRelCsvResumo">Baixar planilha do resumo</button>
-            <button type="button" class="btn" id="orgRelCsvTarefas">Baixar planilha das tarefas</button>
           </div>
         </div>
         <div class="panel">
