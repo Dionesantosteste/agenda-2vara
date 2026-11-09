@@ -17,3 +17,13 @@ test('corPorId acha a cor ou devolve null', () => {
   assert.equal(corPorId('inexistente'), null);
   assert.equal(corPorId(null), null);
 });
+
+test('aparência da conta: só aceita tema, fundo e cores conhecidos', async () => {
+  const { normalizarAparencia, aparenciaVazia } = await import('./aparencia.ts');
+  assert.deepEqual(normalizarAparencia({ tema: 'dark', fundo: 'ceu', colunas: { afazer: 'rosa', feito: 'xadrez', x: 3 } }),
+    { tema: 'dark', fundo: 'ceu', colunas: { afazer: 'rosa' } });
+  assert.deepEqual(normalizarAparencia({ tema: 'auto', fundo: 'nada', colunas: [] }), { tema: null, fundo: null, colunas: {} });
+  assert.deepEqual(normalizarAparencia(null), { tema: null, fundo: null, colunas: {} });
+  assert.equal(aparenciaVazia(normalizarAparencia({})), true);
+  assert.equal(aparenciaVazia(normalizarAparencia({ fundo: 'areia' })), false);
+});

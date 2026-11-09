@@ -9,6 +9,7 @@ import {
   pedeFechamento, type Dados, type FiltroQuadro, type Tarefa, type Util
 } from '@/lib/organizacao';
 import { corPorId } from '@/lib/aparencia';
+import { EVENTO_APARENCIA } from '@/lib/aparencia-conta';
 import { formatarDataHora } from '@/lib/datas';
 import { useAviso } from '@/componentes/Avisos';
 import { CopiarProcesso } from '@/componentes/pericias/Cartao';
@@ -39,7 +40,14 @@ export function Quadro({ dados, setDados, pessoa, alheia, eu = null, hoje, util,
   const [abertoId, setAbertoId] = useState<string | null>(null);
   const [fechId, setFechId] = useState<string | null>(null);
   const [renomear, setRenomear] = useState<string | null>(null);
-  const cores = useMemo(coresDasColunas, []);
+  // relê quando a aparência da conta chega (ver lib/aparencia-conta.ts)
+  const [versaoCores, setVersaoCores] = useState(0);
+  useEffect(() => {
+    const f = () => setVersaoCores(v => v + 1);
+    window.addEventListener(EVENTO_APARENCIA, f);
+    return () => window.removeEventListener(EVENTO_APARENCIA, f);
+  }, []);
+  const cores = useMemo(coresDasColunas, [versaoCores]);
   const { confere, janela } = useDuplicado(banco, dados, pessoa, eu);
 
   const chaves = dados.colunas.map(c => c.chave);

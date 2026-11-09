@@ -40,9 +40,10 @@ const PADROES = {
     realizada_em: null, laudo_em: null, observacoes: '', conferida_em: null, created_at: agora(), updated_at: agora() }),
   pericias_andamentos: () => ({ id: uuid(), texto: '', created_at: agora() }),
   peritos: () => ({ id: uuid(), especialidade: '', telefone: '', email: '', observacoes: '', created_at: agora(), updated_at: agora() }),
-  prazos_config: () => ({ valor: {}, updated_at: agora() })
+  prazos_config: () => ({ valor: {}, updated_at: agora() }),
+  preferencias: () => ({ user_id: null, aparencia: {}, updated_at: agora() })
 };
-const CHAVE = { prazos_config: 'chave' };   // chave primária quando não é "id"
+const CHAVE = { prazos_config: 'chave', preferencias: 'user_id' };   // chave primária quando não é "id"
 
 // ---------- filtros do PostgREST ----------
 function valorFiltro(v){

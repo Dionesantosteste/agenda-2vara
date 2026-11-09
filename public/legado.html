@@ -3300,6 +3300,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       var ses = r.data && r.data.session;
       if (!ses) return irParaEntrar();
       if (ses.user && ses.user.app_metadata && ses.user.app_metadata.admin === true) document.getElementById('acessosLink').hidden = false;
+      if (ses.user) aparCarregaConta(ses.user.id);
     });
     supabase.auth.onAuthStateChange(function(ev){ if (ev === 'SIGNED_OUT') irParaEntrar(); });
     document.getElementById('sairBtn').addEventListener('click', function(){ supabase.auth.signOut().then(function(){ location.replace('/entrar'); }); });
@@ -6906,7 +6907,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   var ICON_MAIS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
 
   // ---- Aparência: tema, cor de fundo e cor das colunas do quadro ----
-  // Cada pessoa monta do seu jeito: tudo fica guardado só neste navegador (as cores em window.APAR_CORES, no <head>).
+  // Cada pessoa monta do seu jeito. Fica guardado neste navegador e, com o sql/preferencias.sql rodado, também na
+  // conta de quem entrou, para valer em qualquer computador (as cores em window.APAR_CORES, no <head>).
   var APAR = {
     btn: document.getElementById('aparBtn'),
     painel: document.getElementById('aparPainel'),
@@ -6941,12 +6943,14 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     var t = b.getAttribute('data-tema');
     aparGravar('aparTema', t === 'auto' ? null : t);
     window.aparAplica(); aparRender();
+    aparSalvaConta();
   });
   APAR.fundo.addEventListener('click', function(e){
     var b = e.target.closest('.cor-sw'); if (!b) return;
     var id = b.getAttribute('data-cor-id');
     aparGravar('aparFundo', id || null);
     window.aparAplica(); aparRender();
+    aparSalvaConta();
     var novo = APAR.fundo.querySelector('[data-cor-id="' + id + '"]'); if (novo) novo.focus();
   });
 
@@ -6967,6 +6971,52 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   function corColunasRedesenha(){
     if (OT.kanban.querySelector('.col')) renderOrgKanban();
     if (cadModo === 'col') renderCadastro();
+  }
+
+  // ---- Aparência na conta (tabela preferencias): a mesma escolha em qualquer computador ----
+  // Ao entrar: se a conta já tem aparência, ela vale neste navegador; se não tem, o que está aqui sobe para a conta.
+  // "aparPendente" marca uma mudança feita aqui que a conta ainda não confirmou (ex.: trocou de tela no meio):
+  // nesse caso, ao abrir a próxima página, é o navegador que sobe para a conta, e não o contrário.
+  // Sem a tabela no banco (SQL não rodado) ou sem internet, segue só no navegador, como antes.
+  var aparConta = { uid: null, pronto: false, semTabela: false, seq: 0 };
+  function aparAtual(){
+    var col = {};
+    try { col = JSON.parse(aparLer('aparColunas') || '{}') || {}; } catch (e) {}
+    return { tema: aparLer('aparTema') || null, fundo: aparLer('aparFundo') || null, colunas: col };
+  }
+  function aparEnviaConta(){
+    if (!supabase || !aparConta.uid || aparConta.semTabela) return;
+    var n = ++aparConta.seq;
+    supabase.from('preferencias').upsert({ user_id: aparConta.uid, aparencia: aparAtual(), updated_at: new Date().toISOString() })
+      .then(function(r){
+        if (r.error){ aparConta.semTabela = true; return; }
+        if (n === aparConta.seq) aparGravar('aparPendente', null);
+      });
+  }
+  function aparSalvaConta(){
+    aparGravar('aparPendente', '1');
+    if (aparConta.pronto) aparEnviaConta();
+  }
+  function aparUsaConta(a){
+    var t = a.tema, col = a.colunas && typeof a.colunas === 'object' && !Array.isArray(a.colunas) ? a.colunas : {};
+    aparGravar('aparTema', t === 'light' || t === 'dark' || t === 'contraste' ? t : null);
+    aparGravar('aparFundo', window.aparCor(a.fundo) ? a.fundo : null);
+    aparGravar('aparColunas', Object.keys(col).length ? JSON.stringify(col) : null);
+    window.aparAplica();
+    corColunasLer(); corColunasRedesenha();
+    if (!APAR.painel.hidden) aparRender();
+  }
+  function aparCarregaConta(uid){
+    if (!supabase || !uid) return;
+    aparConta.uid = uid;
+    supabase.from('preferencias').select('aparencia').eq('user_id', uid).maybeSingle().then(function(r){
+      aparConta.pronto = true;
+      if (r.error){ aparConta.semTabela = true; return; }
+      var a = r.data && r.data.aparencia, local = aparAtual();
+      if (aparLer('aparPendente')) aparEnviaConta();
+      else if (a && typeof a === 'object') aparUsaConta(a);
+      else if (local.tema || local.fundo || Object.keys(local.colunas).length) aparEnviaConta();
+    }, function(){ aparConta.pronto = true; aparConta.semTabela = true; });
   }
   var corPop = null, corPopChave = null, corPopBtn = null;
   function corPopFecha(volta){
@@ -7002,6 +7052,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       var chave = corPopChave, id = b.getAttribute('data-cor-id'), dentro = corPopBtn && corPopBtn.closest('dialog');
       if (id) corColunas[chave] = id; else delete corColunas[chave];
       aparGravar('aparColunas', JSON.stringify(corColunas));
+      aparSalvaConta();
       corPopFecha();
       corColunasRedesenha();
       var novo = (dentro || OT.kanban).querySelector('[data-corcol="' + chave + '"]'); if (novo) novo.focus();

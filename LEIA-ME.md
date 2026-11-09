@@ -143,6 +143,18 @@ conclusão, as devolvidas na conferência, a soma do tempo informado ao concluir
 em aberto hoje. Marque **Listar as tarefas de cada pessoa** para ver tarefa por tarefa. Os botões embaixo imprimem
 (ou salvam em PDF) e baixam duas planilhas (resumo e tarefas), que abrem direto no Excel.
 
+## Aparência salva na conta (vale em qualquer computador)
+
+O tema (Claro, Noturno, Alto contraste), a cor de fundo e as cores das colunas do Quadro que cada pessoa escolhe em
+**Aparência** ficavam só no navegador: trocando de computador, de navegador ou de endereço do site, ou limpando os dados
+do navegador, elas sumiam. Para guardar na conta de quem entrou (e-mail e senha), rode uma vez no SQL Editor o arquivo
+[`sql/preferencias.sql`](sql/preferencias.sql). Ele cria a tabela `preferencias`; cada pessoa só lê e grava a própria
+linha. Não precisa rodar o `sql/acesso.sql` de novo depois dele.
+
+Como funciona: ao entrar, se a conta já tem aparência, ela vale no navegador; se ainda não tem, a aparência que está no
+navegador sobe para a conta (então quem já tinha montado as cores num computador não perde nada: basta abrir o site nele
+uma vez). Cada mudança em **Aparência** grava na conta. Enquanto o SQL não rodar, tudo continua como antes, só no navegador.
+
 ## Passo 2.1.1 — Tipos de audiência (lista própria)
 
 Para cadastrar novos tipos de audiência pelo site, rode no SQL Editor o arquivo

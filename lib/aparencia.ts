@@ -39,6 +39,39 @@ export function fundoGuardado(): string {
 export function guardarTema(t: Tema){ gravar(CHAVE_TEMA, t === 'auto' ? null : t); aplicarAparencia(); }
 export function guardarFundo(id: string){ gravar(CHAVE_FUNDO, id || null); aplicarAparencia(); }
 
+export const CHAVE_COLUNAS = 'aparColunas';
+
+// Aparência como fica guardada na conta (tabela preferencias): só valores conhecidos
+export type AparenciaConta = { tema: Tema | null; fundo: string | null; colunas: Record<string, string> };
+export function normalizarAparencia(a: unknown): AparenciaConta {
+  const o = (a && typeof a === 'object' && !Array.isArray(a) ? a : {}) as Record<string, unknown>;
+  const t = o.tema;
+  const col: Record<string, string> = {};
+  if (o.colunas && typeof o.colunas === 'object' && !Array.isArray(o.colunas)){
+    for (const [k, v] of Object.entries(o.colunas as Record<string, unknown>)) if (typeof v === 'string' && corPorId(v)) col[k] = v;
+  }
+  return {
+    tema: t === 'light' || t === 'dark' || t === 'contraste' ? t : null,
+    fundo: typeof o.fundo === 'string' && corPorId(o.fundo) ? o.fundo : null,
+    colunas: col
+  };
+}
+export function aparenciaVazia(a: AparenciaConta): boolean {
+  return !a.tema && !a.fundo && !Object.keys(a.colunas).length;
+}
+// O que está guardado neste navegador / grava no navegador o que veio da conta
+export function aparenciaLocal(): AparenciaConta {
+  let col: unknown = {};
+  try { col = JSON.parse(ler(CHAVE_COLUNAS) || '{}'); } catch { col = {}; }
+  return normalizarAparencia({ tema: ler(CHAVE_TEMA), fundo: ler(CHAVE_FUNDO), colunas: col });
+}
+export function gravarAparenciaLocal(a: AparenciaConta){
+  gravar(CHAVE_TEMA, a.tema);
+  gravar(CHAVE_FUNDO, a.fundo);
+  gravar(CHAVE_COLUNAS, Object.keys(a.colunas).length ? JSON.stringify(a.colunas) : null);
+  aplicarAparencia();
+}
+
 // Aplica no <html> o tema e o fundo guardados (a mesma regra do script do <head>)
 export function aplicarAparencia(){
   const raiz = document.documentElement;
