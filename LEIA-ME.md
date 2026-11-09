@@ -132,7 +132,7 @@ use o lápis ao lado da anotação (Ctrl+Enter salva, Esc cancela).
 
 ## Organização: relatório de produtividade por pessoa
 
-Na aba **Tarefas da equipe** (só o gestor) fica o quadro **Relatório de produtividade**. Para ele funcionar, rode
+Na aba **Tarefas da equipe** (só o gestor), dentro do **Painel da equipe**, a seção **Relatório de produtividade** fica na sanfona, logo abaixo de **Desempenho** (clique no título para abrir). Para ele funcionar, rode
 uma vez no SQL Editor, depois do `sql/organizacao.sql`, o arquivo [`sql/organizacao_relatorio.sql`](sql/organizacao_relatorio.sql)
 (cria a função `org_relatorio`; o `organizacao.sql` atualizado também já a inclui).
 
