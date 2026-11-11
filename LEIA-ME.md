@@ -531,6 +531,48 @@ Dia a dia:
 - O link do e-mail vale por pouco tempo e funciona **uma vez**. Se aparecer "Link vencido", peça outro
   (*Esqueci minha senha*, ou *Reenviar convite* na tela Acessos).
 
+## Passo 2.7 — Assistente do gestor (IA)
+
+Seção **Assistente** no menu (`/novo/assistente`), só para o gestor (pede a mesma senha de 6 dígitos da
+Organização). Serve para:
+
+- **Pesquisar a rotina da secretaria** ("qual a rotina de processo de INSS depois da decisão?"). A IA consulta
+  primeiro as rotinas cadastradas pela vara; se não houver, responde com base no CPC e avisa que é sugestão geral.
+- **Movimentação de processo** (atos ordinatórios, intimações, conclusão, arquivamento…), com o artigo de lei quando souber.
+- **Escrever certidões e outros textos**. A IA olha antes os **Modelos de texto** da vara para seguir o estilo, e deixa
+  o que não sabe como campo: `{{processo}}`, `{{autor}}`, `{{data}}`…
+- **Salvar como modelo de texto**: botão embaixo de cada resposta. Vai para a mesma biblioteca da aba
+  *Organização › Modelos de texto*.
+- **Salvar rotina de secretaria**: dite na conversa ("Salve a rotina de INSS: após a decisão, intimar a APS;
+  depois aguardar 30 dias; depois…"). A IA monta o passo a passo e mostra um cartão **Conferir e salvar rotina**;
+  nada é salvo sem o seu clique. Também dá para escrever direto na aba **Rotinas de secretaria** (Nova rotina,
+  procurar, editar, copiar e excluir).
+
+**Instalar:**
+
+1. No SQL Editor do Supabase, rode o arquivo `sql/assistente.sql` (precisa do `sql/organizacao.sql` já instalado).
+   Depois rode de novo o `sql/acesso.sql`, como nos outros arquivos.
+2. Crie a chave da IA em https://console.anthropic.com (Settings → API Keys) e coloque créditos (Billing).
+3. Na Vercel (Settings → Environment Variables) acrescente `ANTHROPIC_API_KEY` = a chave criada.
+   Como a chave do Supabase, **nunca** cole no código nem em mensagens. Depois faça um novo deploy.
+4. (Opcional) `ASSISTENTE_MODELO` escolhe o modelo da IA. Sem ela, usa `claude-sonnet-5-5`.
+
+**Custo** (preço por milhão de "tokens"; 1 token ≈ 3/4 de palavra; um pedido típico de certidão, com as consultas
+às rotinas e aos modelos, usa uns 10 mil tokens de entrada e 1 a 2 mil de saída):
+
+| Modelo (`ASSISTENTE_MODELO`) | Entrada / saída (US$ por milhão) | Uso indicado |
+|---|---|---|
+| `claude-haiku-5-5` | 0,10 / 0,50 | O mais barato: cerca de US$ 0,002 por pedido. Bom para perguntas simples. |
+| `claude-sonnet-5-5` (padrão) | 2 / 10 | Melhor custo-benefício para redação jurídica: cerca de US$ 0,02 a 0,05 por pedido. |
+| `claude-opus-5-5` | 4 / 20 | Mais caprichado, o dobro do Sonnet. |
+
+Dá para pôr um limite de gasto mensal no console da Anthropic (Settings → Limits).
+
+**Privacidade:** o que o gestor escreve na conversa vai para a IA (Anthropic). A tela avisa para evitar CPF,
+endereço e dados de saúde quando não forem necessários. As rotinas e modelos só são lidos pela IA quando ela
+precisa deles. A conversa fica só naquela aba do navegador e some ao fechar ou ao clicar em **Nova conversa**.
+Confira sempre o texto antes de juntar ao processo: a IA pode errar.
+
 ## Passo 3 — Pegar a URL e a chave do projeto
 
 1. No painel, vá em **Settings → API**.
