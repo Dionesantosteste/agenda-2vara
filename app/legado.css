@@ -1593,6 +1593,71 @@
   .novelo-l{ fill:none; stroke:var(--novelo-l); stroke-width:1.2; stroke-linecap:round; }
   .bolinha.rolando{ animation:bRola 1.2s ease-in-out; }
   @keyframes bRola{ 0%, 100%{ transform:none; } 30%{ transform:translate(14px, -6px) rotate(200deg); } 60%{ transform:translate(6px, 0) rotate(320deg); } }
+  /* ---- Natal (15/11 a 06/01; cada pessoa pode desligar em Aparência) ----
+     O <html> ganha data-natal (e data-neve) pelo aparAplica. O gorro e a arvorezinha do aquário
+     estão sempre no desenho do bichinho e só aparecem com data-natal; a árvore grande do cantinho
+     e os presentes só são desenhados na época. */
+  :root{ --gorro:#D7263D; --gorro-sombra:#A3172B; --gorro-pelo:#FFFFFF; --gorro-pelo-l:#C9D3E1;
+    --pinheiro:#2E8B57; --pinheiro-l:#1E6B42; --pinheiro-c:#3FA86B; --tronco:#7A4A26;
+    --bola1:#D7263D; --bola2:#E8A317; --bola3:#3D7FC9; --bola4:#C25BC9;
+    --luz1:#FFD84D; --luz2:#FF8A5C; --luz3:#8FE3FF; --luz-off:#9AA3AD;
+    --caixa1:#D7263D; --caixa2:#3D7FC9; --fita:#F4D35E; --floco:#C9D3E1; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --floco:#DCE6F2; } }
+  :root[data-theme="dark"]{ --floco:#DCE6F2; }
+  :root[data-theme="contraste"]{ --gorro-pelo-l:#000000; --pinheiro-l:#000000; --floco:#4A5A70; }
+  .bx .gorro, .bx .arv-aquario{ display:none; }
+  :root[data-natal] .bx .gorro, :root[data-natal] .bx .arv-aquario{ display:inline; }
+  :root[data-natal] .bx[data-tipo="peixe"] .gv, :root[data-natal] .bx .barbatana{ display:none; }
+  .bx .gz{ fill:var(--gorro); stroke:var(--gorro-sombra); stroke-width:1.1; stroke-linejoin:round; }
+  .bx .gzs{ fill:none; stroke:var(--gorro-sombra); stroke-width:1; stroke-linecap:round; opacity:.7; }
+  .bx .gzp{ fill:var(--gorro-pelo); stroke:var(--gorro-pelo-l); stroke-width:1; }
+  .bx .gzpp{ fill:var(--gorro-pelo); stroke:var(--gorro-pelo-l); stroke-width:.9; }
+  .bx .b-pompom{ transform-origin:46px 4px; animation:nPompom 3.6s ease-in-out infinite alternate; }
+  .bicho.feliz .b-pompom, .bicho.andando .b-pompom{ animation-duration:.4s; }
+  .bicho.dormindo .b-pompom{ animation:none; transform:rotate(18deg); }
+  @keyframes nPompom{ from{ transform:rotate(-4deg); } to{ transform:rotate(6deg); } }
+  .bx .arv-aquario .pi1, .arvore .pi1{ fill:var(--pinheiro); stroke:var(--pinheiro-l); stroke-width:1; stroke-linejoin:round; }
+  .bx .arv-aquario .pi1{ stroke:none; }
+  .bx .arv-aquario .tr, .arvore .tr{ fill:var(--tronco); }
+  .bx .arv-aquario .est, .arvore .est{ fill:var(--ouro); stroke:var(--ouro-borda); stroke-width:.9; stroke-linejoin:round; }
+  .bx .arv-aquario .est{ stroke:none; }
+  .bx .arv-aquario .luz{ animation:nLuz 1.8s steps(1, end) infinite; }
+  .bx .arv-aquario .l1{ fill:var(--luz1); } .bx .arv-aquario .l2{ fill:var(--bola1); animation-delay:-.9s; }
+  .bicho.dormindo .arv-aquario .luz{ animation:none; fill:var(--luz-off); }
+  .kanban.com-bicho.com-arvore, .kanban.com-bicho.com-arvore.adulto, .kanban.com-bicho.com-arvore.dragao, .kanban.com-bicho.com-arvore.dragao.adulto{ padding-top:108px; }
+  .cantinho .arvore{ width:56px; height:97px; }
+  .arvore .pi2{ fill:var(--pinheiro-c); opacity:.55; }
+  .arvore .est.apagada{ fill:none; stroke:var(--item-line); stroke-dasharray:1.6 1.4; }
+  .arvore .fio{ fill:none; stroke:var(--pinheiro-l); stroke-width:.6; opacity:.6; }
+  .arvore .bola{ stroke:rgba(0,0,0,.25); stroke-width:.6; }
+  .arvore .b1{ fill:var(--bola1); } .arvore .b2{ fill:var(--bola2); } .arvore .b3{ fill:var(--bola3); } .arvore .b4{ fill:var(--bola4); }
+  .arvore .bola.vazia{ fill:none; stroke:var(--pinheiro-l); stroke-dasharray:1 1; opacity:.6; }
+  /* pisca-pisca: três grupos de luzes que acendem um depois do outro */
+  .arvore .luz, .arvore .halo{ animation:nLuz 1.8s steps(1, end) infinite; }
+  .arvore .halo{ opacity:.45; }
+  .arvore .l1, .arvore .h1{ fill:var(--luz1); } .arvore .l2, .arvore .h2{ fill:var(--luz2); animation-delay:-.6s; } .arvore .l3, .arvore .h3{ fill:var(--luz3); animation-delay:-1.2s; }
+  .arvore .est-brilho{ fill:var(--ouro); opacity:0; transform-origin:18px 6.4px; }
+  .arvore.cheia .est-brilho{ animation:nEstrela 2.6s ease-in-out infinite; }
+  .cantinho.apagou .arvore .luz{ fill:var(--luz-off); animation:none; opacity:.8; }
+  .cantinho.apagou .arvore .halo, .cantinho.apagou .arvore .est-brilho{ display:none; }
+  @keyframes nLuz{ 0%{ opacity:1; } 33%{ opacity:.12; } 66%{ opacity:.55; } }
+  @keyframes nEstrela{ 0%, 100%{ opacity:0; transform:scale(.8); } 50%{ opacity:.4; transform:scale(1.25); } }
+  .presente .cx1{ fill:var(--caixa1); } .presente .cx2{ fill:var(--caixa2); }
+  .presente .ft{ fill:var(--fita); } .presente .lc{ fill:none; stroke:var(--fita); stroke-width:1.4; stroke-linecap:round; }
+  .presente rect{ stroke:rgba(0,0,0,.22); stroke-width:.7; }
+  /* neve: só na faixa do topo da página, por trás do conteúdo */
+  .main{ position:relative; }
+  .neve{ display:none; position:absolute; left:0; right:0; top:0; height:170px; overflow:hidden; pointer-events:none; z-index:-1;
+    -webkit-mask-image:linear-gradient(#000 55%, transparent); mask-image:linear-gradient(#000 55%, transparent); }
+  :root[data-neve] .neve{ display:block; }
+  .neve i{ position:absolute; top:-10px; border-radius:50%; background:var(--floco); opacity:.9; animation:nCai linear infinite; }
+  @keyframes nCai{ to{ transform:translate(var(--dx, 10px), 190px); } }
+  .apar-natal{ display:flex; flex-direction:column; gap:8px; }
+  .apar-natal .apar-seg button:disabled{ opacity:.5; cursor:default; }
+  @media (prefers-reduced-motion: reduce){
+    .arvore .luz, .arvore .halo, .arvore .est-brilho, .bx .b-pompom{ animation:none !important; }
+    :root[data-neve] .neve{ display:none; }
+  }
 
   .opcoes{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; width:100%; }
   .opcao{ border:2px solid var(--line); background:var(--sunken); border-radius:14px; padding:14px 10px 12px; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center; transition:border-color .15s, transform .15s; }

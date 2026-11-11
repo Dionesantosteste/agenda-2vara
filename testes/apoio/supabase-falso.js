@@ -10,8 +10,13 @@ const crypto = require('crypto');
 const TZ = 'America/Cuiaba';
 const PIN_GESTOR = '123456';
 
+// Relógio do banco simulado: por padrão é a hora de verdade; um teste pode adiantá-lo ou atrasá-lo
+// (fixarRelogio) para o banco ficar no mesmo dia que o navegador (page.clock). O tempo continua andando.
+let desvioRelogio = 0;
+function fixarRelogio(d){ desvioRelogio = d ? new Date(d).getTime() - Date.now() : 0; }
+const agoraData = () => new Date(Date.now() + desvioRelogio);
 // "Hoje" no horário da vara (AAAA-MM-DD), como org_hoje() no banco
-function hojeVara(d = new Date()){
+function hojeVara(d = agoraData()){
   return new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
 function diaVara(iso){ return iso ? hojeVara(new Date(iso)) : null; }
@@ -26,7 +31,12 @@ function somaDias(dia, n){
   const dt = new Date(Date.UTC(a, m - 1, d + n));
   return dt.toISOString().slice(0, 10);
 }
-const agora = () => new Date().toISOString();
+// Natal: o último 15/11 (como em org_estrelas_resumo)
+function inicioNatal(dia){
+  const [a, m] = dia.split('-').map(Number);
+  return (m < 11 ? a - 1 : a) + '-11-15';
+}
+const agora = () => agoraData().toISOString();
 const uuid = () => crypto.randomUUID();
 const copia = x => JSON.parse(JSON.stringify(x));
 
@@ -261,6 +271,7 @@ function resumoEstrelas(org, dono){
     total: org.estrelas.filter(e => e.dono === dono).length,
     semana: org.estrelas.filter(e => e.dono === dono && e.dia >= seg).length,
     hoje: org.estrelas.some(e => e.dono === dono && e.dia === hoje),
+    natal: org.estrelas.filter(e => e.dono === dono && e.dia >= inicioNatal(hoje)).length,
     bichos: org.bichos.filter(b => b.dono === dono).sort((a, b) => a.created_at.localeCompare(b.created_at)).map(b => b.tipo),
     no_quadro: p ? (p.bicho_quadro ?? null) : null,
     ultima: (u => u ? { dia: u.dia, manual: !!u.manual, motivo: u.motivo ?? null } : null)(
@@ -660,4 +671,4 @@ const ORG_FUNCOES = {
   }
 };
 
-module.exports = { SupabaseFalso, semearOrg, hojeVara, segundaDe, somaDias, PIN_GESTOR };
+module.exports = { SupabaseFalso, semearOrg, hojeVara, segundaDe, somaDias, inicioNatal, fixarRelogio, PIN_GESTOR };

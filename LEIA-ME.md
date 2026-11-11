@@ -646,6 +646,32 @@ recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrel
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
 
+### Natal (de 15/11 a 06/01)
+
+Na época do Natal o sistema se enfeita sozinho, em todo navegador:
+
+- **Gorro de Papai Noel** nos seis bichinhos. Ele fica preso na cabeça: cai quando o bichinho dorme,
+  balança quando come e pula junto quando ele fica feliz. O peixinho ganha um gorro pequeno, e a alga
+  do aquário vira uma arvorezinha com luz piscando.
+- **Árvore de Natal** grande ao lado da caminha, com dois presentes e luzes em pisca-pisca. Cada
+  estrela ganha **desde 15/11** vira um enfeite (bolinha) na árvore; com **10**, a estrela do topo acende.
+  Quando o bichinho dorme, as luzes apagam. A barra de estrelas mostra "Árvore de Natal 6/10 enfeites".
+- **A estrela vira presente:** o banner de parabéns diz "🎁 Presente de Natal!" e avisa quando a árvore
+  ganhou um enfeite.
+- **Neve** caindo na faixa do topo da página, por trás do conteúdo.
+
+Cada pessoa pode desligar os enfeites ou só a neve em **Aparência** (a opção "Natal" só aparece na
+época); a escolha fica guardada no navegador e vale no sistema atual e no novo. Quem pede menos
+movimento no sistema operacional vê tudo parado (sem neve). Nada disso sai na impressão.
+
+**Para a árvore contar as estrelas desde 15/11:** rode o `sql/organizacao.sql` inteiro de novo no SQL
+Editor (a função `org_estrelas_resumo` passa a mandar a contagem `natal`). Enquanto isso não for feito,
+o resto funciona e a árvore aparece já toda enfeitada.
+
+- As datas ficam em `aparNatalEpoca`, no `public/legado.html`, e em `epocaDeNatal`, no
+  `lib/aparencia.ts` (e o 15/11 também na função `org_estrelas_resumo`, no SQL). Se mudar, mude nos três.
+- O desenho do gorro, da árvore e dos presentes fica em `ORG_GORRO`, `orgArvoreSvg` e `ORG_PRESENTES`.
+
 ### Estrela dada pelo gestor
 
 O gestor também pode **dar uma estrela à mão**, por exemplo para quem não fez as 10 tarefas porque

@@ -17,6 +17,15 @@ export const CORES: CorAparencia[] = [
 
 export const CHAVE_TEMA = 'aparTema';
 export const CHAVE_FUNDO = 'aparFundo';
+// Natal: guardam só "nao" (quem desligou); sem nada, fica ligado na época
+export const CHAVE_NATAL = 'aparNatal';
+export const CHAVE_NEVE = 'aparNeve';
+
+// Época do Natal: de 15/11 a 06/01 os bichinhos ganham gorro e árvore e cai neve no topo
+export function epocaDeNatal(d: Date = new Date()): boolean {
+  const m = d.getMonth() + 1, dia = d.getDate();
+  return (m === 11 && dia >= 15) || m === 12 || (m === 1 && dia <= 6);
+}
 
 export function corPorId(id: string | null | undefined): CorAparencia | null {
   return CORES.find(c => c.id === id) || null;
@@ -36,6 +45,10 @@ export function temaGuardado(): Tema {
 export function fundoGuardado(): string {
   return corPorId(ler(CHAVE_FUNDO))?.id || '';
 }
+export function natalGuardado(): boolean { return ler(CHAVE_NATAL) !== 'nao'; }
+export function neveGuardada(): boolean { return ler(CHAVE_NEVE) !== 'nao'; }
+export function guardarNatal(ligado: boolean){ gravar(CHAVE_NATAL, ligado ? null : 'nao'); aplicarAparencia(); }
+export function guardarNeve(ligada: boolean){ gravar(CHAVE_NEVE, ligada ? null : 'nao'); aplicarAparencia(); }
 export function guardarTema(t: Tema){ gravar(CHAVE_TEMA, t === 'auto' ? null : t); aplicarAparencia(); }
 export function guardarFundo(id: string){ gravar(CHAVE_FUNDO, id || null); aplicarAparencia(); }
 
@@ -48,6 +61,10 @@ export function aplicarAparencia(){
     raiz.style.setProperty('--fundo-c', fundo.fundo[0]); raiz.style.setProperty('--fundo-e', fundo.fundo[1]); raiz.style.setProperty('--fundo-v', fundo.fundo[2]);
     raiz.setAttribute('data-fundo', fundo.id);
   } else raiz.removeAttribute('data-fundo');
+  if (epocaDeNatal() && natalGuardado()){
+    raiz.setAttribute('data-natal', '');
+    if (neveGuardada()) raiz.setAttribute('data-neve', ''); else raiz.removeAttribute('data-neve');
+  } else { raiz.removeAttribute('data-natal'); raiz.removeAttribute('data-neve'); }
 }
 
 // Roda no <head> antes de a página aparecer, para não piscar no tema errado
@@ -56,4 +73,6 @@ var C=${JSON.stringify(CORES.map(c => [c.id, c.fundo]))};
 var r=document.documentElement,t=localStorage.getItem('${CHAVE_TEMA}'),f=localStorage.getItem('${CHAVE_FUNDO}');
 if(t==='light'||t==='dark'||t==='contraste')r.setAttribute('data-theme',t);
 for(var i=0;i<C.length;i++)if(C[i][0]===f){r.style.setProperty('--fundo-c',C[i][1][0]);r.style.setProperty('--fundo-e',C[i][1][1]);r.style.setProperty('--fundo-v',C[i][1][2]);r.setAttribute('data-fundo',f);}
+var d=new Date(),m=d.getMonth()+1,n=d.getDate();
+if(((m===11&&n>=15)||m===12||(m===1&&n<=6))&&localStorage.getItem('${CHAVE_NATAL}')!=='nao'){r.setAttribute('data-natal','');if(localStorage.getItem('${CHAVE_NEVE}')!=='nao')r.setAttribute('data-neve','');}
 }catch(e){}})();`;

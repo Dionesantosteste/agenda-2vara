@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { SECOES, enderecoDaSecao } from '@/lib/secoes';
 import { dataPorExtenso } from '@/lib/datas';
 import { Aparencia } from './Aparencia';
+import { Neve } from './Neve';
 import { useSessao } from './Porteiro';
 import { ProximosDias } from './ProximosDias';
 import { IconeMenu, IconeSecao } from './Icones';
@@ -60,6 +61,7 @@ export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: str
           <span className="topbar-title" id="topbarTitle">{titulo}</span>
         </div>
         <main className="main">
+          <Neve />
           <div className={largura ? 'wrap ' + largura : 'wrap'}>{children}</div>
         </main>
       </div>
