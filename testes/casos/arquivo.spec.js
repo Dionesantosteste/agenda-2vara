@@ -168,3 +168,17 @@ test('conferir: anotar a prateleira de uma caixa e escolher a caixa certa de um 
   await page.locator('.aq-conf-item', { hasText: 'R804' }).locator('text=Resolvido').click();
   await expect.poll(() => banco.tabelas.arquivo_notas[0].resolvida).toBe(true);
 });
+
+test('arquivo grande: baixa todas as partes (mais de 1.000 processos) e abre da cópia do aparelho na segunda vez', async ({ page, banco }) => {
+  banco.semear('arquivo_processos', Array.from({ length: 2600 }, (_, i) => ({ codigo: String(500000 + i), caixa_id: CX.c1320 })));
+  await abrir(page);
+  await expect(page.locator('.aq-gaveta-num').first()).toContainText((2600 + 6).toLocaleString('pt-BR'));
+  await page.fill('#aq-q', '502599');
+  await expect(page.locator('#aq-resultados .aq-res').first().locator('.aq-cod')).toHaveText('502599');
+  // segunda visita: aparece já com a cópia, mesmo antes do banco responder
+  let liberar; const espera = new Promise(r => { liberar = r; });
+  await page.route('**/rest/v1/arquivo_processos*', async route => { await espera; await banco.tratar(route); });
+  await page.reload();
+  await expect(page.locator('.aq-gaveta-num').first()).toContainText((2600 + 6).toLocaleString('pt-BR'));
+  liberar();
+});

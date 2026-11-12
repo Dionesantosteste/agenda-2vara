@@ -447,3 +447,4 @@
 .aq-app .aq-caixa-desenho .aq-jan{ padding:6px 4px; }
 .aq-app dialog{ max-width:none; }
 .aq-app .aq-linha-tempo time:empty::before{ content:"…"; }
+.aq-app .aq-atualizando{ font:600 11px var(--f-ui); letter-spacing:.08em; text-transform:uppercase; color:#E2CB8E; }

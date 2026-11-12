@@ -4,7 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ARQUIVADO, EM_SECRETARIA, PARA_DESARQUIVAR, DESARQUIVADO, type Processo } from '@/lib/arquivo';
 import { useSessao } from '@/componentes/Porteiro';
-import { useArquivo, type ArquivoDados, type Desfazer } from './useArquivo';
+import { apagarCopia, useArquivo, type ArquivoDados, type Desfazer } from './useArquivo';
 import { Icone, Sprite } from './Pecas';
 import { Buscar } from './Buscar';
 import { Prateleiras } from './Prateleiras';
@@ -128,8 +128,9 @@ export function Arquivo(){
               ))}
             </nav>
             <div className="aq-rodape">
+              {d.atualizando && d.estado === 'pronto' && <span className="aq-atualizando" role="status">Atualizando…</span>}
               {email && <span title={email}>{email}</span>}
-              <button type="button" className="aq-link-claro" onClick={sair}>Sair</button>
+              <button type="button" className="aq-link-claro" onClick={() => { apagarCopia().finally(sair); }}>Sair</button>
             </div>
           </aside>
           <main><div className="aq-conteudo">

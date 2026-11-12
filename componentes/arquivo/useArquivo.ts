@@ -17,15 +17,67 @@ const POR_PAGINA = 1000;   // o Supabase devolve no máximo 1000 linhas por vez
 type Erro = { message?: string; code?: string } | null;
 function faltaTabela(e: Erro){ return !!e && (e.code === '42P01' || e.code === 'PGRST205' || /arquivo_\w+/.test(e.message || '') && /(does not exist|Could not find)/i.test(e.message || '')); }
 
+// Baixa a tabela inteira: a primeira parte diz quantas linhas são; as outras partes vêm ao
+// mesmo tempo (até 6 de cada vez), em vez de uma depois da outra.
+const AO_MESMO_TEMPO = 6;
 async function todas<T>(tabela: string, colunas: string): Promise<T[]> {
-  const out: T[] = [];
-  for (let de = 0; ; de += POR_PAGINA){
-    const r = await supabase().from(tabela).select(colunas).order('id').range(de, de + POR_PAGINA - 1);
-    if (r.error) throw r.error;
-    const linhas = (r.data || []) as T[];
-    out.push(...linhas);
-    if (linhas.length < POR_PAGINA) return out;
+  const pagina = (de: number, contar = false) => supabase().from(tabela).select(colunas, contar ? { count: 'exact' } : undefined).order('id').range(de, de + POR_PAGINA - 1);
+  const r0 = await pagina(0, true);
+  if (r0.error) throw r0.error;
+  const primeira = (r0.data || []) as T[];
+  const total = r0.count ?? primeira.length;
+  if (primeira.length < POR_PAGINA || total <= POR_PAGINA) return primeira;
+  const inicios: number[] = [];
+  for (let de = POR_PAGINA; de < total; de += POR_PAGINA) inicios.push(de);
+  const partes: T[][] = new Array(inicios.length);
+  let prox = 0;
+  const trabalhador = async () => {
+    while (prox < inicios.length){
+      const i = prox++;
+      const r = await pagina(inicios[i]);
+      if (r.error) throw r.error;
+      partes[i] = (r.data || []) as T[];
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(AO_MESMO_TEMPO, inicios.length) }, trabalhador));
+  const out = primeira.concat(...partes);
+  // se alguém cadastrou no meio do caminho e passou do total, busca o que sobrou
+  if (partes.length && partes[partes.length - 1].length === POR_PAGINA){
+    for (let de = inicios[inicios.length - 1] + POR_PAGINA; ; de += POR_PAGINA){
+      const r = await pagina(de); if (r.error) throw r.error;
+      const l = (r.data || []) as T[]; out.push(...l); if (l.length < POR_PAGINA) break;
+    }
   }
+  return out;
+}
+
+// Cópia do arquivo guardada neste aparelho (IndexedDB): da segunda vez em diante a página abre na
+// hora com ela e atualiza em seguida. Se o navegador não deixar guardar, só abre do jeito normal.
+const BANCO_LOCAL = 'arquivo-2vara', LOJA = 'copia', VERSAO_COPIA = 1;
+type Copia = { v: number; caixas: Record<string, unknown>[]; processos: Record<string, unknown>[]; notas: Nota[] };
+function abrirLocal(): Promise<IDBDatabase | null> {
+  return new Promise(res => {
+    try {
+      const r = indexedDB.open(BANCO_LOCAL, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore(LOJA);
+      r.onsuccess = () => res(r.result); r.onerror = () => res(null); r.onblocked = () => res(null);
+    } catch (e){ res(null); }
+  });
+}
+async function lerCopia(): Promise<Copia | null> {
+  const db = await abrirLocal(); if (!db) return null;
+  return new Promise(res => {
+    try { const g = db.transaction(LOJA).objectStore(LOJA).get('tudo'); g.onsuccess = () => { const c = g.result as Copia | undefined; res(c && c.v === VERSAO_COPIA ? c : null); }; g.onerror = () => res(null); }
+    catch (e){ res(null); }
+  });
+}
+// Apaga a cópia deste aparelho (ao sair do sistema)
+export function apagarCopia(): Promise<void> {
+  return new Promise(res => { try { const r = indexedDB.deleteDatabase(BANCO_LOCAL); r.onsuccess = r.onerror = r.onblocked = () => res(); } catch (e){ res(); } });
+}
+async function guardarCopia(c: Copia){
+  const db = await abrirLocal(); if (!db) return;
+  try { db.transaction(LOJA, 'readwrite').objectStore(LOJA).put(c, 'tudo'); } catch (e){ /* sem espaço: tudo bem, só não guarda */ }
 }
 
 const caixaDeLinha = (r: Record<string, unknown>): Caixa => ({
@@ -48,25 +100,42 @@ export function useArquivo(avisar: (msg: string) => void){
   const [estado, setEstado] = useState<Estado>('carregando');
   const [erro, setErro] = useState('');
   const procsRef = useRef(procsM); procsRef.current = procsM;
+  const estadoRef = useRef<Estado>('carregando'); estadoRef.current = estado;
   const caixasRef = useRef(caixasM); caixasRef.current = caixasM;
 
+  const [atualizando, setAtualizando] = useState(false);
+  const aplicarDados = useCallback((cx: Record<string, unknown>[], ps: Record<string, unknown>[], ns: Nota[]) => {
+    setCaixasM(new Map(cx.map(r => { const c = caixaDeLinha(r); return [c.id, c]; })));
+    setProcsM(new Map(ps.map(r => { const p = procDeLinha(r); return [p.id, p]; })));
+    setNotas(ns.slice().sort((a, b) => a.celula.localeCompare(b.celula, undefined, { numeric: true })));
+  }, []);
+
   const carregar = useCallback(async () => {
+    // 1) abre na hora com a cópia guardada neste aparelho (se houver)
+    let temCopia = false;
+    const jaPronto = () => estadoRef.current === 'pronto';
+    if (!jaPronto()){
+      const copia = await lerCopia();
+      if (copia && !jaPronto()){ aplicarDados(copia.caixas, copia.processos, copia.notas); setEstado('pronto'); temCopia = true; }
+    }
+    // 2) busca a versão atual no banco e troca
+    setAtualizando(true);
     try {
       const [cx, ps, ns] = await Promise.all([
         todas<Record<string, unknown>>('arquivo_caixas', COLS_CAIXA),
         todas<Record<string, unknown>>('arquivo_processos', COLS_PROC),
         todas<Nota>('arquivo_notas', 'celula,texto,contexto,resolvida').catch(() => [] as Nota[])
       ]);
-      setCaixasM(new Map(cx.map(r => { const c = caixaDeLinha(r); return [c.id, c]; })));
-      setProcsM(new Map(ps.map(r => { const p = procDeLinha(r); return [p.id, p]; })));
-      setNotas(ns.sort((a, b) => a.celula.localeCompare(b.celula, undefined, { numeric: true })));
+      aplicarDados(cx, ps, ns);
       setEstado('pronto'); setErro('');
+      guardarCopia({ v: VERSAO_COPIA, caixas: cx, processos: ps, notas: ns });
     } catch (e){
+      if (temCopia || jaPronto()){ avisar('Sem conexão com o banco agora: mostrando a última cópia deste aparelho.'); return; }
       const er = e as Erro;
       if (faltaTabela(er)){ setEstado('sem-tabelas'); return; }
       setErro(er?.message || String(e)); setEstado('erro');
-    }
-  }, []);
+    } finally { setAtualizando(false); }
+  }, [aplicarDados, avisar]);
 
   useEffect(() => {
     carregar();
@@ -154,7 +223,7 @@ export function useArquivo(avisar: (msg: string) => void){
     return () => { resolverNota(celula, !resolvida); };
   }, [avisar]);
 
-  return { estado, erro, carregar, caixas, caixasM, processos, procsM, indice, porCaixa, notas, mudarProcessos, mudarCaixa, criarCaixa, criarProcesso, resolverNota };
+  return { estado, erro, carregar, atualizando, caixas, caixasM, processos, procsM, indice, porCaixa, notas, mudarProcessos, mudarCaixa, criarCaixa, criarProcesso, resolverNota };
 }
 
 export type ArquivoDados = ReturnType<typeof useArquivo>;
