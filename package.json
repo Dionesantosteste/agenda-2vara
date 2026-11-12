@@ -10,6 +10,7 @@
     "test": "node --test --experimental-strip-types --no-warnings=ExperimentalWarning \"lib/**/*.test.ts\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "1.8.0",
     "@supabase/supabase-js": "2.118.0",
     "next": "16.3.8",
     "react": "19.3.0",

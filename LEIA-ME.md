@@ -531,6 +531,47 @@ Dia a dia:
 - O link do e-mail vale por pouco tempo e funciona **uma vez**. Se aparecer "Link vencido", peça outro
   (*Esqueci minha senha*, ou *Reenviar convite* na tela Acessos).
 
+## Passo 2.7 — Arquivo de processos físicos
+
+O **Arquivo** é uma página própria do portal (`/arquivo`). Ele aparece no fim do menu lateral dos
+dois sistemas e, ao entrar, a lateral vira a do arquivo, com o botão **← Voltar ao portal**. Serve
+para achar onde está cada processo físico (prateleira, fileira e caixa), registrar saídas e
+devoluções, remeter a outra vara, mandar para outra secretaria, mudar caixas de lugar (inclusive
+arrastando) e conferir o que a planilha antiga deixou em dúvida. Tudo fica no histórico, com quem fez.
+
+**1. Criar as tabelas.** No SQL Editor, rode [`sql/arquivo.sql`](sql/arquivo.sql). Ele só cria
+tabelas novas (todas começam com `arquivo_`) e não mexe em nada que o portal já usa. Elas já nascem
+fechadas para quem não está logado. Pode rodar de novo sem problema.
+
+**2. Importar a planilha.** Os arquivos `arquivo_importacao_1.sql` a `_4.sql` (gerados da planilha
+"ARQUIVO LOCALIZAÇÃO DAS CAIXAS"; **não ficam no GitHub**, porque têm os dados do arquivo) são
+colados no SQL Editor **um de cada vez, na ordem**, clicando em Run em cada um. Cada parte confere
+se a anterior já rodou e se nada foi importado antes: se algo estiver fora de ordem, ela para e
+avisa, **sem gravar nada** (então não tem como duplicar). Para gerar de novo a partir da planilha:
+
+```bash
+pip install openpyxl
+python3 scripts/arquivo/importar_planilha.py planilha.xlsx pasta-de-saida/
+```
+
+Como a planilha foi entendida: cada cabeçalho "P.5 F.B CX 1320" é prateleira 5, fileira B, caixa
+1320; caixas com "CRI" (ex.: 141-CRI) são diferentes das sem (141); as células vermelhas (em outra
+secretaria) vão para a caixa **Não informada** da estante "Outra Secretaria", lembrando a caixa de
+onde vieram; a amarela fica como "para desarquivar". Caixas sem prateleira, caixas anotadas em dois
+lugares, processos em mais de uma caixa e anotações estranhas aparecem na tela **Conferir**.
+
+**3. Leitura da capa por foto (opcional).** No cadastro, a foto da capa é lida pelo **Claude
+Sonnet 5.5** (código, número, classe, partes e ano). Sem a chave, o cadastro funciona digitando e a
+tela avisa que a leitura não está configurada. Para ligar:
+1. Crie uma conta em [console.anthropic.com](https://console.anthropic.com), coloque créditos
+   pré-pagos (ex.: US$ 10) e, em **Limits**, defina um **limite de gasto mensal**.
+2. Em **API Keys**, crie uma chave.
+3. Na Vercel: **Settings → Environment Variables** → nome `ANTHROPIC_API_KEY`, valor = a chave →
+   salve e faça um **Redeploy**. A chave fica só no servidor (nunca vai para o navegador).
+
+Custo estimado: cerca de US$ 0,01 por foto. A foto é reduzida no celular antes de ir, é usada só
+para a leitura e não fica guardada. Cada pessoa pode fazer até 120 leituras por hora.
+
 ## Passo 3 — Pegar a URL e a chave do projeto
 
 1. No painel, vá em **Settings → API**.

@@ -10,12 +10,13 @@ test('o endereço principal continua sendo o sistema atual', async ({ page }) =>
 test('o menu do sistema novo leva as seções migradas para o sistema novo e as demais para o sistema atual', async ({ page }) => {
   await page.goto('/novo');
   const itens = page.locator('.nav .nav-item');
-  await expect(itens).toHaveText(['Agenda', 'Audiências', 'Perícias', 'Prazos', 'Organização']);
+  await expect(itens).toHaveText(['Agenda', 'Audiências', 'Perícias', 'Prazos', 'Organização', 'Arquivo']);
   await expect(itens.nth(0)).toHaveAttribute('href', '/novo/agenda');
   await expect(itens.nth(1)).toHaveAttribute('href', '/novo/audiencias');
   await expect(itens.nth(2)).toHaveAttribute('href', '/novo/pericias');
   await expect(itens.nth(3)).toHaveAttribute('href', '/novo/prazos');
   await expect(itens.nth(4)).toHaveAttribute('href', '/#organizacao');
+  await expect(itens.nth(5)).toHaveAttribute('href', '/arquivo');
   await expect(page.locator('#todayLong')).not.toBeEmpty();
 });
 
