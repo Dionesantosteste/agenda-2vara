@@ -96,7 +96,8 @@ test('cadastro: aviso vermelho de duplicado pede confirmação; caixa nova exige
   await expect(salvar).toHaveText('Salvar mesmo assim (outro volume)');
   expect(banco.tabelas.arquivo_processos.filter(p => p.codigo === '30208')).toHaveLength(2);
   await salvar.click();
-  await expect.poll(() => banco.tabelas.arquivo_processos.filter(p => p.codigo === '30208').length).toBe(3);
+  await expect(page.locator('.aq-toast')).toContainText('Processo 30208 salvo na caixa 1320');   // espera a tela terminar de salvar
+  expect(banco.tabelas.arquivo_processos.filter(p => p.codigo === '30208')).toHaveLength(3);
   // caixa nova: sem lugar não salva; com lugar cria a caixa
   await page.fill('#aq-c-codigo', '777001');
   await page.fill('#aq-c-cx', '9999');
