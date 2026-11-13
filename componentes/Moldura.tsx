@@ -40,6 +40,11 @@ export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: str
               <span>{s.nome}</span>
             </a>
           ))}
+          {/* Arquivo de processos físicos: página própria, com o botão "Voltar ao portal" */}
+          <a className="nav-item" href="/arquivo" id="navArquivo">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z" /><path d="M3 7l9 4 9-4" /><path d="M12 11v10" /></svg>
+            <span>Arquivo</span>
+          </a>
         </nav>
         <ProximosDias />
         <div className="sidebar-foot">

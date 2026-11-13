@@ -40,9 +40,15 @@ const PADROES = {
     realizada_em: null, laudo_em: null, observacoes: '', conferida_em: null, created_at: agora(), updated_at: agora() }),
   pericias_andamentos: () => ({ id: uuid(), texto: '', created_at: agora() }),
   peritos: () => ({ id: uuid(), especialidade: '', telefone: '', email: '', observacoes: '', created_at: agora(), updated_at: agora() }),
-  prazos_config: () => ({ valor: {}, updated_at: agora() })
+  prazos_config: () => ({ valor: {}, updated_at: agora() }),
+  // Arquivo (sql/arquivo.sql)
+  arquivo_caixas: () => ({ id: uuid(), nome: '', locais: [], secretaria: false, created_at: agora(), updated_at: agora() }),
+  arquivo_processos: () => ({ id: uuid(), codigo: '', caixa_id: null, origem_id: null, situacao: 0, com_quem: '', destino: '', numero: '', classe: '', partes: '',
+    ano: '', obs: '', volumes_ok: false, excluido: false, cadastrado_por: 'teste@vara.com', created_at: agora(), updated_at: agora() }),
+  arquivo_movimentos: () => ({ id: uuid(), processo_id: null, caixa_id: null, texto: '', quem: 'teste@vara.com', created_at: agora() }),
+  arquivo_notas: () => ({ celula: '', texto: '', contexto: '', resolvida: false })
 };
-const CHAVE = { prazos_config: 'chave' };   // chave primária quando não é "id"
+const CHAVE = { prazos_config: 'chave', arquivo_notas: 'celula' };   // chave primária quando não é "id"
 
 // ---------- filtros do PostgREST ----------
 function valorFiltro(v){
