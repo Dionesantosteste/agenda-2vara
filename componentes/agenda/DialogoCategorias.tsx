@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useAviso } from '@/componentes/Avisos';
 import { useJanela } from '@/componentes/useJanela';
+import { focarDepois } from '@/componentes/foco';
 
 export function DialogoCategorias({ aberto, fechar, categorias, acrescentar, renomear, excluir }: {
   aberto: boolean; fechar: () => void; categorias: string[];
@@ -16,7 +17,7 @@ export function DialogoCategorias({ aberto, fechar, categorias, acrescentar, ren
   useEffect(() => {
     if (!aberto) return;
     setNova('');
-    setTimeout(() => novaRef.current?.focus(), 30);
+    focarDepois(() => novaRef.current);
   }, [aberto]);
 
   function adicionar(){

@@ -2429,19 +2429,6 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     </div>
 
     <div id="orgContent" hidden>
-      <!-- Assistente (IA): botão flutuante e painel lateral, só para o gestor (o painel carrega /assistente-painel) -->
-      <button type="button" class="ast-fab" id="astFab" aria-expanded="false" aria-controls="astGaveta" title="Assistente (IA)" hidden>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
-        <span>Assistente</span>
-      </button>
-      <aside class="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden>
-        <div class="ast-gaveta-topo">
-          <strong>Assistente</strong>
-          <button type="button" class="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-        </div>
-      </aside>
       <header>
         <div>
           <h1 id="orgH1">Organização</h1>
@@ -3277,6 +3264,19 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
 
 <div id="printArea" aria-hidden="true"></div>
 
+    <!-- Assistente (IA): botão flutuante e painel lateral do gestor, em todas as seções (o painel carrega /assistente-painel) -->
+    <button type="button" class="ast-fab" id="astFab" aria-expanded="false" aria-controls="astGaveta" title="Assistente (IA)" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
+      <span>Assistente</span>
+    </button>
+    <aside class="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden>
+      <div class="ast-gaveta-topo">
+        <strong>Assistente</strong>
+        <button type="button" class="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </aside>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -4965,7 +4965,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
     try { localStorage.removeItem('orgPessoa'); } catch (e) {}
-    astDescarregar();
+    astAtualizar();
     O.content.hidden = true;
     O.lock.hidden = false;
     O.msg.textContent = msg || '';
@@ -5151,8 +5151,11 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   function orgDiff(d){ return Math.round((d - startOfDay(new Date())) / 86400000); }
   function fmtDia(d){ return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
 
-  // ---- Assistente (IA): botão flutuante na tela do gestor ----
+  // ---- Assistente (IA): botão flutuante do gestor, em todas as seções ----
+  // Aparece quando a senha do gestor está nesta aba (entrou na Organização como gestor); a equipe não vê.
+  // Trocar de seção não fecha o painel; ir para o sistema novo e voltar reabre (astAberto) com a mesma conversa.
   var AST = { fab: document.getElementById('astFab'), gaveta: document.getElementById('astGaveta'), fechar: document.getElementById('astGavetaFechar'), quadro: null };
+  function astGestor(){ return !!org.pin && org.modo === 'gestor'; }
   function astAbrir(abrir){
     if (abrir && !AST.quadro){
       // o Assistente só carrega na primeira vez que o painel abre
@@ -5161,22 +5164,30 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       AST.gaveta.appendChild(AST.quadro);
     }
     AST.gaveta.hidden = !abrir;
-    AST.fab.hidden = abrir || org.modo !== 'gestor';
+    AST.fab.hidden = abrir || !astGestor();
     AST.fab.setAttribute('aria-expanded', String(abrir));
+    try { if (abrir) sessionStorage.setItem('astAberto', '1'); else sessionStorage.removeItem('astAberto'); } catch (e) {}
   }
-  // ao trancar: fecha e descarrega (a conversa não fica aberta para o próximo)
-  function astDescarregar(){
+  // depois de entrar ou trancar: mostra ou esconde o botão
+  function astAtualizar(){
     if (!AST) return;
-    if (AST.quadro){ AST.quadro.remove(); AST.quadro = null; }
-    AST.gaveta.hidden = true; AST.fab.hidden = true;
+    if (!astGestor()){
+      if (AST.quadro){ AST.quadro.remove(); AST.quadro = null; }   // a conversa não fica aberta para o próximo
+      AST.gaveta.hidden = true; AST.fab.hidden = true;
+      try { sessionStorage.removeItem('astAberto'); } catch (e) {}
+      return;
+    }
+    if (AST.gaveta.hidden) AST.fab.hidden = false;
   }
   AST.fab.addEventListener('click', function(){ astAbrir(true); });
   AST.fechar.addEventListener('click', function(){ astAbrir(false); AST.fab.focus(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !AST.gaveta.hidden && !document.querySelector('dialog[open]')) astAbrir(false); });
+  astAtualizar();
+  try { if (astGestor() && sessionStorage.getItem('astAberto') === '1') astAbrir(true); } catch (e) {}
 
   function renderOrg(){
     if (!org.unlocked) return;
-    if (AST && AST.gaveta.hidden) AST.fab.hidden = org.modo !== 'gestor';
+    astAtualizar();
     renderOrgModo();
     renderOrgTabs();
     // Só a aba aberta é desenhada; as outras são desenhadas quando forem abertas (o clique na aba chama renderOrg)

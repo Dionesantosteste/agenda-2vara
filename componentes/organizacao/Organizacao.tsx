@@ -9,7 +9,6 @@ import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { useCalendario } from '@/componentes/useCalendario';
 import { Quadro } from './Quadro';
-import { BotaoAssistente } from '@/componentes/assistente/BotaoAssistente';
 
 export type Resposta = { status: string; message?: string; codigo?: string; [campo: string]: any };
 export type Sessao = { modo: 'gestor' | 'pessoa'; pin: string | null; eu: string | null; ver: string | null };
@@ -258,8 +257,6 @@ function Corpo(){
           ? <Quadro key={versao} dados={dados} setDados={setDados} pessoa={pessoa} alheia={alheia} eu={sessao.eu} hoje={hoje} util={util} banco={banco} />
           : <AindaNoAtual aba={ABAS.find(a => a.id === abaAtual)?.nome || ''} />}
       </div>
-      {/* Assistente (IA): só para o gestor, que entrou com a senha */}
-      {!pessoa && <BotaoAssistente />}
     </section>
   );
 }

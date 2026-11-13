@@ -221,3 +221,46 @@ for (const v of [{ nome: 'sistema atual', endereco: '/#organizacao' }, { nome: '
     });
   });
 }
+
+test('o botão acompanha o gestor pelas telas e a conversa continua, nos dois sistemas', async ({ page, banco }) => {
+  equipe(banco);
+  await iaFalsa(page, [{ resposta: 'Resposta na Organização.' }]);
+  await entrarComoGestor(page, PIN_GESTOR, '/#organizacao');
+  await expect(page.locator('#orgContent')).toBeVisible();
+  await page.locator('#astFab').click();
+  const painel = page.frameLocator('#astQuadro');
+  await painel.getByLabel('Sua pergunta ou pedido').fill('Oi');
+  await painel.getByRole('button', { name: 'Enviar' }).click();
+  await expect(painel.locator('.ast-balao.ia .ast-texto')).toHaveText('Resposta na Organização.');
+
+  // trocar de seção no sistema atual: o painel continua aberto, com a conversa
+  await page.locator('.nav-item[data-route="agenda"]').click();
+  await expect(page.locator('#view-agenda')).toBeVisible();
+  await expect(page.locator('#astGaveta')).toBeVisible();
+  await expect(painel.locator('.ast-balao.ia .ast-texto')).toHaveText('Resposta na Organização.');
+  await page.locator('#astGavetaFechar').click();
+  await page.locator('.nav-item[data-route="prazos"]').click();
+  await expect(page.locator('#astFab')).toBeVisible();
+
+  // sistema novo (outra página): o botão está lá; aberto, mostra a mesma conversa
+  await page.goto('/novo/agenda');
+  await expect(page.locator('#astFab')).toBeVisible();
+  await page.locator('#astFab').click();
+  await expect(page.frameLocator('#astQuadro').locator('.ast-balao.ia .ast-texto')).toHaveText('Resposta na Organização.');
+  // trocar de tela com o painel aberto: reabre sozinho
+  await page.goto('/novo/prazos');
+  await expect(page.locator('#astGaveta')).toBeVisible();
+  await page.goto('/arquivo');
+  await expect(page.locator('#astGaveta')).toBeVisible();
+});
+
+test('sem a senha do gestor, o botão não aparece em nenhuma tela', async ({ page, banco }) => {
+  equipe(banco);
+  await entrarComoPessoa(page, 'Ana Souza', '/#organizacao');
+  await page.locator('.nav-item[data-route="agenda"]').click();
+  await expect(page.locator('#view-agenda')).toBeVisible();
+  await expect(page.locator('#astFab')).toBeHidden();
+  await page.goto('/novo/prazos');
+  await expect(page.locator('h1')).toContainText('Prazos');
+  await expect(page.locator('#astFab')).toHaveCount(0);
+});

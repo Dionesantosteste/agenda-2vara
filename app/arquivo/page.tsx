@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Arquivo } from '@/componentes/arquivo/Arquivo';
+import { BotaoAssistente } from '@/componentes/assistente/BotaoAssistente';
 import './arquivo.css';
 
 export const metadata: Metadata = { title: 'Arquivo · Portal da 2ª Vara' };
@@ -8,6 +9,9 @@ export const metadata: Metadata = { title: 'Arquivo · Portal da 2ª Vara' };
 // do arquivo e o botão "Voltar ao portal". Só abre para quem entrou (o Porteiro cuida disso).
 export default function PaginaArquivo(){
   return (
-    <Arquivo />
+    <>
+      <Arquivo />
+      <BotaoAssistente />
+    </>
   );
 }

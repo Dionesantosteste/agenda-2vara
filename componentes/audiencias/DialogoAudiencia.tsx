@@ -9,6 +9,7 @@ import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useJanela } from '@/componentes/useJanela';
 import type { Salvar } from './Audiencias';
 import { SelectTipo } from './SelectTipo';
+import { focarDepois } from '@/componentes/foco';
 
 export function DialogoAudiencia({ audiencia, nomes, fechar, salvar, excluir, novoTipo }: {
   audiencia: Audiencia | null; nomes: string[]; fechar: () => void; salvar: Salvar; excluir: (id: string) => void;
@@ -24,7 +25,7 @@ export function DialogoAudiencia({ audiencia, nomes, fechar, salvar, excluir, no
     if (!audiencia) return;
     setV({ processo: audiencia.processo, data: chaveDoDia(audiencia.date), hora: hora(audiencia.date), tipo: audiencia.tipo, status: audiencia.status, obs: audiencia.observacoes });
     setArmado(false);
-    setTimeout(() => procRef.current?.querySelector('input')?.focus(), 30);
+    focarDepois(() => procRef.current?.querySelector('input'));
   }, [audiencia]);
 
   const status = STATUSES.includes(v.status) ? STATUSES : [...STATUSES, v.status];

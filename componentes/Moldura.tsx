@@ -7,6 +7,7 @@ import { Aparencia } from './Aparencia';
 import { useSessao } from './Porteiro';
 import { ProximosDias } from './ProximosDias';
 import { IconeMenu, IconeSecao } from './Icones';
+import { BotaoAssistente } from './assistente/BotaoAssistente';
 
 // largura: "medio" (Prazos) ou "wide" (Organização), como no sistema atual
 export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: string; secaoAtual?: string; largura?: 'medio' | 'wide'; children: ReactNode }){
@@ -67,6 +68,8 @@ export function Moldura({ titulo, secaoAtual, largura, children }: { titulo: str
         <main className="main">
           <div className={largura ? 'wrap ' + largura : 'wrap'}>{children}</div>
         </main>
+        {/* Assistente (IA) do gestor: acompanha em todas as telas */}
+        <BotaoAssistente />
       </div>
     </div>
   );
