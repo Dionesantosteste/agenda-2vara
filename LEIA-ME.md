@@ -537,7 +537,11 @@ Botão flutuante **Assistente** no canto de baixo da tela, que acompanha o gesto
 portal (Agenda, Audiências, Perícias, Prazos, Organização e Arquivo; sistema atual e sistema novo). Aparece
 depois que o gestor entra na **Organização** com a senha; a equipe não vê. Ele abre um painel do lado direito,
 por cima da tela, sem pedir a senha de novo: dá para consultar e continuar trabalhando. Trocar de tela não
-perde a conversa (se o painel estava aberto, ele reabre sozinho). Fecha no **×** ou com **Esc**. Ao **Trancar** a Organização, o botão e o painel
+perde a conversa (se o painel estava aberto, ele reabre sozinho). Fecha no **×** ou com **Esc**.
+O painel abre saindo do botão e fecha voltando para ele (animação no estilo "gênio" do Mac; quem configurou o
+computador para reduzir movimento vê sem animação). Para deixar o painel mais largo, **segure e arraste a borda
+esquerda** (ou, com ela selecionada, use as setas); a largura fica guardada no navegador, e **dois cliques** na
+borda voltam ao tamanho padrão. No celular o painel ocupa a tela toda. Ao **Trancar** a Organização, o botão e o painel
 somem e a conversa é descartada. (O painel sozinho fica em `/assistente-painel`.) Serve para:
 
 - **Pesquisar a rotina da secretaria** ("qual a rotina de processo de INSS depois da decisão?"). A IA consulta
