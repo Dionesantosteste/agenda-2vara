@@ -1,7 +1,7 @@
 {
   "name": "agenda-2vara",
   "private": true,
-  "description": "Portal da secretaria da 2ª Vara (Agenda, Audiências, Perícias, Prazos e Organização).",
+  "description": "Portal da secretaria da 2ª Vara (Agenda, Audiências, Perícias, Prazos, Organização e Assistente).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

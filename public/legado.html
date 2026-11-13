@@ -1931,6 +1931,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         <span>Organização</span>
         <span class="nav-count" id="navCountOrg" title="Tarefas para hoje ou atrasadas"></span>
       </a>
+      <a class="nav-item" href="/novo/assistente">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
+        <span>Assistente</span>
+      </a>
       <!-- Arquivo de processos físicos: página própria (/arquivo), com o botão "Voltar ao portal" -->
       <a class="nav-item" href="/arquivo" id="navArquivo">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4"/><path d="M12 11v10"/></svg>
@@ -3889,7 +3893,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     }
     els.onCallWrap.hidden = !els.fOnCall.checked;
     els.dialog.showModal();
-    setTimeout(function(){ els.fName.focus(); }, 30);
+    focarSeLivre(els.dialog, function(){ return els.fName; });
   }
 
   els.addBtn.addEventListener('click', function(){ openDialog(null); });
@@ -4021,6 +4025,17 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     if (!inside) els.catDialog.close();
   });
 
+
+  // Foco no primeiro campo de uma janela que acabou de abrir, um instante depois. Se a pessoa já
+  // clicou em outro campo da janela nesse instante, deixa onde está: senão o que ela digita cai no
+  // campo errado (ex.: a anotação ia parar no título da tarefa).
+  function focarSeLivre(janela, campo){
+    setTimeout(function(){
+      var alvo = campo(), ativo = document.activeElement;
+      if (ativo && ativo !== alvo && janela.contains(ativo) && /^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName)) return;
+      alvo.focus();
+    }, 30);
+  }
 
   // ---------------------------------------------------------------------
   // Portal: navegação entre seções (#agenda, #audiencias, ...)
@@ -4629,7 +4644,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     TD.novo.value = '';
     renderTiposLista();
     TD.dialog.showModal();
-    setTimeout(function(){ TD.novo.focus(); }, 30);
+    focarSeLivre(TD.dialog, function(){ return TD.novo; });
   }
   async function adicionarTipo(){
     var nome = TD.novo.value.trim().replace(/\s+/g, ' ');
@@ -4687,7 +4702,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       A.deleteBtn.hidden = false;
     }
     A.dialog.showModal();
-    setTimeout(function(){ A.processo.focus(); }, 30);
+    focarSeLivre(A.dialog, function(){ return A.processo; });
   }
 
   A.processo.addEventListener('blur', function(){ A.processo.value = formatProcesso(A.processo.value); });
@@ -6612,7 +6627,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     OC.excluir.classList.remove('armed'); OC.excluir.textContent = 'Excluir';
     OC.excluir.hidden = orgProtegida(t);
     OC.dialog.showModal();
-    setTimeout(function(){ OC.titulo.focus(); }, 30);
+    focarSeLivre(OC.dialog, function(){ return OC.titulo; });
   }
 
   OC.cancelar.addEventListener('click', function(){ OC.dialog.close(); });
@@ -9026,7 +9041,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     OCF.ok.disabled = false;
     OCF.texto.value = '';
     OCF.dialog.showModal();
-    setTimeout(function(){ OCF.texto.focus(); }, 30);
+    focarSeLivre(OCF.dialog, function(){ return OCF.texto; });
   }
   async function orgEstrelaDar(dono, dia, motivo){
     var r = await orgCall('org_dar_estrela', { p_pessoa: dono, p_dia: dia, p_motivo: motivo });
@@ -9050,7 +9065,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     OCF.ok.disabled = false;
     OCF.texto.value = '';
     OCF.dialog.showModal();
-    setTimeout(function(){ OCF.texto.focus(); }, 30);
+    focarSeLivre(OCF.dialog, function(){ return OCF.texto; });
   }
   async function orgConfAcao(id, acao, texto, dono){
     var args = { p_id: id, p_acao: acao, p_texto: texto || '' };
@@ -10933,7 +10948,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     P.eDelete.classList.remove('armed'); P.eDelete.textContent = 'Excluir';
     atualizarPrazoInfo();
     P.dialog.showModal();
-    setTimeout(function(){ (perMarcada(p.status) && !p.data ? P.eData : P.eProc).focus(); }, 30);
+    focarSeLivre(P.dialog, function(){ return perMarcada(p.status) && !p.data ? P.eData : P.eProc; });
   }
 
   var perEditConfirmouDup = false;

@@ -212,7 +212,7 @@ class SupabaseFalso {
 // =====================================================================================
 function novaOrg(){
   return { pin: PIN_GESTOR, pessoas: [], tarefas: [], notas: [], lembretes: [], rotinas: [], etiquetas: [], colunas: [], anotacoes: [],
-    modelos: [], aniversarios: [], estrelas: [], bichos: [], txt_modelos: [], txt_categorias: [], txt_meus: [], txt_cidade: '' };
+    modelos: [], aniversarios: [], estrelas: [], bichos: [], txt_modelos: [], txt_categorias: [], txt_meus: [], txt_cidade: '', ast_rotinas: [] };
 }
 function tarefaPadrao(){
   return { id: uuid(), titulo: '', prazo: null, urgente: false, responsavel: '', processo: '', feita_em: null, created_at: agora(), updated_at: agora(),
@@ -662,6 +662,69 @@ const ORG_FUNCOES = {
     if (ac.gestor || !ac.dono) return erro('Só a própria pessoa muda o bichinho do quadro dela.');
     if (a.p_tipo && !org.bichos.some(b => b.dono === ac.dono && b.tipo === a.p_tipo)) return erro('Esse bichinho ainda não é seu.');
     org.pessoas.find(p => p.id === ac.dono).bicho_quadro = a.p_tipo || '';
+    return { status: 'ok' };
+  },
+
+  // ---------- gestor manda tarefas em lote (org_mandar_lote do sql/organizacao.sql) ----------
+  org_mandar_lote(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor manda tarefas para a equipe.');
+    const itens = Array.isArray(a.p_itens) ? a.p_itens : [];
+    if (!itens.length) return erro('Nenhuma tarefa para mandar.');
+    if (itens.length > 100) return erro('Mande no máximo 100 tarefas por vez.');
+    for (const it of itens){
+      if (!String(it.titulo || '').trim()) return erro('Há uma linha sem tarefa.');
+      if (!org.pessoas.some(p => p.id === it.para && p.ativo)) return erro('A tarefa "' + String(it.titulo).slice(0, 60) + '" está para uma pessoa que não está ativa.');
+    }
+    const ck = Array.isArray(a.p_checklist) ? a.p_checklist : [];
+    for (const it of itens){
+      const pr = ['baixa', 'normal', 'alta', 'urgente'].includes(it.prioridade) ? it.prioridade : 'normal';
+      org.tarefas.push(Object.assign(tarefaPadrao(), { dono: it.para, do_gestor: true, titulo: String(it.titulo).trim().slice(0, 160), prazo: it.prazo || null,
+        prioridade: pr, urgente: pr === 'urgente', processo: String(it.processo || '').slice(0, 40), etapa: 'afazer', checklist: JSON.parse(JSON.stringify(ck)),
+        modelo_texto: org.txt_modelos.some(m => m.id === a.p_modelo) ? a.p_modelo : null }));
+    }
+    return { status: 'ok', n: itens.length };
+  },
+
+  // ---------- modelos de texto (org_txt_salvar_modelo do sql/organizacao.sql) ----------
+  org_txt_salvar_modelo(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    const nome = String(a.p_nome || '').trim().slice(0, 80);
+    if (!nome) return erro('Dê um nome ao modelo.');
+    const dados = { nome, categoria: String(a.p_categoria || '').trim().slice(0, 40), texto: String(a.p_texto || '').slice(0, 20000), alterado_por: ac.gestor ? 'Gestor' : '' };
+    if (!a.p_id){ const m = { id: uuid(), usos: 0, created_at: agora(), updated_at: agora(), ...dados }; org.txt_modelos.push(m); return { status: 'ok', id: m.id }; }
+    const m = org.txt_modelos.find(x => x.id === a.p_id);
+    if (!m) return erro('Este modelo não existe mais.');
+    Object.assign(m, dados, { updated_at: agora() });
+    return { status: 'ok', id: m.id };
+  },
+
+  // ---------- Assistente do gestor (sql/assistente.sql): só com a senha do gestor ----------
+  ast_dados(org, a){
+    if (!a.p_pin) return { status: 'senha' };
+    if (a.p_pin !== org.pin) return { status: 'senha' };
+    const ord = (x, y) => x.assunto.toLowerCase().localeCompare(y.assunto.toLowerCase()) || x.titulo.toLowerCase().localeCompare(y.titulo.toLowerCase());
+    return { status: 'ok', rotinas: org.ast_rotinas.slice().sort(ord).map(r => ({ ...r, passos: r.passos.slice() })),
+      modelos: org.txt_modelos.map(m => ({ id: m.id, nome: m.nome, categoria: m.categoria, texto: m.texto })), cidade: org.txt_cidade };
+  },
+  ast_salvar_rotina(org, a){
+    if (!a.p_pin || a.p_pin !== org.pin) return { status: 'senha' };
+    const titulo = String(a.p_titulo || '').trim().slice(0, 120);
+    if (!titulo) return erro('Dê um título à rotina.');
+    const passos = (Array.isArray(a.p_passos) ? a.p_passos : []).map(p => String(p).trim().slice(0, 1000)).filter(Boolean).slice(0, 60);
+    const dados = { titulo, assunto: String(a.p_assunto || '').trim().slice(0, 60), quando: String(a.p_quando || '').trim().slice(0, 500),
+      passos, observacoes: String(a.p_observacoes || '').slice(0, 4000), alterado_por: 'Gestor', updated_at: agora() };
+    if (!a.p_id){ const r = { id: uuid(), created_at: agora(), ...dados }; org.ast_rotinas.push(r); return { status: 'ok', id: r.id }; }
+    const r = org.ast_rotinas.find(x => x.id === a.p_id);
+    if (!r) return erro('Esta rotina não existe mais.');
+    Object.assign(r, dados);
+    return { status: 'ok', id: r.id };
+  },
+  ast_excluir_rotina(org, a){
+    if (!a.p_pin || a.p_pin !== org.pin) return { status: 'senha' };
+    org.ast_rotinas = org.ast_rotinas.filter(r => r.id !== a.p_id);
     return { status: 'ok' };
   }
 };
