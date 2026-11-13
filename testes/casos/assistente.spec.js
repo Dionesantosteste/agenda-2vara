@@ -336,3 +336,24 @@ for (const v of [{ nome: 'sistema atual', endereco: '/#organizacao' }, { nome: '
     });
   });
 }
+
+// O "+" da Agenda sobe quando o botão do Assistente está na tela (não ficam um por cima do outro)
+for (const v of [{ nome: 'sistema atual', agenda: '/#agenda' }, { nome: 'sistema novo', agenda: '/novo/agenda' }]){
+  test('o "+" da Agenda fica acima do botão do Assistente (' + v.nome + ')', async ({ page, banco }) => {
+    equipe(banco);
+    const sobrepoe = (a, b) => !(a.x + a.width <= b.x || b.x + b.width <= a.x || a.y + a.height <= b.y || b.y + b.height <= a.y);
+    // sem o Assistente (sem senha de gestor): o "+" fica no lugar de sempre
+    await page.goto(v.agenda);
+    await expect(page.locator('#addBtn')).toBeVisible();
+    const vp = page.viewportSize();
+    expect(Math.round(vp.height - (await page.locator('#addBtn').boundingBox()).y - 56)).toBe(22);
+    // com o Assistente: sobe e não encosta no botão dele
+    await entrarComoGestor(page, PIN_GESTOR, '/#organizacao');
+    await expect(page.locator('#orgContent')).toBeVisible();
+    await page.goto(v.agenda);
+    await expect(page.locator('#astFab')).toBeVisible();
+    await expect.poll(async () => sobrepoe(await page.locator('#addBtn').boundingBox(), await page.locator('#astFab').boundingBox())).toBe(false);
+    const mais = await page.locator('#addBtn').boundingBox(), ia = await page.locator('#astFab').boundingBox();
+    expect(mais.y + mais.height).toBeLessThan(ia.y);
+  });
+}
