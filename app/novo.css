@@ -143,6 +143,11 @@ dialog:has(#astRotTitulo), dialog:has(#astModTitulo), dialog:has(#astMandarTitul
 @media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
 @media (prefers-reduced-motion: reduce){ .ast-fab, .ast-fab .ast-brilho, .ast-fab .ast-brilho-p, .ast-gaveta, .ast-gaveta::before{ animation:none !important; } .ast-fab, .ast-fab:hover{ transform:none; transition:none; } }
 @media print{ .ast-fab, .ast-gaveta{ display:none !important; } }
+/* Com o botão do Assistente na tela, o "+" da Agenda sobe para não ficar embaixo dele */
+.fab{ transition:bottom .2s ease; }
+:root:has(#astFab:not([hidden])) .fab{ bottom:calc(84px + env(safe-area-inset-bottom, 0px)); }
+@media (max-width:600px){ :root:has(#astFab:not([hidden])) .fab{ bottom:calc(88px + env(safe-area-inset-bottom, 0px)); } }
+@media (prefers-reduced-motion: reduce){ .fab{ transition:none; } }
 /* O Assistente dentro do painel: mais compacto */
 .ast-painel{ min-height:100vh; padding:12px 12px 0; background:var(--bg); color:var(--ink); font-family:var(--font-ui); }
 .ast-embutido{ gap:12px !important; }
