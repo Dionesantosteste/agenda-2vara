@@ -33,23 +33,26 @@ function gravarConversa(c: Conversa){
   try { sessionStorage.setItem('astConversa', JSON.stringify(c)); } catch { /* sem espaço: segue só na memória */ }
 }
 
-export function Assistente(){
+// embutido: dentro do painel do botão flutuante (sem o título da página)
+export function Assistente({ embutido = false }: { embutido?: boolean }){
   const [pronto, setPronto] = useState(false);
   useEffect(() => setPronto(true), []);
   return (
-    <section id="view-assistente" aria-labelledby="astTitulo">
-      <header>
-        <div>
-          <h1 id="astTitulo">Assistente</h1>
-          <div className="tagline">Rotina de secretaria, movimentação de processo e redação de certidões, com IA</div>
-        </div>
-      </header>
-      {pronto && <Corpo />}
+    <section id="view-assistente" className={embutido ? 'ast-embutido' : undefined} aria-labelledby={embutido ? undefined : 'astTitulo'} aria-label={embutido ? 'Assistente' : undefined}>
+      {!embutido && (
+        <header>
+          <div>
+            <h1 id="astTitulo">Assistente</h1>
+            <div className="tagline">Rotina de secretaria, movimentação de processo e redação de certidões, com IA</div>
+          </div>
+        </header>
+      )}
+      {pronto && <Corpo embutido={embutido} />}
     </section>
   );
 }
 
-function Corpo(){
+function Corpo({ embutido }: { embutido: boolean }){
   const avisar = useAviso();
   const [pin, setPinEstado] = useState<string | null>(() => lerPin());
   const [aba, setAba] = useState<'conversa' | 'rotinas'>('conversa');
@@ -138,7 +141,8 @@ function Corpo(){
             Rotinas de secretaria{rotinas.length ? ' (' + rotinas.length + ')' : ''}
           </button>
         </div>
-        <button type="button" className="btn sm" onClick={() => trancar('')}>Trancar</button>
+        {/* no painel, quem tranca é o Trancar da Organização (fecha o painel junto) */}
+        {!embutido && <button type="button" className="btn sm" onClick={() => trancar('')}>Trancar</button>}
       </div>
 
       <section role="tabpanel" aria-labelledby="asttab-conversa" hidden={aba !== 'conversa'} className="ast-conversa">

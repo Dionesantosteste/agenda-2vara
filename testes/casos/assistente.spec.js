@@ -1,10 +1,11 @@
-// Assistente do gestor: entrada com a senha da Organização, conversa com a IA (simulada aqui),
-// salvar rotina e modelo de texto a partir da resposta, e a aba Rotinas de secretaria.
+// Assistente do gestor: botão flutuante na tela do gestor (Organização), entrada com a senha da
+// Organização, conversa com a IA (simulada aqui), salvar rotina e modelo de texto a partir da
+// resposta, e a aba Rotinas de secretaria. Os casos da conversa abrem o painel direto (/assistente-painel).
 const { test, expect, PIN_GESTOR } = require('../apoio/teste');
-const { ANA, equipe } = require('../apoio/org');
+const { ANA, equipe, entrarComoGestor, entrarComoPessoa } = require('../apoio/org');
 
 async function entrar(page){
-  await page.goto('/novo/assistente');
+  await page.goto('/assistente-painel');
   await page.getByLabel('Senha de 6 dígitos').fill(PIN_GESTOR);
   await expect(page.getByRole('tab', { name: 'Conversa' })).toBeVisible();
 }
@@ -23,8 +24,8 @@ async function iaFalsa(page, respostas){
 }
 
 test('pede a senha do gestor antes de abrir e aceita só a certa', async ({ page }) => {
-  await page.goto('/novo/assistente');
-  await expect(page.locator('.nav-item[aria-current="page"]')).toHaveText('Assistente');
+  await page.goto('/assistente-painel');
+  await expect(page.locator('.nav')).toHaveCount(0);   // painel sem o menu do portal
   await page.getByLabel('Senha de 6 dígitos').fill('000000');
   await expect(page.locator('.lock-msg')).toHaveText('Senha incorreta.');
   await page.getByLabel('Senha de 6 dígitos').fill(PIN_GESTOR);
@@ -57,7 +58,7 @@ test('a IA propõe uma rotina e o gestor confere e salva', async ({ page, banco 
   // a conversa continua: a próxima pergunta leva o histórico de volta
   await page.getByLabel('Sua pergunta ou pedido').fill('Obrigado');
   await page.getByLabel('Sua pergunta ou pedido').press('Control+Enter');
-  await expect(page.locator('.ast-balao.ia')).toHaveCount(2);
+  await expect(page.locator('.ast-balao.ia:not(.ast-pensando)')).toHaveCount(2);
   expect(pedidos[1].historico).toHaveLength(2);
 
   await page.getByRole('tab', { name: /Rotinas de secretaria/ }).click();
@@ -171,3 +172,52 @@ test('conversa de outra versão do Assistente recomeça sem o histórico antigo'
   await expect(page.locator('.ast-balao.ia .ast-texto')).toHaveText('Oi.');
   expect(pedidos[0]).toMatchObject({ versao: '1', historico: [{ role: 'user', content: 'antiga' }] });   // o servidor decide
 });
+
+// Botão flutuante: só na tela do gestor, nos dois sistemas; abre o painel sem pedir a senha de novo
+for (const v of [{ nome: 'sistema atual', endereco: '/#organizacao' }, { nome: 'sistema novo', endereco: '/novo/organizacao' }]){
+  test.describe('botão flutuante (' + v.nome + ')', () => {
+    test('o gestor abre o Assistente por cima da tela, sem senha de novo, e fecha', async ({ page, banco }) => {
+      equipe(banco);
+      await iaFalsa(page, [{ resposta: 'Pronto, gestor.' }]);
+      await entrarComoGestor(page, PIN_GESTOR, v.endereco);
+      await expect(page.locator('#orgContent')).toBeVisible();
+      await expect(page.locator('#astQuadro')).toHaveCount(0);   // só carrega ao abrir
+      await page.locator('#astFab').click();
+      await expect(page.locator('#astGaveta')).toBeVisible();
+      await expect(page.locator('#astFab')).toBeHidden();
+      const painel = page.frameLocator('#astQuadro');
+      await expect(painel.getByRole('tab', { name: 'Conversa' })).toBeVisible();
+      await painel.getByLabel('Sua pergunta ou pedido').fill('Oi');
+      await painel.getByRole('button', { name: 'Enviar' }).click();
+      await expect(painel.locator('.ast-balao.ia .ast-texto')).toHaveText('Pronto, gestor.');
+      // o quadro continua ali atrás
+      await expect(page.locator('#orgContent')).toBeVisible();
+      await page.locator('#astGavetaFechar').click();
+      await expect(page.locator('#astGaveta')).toBeHidden();
+      await expect(page.locator('#astFab')).toBeVisible();
+      // reabrir mantém a conversa
+      await page.locator('#astFab').click();
+      await expect(painel.locator('.ast-balao.ia .ast-texto')).toHaveText('Pronto, gestor.');
+      await page.keyboard.press('Escape');
+    });
+
+    test('a equipe não vê o botão', async ({ page, banco }) => {
+      equipe(banco);
+      await entrarComoPessoa(page, 'Ana Souza', v.endereco);
+      await expect(page.locator('#orgContent')).toBeVisible();
+      await expect(page.locator('#astFab')).toBeHidden();
+    });
+
+    test('trancar a Organização some com o botão e o painel', async ({ page, banco }) => {
+      equipe(banco);
+      await entrarComoGestor(page, PIN_GESTOR, v.endereco);
+      await page.locator('#astFab').click();
+      await expect(page.frameLocator('#astQuadro').getByRole('tab', { name: 'Conversa' })).toBeVisible();
+      await page.locator('#astGavetaFechar').click();
+      await page.locator('#orgLockBtn').click();
+      await expect(page.locator('#orgPin')).toBeVisible();
+      await expect(page.locator('#astFab')).toBeHidden();
+      await expect(page.locator('#astQuadro')).toHaveCount(0);
+    });
+  });
+}

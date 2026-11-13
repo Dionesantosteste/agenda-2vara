@@ -93,3 +93,25 @@ a.apar-btn{ text-decoration:none; }
 dialog:has(#astRotTitulo), dialog:has(#astModTitulo), dialog:has(#astMandarTitulo){ width:min(640px, calc(100vw - 32px)); }
 @media (max-width:600px){ .field-row{ grid-template-columns:minmax(0,1fr); } .ast-envio-btns{ width:100%; } .ast-envio-btns .btn{ flex:1; } }
 .ast-protegido{ margin-top:6px; font-size:12px; color:var(--muted); }
+
+/* Assistente: botão flutuante e painel lateral na tela do gestor (Organização) */
+.ast-fab{ position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); z-index:40; display:inline-flex; align-items:center; gap:8px;
+  height:48px; padding:0 18px 0 14px; border-radius:24px; border:0; background:var(--accent); color:var(--accent-ink); font:600 14px var(--font-ui);
+  box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
+.ast-fab[hidden]{ display:none; }
+.ast-fab:hover{ filter:brightness(1.06); }
+.ast-fab:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+.ast-gaveta{ position:fixed; top:0; right:0; bottom:0; z-index:45; width:min(460px, 100vw); display:flex; flex-direction:column;
+  background:var(--paper); border-left:1px solid var(--line); box-shadow:-8px 0 24px rgba(0,0,0,.14); }
+.ast-gaveta[hidden]{ display:none; }
+.ast-gaveta-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); }
+.ast-gaveta-topo strong{ font:600 15px var(--font-ui); }
+.ast-gaveta-quadro{ flex:1; width:100%; border:0; background:var(--bg); }
+@media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
+@media print{ .ast-fab, .ast-gaveta{ display:none !important; } }
+/* O Assistente dentro do painel: mais compacto */
+.ast-painel{ min-height:100vh; padding:12px 12px 0; background:var(--bg); color:var(--ink); font-family:var(--font-ui); }
+.ast-embutido{ gap:12px !important; }
+.ast-embutido .ast-envio{ margin-bottom:12px; }
+.ast-embutido .ast-balao.eu{ max-width:92%; }
+.ast-embutido .field-row{ grid-template-columns:minmax(0,1fr); }

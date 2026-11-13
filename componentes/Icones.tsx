@@ -8,7 +8,6 @@ export function IconeSecao({ id }: { id: string }){
     case 'pericias': return <svg {...base}><circle cx="10" cy="10" r="6"/><path d="M14.5 14.5L20 20"/><path d="M8 10h4M10 8v4"/></svg>;
     case 'prazos': return <svg {...base}><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/><path d="M12 13.5v3l2 1.2"/></svg>;
     case 'organizacao': return <svg {...base}><path d="M9 4h6"/><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 11l2 2 4-4"/><path d="M9 17h6"/></svg>;
-    case 'assistente': return <svg {...base}><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>;
     default: return null;
   }
 }

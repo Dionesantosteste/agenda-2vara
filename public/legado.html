@@ -1749,6 +1749,21 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     .card{ grid-template-columns: 38px 1fr; }
     .badge{ display:none; }
   }
+  /* Assistente: botão flutuante e painel lateral na tela do gestor (Organização) */
+  .ast-fab{ position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); z-index:40; display:inline-flex; align-items:center; gap:8px;
+    height:48px; padding:0 18px 0 14px; border-radius:24px; border:0; background:var(--accent); color:var(--accent-ink); font:600 14px var(--font-ui);
+    box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
+  .ast-fab[hidden]{ display:none; }
+  .ast-fab:hover{ filter:brightness(1.06); }
+  .ast-fab:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+  .ast-gaveta{ position:fixed; top:0; right:0; bottom:0; z-index:45; width:min(460px, 100vw); display:flex; flex-direction:column;
+    background:var(--paper); border-left:1px solid var(--line); box-shadow:-8px 0 24px rgba(0,0,0,.14); }
+  .ast-gaveta[hidden]{ display:none; }
+  .ast-gaveta-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); }
+  .ast-gaveta-topo strong{ font:600 15px var(--font-ui); }
+  .ast-gaveta-quadro{ flex:1; width:100%; border:0; background:var(--bg); }
+  @media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
+  @media print{ .ast-fab, .ast-gaveta{ display:none !important; } }
 </style>
 </head>
 <body>
@@ -1930,10 +1945,6 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4h6"/><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 11l2 2 4-4"/><path d="M9 17h6"/></svg>
         <span>Organização</span>
         <span class="nav-count" id="navCountOrg" title="Tarefas para hoje ou atrasadas"></span>
-      </a>
-      <a class="nav-item" href="/novo/assistente">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
-        <span>Assistente</span>
       </a>
       <!-- Arquivo de processos físicos: página própria (/arquivo), com o botão "Voltar ao portal" -->
       <a class="nav-item" href="/arquivo" id="navArquivo">
@@ -2418,6 +2429,19 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     </div>
 
     <div id="orgContent" hidden>
+      <!-- Assistente (IA): botão flutuante e painel lateral, só para o gestor (o painel carrega /assistente-painel) -->
+      <button type="button" class="ast-fab" id="astFab" aria-expanded="false" aria-controls="astGaveta" title="Assistente (IA)" hidden>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
+        <span>Assistente</span>
+      </button>
+      <aside class="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden>
+        <div class="ast-gaveta-topo">
+          <strong>Assistente</strong>
+          <button type="button" class="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </aside>
       <header>
         <div>
           <h1 id="orgH1">Organização</h1>
@@ -4941,6 +4965,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
     try { localStorage.removeItem('orgPessoa'); } catch (e) {}
+    astDescarregar();
     O.content.hidden = true;
     O.lock.hidden = false;
     O.msg.textContent = msg || '';
@@ -5126,8 +5151,32 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   function orgDiff(d){ return Math.round((d - startOfDay(new Date())) / 86400000); }
   function fmtDia(d){ return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
 
+  // ---- Assistente (IA): botão flutuante na tela do gestor ----
+  var AST = { fab: document.getElementById('astFab'), gaveta: document.getElementById('astGaveta'), fechar: document.getElementById('astGavetaFechar'), quadro: null };
+  function astAbrir(abrir){
+    if (abrir && !AST.quadro){
+      // o Assistente só carrega na primeira vez que o painel abre
+      AST.quadro = document.createElement('iframe');
+      AST.quadro.className = 'ast-gaveta-quadro'; AST.quadro.id = 'astQuadro'; AST.quadro.title = 'Assistente'; AST.quadro.src = '/assistente-painel';
+      AST.gaveta.appendChild(AST.quadro);
+    }
+    AST.gaveta.hidden = !abrir;
+    AST.fab.hidden = abrir || org.modo !== 'gestor';
+    AST.fab.setAttribute('aria-expanded', String(abrir));
+  }
+  // ao trancar: fecha e descarrega (a conversa não fica aberta para o próximo)
+  function astDescarregar(){
+    if (!AST) return;
+    if (AST.quadro){ AST.quadro.remove(); AST.quadro = null; }
+    AST.gaveta.hidden = true; AST.fab.hidden = true;
+  }
+  AST.fab.addEventListener('click', function(){ astAbrir(true); });
+  AST.fechar.addEventListener('click', function(){ astAbrir(false); AST.fab.focus(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !AST.gaveta.hidden && !document.querySelector('dialog[open]')) astAbrir(false); });
+
   function renderOrg(){
     if (!org.unlocked) return;
+    if (AST && AST.gaveta.hidden) AST.fab.hidden = org.modo !== 'gestor';
     renderOrgModo();
     renderOrgTabs();
     // Só a aba aberta é desenhada; as outras são desenhadas quando forem abertas (o clique na aba chama renderOrg)
