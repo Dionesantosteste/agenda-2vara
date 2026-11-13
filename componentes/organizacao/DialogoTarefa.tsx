@@ -63,7 +63,15 @@ function FormTarefa({ tarefa: t, dados, setDados, pessoa, banco, confereDup, abr
   const [armado, setArmado] = useState(false);
   const [gravando, setGravando] = useState(false);
   const [edNota, setEdNota] = useState<{ id: string; txt: string } | null>(null);   // anotação em edição
-  useEffect(() => { const t = setTimeout(() => document.getElementById('ocTitulo')?.focus(), 30); return () => clearTimeout(t); }, []);
+  // leva ao título, mas não tira a pessoa de um campo em que ela já clicou (senão o texto cai no título)
+  useEffect(() => {
+    const t = setTimeout(() => {
+      const ativo = document.activeElement as HTMLElement | null;
+      if (ativo && ativo.id !== 'ocTitulo' && ativo.closest('#orgCardDialog') && /^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName)) return;
+      document.getElementById('ocTitulo')?.focus();
+    }, 30);
+    return () => clearTimeout(t);
+  }, []);
 
   const mudarTarefa = (tid: string, patch: Partial<Tarefa>) => setDados(d => d && { ...d, tarefas: d.tarefas.map(x => (x.id === tid ? { ...x, ...patch } : x)) });
   const resps = t && t.responsavel && !RESPS.includes(t.responsavel) ? [...RESPS, t.responsavel] : RESPS;
