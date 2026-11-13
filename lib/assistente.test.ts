@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscarModelos, buscarRotinas, lerPropostaModelo, lerPropostaRotina, palavras, passosDoTexto, rotinaEmTexto, type Rotina } from './assistente.ts';
+import { buscarModelos, buscarRotinas, lerPropostaModelo, lerPropostaRotina, palavras, passosDoTexto, rotinaEmTexto, tarefasDaRotina, type Rotina } from './assistente.ts';
 
 const inss: Rotina = { id: '1', titulo: 'Após a decisão', assunto: 'INSS', quando: 'Decisão que concede o benefício', passos: ['Intimar a APS para implantar', 'Aguardar 30 dias'], observacoes: '' };
 const alvara: Rotina = { id: '2', titulo: 'Expedir alvará', assunto: 'Execução', quando: 'Depósito judicial', passos: ['Conferir a conta', 'Expedir alvará eletrônico'], observacoes: 'Ver dados bancários do advogado' };
@@ -37,4 +37,12 @@ test('propostas da IA: limpa e recusa as incompletas', () => {
 
 test('passos digitados: um por linha, sem numeração', () => {
   assert.deepEqual(passosDoTexto('1. Intimar\n2) Aguardar\n\n- Conferir\n• Arquivar'), ['Intimar', 'Aguardar', 'Conferir', 'Arquivar']);
+});
+
+test('rotina vira tarefa: uma por processo, passos no checklist', () => {
+  const r = tarefasDaRotina(inss, { para: 'p1', processos: ['0001', '', '0002', '0001'], prazo: '2026-12-01', prioridade: 'alta' });
+  assert.deepEqual(r.itens.map(i => i.processo), ['0001', '0002']);
+  assert.equal(r.itens[0].titulo, 'INSS: Após a decisão');
+  assert.deepEqual(r.checklist, [{ t: 'Intimar a APS para implantar', ok: false }, { t: 'Aguardar 30 dias', ok: false }]);
+  assert.equal(tarefasDaRotina(alvara, { para: 'p1', processos: [], prazo: '', prioridade: 'normal' }).itens.length, 1);
 });

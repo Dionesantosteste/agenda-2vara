@@ -665,6 +665,28 @@ const ORG_FUNCOES = {
     return { status: 'ok' };
   },
 
+  // ---------- gestor manda tarefas em lote (org_mandar_lote do sql/organizacao.sql) ----------
+  org_mandar_lote(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor manda tarefas para a equipe.');
+    const itens = Array.isArray(a.p_itens) ? a.p_itens : [];
+    if (!itens.length) return erro('Nenhuma tarefa para mandar.');
+    if (itens.length > 100) return erro('Mande no máximo 100 tarefas por vez.');
+    for (const it of itens){
+      if (!String(it.titulo || '').trim()) return erro('Há uma linha sem tarefa.');
+      if (!org.pessoas.some(p => p.id === it.para && p.ativo)) return erro('A tarefa "' + String(it.titulo).slice(0, 60) + '" está para uma pessoa que não está ativa.');
+    }
+    const ck = Array.isArray(a.p_checklist) ? a.p_checklist : [];
+    for (const it of itens){
+      const pr = ['baixa', 'normal', 'alta', 'urgente'].includes(it.prioridade) ? it.prioridade : 'normal';
+      org.tarefas.push(Object.assign(tarefaPadrao(), { dono: it.para, do_gestor: true, titulo: String(it.titulo).trim().slice(0, 160), prazo: it.prazo || null,
+        prioridade: pr, urgente: pr === 'urgente', processo: String(it.processo || '').slice(0, 40), etapa: 'afazer', checklist: JSON.parse(JSON.stringify(ck)),
+        modelo_texto: org.txt_modelos.some(m => m.id === a.p_modelo) ? a.p_modelo : null }));
+    }
+    return { status: 'ok', n: itens.length };
+  },
+
   // ---------- modelos de texto (org_txt_salvar_modelo do sql/organizacao.sql) ----------
   org_txt_salvar_modelo(org, a){
     const ac = acesso(org, a);

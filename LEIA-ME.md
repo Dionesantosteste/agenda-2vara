@@ -547,6 +547,12 @@ Organização). Serve para:
   depois aguardar 30 dias; depois…"). A IA monta o passo a passo e mostra um cartão **Conferir e salvar rotina**;
   nada é salvo sem o seu clique. Também dá para escrever direto na aba **Rotinas de secretaria** (Nova rotina,
   procurar, editar, copiar e excluir).
+- **Mandar a rotina para a equipe**: no cartão da rotina, **Mandar para a equipe** → escolha a pessoa, cole os
+  processos (um por linha; vazio = uma tarefa só), prazo e prioridade. Cada processo vira uma tarefa no Quadro
+  da pessoa, com os passos da rotina como checklist.
+- **Prazos com o calendário da vara**: pergunte "a réplica foi disponibilizada no DJEN em 06/11, quando vence?".
+  A IA consulta a Tabela de prazos e calcula com a mesma conta e os mesmos feriados, suspensões e recesso da seção
+  **Prazos**, mostrando o passo a passo. Se faltar a data ou a forma da intimação, ela pergunta.
 
 **Instalar:**
 
@@ -554,10 +560,9 @@ Organização). Serve para:
    Depois rode de novo o `sql/acesso.sql`, como nos outros arquivos.
 2. **Chave da IA:** é a mesma `ANTHROPIC_API_KEY` do Arquivo (leitura da capa por foto). Se ela já está na
    Vercel, não precisa fazer nada: o Assistente usa a mesma chave e os mesmos créditos.
-   Se ainda não está, siga o passo do Arquivo acima (console.anthropic.com → API Keys → Vercel → Redeploy).
-3. Para separar o gasto de cada seção, dá para criar uma segunda chave no mesmo console, mas o sistema
-   só lê `ANTHROPIC_API_KEY`; o relatório de uso do console mostra o gasto por chave.
-4. (Opcional) `ASSISTENTE_MODELO` escolhe o modelo da IA. Sem ela, usa `claude-sonnet-5-5`.
+   Se ainda não está, siga o passo **2.7 — Arquivo** (logo abaixo): console.anthropic.com → API Keys → Vercel → Redeploy.
+   O gasto das duas seções sai dos mesmos créditos; o relatório de uso do console mostra o total.
+3. (Opcional) `ASSISTENTE_MODELO` escolhe o modelo da IA. Sem ela, usa `claude-sonnet-5-5`.
 
 **Custo** (preço por milhão de "tokens"; 1 token ≈ 3/4 de palavra; um pedido típico de certidão, com as consultas
 às rotinas e aos modelos, usa uns 10 mil tokens de entrada e 1 a 2 mil de saída):
@@ -570,8 +575,11 @@ Organização). Serve para:
 
 Dá para pôr um limite de gasto mensal no console da Anthropic (Settings → Limits).
 
-**Privacidade:** o que o gestor escreve na conversa vai para a IA (Anthropic). A tela avisa para evitar CPF,
-endereço e dados de saúde quando não forem necessários. As rotinas e modelos só são lidos pela IA quando ela
+**Privacidade (anonimização, Resolução CNJ 615/2025):** antes de a pergunta sair do navegador, CPF, CNPJ,
+nº de benefício do INSS, e-mail, telefone e CEP são trocados por marcadores (`[CPF-1]`, `[TELEFONE-1]`…). A IA
+escreve com os marcadores e a tela devolve os dados reais na resposta; a tabela de troca fica só naquela aba.
+Embaixo da pergunta aparece o que foi protegido (ex.: "1 CPF e 1 telefone"). O número do processo não é
+trocado. **Nomes, endereços e dados de saúde não são detectados**: escreva só o necessário. As rotinas e modelos só são lidos pela IA quando ela
 precisa deles. A conversa fica só naquela aba do navegador e some ao fechar ou ao clicar em **Nova conversa**.
 Confira sempre o texto antes de juntar ao processo: a IA pode errar.
 ## Passo 2.7 — Arquivo de processos físicos

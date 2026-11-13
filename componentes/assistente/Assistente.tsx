@@ -4,15 +4,18 @@
 // A senha é a mesma da Organização e fica guardada na aba, como lá.
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { ModeloTexto, Proposta, Rotina } from '@/lib/assistente';
+import { anonimizar, desanonimizar, desanonimizarTudo, resumoTrocados, type Mapa } from '@/lib/anonimizar';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { chamar, copiar, gravarPin, lerPin, problema } from './comum';
-import { DialogoModelo, DialogoRotina, type RascunhoModelo, type RascunhoRotina } from './Dialogos';
+import { DialogoMandar, DialogoModelo, DialogoRotina, type RascunhoModelo, type RascunhoRotina } from './Dialogos';
 import { AbaRotinas } from './Rotinas';
 import { TextoIA, semMarcas } from './TextoIA';
 
-type Balao = { id: number; papel: 'eu' | 'ia' | 'erro'; texto: string; propostas?: Proposta[] };
-type Conversa = { baloes: Balao[]; historico: unknown[] };
+// protegidos: o que foi trocado por marcador antes de ir para a IA (ex.: "1 CPF e 1 telefone")
+type Balao = { id: number; papel: 'eu' | 'ia' | 'erro'; texto: string; propostas?: Proposta[]; protegidos?: string };
+// historico vai para a IA (com marcadores); mapa (marcador → dado real) fica só nesta aba
+type Conversa = { baloes: Balao[]; historico: unknown[]; mapa: Mapa; versao?: string };
 
 const SUGESTOES = [
   'Qual a rotina de processo de INSS depois da decisão?',
@@ -21,9 +24,9 @@ const SUGESTOES = [
   'Salve uma rotina: alvará — conferir a conta, expedir o alvará, intimar o advogado.'
 ];
 
-const CONVERSA_VAZIA: Conversa = { baloes: [], historico: [] };
+const CONVERSA_VAZIA: Conversa = { baloes: [], historico: [], mapa: {} };
 function lerConversa(): Conversa {
-  try { const c = JSON.parse(sessionStorage.getItem('astConversa') || 'null'); if (c && Array.isArray(c.baloes) && Array.isArray(c.historico)) return c; } catch { /* nada guardado */ }
+  try { const c = JSON.parse(sessionStorage.getItem('astConversa') || 'null'); if (c && Array.isArray(c.baloes) && Array.isArray(c.historico)) return { mapa: {}, ...c }; } catch { /* nada guardado */ }
   return CONVERSA_VAZIA;
 }
 function gravarConversa(c: Conversa){
@@ -58,6 +61,7 @@ function Corpo(){
   const [pensando, setPensando] = useState(false);
   const [rotinaAberta, setRotinaAberta] = useState<RascunhoRotina | null>(null);
   const [modeloAberto, setModeloAberto] = useState<RascunhoModelo | null>(null);
+  const [mandarRotina, setMandarRotina] = useState<Rotina | null>(null);
   const fimRef = useRef<HTMLDivElement>(null);
   const perguntaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -80,7 +84,10 @@ function Corpo(){
     const mensagem = texto.trim();
     if (!mensagem || pensando) return;
     const antes = conversa;
-    const comPergunta: Conversa = { ...antes, baloes: [...antes.baloes, { id: Date.now(), papel: 'eu', texto: mensagem }] };
+    // anonimização (Res. CNJ 615/2025): CPF, CNPJ, NB, e-mail, telefone e CEP viram marcadores antes de sair do navegador
+    const seguro = anonimizar(mensagem, antes.mapa);
+    const protegidos = resumoTrocados(seguro.trocados);
+    const comPergunta: Conversa = { ...antes, mapa: seguro.mapa, baloes: [...antes.baloes, { id: Date.now(), papel: 'eu', texto: mensagem, protegidos }] };
     setConversa(comPergunta);
     setPergunta('');
     setPensando(true);
@@ -89,7 +96,7 @@ function Corpo(){
       const res = await fetch('/api/assistente', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (data.session?.access_token || '') },
-        body: JSON.stringify({ pin: lerPin(), historico: antes.historico, mensagem })
+        body: JSON.stringify({ pin: lerPin(), historico: antes.historico, versao: antes.versao, mensagem: seguro.texto })
       });
       const corpo = await res.json().catch(() => ({ erro: 'O servidor respondeu de um jeito inesperado.' }));
       if (!res.ok){
@@ -99,8 +106,8 @@ function Corpo(){
         return;
       }
       setConversa({
-        historico: corpo.historico,
-        baloes: [...comPergunta.baloes, { id: Date.now() + 1, papel: 'ia', texto: corpo.resposta, propostas: corpo.propostas }]
+        historico: corpo.historico, versao: corpo.versao, mapa: seguro.mapa,
+        baloes: [...comPergunta.baloes, { id: Date.now() + 1, papel: 'ia', texto: desanonimizar(corpo.resposta, seguro.mapa), propostas: desanonimizarTudo(corpo.propostas, seguro.mapa) }]
       });
     } catch {
       setConversa({ ...comPergunta, baloes: [...comPergunta.baloes, { id: Date.now() + 1, papel: 'erro', texto: 'Sem conexão com o servidor. Confira a internet e tente de novo.' }] });
@@ -147,6 +154,7 @@ function Corpo(){
           {conversa.baloes.map(b => (
             <div key={b.id} className={'ast-balao ' + b.papel}>
               {b.papel === 'ia' ? <TextoIA texto={b.texto} /> : <div className="ast-texto"><p>{b.texto}</p></div>}
+              {b.protegidos && <div className="ast-protegido">Protegido antes de enviar à IA: {b.protegidos}</div>}
               {b.papel === 'ia' && (
                 <div className="ast-acoes">
                   <button type="button" className="btn sm" onClick={async () => avisar(await copiar(semMarcas(b.texto)) ? 'Texto copiado' : 'Não foi possível copiar')}>Copiar</button>
@@ -184,7 +192,7 @@ function Corpo(){
           <textarea id="astPergunta" ref={perguntaRef} rows={3} value={pergunta} onChange={e => setPergunta(e.target.value)} onKeyDown={aoDigitar}
             placeholder="Ex.: escreva uma certidão de intimação do INSS para implantar o benefício" />
           <div className="ast-envio-pe">
-            <span className="field-hint">O que você escrever vai para a IA (Anthropic). Evite CPF, endereço e dados de saúde que não sejam necessários. Confira o texto antes de usar.</span>
+            <span className="field-hint">O que você escrever vai para a IA (Anthropic). CPF, CNPJ, nº de benefício, e-mail, telefone e CEP são trocados por marcadores antes de sair do navegador; nomes, endereços e dados de saúde não, então use só o necessário. Confira o texto antes de usar.</span>
             <div className="ast-envio-btns">
               {!!conversa.baloes.length && <button type="button" className="btn" disabled={pensando} onClick={() => setConversa(CONVERSA_VAZIA)}>Nova conversa</button>}
               <button type="submit" className="btn primary" disabled={pensando || !pergunta.trim()} title="Ctrl+Enter">{pensando ? 'Aguarde…' : 'Enviar'}</button>
@@ -194,9 +202,10 @@ function Corpo(){
       </section>
 
       <section role="tabpanel" aria-labelledby="asttab-rotinas" hidden={aba !== 'rotinas'}>
-        <AbaRotinas rotinas={rotinas} carregando={carregando} editar={setRotinaAberta} recarregar={carregar} />
+        <AbaRotinas rotinas={rotinas} carregando={carregando} editar={setRotinaAberta} mandar={setMandarRotina} recarregar={carregar} />
       </section>
 
+      <DialogoMandar rotina={mandarRotina} fechar={() => setMandarRotina(null)} />
       <DialogoRotina rascunho={rotinaAberta} fechar={() => setRotinaAberta(null)} salvo={carregar} />
       <DialogoModelo rascunho={modeloAberto} categorias={categorias} fechar={() => { setModeloAberto(null); carregar(); }} />
     </>

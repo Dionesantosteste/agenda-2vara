@@ -1,6 +1,7 @@
 // Assistente do gestor: entrada com a senha da Organização, conversa com a IA (simulada aqui),
 // salvar rotina e modelo de texto a partir da resposta, e a aba Rotinas de secretaria.
 const { test, expect, PIN_GESTOR } = require('../apoio/teste');
+const { ANA, equipe } = require('../apoio/org');
 
 async function entrar(page){
   await page.goto('/novo/assistente');
@@ -126,4 +127,47 @@ test('aba Rotinas: cadastrar, procurar, editar e excluir', async ({ page, banco 
   await page.getByRole('button', { name: 'Confirmar exclusão da rotina Expedir alvará' }).click();
   await expect(page.locator('.ast-rot')).toHaveCount(0);
   expect(banco.org.ast_rotinas).toHaveLength(0);
+});
+
+test('anonimização: CPF e telefone saem do navegador como marcadores e voltam na resposta', async ({ page }) => {
+  const pedidos = await iaFalsa(page, [{ resposta: 'CERTIDÃO\n\nCertifico que a parte, CPF [CPF-1], foi intimada no telefone [TELEFONE-1].', propostas: [
+    { tipo: 'modelo', nome: 'Certidão de intimação por telefone', categoria: 'Certidões', texto: 'Intimei [CPF-1] pelo [TELEFONE-1].' }
+  ] }]);
+  await entrar(page);
+  await page.getByLabel('Sua pergunta ou pedido').fill('Certidão de intimação da parte CPF 123.456.789-09 pelo telefone (65) 99999-1234 no processo 0001226-43.2017.8.11.0008');
+  await page.getByRole('button', { name: 'Enviar' }).click();
+  await expect(page.locator('.ast-balao.ia')).toContainText('CPF 123.456.789-09, foi intimada no telefone (65) 99999-1234');
+  expect(pedidos[0].mensagem).toBe('Certidão de intimação da parte CPF [CPF-1] pelo telefone [TELEFONE-1] no processo 0001226-43.2017.8.11.0008');
+  await expect(page.locator('.ast-protegido')).toHaveText('Protegido antes de enviar à IA: 1 CPF e 1 telefone');
+  await expect(page.locator('.ast-proposta .ast-pre')).toHaveText('Intimei 123.456.789-09 pelo (65) 99999-1234.');
+});
+
+test('a rotina vira tarefa no Quadro da pessoa, uma por processo, com os passos no checklist', async ({ page, banco }) => {
+  equipe(banco);
+  banco.org.ast_rotinas.push({ id: 'r1', titulo: 'Após a decisão', assunto: 'INSS', quando: '', passos: ['Intimar a APS', 'Aguardar 30 dias'], observacoes: '', created_at: '', updated_at: '' });
+  await entrar(page);
+  await page.getByRole('tab', { name: /Rotinas de secretaria/ }).click();
+  await page.locator('.ast-rot summary').click();
+  await page.getByRole('button', { name: 'Mandar para a equipe' }).click();
+  await page.getByRole('button', { name: 'Mandar tarefa' }).click();
+  await expect(page.locator('dialog[open] .lock-msg')).toHaveText('Escolha para quem mandar.');
+  await page.getByLabel('Para', { exact: true }).selectOption({ label: 'Ana Souza' });
+  await page.getByLabel('Processos (um por linha)').fill('00012264320178110008\n0002000-10.2025.8.11.0008');
+  await page.getByLabel('Prazo').fill('2026-12-01');
+  await page.getByRole('button', { name: 'Mandar tarefa' }).click();
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
+  const tarefas = banco.org.tarefas.filter(t => t.dono === ANA);
+  expect(tarefas.map(t => t.processo)).toEqual(['0001226-43.2017.8.11.0008', '0002000-10.2025.8.11.0008']);
+  expect(tarefas[0]).toMatchObject({ titulo: 'INSS: Após a decisão', do_gestor: true, prazo: '2026-12-01',
+    checklist: [{ t: 'Intimar a APS', ok: false }, { t: 'Aguardar 30 dias', ok: false }] });
+});
+
+test('conversa de outra versão do Assistente recomeça sem o histórico antigo', async ({ page }) => {
+  const pedidos = await iaFalsa(page, [{ resposta: 'Oi.' }]);
+  await page.addInitScript(() => sessionStorage.setItem('astConversa', JSON.stringify({ baloes: [{ id: 1, papel: 'eu', texto: 'antiga' }], historico: [{ role: 'user', content: 'antiga' }], mapa: {}, versao: '1' })));
+  await entrar(page);
+  await page.getByLabel('Sua pergunta ou pedido').fill('Nova');
+  await page.getByRole('button', { name: 'Enviar' }).click();
+  await expect(page.locator('.ast-balao.ia .ast-texto')).toHaveText('Oi.');
+  expect(pedidos[0]).toMatchObject({ versao: '1', historico: [{ role: 'user', content: 'antiga' }] });   // o servidor decide
 });

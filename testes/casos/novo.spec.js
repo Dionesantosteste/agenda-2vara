@@ -16,7 +16,8 @@ test('o menu do sistema novo leva as seções migradas para o sistema novo e as 
   await expect(itens.nth(2)).toHaveAttribute('href', '/novo/pericias');
   await expect(itens.nth(3)).toHaveAttribute('href', '/novo/prazos');
   await expect(itens.nth(4)).toHaveAttribute('href', '/#organizacao');
-  await expect(itens.nth(5)).toHaveAttribute('href', '/arquivo');
+  await expect(itens.nth(5)).toHaveAttribute('href', '/novo/assistente');
+  await expect(itens.nth(6)).toHaveAttribute('href', '/arquivo');
   await expect(page.locator('#todayLong')).not.toBeEmpty();
 });
 

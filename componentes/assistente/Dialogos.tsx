@@ -1,7 +1,9 @@
 'use client';
 // Janelas de salvar: rotina de secretaria (ast_rotinas) e modelo de texto (a biblioteca da Organização)
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { passosDoTexto, type Rotina } from '@/lib/assistente';
+import { passosDoTexto, tarefasDaRotina, type Rotina } from '@/lib/assistente';
+import { formatarProcesso } from '@/lib/processo';
+import { pessoasAtivas, type Pessoa } from '@/componentes/audiencias/atribuir';
 import { useAviso } from '@/componentes/Avisos';
 import { useJanela } from '@/componentes/useJanela';
 import { chamar, problema } from './comum';
@@ -133,6 +135,80 @@ export function DialogoModelo({ rascunho, categorias, fechar }: { rascunho: Rasc
         <div className="sheet-actions">
           <button type="button" className="btn" onClick={fechar}>Cancelar</button>
           <button type="submit" className="btn primary" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar modelo'}</button>
+        </div>
+      </form>
+    </dialog>
+  );
+}
+
+// Mandar a rotina como tarefa para alguém da equipe: cai no Quadro da pessoa, com os passos como checklist
+export function DialogoMandar({ rotina, fechar }: { rotina: Rotina | null; fechar: () => void }){
+  const avisar = useAviso();
+  const { ref, cliqueFora, aoFechar } = useJanela(!!rotina, fechar);
+  const [pessoas, setPessoas] = useState<Pessoa[] | null>(null);
+  const [para, setPara] = useState('');
+  const [processos, setProcessos] = useState('');
+  const [prazo, setPrazo] = useState('');
+  const [prioridade, setPrioridade] = useState('normal');
+  const [erro, setErro] = useState('');
+  const [mandando, setMandando] = useState(false);
+  const paraRef = useRef<HTMLSelectElement>(null);
+
+  useEffect(() => {
+    if (!rotina) return;
+    setProcessos(''); setPrazo(''); setPrioridade('normal'); setErro('');
+    pessoasAtivas().then(ps => { setPessoas(ps); setPara(p => (ps.some(x => x.id === p) ? p : '')); setTimeout(() => paraRef.current?.focus(), 30); });
+  }, [rotina]);
+
+  async function mandar(e: FormEvent){
+    e.preventDefault();
+    if (!rotina) return;
+    if (!para){ setErro('Escolha para quem mandar.'); paraRef.current?.focus(); return; }
+    const { itens, checklist } = tarefasDaRotina(rotina, { para, processos: processos.split(/\r?\n/).map(formatarProcesso), prazo, prioridade });
+    setMandando(true);
+    const r = await chamar('org_mandar_lote', { p_pessoa: null, p_itens: itens, p_checklist: checklist, p_modelo: null });
+    setMandando(false);
+    if (r.status !== 'ok'){ setErro(problema(r)); return; }
+    const nome = pessoas?.find(p => p.id === para)?.nome || '';
+    avisar((itens.length === 1 ? 'Tarefa mandada' : itens.length + ' tarefas mandadas') + ' para ' + nome);
+    fechar();
+  }
+
+  return (
+    <dialog ref={ref} onClick={cliqueFora} onClose={aoFechar} aria-labelledby="astMandarTitulo">
+      <form className="sheet" onSubmit={mandar} noValidate>
+        <h2 id="astMandarTitulo">Mandar para a equipe</h2>
+        <p className="field-hint" style={{ margin: '-6px 0 0' }}>
+          Vira tarefa no Quadro da pessoa, com os {rotina?.passos.length || 0} passos da rotina “{rotina?.titulo}” como checklist.
+        </p>
+        <div className="field">
+          <label htmlFor="astMandarPara">Para</label>
+          <select id="astMandarPara" ref={paraRef} value={para} onChange={e => { setPara(e.target.value); setErro(''); }}>
+            <option value="">{pessoas === null ? 'Carregando…' : pessoas.length ? 'Escolha a pessoa' : 'Ninguém cadastrado na Organização'}</option>
+            {(pessoas || []).map(p => <option key={p.id} value={p.id}>{p.nome}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="astMandarProc">Processos (um por linha)</label>
+          <textarea id="astMandarProc" rows={4} value={processos} onChange={e => setProcessos(e.target.value)} />
+          <span className="field-hint">Uma tarefa para cada processo. Deixe vazio para mandar uma tarefa só, sem processo.</span>
+        </div>
+        <div className="field-row">
+          <div className="field">
+            <label htmlFor="astMandarPrazo">Prazo</label>
+            <input id="astMandarPrazo" type="date" value={prazo} onChange={e => setPrazo(e.target.value)} />
+          </div>
+          <div className="field">
+            <label htmlFor="astMandarPrio">Prioridade</label>
+            <select id="astMandarPrio" value={prioridade} onChange={e => setPrioridade(e.target.value)}>
+              <option value="baixa">Baixa</option><option value="normal">Normal</option><option value="alta">Alta</option><option value="urgente">Urgente</option>
+            </select>
+          </div>
+        </div>
+        <div className="lock-msg" role="alert">{erro}</div>
+        <div className="sheet-actions">
+          <button type="button" className="btn" onClick={fechar}>Cancelar</button>
+          <button type="submit" className="btn primary" disabled={mandando}>{mandando ? 'Mandando…' : 'Mandar tarefa'}</button>
         </div>
       </form>
     </dialog>

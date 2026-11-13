@@ -86,3 +86,14 @@ export function lerPropostaModelo(v: unknown): PropostaModelo | null {
 export function passosDoTexto(s: string): string[] {
   return s.split(/\r?\n/).map(l => l.replace(/^\s*(?:\d+[.)-]|[-*•])\s*/, '').trim()).filter(Boolean);
 }
+
+// Rotina → tarefas para alguém da equipe (org_mandar_lote): uma tarefa por processo, com os
+// passos da rotina como checklist. Sem processo, manda uma tarefa só.
+export type ItemTarefa = { titulo: string; para: string; prazo: string; prioridade: string; processo: string };
+export function tarefasDaRotina(r: Pick<Rotina, 'titulo' | 'assunto' | 'passos'>, o: { para: string; processos: string[]; prazo: string; prioridade: string }):
+  { itens: ItemTarefa[]; checklist: { t: string; ok: boolean }[] } {
+  const titulo = ((r.assunto ? r.assunto + ': ' : '') + r.titulo).slice(0, 160);
+  const processos = [...new Set(o.processos.map(p => p.trim()).filter(Boolean))].slice(0, 100);
+  const itens = (processos.length ? processos : ['']).map(processo => ({ titulo, para: o.para, prazo: o.prazo, prioridade: o.prioridade, processo }));
+  return { itens, checklist: (r.passos || []).map(t => ({ t, ok: false })) };
+}

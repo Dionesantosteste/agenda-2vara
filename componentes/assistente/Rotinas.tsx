@@ -6,7 +6,7 @@ import { useAviso } from '@/componentes/Avisos';
 import { chamar, copiar, problema } from './comum';
 import type { RascunhoRotina } from './Dialogos';
 
-function Cartao({ r, editar, excluida }: { r: Rotina; editar: (r: RascunhoRotina) => void; excluida: () => void }){
+function Cartao({ r, editar, mandar, excluida }: { r: Rotina; editar: (r: RascunhoRotina) => void; mandar: (r: Rotina) => void; excluida: () => void }){
   const avisar = useAviso();
   const [armado, setArmado] = useState(false);
   async function excluir(){
@@ -26,6 +26,7 @@ function Cartao({ r, editar, excluida }: { r: Rotina; editar: (r: RascunhoRotina
       {r.observacoes && <p className="ast-rot-obs">{r.observacoes}</p>}
       <div className="ast-acoes">
         <button type="button" className="btn sm" onClick={async () => avisar(await copiar(rotinaEmTexto(r)) ? 'Rotina copiada' : 'Não foi possível copiar')}>Copiar</button>
+        <button type="button" className="btn sm" onClick={() => mandar(r)}>Mandar para a equipe</button>
         <button type="button" className="btn sm" onClick={() => editar({ ...r })}>Editar</button>
         <button type="button" className={'btn sm danger-text' + (armado ? ' armed' : '')} onClick={excluir}
           aria-label={armado ? 'Confirmar exclusão da rotina ' + r.titulo : 'Excluir a rotina ' + r.titulo}>{armado ? 'Excluir mesmo?' : 'Excluir'}</button>
@@ -34,8 +35,8 @@ function Cartao({ r, editar, excluida }: { r: Rotina; editar: (r: RascunhoRotina
   );
 }
 
-export function AbaRotinas({ rotinas, carregando, editar, recarregar }: {
-  rotinas: Rotina[]; carregando: boolean; editar: (r: RascunhoRotina) => void; recarregar: () => void;
+export function AbaRotinas({ rotinas, carregando, editar, mandar, recarregar }: {
+  rotinas: Rotina[]; carregando: boolean; editar: (r: RascunhoRotina) => void; mandar: (r: Rotina) => void; recarregar: () => void;
 }){
   const [busca, setBusca] = useState('');
   const lista = busca.trim() ? buscarRotinas(rotinas, busca, 200) : rotinas;
@@ -69,7 +70,7 @@ export function AbaRotinas({ rotinas, carregando, editar, recarregar }: {
         : [...grupos.entries()].map(([g, rs]) => (
           <section key={g} className="ast-grupo" aria-label={g}>
             <h3>{g}</h3>
-            {rs.map(r => <Cartao key={r.id} r={r} editar={editar} excluida={recarregar} />)}
+            {rs.map(r => <Cartao key={r.id} r={r} editar={editar} mandar={mandar} excluida={recarregar} />)}
           </section>
         ))}
     </div>

@@ -90,5 +90,6 @@ a.apar-btn{ text-decoration:none; }
 .ast-rot .ast-acoes{ margin:0 0 12px; }
 .ast-vazio{ color:var(--muted); font-size:14px; }
 .ast-vazio p{ margin:0 0 8px; }
-dialog:has(#astRotTitulo), dialog:has(#astModTitulo){ width:min(640px, calc(100vw - 32px)); }
+dialog:has(#astRotTitulo), dialog:has(#astModTitulo), dialog:has(#astMandarTitulo){ width:min(640px, calc(100vw - 32px)); }
 @media (max-width:600px){ .field-row{ grid-template-columns:minmax(0,1fr); } .ast-envio-btns{ width:100%; } .ast-envio-btns .btn{ flex:1; } }
+.ast-protegido{ margin-top:6px; font-size:12px; color:var(--muted); }

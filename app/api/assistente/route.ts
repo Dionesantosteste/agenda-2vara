@@ -13,6 +13,8 @@ import {
   buscarModelos, buscarRotinas, lerPropostaModelo, lerPropostaRotina, rotinaEmTexto,
   type ModeloTexto, type Proposta, type Rotina
 } from '@/lib/assistente';
+import { atosEmTexto, buscarAtos, calcularPrazoIA, type EntradaPrazo } from '@/lib/assistente-prazos';
+import { Calendario, configDasLinhas, configPadrao } from '@/lib/prazos/calendario';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120;
@@ -24,6 +26,9 @@ const MODELO = process.env.ASSISTENTE_MODELO || 'claude-sonnet-5-5';
 const COM_RESERVA = /^claude-(sonnet-5-5|opus-5|opus-5-5|fable-5)/;
 const MAX_VOLTAS = 8;              // idas e vindas com ferramentas por pergunta
 const MAX_HISTORICO = 600_000;     // tamanho máximo da conversa guardada (caracteres)
+// Muda quando as instruções ou as ferramentas mudam: a conversa antiga (guardada na aba) recomeça,
+// porque a IA não aceita continuar uma conversa feita com outras instruções.
+const VERSAO = '2';
 
 // Fica sempre igual (sem data nem dados que mudam), para o cache da Anthropic funcionar
 const SISTEMA = `Você é o Assistente da secretaria da 2ª Vara, usado pelo gestor (chefe de secretaria).
@@ -34,7 +39,9 @@ O que você faz:
    Antes de responder sobre rotina, use a ferramenta buscar_rotinas. Se houver rotina cadastrada, siga-a e diga que veio do cadastro da vara.
    Se não houver, responda com base no CPC e na prática forense, deixe claro que é uma sugestão geral (não é a rotina cadastrada) e ofereça salvá-la.
 2. Explicar movimentação processual (atos ordinatórios, intimações, prazos, conclusão, arquivamento etc.), citando o dispositivo legal quando souber.
-   Para contagem exata de prazo, lembre que o portal tem a seção Prazos, que considera os feriados da vara.
+   Prazos: para saber o prazo de um ato, use buscar_prazo_tabela (a Tabela de prazos da vara). Para dizer a data de vencimento,
+   use SEMPRE calcular_prazo, que conta com o calendário da vara (feriados, suspensões e recesso). Nunca conte dias de cabeça.
+   Se faltar a data ou a forma da intimação, pergunte antes de calcular. Mostre o passo a passo que a ferramenta devolver.
 3. Redigir certidões, atos ordinatórios, despachos-padrão, ofícios e outros textos de secretaria.
    Antes de redigir, use buscar_modelos_texto para ver se a vara já tem um modelo parecido e siga o estilo dele.
    Escreva em linguagem formal de secretaria judicial, sem inventar fatos: o que você não souber (nº do processo, nomes, datas, ID de documentos), deixe como campo entre chaves duplas, por exemplo {{processo}}, {{autor}}, {{reu}}, {{data}}, {{id_documento}}.
@@ -47,6 +54,9 @@ O que você faz:
 Cuidados:
 - Nunca invente número de processo, nome de parte, data, valor, artigo de lei ou jurisprudência. Se não tiver certeza de um dispositivo legal, diga que é preciso conferir.
 - Evite repetir CPF, endereço ou dados de saúde que não sejam necessários ao texto pedido.
+- Os dados pessoais chegam trocados por marcadores como [CPF-1], [CNPJ-1], [NB-1], [EMAIL-1], [TELEFONE-1], [CEP-1] e [NUMERO-1]
+  (anonimização da Resolução CNJ 615/2025). Use os marcadores exatamente como vieram, no lugar do dado; a tela do gestor
+  troca de volta pelo valor real. Não tente adivinhar o valor nem comente a troca.
 - Textos para o processo saem prontos para copiar, sem comentários no meio; observações vão depois do texto, separadas.
 - Seja breve nas explicações; use listas numeradas para passo a passo.`;
 
@@ -68,6 +78,31 @@ const FERRAMENTAS: Anthropic.Beta.BetaTool[] = [
     description: 'Lê o texto completo de um modelo da biblioteca, pelo id devolvido em buscar_modelos_texto.',
     strict: true,
     input_schema: { type: 'object', properties: { id: { type: 'string' } }, required: ['id'], additionalProperties: false }
+  },
+  {
+    name: 'buscar_prazo_tabela',
+    description: 'Busca na Tabela de prazos da vara (CPC, ECA...) o prazo de um ato: quantidade, unidade, artigo, de quando conta e o id para calcular_prazo. Ex.: "réplica", "apelação", "embargos de declaração".',
+    strict: true,
+    input_schema: { type: 'object', properties: { termo: { type: 'string', description: 'Nome do ato ou palavras-chave' } }, required: ['termo'], additionalProperties: false }
+  },
+  {
+    name: 'calcular_prazo',
+    description: 'Calcula o vencimento de um prazo com o calendário da vara (feriados, suspensões e recesso), igual à seção Prazos. Informe ato_id (da Tabela de prazos) OU dias e unidade. Campos que não se aplicam: texto vazio ou 0.',
+    strict: true,
+    input_schema: {
+      type: 'object',
+      properties: {
+        ato_id: { type: 'string', description: 'id do ato devolvido por buscar_prazo_tabela, ou vazio' },
+        dias: { type: 'integer', description: 'Quantidade, quando não há ato_id (ex.: prazo fixado pelo juiz); senão 0' },
+        unidade: { type: 'string', enum: ['uteis', 'corridos', 'meses', 'anos', ''], description: 'Quando não há ato_id' },
+        forma: { type: 'string', enum: ['djen', 'pje', 'dom', 'juntada', 'ciencia'], description: 'djen = publicação no DJEN/Diário; pje = intimação eletrônica no sistema; dom = Domicílio Judicial Eletrônico; juntada = AR ou mandado juntado; ciencia = intimação em audiência, carga ou comparecimento' },
+        data: { type: 'string', description: 'AAAA-MM-DD: disponibilização (djen), envio (pje), confirmação (dom), juntada ou ciência. Se o ato conta para trás, a data da audiência' },
+        data_leitura: { type: 'string', description: 'AAAA-MM-DD da leitura da intimação no PJe, se lida antes dos 10 dias; senão vazio' },
+        dobro: { type: 'string', enum: ['', 'faz', 'mp', 'dp', 'lit'], description: 'Prazo em dobro: faz = Fazenda Pública/INSS, mp = Ministério Público, dp = Defensoria, lit = litisconsortes com advogados diferentes (só processo físico); vazio = não' }
+      },
+      required: ['ato_id', 'dias', 'unidade', 'forma', 'data', 'data_leitura', 'dobro'],
+      additionalProperties: false
+    }
   },
   {
     name: 'propor_rotina',
@@ -103,7 +138,7 @@ const FERRAMENTAS: Anthropic.Beta.BetaTool[] = [
   }
 ];
 
-type Dados = { rotinas: Rotina[]; modelos: ModeloTexto[]; cidade: string };
+type Dados = { rotinas: Rotina[]; modelos: ModeloTexto[]; cidade: string; cal: Calendario; calAviso: string };
 
 function resposta(msg: string, status: number){ return NextResponse.json({ erro: msg }, { status }); }
 
@@ -124,6 +159,10 @@ function executar(nome: string, entrada: Record<string, unknown>, dados: Dados, 
       const m = dados.modelos.find(x => x.id === entrada.id);
       return m ? { texto: m.nome + ' (' + m.categoria + ')\n\n' + m.texto } : { texto: 'Modelo não encontrado.', erro: true };
     }
+    case 'buscar_prazo_tabela':
+      return { texto: atosEmTexto(buscarAtos(termo)) };
+    case 'calcular_prazo':
+      return { texto: calcularPrazoIA(entrada as unknown as EntradaPrazo, dados.cal) + dados.calAviso };
     case 'propor_rotina': {
       const p = lerPropostaRotina(entrada);
       if (!p) return { texto: 'Faltou o título ou os passos da rotina.', erro: true };
@@ -146,10 +185,11 @@ export async function POST(req: Request){
   if (!token) return resposta('Entre no sistema para continuar.', 401);
   if (!process.env.ANTHROPIC_API_KEY) return resposta('O servidor ainda não tem a chave da IA (ANTHROPIC_API_KEY). Veja o LEIA-ME, passo "Assistente".', 500);
 
-  const corpo = await req.json().catch(() => null) as { pin?: unknown; historico?: unknown; mensagem?: unknown } | null;
+  const corpo = await req.json().catch(() => null) as { pin?: unknown; historico?: unknown; mensagem?: unknown; versao?: unknown } | null;
   const pin = typeof corpo?.pin === 'string' ? corpo.pin : '';
   const mensagem = typeof corpo?.mensagem === 'string' ? corpo.mensagem.trim().slice(0, 20000) : '';
-  const historico = Array.isArray(corpo?.historico) ? corpo!.historico as Anthropic.Beta.BetaMessageParam[] : [];
+  // conversa de outra versão das instruções recomeça (veja VERSAO)
+  const historico = Array.isArray(corpo?.historico) && corpo?.versao === VERSAO ? corpo.historico as Anthropic.Beta.BetaMessageParam[] : [];
   if (!mensagem) return resposta('Escreva a sua pergunta.', 400);
   if (JSON.stringify(historico).length > MAX_HISTORICO) return resposta('A conversa ficou muito longa. Clique em "Nova conversa" para continuar.', 413);
 
@@ -167,7 +207,13 @@ export async function POST(req: Request){
   }
   const r = res.data as { status: string; rotinas?: Rotina[]; modelos?: ModeloTexto[]; cidade?: string };
   if (r.status !== 'ok') return NextResponse.json({ erro: mensagemDoStatus(r.status, false) || 'Entre de novo como gestor.', senha: true }, { status: 403 });
-  const dados: Dados = { rotinas: r.rotinas || [], modelos: r.modelos || [], cidade: r.cidade || '' };
+  // calendário da vara, o mesmo da seção Prazos; sem a tabela, usa o padrão e avisa
+  const linhasCal = await banco.from('prazos_config').select('chave, valor');
+  const dados: Dados = {
+    rotinas: r.rotinas || [], modelos: r.modelos || [], cidade: r.cidade || '',
+    cal: new Calendario(linhasCal.error ? configPadrao() : configDasLinhas(linhasCal.data || [])),
+    calAviso: linhasCal.error ? '\nAtenção: não consegui ler o calendário da vara; usei só os feriados nacionais. Confira na seção Prazos.' : ''
+  };
 
   // A data e a cidade vão na mensagem (não nas instruções), para não quebrar o cache
   const contexto = '[Hoje: ' + diaDaVara().split('-').reverse().join('/') + (dados.cidade ? '. Cidade dos documentos: ' + dados.cidade : '') + ']\n\n';
@@ -193,7 +239,7 @@ export async function POST(req: Request){
 
       if (msg.stop_reason === 'refusal'){
         // a conversa recusada não é guardada: o gestor reformula e segue
-        return NextResponse.json({ historico, resposta: 'Não consegui atender a este pedido. Tente reformular, sem dados pessoais desnecessários.', propostas: [] });
+        return NextResponse.json({ versao: VERSAO, historico, resposta: 'Não consegui atender a este pedido. Tente reformular, sem dados pessoais desnecessários.', propostas: [] });
       }
       if (msg.stop_reason === 'pause_turn') continue;
       if (msg.stop_reason !== 'tool_use') break;
@@ -224,5 +270,5 @@ export async function POST(req: Request){
     .flatMap(m => typeof m.content === 'string' ? [m.content] : m.content.flatMap(b => (b.type === 'text' && b.text.trim() ? [b.text.trim()] : [])))
     .join('\n\n');
 
-  return NextResponse.json({ historico: mensagens, resposta: texto || 'Pronto.', propostas });
+  return NextResponse.json({ versao: VERSAO, historico: mensagens, resposta: texto || 'Pronto.', propostas });
 }
