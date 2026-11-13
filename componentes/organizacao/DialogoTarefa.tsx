@@ -10,6 +10,7 @@ import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useJanela } from '@/componentes/useJanela';
 import type { Banco } from './Organizacao';
 import { BarraFormato, TextoNota, atalhoDeFormato } from './FormatoNota';
+import { focarDepois } from '@/componentes/foco';
 
 const dois = (n: number) => (n < 10 ? '0' : '') + n;
 const CONFORMIDADE: Record<string, string> = { sim: 'Sim', parcialmente: 'Parcialmente', nao: 'Não' };
@@ -64,14 +65,7 @@ function FormTarefa({ tarefa: t, dados, setDados, pessoa, banco, confereDup, abr
   const [gravando, setGravando] = useState(false);
   const [edNota, setEdNota] = useState<{ id: string; txt: string } | null>(null);   // anotação em edição
   // leva ao título, mas não tira a pessoa de um campo em que ela já clicou (senão o texto cai no título)
-  useEffect(() => {
-    const t = setTimeout(() => {
-      const ativo = document.activeElement as HTMLElement | null;
-      if (ativo && ativo.id !== 'ocTitulo' && ativo.closest('#orgCardDialog') && /^(INPUT|TEXTAREA|SELECT)$/.test(ativo.tagName)) return;
-      document.getElementById('ocTitulo')?.focus();
-    }, 30);
-    return () => clearTimeout(t);
-  }, []);
+  useEffect(() => { focarDepois(() => document.getElementById('ocTitulo')); }, []);
 
   const mudarTarefa = (tid: string, patch: Partial<Tarefa>) => setDados(d => d && { ...d, tarefas: d.tarefas.map(x => (x.id === tid ? { ...x, ...patch } : x)) });
   const resps = t && t.responsavel && !RESPS.includes(t.responsavel) ? [...RESPS, t.responsavel] : RESPS;

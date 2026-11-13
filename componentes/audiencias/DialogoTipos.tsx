@@ -6,6 +6,7 @@ import { normalizar } from '@/lib/agenda';
 import { supabase } from '@/lib/supabase';
 import { useAviso } from '@/componentes/Avisos';
 import { useJanela } from '@/componentes/useJanela';
+import { focarDepois } from '@/componentes/foco';
 
 export type Tipo = { id: string; nome: string };
 const limpa = (s: string) => s.trim().replace(/\s+/g, ' ');
@@ -52,7 +53,7 @@ export function DialogoTipos({ aberto, fechar, tipos, erro, usadas, recarregar, 
   const { ref, cliqueFora, aoFechar } = useJanela(aberto, fechar);
   const [novo, setNovo] = useState('');
   const novoRef = useRef<HTMLInputElement>(null);
-  useEffect(() => { if (!aberto) return; setNovo(''); setTimeout(() => novoRef.current?.focus(), 30); }, [aberto]);
+  useEffect(() => { if (!aberto) return; setNovo(''); focarDepois(() => novoRef.current); }, [aberto]);
 
   async function adicionar(){
     let nome = limpa(novo);

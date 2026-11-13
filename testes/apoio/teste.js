@@ -20,7 +20,11 @@ const test = base.test.extend({
   banco: async ({}, use) => { await use(new SupabaseFalso()); },
   page: async ({ page, banco, semSessao }, use) => {
     const erros = [];
-    if (!semSessao) await page.addInitScript(([chave, valor]) => { try { localStorage.setItem(chave, valor); } catch (e) {} }, [CHAVE_SESSAO, JSON.stringify(sessaoFalsa())]);
+    // só na primeira página do teste: depois do "Sair" a sessão não pode voltar sozinha
+    // (antes ela era recolocada a cada página, e a tela de entrada achava o login de novo)
+    if (!semSessao) await page.addInitScript(([chave, valor]) => {
+      try { if (!sessionStorage.getItem('__sessaoTeste')){ sessionStorage.setItem('__sessaoTeste', '1'); localStorage.setItem(chave, valor); } } catch (e) {}
+    }, [CHAVE_SESSAO, JSON.stringify(sessaoFalsa())]);
     page.on('pageerror', e => erros.push(e.message));
     await page.route('**/*', async route => {
       const u = new URL(route.request().url());

@@ -533,8 +533,12 @@ Dia a dia:
 
 ## Passo 2.8 — Assistente do gestor (IA)
 
-Seção **Assistente** no menu (`/novo/assistente`), só para o gestor (pede a mesma senha de 6 dígitos da
-Organização). Serve para:
+Botão flutuante **Assistente** no canto de baixo da tela, que acompanha o gestor **em todas as telas** do
+portal (Agenda, Audiências, Perícias, Prazos, Organização e Arquivo; sistema atual e sistema novo). Aparece
+depois que o gestor entra na **Organização** com a senha; a equipe não vê. Ele abre um painel do lado direito,
+por cima da tela, sem pedir a senha de novo: dá para consultar e continuar trabalhando. Trocar de tela não
+perde a conversa (se o painel estava aberto, ele reabre sozinho). Fecha no **×** ou com **Esc**. Ao **Trancar** a Organização, o botão e o painel
+somem e a conversa é descartada. (O painel sozinho fica em `/assistente-painel`.) Serve para:
 
 - **Pesquisar a rotina da secretaria** ("qual a rotina de processo de INSS depois da decisão?"). A IA consulta
   primeiro as rotinas cadastradas pela vara; se não houver, responde com base no CPC e avisa que é sugestão geral.

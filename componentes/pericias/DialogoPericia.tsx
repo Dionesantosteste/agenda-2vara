@@ -8,6 +8,7 @@ import { useAviso } from '@/componentes/Avisos';
 import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useJanela } from '@/componentes/useJanela';
 import { SelectEspecialidade, SelectPerito } from './SelectPerito';
+import { focarDepois } from '@/componentes/foco';
 
 export type Edicao = { base: Pericia; antes: Pericia } | null;
 
@@ -30,7 +31,7 @@ export function DialogoPericia({ edicao, itens, nomes, peritos, util, fechar, sa
       real: p.realizadaEm ? chaveDoDia(p.realizadaEm) : '', laudo: p.laudoEm ? chaveDoDia(p.laudoEm) : '', obs: p.observacoes });
     setArmado(false);
     confirmouDup.current = false;
-    setTimeout(() => document.getElementById(marcada(p.status) && !p.data ? 'peData' : 'peProcesso')?.focus(), 30);
+    focarDepois(() => document.getElementById(marcada(p.status) && !p.data ? 'peData' : 'peProcesso'));
   }, [edicao]);
 
   const real = v.real ? dataLocal(v.real) : null;

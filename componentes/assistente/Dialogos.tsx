@@ -7,6 +7,7 @@ import { pessoasAtivas, type Pessoa } from '@/componentes/audiencias/atribuir';
 import { useAviso } from '@/componentes/Avisos';
 import { useJanela } from '@/componentes/useJanela';
 import { chamar, problema } from './comum';
+import { focarDepois } from '@/componentes/foco';
 
 export type RascunhoRotina = Omit<Rotina, 'id'> & { id: string | null };
 export type RascunhoModelo = { nome: string; categoria: string; texto: string };
@@ -28,7 +29,7 @@ export function DialogoRotina({ rascunho, fechar, salvo }: { rascunho: RascunhoR
     if (!rascunho) return;
     setTitulo(rascunho.titulo); setAssunto(rascunho.assunto); setQuando(rascunho.quando);
     setPassos(rascunho.passos.map((p, i) => (i + 1) + '. ' + p).join('\n')); setObs(rascunho.observacoes); setErro('');
-    setTimeout(() => tituloRef.current?.focus(), 30);
+    focarDepois(() => tituloRef.current);
   }, [rascunho]);
 
   async function salvar(e: FormEvent){
@@ -96,7 +97,7 @@ export function DialogoModelo({ rascunho, categorias, fechar }: { rascunho: Rasc
   useEffect(() => {
     if (!rascunho) return;
     setNome(rascunho.nome); setCategoria(rascunho.categoria); setTexto(rascunho.texto); setErro('');
-    setTimeout(() => nomeRef.current?.focus(), 30);
+    focarDepois(() => nomeRef.current);
   }, [rascunho]);
 
   async function salvar(e: FormEvent){
@@ -157,7 +158,7 @@ export function DialogoMandar({ rotina, fechar }: { rotina: Rotina | null; fecha
   useEffect(() => {
     if (!rotina) return;
     setProcessos(''); setPrazo(''); setPrioridade('normal'); setErro('');
-    pessoasAtivas().then(ps => { setPessoas(ps); setPara(p => (ps.some(x => x.id === p) ? p : '')); setTimeout(() => paraRef.current?.focus(), 30); });
+    pessoasAtivas().then(ps => { setPessoas(ps); setPara(p => (ps.some(x => x.id === p) ? p : '')); focarDepois(() => paraRef.current); });
   }, [rotina]);
 
   async function mandar(e: FormEvent){

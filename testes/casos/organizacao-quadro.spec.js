@@ -118,11 +118,13 @@ for (const v of VERSOES){
         await pessoa(page);
         await cartao(page, 'Certificar decurso de prazo').locator('[data-act="mover"][data-dir="1"]').click();
         await expect(coluna(page, 'feito')).toContainText('Certificar decurso de prazo');
+        // o cartão muda de coluna antes de o banco responder: espera a gravação
+        await expect.poll(() => tarefa(banco, 'Certificar decurso de prazo').etapa).toBe('feito');
         const t = tarefa(banco, 'Certificar decurso de prazo');
-        expect(t.etapa).toBe('feito');
         expect(t.feita_em && t.feita_em.length).toBeTruthy();
         await cartao(page, 'Certificar decurso de prazo').locator('[data-act="mover"][data-dir="-1"]').click();
         await expect(coluna(page, 'afazer')).toContainText('Certificar decurso de prazo');
+        await expect.poll(() => tarefa(banco, 'Certificar decurso de prazo').etapa).toBe('afazer');
         expect(tarefa(banco, 'Certificar decurso de prazo')).toMatchObject({ etapa: 'afazer', feita_em: null });
       });
 
