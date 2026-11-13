@@ -46,12 +46,12 @@ export function BotaoAssistente(){
     <>
       <button type="button" className="ast-fab" id="astFab" aria-expanded={aberto} aria-controls="astGaveta" title="Assistente (IA)"
         hidden={aberto} onClick={() => mudar(true)}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" /><path d="M9 9h6M9 12h4" /></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path className="ast-brilho" d="M10 3l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7z" /><path className="ast-brilho-p" d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" /></svg>
         <span>Assistente</span>
       </button>
       <aside className="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden={!aberto}>
         <div className="ast-gaveta-topo">
-          <strong>Assistente</strong>
+          <strong><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7z" /><path d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z" /></svg><span>Assistente</span></strong>
           <button type="button" className="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente" onClick={() => mudar(false)}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>

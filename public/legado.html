@@ -1749,20 +1749,46 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     .card{ grid-template-columns: 38px 1fr; }
     .badge{ display:none; }
   }
-  /* Assistente: botão flutuante e painel lateral na tela do gestor (Organização) */
+  /* Assistente: botão flutuante e painel lateral do gestor, com as cores de IA (violeta → índigo → azul).
+     O degradê fica só no que é do Assistente; o texto branco tem contraste de 5:1 ou mais nas três cores. */
+  :root{ --ia-1:#7c3aed; --ia-2:#4f46e5; --ia-3:#2563eb; --ia-brilho:#22d3ee;
+    --ia-grad:linear-gradient(135deg, var(--ia-1) 0%, var(--ia-2) 50%, var(--ia-3) 100%); --ia-suave:rgba(124,58,237,.10); }
+  :root{ --ia-texto:linear-gradient(90deg, #6d28d9, #4f46e5 55%, #1d4ed8); --ia-cor:#6d28d9; }
+  /* no escuro, o texto em degradê fica mais claro para ter contraste */
+  :root[data-theme="dark"]{ --ia-suave:rgba(167,139,250,.16); --ia-texto:linear-gradient(90deg, #c4b5fd, #a5b4fc 55%, #93c5fd); --ia-cor:#c4b5fd; }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme]){ --ia-suave:rgba(167,139,250,.16); --ia-texto:linear-gradient(90deg, #c4b5fd, #a5b4fc 55%, #93c5fd); --ia-cor:#c4b5fd; } }
   .ast-fab{ position:fixed; right:20px; bottom:calc(20px + env(safe-area-inset-bottom, 0px)); z-index:40; display:inline-flex; align-items:center; gap:8px;
-    height:48px; padding:0 18px 0 14px; border-radius:24px; border:0; background:var(--accent); color:var(--accent-ink); font:600 14px var(--font-ui);
-    box-shadow:0 6px 18px rgba(0,0,0,.18); cursor:pointer; }
+    height:48px; padding:0 18px 0 14px; border-radius:24px; border:0; color:#fff; font:600 14px var(--font-ui); cursor:pointer;
+    background:linear-gradient(120deg, var(--ia-1), var(--ia-2), var(--ia-3), var(--ia-2), var(--ia-1)); background-size:300% 100%;
+    box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 1px rgba(255,255,255,.12) inset;
+    animation:ast-entra .32s cubic-bezier(.2,.8,.2,1) both, ast-onda 8s ease-in-out infinite, ast-halo 2.4s ease-out .4s 2; }
   .ast-fab[hidden]{ display:none; }
-  .ast-fab:hover{ filter:brightness(1.06); }
-  .ast-fab:focus-visible{ outline:2px solid var(--focus); outline-offset:3px; }
+  .ast-fab:hover{ box-shadow:0 8px 26px rgba(124,58,237,.45), 0 0 0 1px rgba(255,255,255,.18) inset; transform:translateY(-1px); }
+  .ast-fab:active{ transform:translateY(0) scale(.98); }
+  .ast-fab{ transition:transform .15s ease, box-shadow .2s ease; }
+  .ast-fab:focus-visible{ outline:2px solid var(--ia-1); outline-offset:3px; }
+  .ast-fab .ast-brilho{ transform-origin:center; transform-box:fill-box; }
+  .ast-fab:hover .ast-brilho, .ast-fab:focus-visible .ast-brilho{ animation:ast-cintila .6s ease-in-out; }
+  .ast-fab .ast-brilho-p{ animation:ast-pisca 2.8s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
   .ast-gaveta{ position:fixed; top:0; right:0; bottom:0; z-index:45; width:min(460px, 100vw); display:flex; flex-direction:column;
-    background:var(--paper); border-left:1px solid var(--line); box-shadow:-8px 0 24px rgba(0,0,0,.14); }
+    background:var(--paper); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(49,46,129,.18);
+    animation:ast-desliza .26s cubic-bezier(.2,.8,.2,1) both; }
   .ast-gaveta[hidden]{ display:none; }
+  .ast-gaveta::before{ content:""; height:3px; flex:none; background:linear-gradient(90deg, var(--ia-1), var(--ia-2), var(--ia-3), var(--ia-brilho), var(--ia-1));
+    background-size:200% 100%; animation:ast-onda 6s linear infinite; }
   .ast-gaveta-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); }
-  .ast-gaveta-topo strong{ font:600 15px var(--font-ui); }
+  .ast-gaveta-topo strong{ display:inline-flex; align-items:center; gap:8px; font:600 15px var(--font-ui); }
+  .ast-gaveta-topo strong span{ background:var(--ia-texto); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .ast-gaveta-topo strong svg{ color:var(--ia-cor); }
   .ast-gaveta-quadro{ flex:1; width:100%; border:0; background:var(--bg); }
+  @keyframes ast-entra{ from{ opacity:0; transform:translateY(12px) scale(.9); } to{ opacity:1; transform:none; } }
+  @keyframes ast-onda{ 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
+  @keyframes ast-halo{ 0%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 0 rgba(124,58,237,.45); } 100%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 14px rgba(124,58,237,0); } }
+  @keyframes ast-desliza{ from{ opacity:0; transform:translateX(28px); } to{ opacity:1; transform:none; } }
+  @keyframes ast-cintila{ 0%,100%{ transform:rotate(0) scale(1); } 50%{ transform:rotate(18deg) scale(1.15); } }
+  @keyframes ast-pisca{ 0%,70%,100%{ opacity:1; transform:scale(1); } 80%{ opacity:.25; transform:scale(.6); } }
   @media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
+  @media (prefers-reduced-motion: reduce){ .ast-fab, .ast-fab .ast-brilho, .ast-fab .ast-brilho-p, .ast-gaveta, .ast-gaveta::before{ animation:none !important; } .ast-fab, .ast-fab:hover{ transform:none; transition:none; } }
   @media print{ .ast-fab, .ast-gaveta{ display:none !important; } }
 </style>
 </head>
@@ -3266,12 +3292,12 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
 
     <!-- Assistente (IA): botão flutuante e painel lateral do gestor, em todas as seções (o painel carrega /assistente-painel) -->
     <button type="button" class="ast-fab" id="astFab" aria-expanded="false" aria-controls="astGaveta" title="Assistente (IA)" hidden>
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"/><path d="M9 9h6M9 12h4"/></svg>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path class="ast-brilho" d="M10 3l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7z"/><path class="ast-brilho-p" d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>
       <span>Assistente</span>
     </button>
     <aside class="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden>
       <div class="ast-gaveta-topo">
-        <strong>Assistente</strong>
+        <strong><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7z"/><path d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg><span>Assistente</span></strong>
         <button type="button" class="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>

@@ -187,7 +187,12 @@ function Corpo({ embutido }: { embutido: boolean }){
               ))}
             </div>
           ))}
-          {pensando && <div className="ast-balao ia ast-pensando" role="status">Pensando…</div>}
+          {pensando && (
+            <div className="ast-balao ia ast-pensando" role="status">
+              <span className="ast-pontos" aria-hidden="true"><i /><i /><i /></span>
+              <span className="ast-pensando-txt">Pensando…</span>
+            </div>
+          )}
           <div ref={fimRef} />
         </div>
 
@@ -196,7 +201,10 @@ function Corpo({ embutido }: { embutido: boolean }){
           <textarea id="astPergunta" ref={perguntaRef} rows={3} value={pergunta} onChange={e => setPergunta(e.target.value)} onKeyDown={aoDigitar}
             placeholder="Ex.: escreva uma certidão de intimação do INSS para implantar o benefício" />
           <div className="ast-envio-pe">
-            <span className="field-hint">O que você escrever vai para a IA (Anthropic). CPF, CNPJ, nº de benefício, e-mail, telefone e CEP são trocados por marcadores antes de sair do navegador; nomes, endereços e dados de saúde não, então use só o necessário. Confira o texto antes de usar.</span>
+            <span className="field-hint ast-aviso" title="CPF, CNPJ, nº de benefício, e-mail, telefone e CEP são trocados por marcadores antes de sair do navegador. Nomes, endereços e dados de saúde não: use só o necessário.">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+              CPF, telefone e e-mail são protegidos. Confira antes de usar.
+            </span>
             <div className="ast-envio-btns">
               {!!conversa.baloes.length && <button type="button" className="btn" disabled={pensando} onClick={() => setConversa(CONVERSA_VAZIA)}>Nova conversa</button>}
               <button type="submit" className="btn primary" disabled={pensando || !pergunta.trim()} title="Ctrl+Enter">{pensando ? 'Aguarde…' : 'Enviar'}</button>
