@@ -1772,8 +1772,17 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .ast-fab .ast-brilho-p{ animation:ast-pisca 2.8s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
   .ast-gaveta{ position:fixed; top:0; right:0; bottom:0; z-index:45; width:min(460px, 100vw); display:flex; flex-direction:column;
     background:var(--paper); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(49,46,129,.18);
-    animation:ast-desliza .26s cubic-bezier(.2,.8,.2,1) both; }
+    min-width:min(360px, 100vw); max-width:100vw; will-change:transform; }
   .ast-gaveta[hidden]{ display:none; }
+  /* alça na borda esquerda: arrastar muda a largura (fica guardada); dois cliques voltam ao padrão */
+  .ast-alca{ position:absolute; left:-5px; top:0; bottom:0; width:10px; z-index:2; cursor:ew-resize; touch-action:none; }
+  .ast-alca::after{ content:""; position:absolute; left:4px; top:50%; width:3px; height:48px; margin-top:-24px; border-radius:3px;
+    background:var(--ia-grad); opacity:0; transition:opacity .15s ease, height .15s ease, margin-top .15s ease; }
+  .ast-alca:hover::after, .ast-alca:focus-visible::after, .ast-arrastando .ast-alca::after{ opacity:1; height:96px; margin-top:-48px; }
+  .ast-alca:focus-visible{ outline:none; }
+  .ast-arrastando{ user-select:none; }
+  .ast-arrastando .ast-gaveta-quadro{ pointer-events:none; }   /* o quadro não "engole" o mouse durante o arraste */
+  @media (max-width:600px){ .ast-gaveta{ width:100vw !important; min-width:0; } .ast-alca{ display:none; } }
   .ast-gaveta::before{ content:""; height:3px; flex:none; background:linear-gradient(90deg, var(--ia-1), var(--ia-2), var(--ia-3), var(--ia-brilho), var(--ia-1));
     background-size:200% 100%; animation:ast-onda 6s linear infinite; }
   .ast-gaveta-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); }
@@ -1784,7 +1793,6 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   @keyframes ast-entra{ from{ opacity:0; transform:translateY(12px) scale(.9); } to{ opacity:1; transform:none; } }
   @keyframes ast-onda{ 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
   @keyframes ast-halo{ 0%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 0 rgba(124,58,237,.45); } 100%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 14px rgba(124,58,237,0); } }
-  @keyframes ast-desliza{ from{ opacity:0; transform:translateX(28px); } to{ opacity:1; transform:none; } }
   @keyframes ast-cintila{ 0%,100%{ transform:rotate(0) scale(1); } 50%{ transform:rotate(18deg) scale(1.15); } }
   @keyframes ast-pisca{ 0%,70%,100%{ opacity:1; transform:scale(1); } 80%{ opacity:.25; transform:scale(.6); } }
   @media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
@@ -3296,6 +3304,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       <span>Assistente</span>
     </button>
     <aside class="ast-gaveta" id="astGaveta" role="dialog" aria-label="Assistente" hidden>
+    <div class="ast-alca" id="astAlca" role="separator" aria-orientation="vertical" tabindex="0" aria-label="Largura do Assistente: arraste ou use as setas; dois cliques voltam ao padrão" title="Arraste para mudar a largura (dois cliques: padrão)"></div>
       <div class="ast-gaveta-topo">
         <strong><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 3l1.7 5 5 1.7-5 1.7-1.7 5-1.7-5-5-1.7 5-1.7z"/><path d="M18 13.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg><span>Assistente</span></strong>
         <button type="button" class="icon-btn" id="astGavetaFechar" title="Fechar (Esc)" aria-label="Fechar o Assistente">
@@ -3303,6 +3312,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         </button>
       </div>
     </aside>
+<script src="/assistente-gaveta.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 (function(){
@@ -5180,9 +5190,19 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   // ---- Assistente (IA): botão flutuante do gestor, em todas as seções ----
   // Aparece quando a senha do gestor está nesta aba (entrou na Organização como gestor); a equipe não vê.
   // Trocar de seção não fecha o painel; ir para o sistema novo e voltar reabre (astAberto) com a mesma conversa.
-  var AST = { fab: document.getElementById('astFab'), gaveta: document.getElementById('astGaveta'), fechar: document.getElementById('astGavetaFechar'), quadro: null };
+  var AST = { fab: document.getElementById('astFab'), gaveta: document.getElementById('astGaveta'), fechar: document.getElementById('astGavetaFechar'), quadro: null,
+    ponto: null, fechando: false };   // ponto: de onde o painel sai e para onde volta (o botão)
+  var ASTG = window.AssistenteGaveta;   // animação estilo "gênio" e largura arrastável (public/assistente-gaveta.js)
   function astGestor(){ return !!org.pin && org.modo === 'gestor'; }
-  function astAbrir(abrir){
+  // fechar: o painel volta para o botão e só então some
+  function astFechar(){
+    if (AST.fechando || AST.gaveta.hidden) return;
+    if (!ASTG){ astAbrir(false); return; }
+    AST.fechando = true;
+    ASTG.fechar(AST.gaveta, AST.ponto).then(function(){ AST.fechando = false; astAbrir(false); AST.fab.focus(); });
+  }
+  function astAbrir(abrir, animar){
+    if (abrir && ASTG && animar) AST.ponto = ASTG.pontoDo(AST.fab);
     if (abrir && !AST.quadro){
       // o Assistente só carrega na primeira vez que o painel abre
       AST.quadro = document.createElement('iframe');
@@ -5192,6 +5212,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     AST.gaveta.hidden = !abrir;
     AST.fab.hidden = abrir || !astGestor();
     AST.fab.setAttribute('aria-expanded', String(abrir));
+    if (abrir && ASTG){ if (animar) ASTG.abrir(AST.gaveta, AST.ponto); else ASTG.aplicarLargura(AST.gaveta); }
     try { if (abrir) sessionStorage.setItem('astAberto', '1'); else sessionStorage.removeItem('astAberto'); } catch (e) {}
   }
   // depois de entrar ou trancar: mostra ou esconde o botão
@@ -5205,9 +5226,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     }
     if (AST.gaveta.hidden) AST.fab.hidden = false;
   }
-  AST.fab.addEventListener('click', function(){ astAbrir(true); });
-  AST.fechar.addEventListener('click', function(){ astAbrir(false); AST.fab.focus(); });
-  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !AST.gaveta.hidden && !document.querySelector('dialog[open]')) astAbrir(false); });
+  AST.fab.addEventListener('click', function(){ astAbrir(true, true); });
+  AST.fechar.addEventListener('click', astFechar);
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !AST.gaveta.hidden && !document.querySelector('dialog[open]')) astFechar(); });
+  if (ASTG) ASTG.ligarAlca(AST.gaveta, document.getElementById('astAlca'));
   astAtualizar();
   try { if (astGestor() && sessionStorage.getItem('astAberto') === '1') astAbrir(true); } catch (e) {}
 

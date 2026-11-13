@@ -264,3 +264,75 @@ test('sem a senha do gestor, o botão não aparece em nenhuma tela', async ({ pa
   await expect(page.locator('h1')).toContainText('Prazos');
   await expect(page.locator('#astFab')).toHaveCount(0);
 });
+
+// Painel: animação estilo "gênio" ao abrir e fechar, e largura arrastando a borda (public/assistente-gaveta.js)
+for (const v of [{ nome: 'sistema atual', endereco: '/#organizacao' }, { nome: 'sistema novo', endereco: '/novo/organizacao' }]){
+  test.describe('painel (' + v.nome + ')', () => {
+    test('abre saindo do botão e fecha voltando para ele', async ({ page, banco }) => {
+      equipe(banco);
+      await entrarComoGestor(page, PIN_GESTOR, v.endereco);
+      await expect(page.locator('#astFab')).toBeVisible();
+      await page.waitForFunction(() => !!window.AssistenteGaveta);
+      // abrir: o painel aparece já animando (sai do botão)
+      const abrindo = await page.evaluate(() => { document.getElementById('astFab').click(); return new Promise(r => requestAnimationFrame(() => r(document.getElementById('astGaveta').getAnimations().length))); });
+      expect(abrindo).toBeGreaterThan(0);
+      await expect(page.locator('#astGaveta')).toBeVisible();
+      await expect(page.frameLocator('#astQuadro').getByRole('tab', { name: 'Conversa' })).toBeVisible();
+      await page.waitForFunction(() => document.getElementById('astGaveta').getAnimations().length === 0);
+      // fechar: continua visível enquanto volta para o botão, e só então some
+      const fechando = await page.evaluate(() => { document.getElementById('astGavetaFechar').click(); const g = document.getElementById('astGaveta'); return { anima: g.getAnimations().length, visivel: !g.hidden }; });
+      expect(fechando).toEqual({ anima: 1, visivel: true });
+      await expect(page.locator('#astGaveta')).toBeHidden();
+      await expect(page.locator('#astFab')).toBeVisible();
+    });
+
+    test('quem pede menos movimento abre e fecha sem animação', async ({ page, banco }) => {
+      equipe(banco);
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      await entrarComoGestor(page, PIN_GESTOR, v.endereco);
+      await page.waitForFunction(() => !!window.AssistenteGaveta);
+      await page.locator('#astFab').click();
+      await expect(page.locator('#astGaveta')).toBeVisible();
+      expect(await page.evaluate(() => document.getElementById('astGaveta').getAnimations().length)).toBe(0);
+      await page.locator('#astGavetaFechar').click();
+      await expect(page.locator('#astGaveta')).toBeHidden();
+    });
+
+    test('arrastar a borda muda a largura, que fica guardada; dois cliques voltam ao padrão', async ({ page, banco }) => {
+      equipe(banco);
+      await page.emulateMedia({ reducedMotion: 'reduce' });   // sem animação, para medir direto
+      await page.setViewportSize({ width: 1280, height: 800 });
+      await entrarComoGestor(page, PIN_GESTOR, v.endereco);
+      await page.waitForFunction(() => !!window.AssistenteGaveta);
+      await page.locator('#astFab').click();
+      const gaveta = page.locator('#astGaveta');
+      const largura = async () => Math.round((await gaveta.boundingBox()).width);
+      expect(await largura()).toBe(460);
+      const alca = await page.locator('#astAlca').boundingBox();
+      const y = alca.y + alca.height / 2;
+      await page.mouse.move(alca.x + 5, y);
+      await page.mouse.down();
+      await page.mouse.move(alca.x - 100, y, { steps: 5 });
+      await page.mouse.move(alca.x - 200, y, { steps: 5 });   // passa por cima do quadro do Assistente
+      await page.mouse.up();
+      expect(await largura()).toBe(1280 - (Math.round(alca.x) - 200));
+      expect(Number(await page.evaluate(() => localStorage.getItem('astLargura')))).toBe(await largura());
+      // limite: até 80% da tela
+      await page.mouse.move(alca.x - 200 + 5, y); await page.mouse.down(); await page.mouse.move(10, y, { steps: 4 }); await page.mouse.up();
+      expect(await largura()).toBe(1024);
+      // teclado: seta para a direita estreita
+      await page.locator('#astAlca').focus();
+      await page.keyboard.press('ArrowRight');
+      expect(await largura()).toBe(1000);
+      // guardada: fecha, troca de tela e abre de novo
+      await page.locator('#astGavetaFechar').click();
+      await page.goto('/novo/prazos');
+      await page.locator('#astFab').click();
+      expect(await largura()).toBe(1000);
+      // dois cliques: padrão
+      await page.locator('#astAlca').dblclick();
+      expect(await largura()).toBe(460);
+      expect(await page.evaluate(() => localStorage.getItem('astLargura'))).toBeNull();
+    });
+  });
+}
