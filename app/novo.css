@@ -117,8 +117,17 @@ dialog:has(#astRotTitulo), dialog:has(#astModTitulo), dialog:has(#astMandarTitul
 .ast-fab .ast-brilho-p{ animation:ast-pisca 2.8s ease-in-out infinite; transform-origin:center; transform-box:fill-box; }
 .ast-gaveta{ position:fixed; top:0; right:0; bottom:0; z-index:45; width:min(460px, 100vw); display:flex; flex-direction:column;
   background:var(--paper); border-left:1px solid var(--line); box-shadow:-10px 0 30px rgba(49,46,129,.18);
-  animation:ast-desliza .26s cubic-bezier(.2,.8,.2,1) both; }
+  min-width:min(360px, 100vw); max-width:100vw; will-change:transform; }
 .ast-gaveta[hidden]{ display:none; }
+/* alça na borda esquerda: arrastar muda a largura (fica guardada); dois cliques voltam ao padrão */
+.ast-alca{ position:absolute; left:-5px; top:0; bottom:0; width:10px; z-index:2; cursor:ew-resize; touch-action:none; }
+.ast-alca::after{ content:""; position:absolute; left:4px; top:50%; width:3px; height:48px; margin-top:-24px; border-radius:3px;
+  background:var(--ia-grad); opacity:0; transition:opacity .15s ease, height .15s ease, margin-top .15s ease; }
+.ast-alca:hover::after, .ast-alca:focus-visible::after, .ast-arrastando .ast-alca::after{ opacity:1; height:96px; margin-top:-48px; }
+.ast-alca:focus-visible{ outline:none; }
+.ast-arrastando{ user-select:none; }
+.ast-arrastando .ast-gaveta-quadro{ pointer-events:none; }   /* o quadro não "engole" o mouse durante o arraste */
+@media (max-width:600px){ .ast-gaveta{ width:100vw !important; min-width:0; } .ast-alca{ display:none; } }
 .ast-gaveta::before{ content:""; height:3px; flex:none; background:linear-gradient(90deg, var(--ia-1), var(--ia-2), var(--ia-3), var(--ia-brilho), var(--ia-1));
   background-size:200% 100%; animation:ast-onda 6s linear infinite; }
 .ast-gaveta-topo{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px 10px 16px; border-bottom:1px solid var(--line); }
@@ -129,7 +138,6 @@ dialog:has(#astRotTitulo), dialog:has(#astModTitulo), dialog:has(#astMandarTitul
 @keyframes ast-entra{ from{ opacity:0; transform:translateY(12px) scale(.9); } to{ opacity:1; transform:none; } }
 @keyframes ast-onda{ 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
 @keyframes ast-halo{ 0%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 0 rgba(124,58,237,.45); } 100%{ box-shadow:0 6px 20px rgba(79,70,229,.35), 0 0 0 14px rgba(124,58,237,0); } }
-@keyframes ast-desliza{ from{ opacity:0; transform:translateX(28px); } to{ opacity:1; transform:none; } }
 @keyframes ast-cintila{ 0%,100%{ transform:rotate(0) scale(1); } 50%{ transform:rotate(18deg) scale(1.15); } }
 @keyframes ast-pisca{ 0%,70%,100%{ opacity:1; transform:scale(1); } 80%{ opacity:.25; transform:scale(.6); } }
 @media (max-width:600px){ .ast-fab span{ display:none; } .ast-fab{ width:52px; height:52px; padding:0; justify-content:center; border-radius:50%; } }
