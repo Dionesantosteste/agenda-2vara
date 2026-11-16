@@ -435,6 +435,15 @@ alter table org_estrelas enable row level security;
 -- estrela dada pelo gestor no Painel da equipe (manual = true), com o motivo que ele escreveu (opcional)
 alter table org_estrelas add column if not exists manual boolean not null default false;
 alter table org_estrelas add column if not exists motivo text;
+-- brinde físico (a pessoa juntou 20 estrelas e clicou em "Quero meu brinde"): um pedido por marco.
+-- O pedido vira uma tarefa no quadro do gestor (explicação na parte "brinde das 20 estrelas", mais abaixo).
+create table if not exists org_brindes (
+  dono uuid not null references org_pessoas(id) on delete cascade,
+  marco int not null,
+  pedido_em timestamptz not null default now(),
+  primary key (dono, marco)
+);
+alter table org_brindes enable row level security;
 
 -- ---------- quem está pedindo e de qual tela (uso interno) ----------
 -- Com senha (gestor): o_dono = a tela escolhida (vazio = a do gestor).
@@ -2207,6 +2216,8 @@ as $$
                and e.dia >= make_date(extract(year from org_hoje())::int - (case when extract(month from org_hoje()) < 11 then 1 else 0 end), 11, 15)),
     'bichos', coalesce((select jsonb_agg(b.tipo order by b.created_at) from org_bichos b where b.dono = p_dono), '[]'::jsonb),
     'no_quadro', (select p.bicho_quadro from org_pessoas p where p.id = p_dono),
+    -- marcos de brinde que a pessoa já pediu (hoje só o de 20 estrelas)
+    'brindes', coalesce((select jsonb_agg(b.marco order by b.marco) from org_brindes b where b.dono = p_dono), '[]'::jsonb),
     -- a mais recente: se foi o gestor que deu, a tela da pessoa mostra o motivo no aviso
     'ultima', (select jsonb_build_object('dia', e.dia, 'manual', e.manual, 'motivo', e.motivo)
                  from org_estrelas e where e.dono = p_dono order by e.created_at desc limit 1)
@@ -2282,6 +2293,9 @@ begin
   vagas := (total >= 3)::int + (total >= 55)::int + (total >= 75)::int + (total >= 100)::int;
   if (select count(*) from org_bichos where dono = ac.o_dono) > vagas then
     return jsonb_build_object('status', 'erro', 'message', 'Essa estrela já foi usada para escolher um bichinho e não pode ser desfeita.');
+  end if;
+  if exists (select 1 from org_brindes where dono = ac.o_dono and marco > total) then
+    return jsonb_build_object('status', 'erro', 'message', 'Essa estrela já foi usada para pedir o brinde e não pode ser desfeita.');
   end if;
   delete from org_estrelas where dono = ac.o_dono and dia = p_dia and manual;
   return jsonb_build_object('status', 'ok');
@@ -2401,6 +2415,49 @@ begin
 end;
 $$;
 grant execute on function org_enviar_ao_gestor(text, uuid, uuid, text) to anon, authenticated;
+
+-- ---------- brinde das 20 estrelas ----------
+-- Com 20 estrelas acumuladas a pessoa ganha um brinde físico. No banner ela clica em "Quero meu brinde":
+-- o pedido vira uma tarefa no quadro do gestor (como "Mandar para o gestor", com a marca de quem pediu
+-- e um recado), e o gestor recebe o mesmo aviso de tarefa que chegou da equipe. Os brindes ficam à
+-- disposição e a pessoa escolhe na hora de receber. Um pedido por pessoa e por marco (tabela org_brindes,
+-- criada lá em cima). O marco 20 se repete em ORG_BRINDE_ESTRELAS, no public/legado.html.
+create or replace function org_pedir_brinde(p_pin text, p_pessoa uuid, p_marco int)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  nome text;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if ac.o_gestor or ac.o_dono is null then
+    return jsonb_build_object('status', 'erro', 'message', 'Só a própria pessoa pede o brinde dela.');
+  end if;
+  if p_marco is distinct from 20 then
+    return jsonb_build_object('status', 'erro', 'message', 'Brinde desconhecido.');
+  end if;
+  if (select count(*) from org_estrelas where dono = ac.o_dono) < p_marco then
+    return jsonb_build_object('status', 'erro', 'message', 'Ainda faltam estrelas para o brinde.');
+  end if;
+  insert into org_brindes (dono, marco) values (ac.o_dono, p_marco) on conflict do nothing;
+  if not found then
+    return jsonb_build_object('status', 'erro', 'message', 'Você já pediu este brinde. O gestor foi avisado.');
+  end if;
+  select p.nome into nome from org_pessoas p where p.id = ac.o_dono;
+  insert into org_tarefas (titulo, dono, etapa, enviada_por, recado_gestor, enviada_em)
+  values (left('🎁 Entregar o brinde de ' || p_marco || ' estrelas para ' || coalesce(nullif(btrim(nome), ''), 'alguém da equipe'), 160),
+          null, 'afazer', ac.o_dono,
+          'Juntei ' || p_marco || ' estrelas e quero o meu brinde! (escolho na hora de receber)', now());
+  return jsonb_build_object('status', 'ok');
+end;
+$$;
+grant execute on function org_pedir_brinde(text, uuid, int) to anon, authenticated;
 
 -- Relatório de produtividade (só o gestor): tarefas concluídas por pessoa num período (horário da vara),
 -- inclusive as já arquivadas, mais as recebidas no período e o que cada uma tem em aberto hoje.

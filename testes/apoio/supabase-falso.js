@@ -222,7 +222,7 @@ class SupabaseFalso {
 // =====================================================================================
 function novaOrg(){
   return { pin: PIN_GESTOR, pessoas: [], tarefas: [], notas: [], lembretes: [], rotinas: [], etiquetas: [], colunas: [], anotacoes: [],
-    modelos: [], aniversarios: [], estrelas: [], bichos: [], txt_modelos: [], txt_categorias: [], txt_meus: [], txt_cidade: '', ast_rotinas: [] };
+    modelos: [], aniversarios: [], estrelas: [], bichos: [], brindes: [], txt_modelos: [], txt_categorias: [], txt_meus: [], txt_cidade: '', ast_rotinas: [] };
 }
 function tarefaPadrao(){
   return { id: uuid(), titulo: '', prazo: null, urgente: false, responsavel: '', processo: '', feita_em: null, created_at: agora(), updated_at: agora(),
@@ -233,12 +233,13 @@ function notaPadrao(){ return { id: uuid(), texto: '', cor: 'amarelo', fixada: f
 function lembretePadrao(){ return { id: uuid(), texto: '', data: hojeVara(), hora: null, processo: '', feito_em: null, dono: null, created_at: agora(), updated_at: agora() }; }
 
 // Pessoas e tarefas para os testes da Organização
-function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [], etiquetas = [], colunas = [], anotacoes = [] } = {}){
+function semearOrg(org, { pessoas = [], tarefas = [], notas = [], estrelas = [], bichos = [], brindes = [], etiquetas = [], colunas = [], anotacoes = [] } = {}){
   pessoas.forEach(p => org.pessoas.push(Object.assign({ id: uuid(), nome: '', ativo: true, bicho_quadro: null, created_at: agora() }, p)));
   tarefas.forEach(t => org.tarefas.push(Object.assign(tarefaPadrao(), t)));
   notas.forEach(n => org.notas.push(Object.assign(notaPadrao(), n)));
   estrelas.forEach(e => org.estrelas.push(Object.assign({ manual: false, motivo: null, created_at: agora() }, e)));
   bichos.forEach(b => org.bichos.push(Object.assign({ created_at: agora() }, b)));
+  brindes.forEach(b => org.brindes.push(Object.assign({ pedido_em: agora() }, b)));
   etiquetas.forEach(e => org.etiquetas.push(Object.assign({ id: uuid(), nome: '', cor: 'azul', dono: null }, e)));
   colunas.forEach(c => org.colunas.push(Object.assign({ dono: null, chave: '', nome: '', ordem: 10 }, c)));
   anotacoes.forEach(n => org.anotacoes.push(Object.assign({ id: uuid(), tarefa_id: null, texto: '', created_at: agora() }, n)));
@@ -280,6 +281,7 @@ function resumoEstrelas(org, dono){
     natal: org.estrelas.filter(e => e.dono === dono && e.dia >= inicioNatal(hoje)).length,
     bichos: org.bichos.filter(b => b.dono === dono).sort((a, b) => a.created_at.localeCompare(b.created_at)).map(b => b.tipo),
     no_quadro: p ? (p.bicho_quadro ?? null) : null,
+    brindes: org.brindes.filter(b => b.dono === dono).map(b => b.marco).sort((a, b) => a - b),
     ultima: (u => u ? { dia: u.dia, manual: !!u.manual, motivo: u.motivo ?? null } : null)(
       org.estrelas.filter(e => e.dono === dono).sort((a, b) => b.created_at.localeCompare(a.created_at))[0])
   };
@@ -664,7 +666,22 @@ const ORG_FUNCOES = {
     const total = org.estrelas.filter(e => e.dono === ac.dono).length - 1;
     if (org.bichos.filter(b => b.dono === ac.dono).length > [3, 55, 75, 100].filter(x => total >= x).length)
       return erro('Essa estrela já foi usada para escolher um bichinho e não pode ser desfeita.');
+    if (org.brindes.some(b => b.dono === ac.dono && b.marco > total)) return erro('Essa estrela já foi usada para pedir o brinde e não pode ser desfeita.');
     org.estrelas = org.estrelas.filter(e => !(e.dono === ac.dono && e.dia === a.p_dia && e.manual));
+    return { status: 'ok' };
+  },
+  // Brinde das 20 estrelas: o pedido vira tarefa no quadro do gestor
+  org_pedir_brinde(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (ac.gestor || !ac.dono) return erro('Só a própria pessoa pede o brinde dela.');
+    if (a.p_marco !== 20) return erro('Brinde desconhecido.');
+    if (org.estrelas.filter(e => e.dono === ac.dono).length < a.p_marco) return erro('Ainda faltam estrelas para o brinde.');
+    if (org.brindes.some(b => b.dono === ac.dono && b.marco === a.p_marco)) return erro('Você já pediu este brinde. O gestor foi avisado.');
+    org.brindes.push({ dono: ac.dono, marco: a.p_marco, pedido_em: agora() });
+    const nome = (org.pessoas.find(p => p.id === ac.dono).nome || '').trim() || 'alguém da equipe';
+    org.tarefas.push(Object.assign(tarefaPadrao(), { dono: null, etapa: 'afazer', titulo: ('🎁 Entregar o brinde de ' + a.p_marco + ' estrelas para ' + nome).slice(0, 160),
+      enviada_por: ac.dono, recado_gestor: 'Juntei ' + a.p_marco + ' estrelas e quero o meu brinde! (escolho na hora de receber)', enviada_em: agora() }));
     return { status: 'ok' };
   },
   org_bicho_no_quadro(org, a){

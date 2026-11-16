@@ -1547,6 +1547,24 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .org-festa-card .festa-botoes{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; }
   .org-festa-card .festa-botoes .btn{ margin-top:8px; }
   .org-festa-card.bicho-escolha{ width:min(720px, 100%); }
+  /* Brinde das 20 estrelas */
+  .org-festa-card.brinde{ width:min(580px, 100%); }
+  .org-festa-card.brinde::before{ background:linear-gradient(90deg, var(--ouro), #F5C866, var(--ouro)); }
+  .org-festa-card .brinde-fechar{ position:absolute; top:14px; right:14px; width:36px; height:36px; border-radius:10px; border:0; background:transparent; color:var(--muted); font-size:22px; line-height:1; cursor:pointer; }
+  .org-festa-card .brinde-fechar:hover{ background:var(--sunken); color:var(--ink); }
+  .org-festa-card .brinde-big{ color:var(--ouro-txt); }
+  .brinde-fileira{ display:flex; flex-wrap:wrap; justify-content:center; gap:3px; max-width:300px; }
+  .brinde-fileira svg{ width:22px; height:22px; fill:var(--ouro); stroke:var(--ouro-borda); animation:orgBrindePisca .35s both; }
+  .brinde-caixa{ width:100%; background:color-mix(in srgb, var(--ouro) 14%, var(--paper)); border:1px solid color-mix(in srgb, var(--ouro) 45%, transparent); border-radius:14px; padding:16px 18px; display:flex; gap:14px; align-items:flex-start; text-align:left; }
+  .brinde-caixa .brinde-ico{ font-size:34px; line-height:1; flex:none; }
+  .brinde-caixa h3{ margin:0 0 4px; font-size:17px; font-weight:700; color:var(--ink); }
+  .org-festa-card .brinde-caixa p{ color:var(--ink); font-size:14.5px; }
+  .brinde-acao{ display:flex; flex-direction:column; align-items:center; gap:4px; width:100%; }
+  .org-festa-card .brinde-btn{ background:var(--ouro); border-color:var(--ouro-borda); color:#2A1B00; font-weight:600; font-size:16px; }
+  .brinde-ok{ width:100%; background:var(--ok-soft); color:var(--ink); border-radius:12px; padding:12px 16px; font-size:14.5px; }
+  .org-festa-card .brinde-rodape{ font-size:12.5px; }
+  @keyframes orgBrindePisca{ from{ opacity:0; transform:scale(.2); } }
+  @media (prefers-reduced-motion: reduce){ .brinde-fileira svg{ animation:none; } }
   .kanban{ position:relative; }
   .kanban.com-bicho{ padding-top:50px; }
   .kanban.com-bicho.adulto{ padding-top:60px; }
@@ -5153,7 +5171,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     org.estrelas = re && typeof re.total === 'number' && r.pessoa ? { dono: r.pessoa.id, total: re.total, semana: re.semana || 0, hoje: re.hoje === true,
       bichos: (Array.isArray(re.bichos) ? re.bichos : []).filter(function(b){ return !!ORG_BICHOS[b]; }), noQuadro: typeof re.no_quadro === 'string' ? re.no_quadro : null,
       ultima: re.ultima && typeof re.ultima === 'object' ? { manual: re.ultima.manual === true, motivo: re.ultima.motivo || '' } : null,
-      natal: typeof re.natal === 'number' ? re.natal : null } : null;
+      natal: typeof re.natal === 'number' ? re.natal : null,
+      brindes: Array.isArray(re.brindes) ? re.brindes : null } : null;   // null = SQL sem o brinde das 20 estrelas
     org.pessoas = (r.pessoas || []).map(function(p){ return { id: p.id, nome: p.nome || '', ativo: p.ativo !== false }; });
     org.eqCarregado = Array.isArray(r.equipe_tarefas);
     org.eqCompleta = r.equipe_completa !== false;
@@ -5202,6 +5221,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     renderOrg();
     orgFestaConfere();
     orgEstrelaAvisa();
+    orgBrindeConfere();
     return true;
   }
 
@@ -5988,11 +6008,13 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   // ---------------------------------------------------------------------
   var ORG_ESTRELA_META = 10;        // tarefas concluídas no dia para ganhar a estrela (igual ao do banco)
   var ORG_ESTRELA_SEMANA = 5;       // máximo por semana (igual ao do banco)
+  var ORG_BRINDE_ESTRELAS = 20;     // brinde físico (igual ao de org_pedir_brinde, no banco)
   // Marcos pelas estrelas ACUMULADAS. Os de bichinho (3, 55, 75, 100) se repetem em org_escolher_bicho, no SQL.
   var ORG_PREMIOS = [
     { chave: 'bicho1',  estrelas: 3,   icone: '🐾', nome: 'um novo bichinho! Você escolhe qual.', bicho: true },
     { chave: 'caminha', estrelas: 8,   icone: '🛏️', nome: 'Caminha', peixe: { icone: '💡', nome: 'Luminária do aquário' } },
     { chave: 'potinho', estrelas: 15,  icone: '🥣', nome: 'Potinho', peixe: { icone: '🐟', nome: 'Pote de ração' } },
+    { chave: 'brinde',  estrelas: 20,  icone: '🎁', nome: 'um brinde de verdade!', brinde: true },
     { chave: 'bolinha', estrelas: 25,  icone: '🧶', nome: 'Bolinha', peixe: { icone: '💎', nome: 'Baú do tesouro' } },
     { chave: 'cresce',  estrelas: 40,  icone: '✨', nome: 'seu bichinho cresceu: virou adulto' },
     { chave: 'bicho2',  estrelas: 55,  icone: '🐾', nome: 'um segundo bichinho! Você escolhe qual.', bicho: true },
@@ -6053,17 +6075,21 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       '<span><b>' + Math.min(feitas, ORG_ESTRELA_META) + '/' + ORG_ESTRELA_META + '</b> tarefas</span>';
     h += '</div><div class="est-bloco est-total"><span class="est-rot">Acumuladas</span>' + orgEstrelaSvg('cheia') + '<b>' + e.total + '</b></div>';
     if (orgBichoMexe() && orgBichoPendentes()) h += '<div class="est-bloco est-acao"><button type="button" class="btn" data-bicho-escolher>🐾 Escolher meu ' + orgOrdinal(e.bichos.length + 1) + ' bichinho</button></div>';
+    if (orgBrindePendente()) h += '<div class="est-bloco est-acao"><button type="button" class="btn" data-brinde-ver>🎁 Quero meu brinde</button></div>';
     h += '<div class="est-ajuda">Conclua ' + ORG_ESTRELA_META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + ORG_ESTRELA_SEMANA + ' por semana). A contagem da semana zera toda segunda-feira; as acumuladas nunca zeram e liberam prêmios.</div>';
     EST.innerHTML = h;
   }
-  EST.addEventListener('click', function(e){ if (e.target.closest('[data-bicho-escolher]')) orgBichoEscolha(); });
+  EST.addEventListener('click', function(e){
+    if (e.target.closest('[data-bicho-escolher]')) orgBichoEscolha();
+    if (e.target.closest('[data-brinde-ver]')) orgBrindeBanner();
+  });
 
   // Compara com a carga anterior da mesma tela: ganhou estrela? liberou prêmio?
   function orgEstrelaConfere(antes){
     var e = org.estrelas;
     if (!e || !antes || antes.dono !== e.dono || e.total <= antes.total) return;
     org.estrelaNova = { semana: e.semana, total: e.total, manual: !!(e.ultima && e.ultima.manual), motivo: e.ultima ? e.ultima.motivo : '',
-      premios: ORG_PREMIOS.filter(function(p){ return p.estrelas > antes.total && p.estrelas <= e.total; }),
+      premios: ORG_PREMIOS.filter(function(p){ return p.estrelas > antes.total && p.estrelas <= e.total && (!p.brinde || e.brindes); }),
       // Natal: a estrela vira presente e, se a árvore está no quadro e ainda não está cheia, ganha um enfeite
       natal: orgNatal(), enfeite: orgTemArvore() && e.natal !== null && antes.natal !== null && e.natal > antes.natal && e.natal <= ORG_NATAL_ENFEITES };
   }
@@ -6103,7 +6129,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       (escolher ? '<div class="festa-botoes"><button type="button" class="btn primary" data-festa-escolher>🐾 Escolher meu bichinho</button><button type="button" class="btn" data-festa-ok>Depois</button></div>'
         : '<button type="button" class="btn primary" data-festa-ok>Continuar</button>') + '</div>';
     document.body.appendChild(f);
-    function fechar(){ f.remove(); document.removeEventListener('keydown', esc, true); }
+    function fechar(){ f.remove(); document.removeEventListener('keydown', esc, true); orgBrindeDepois(); }
     function esc(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
     f.addEventListener('click', function(e){
       if (e.target.closest('[data-festa-escolher]')){ fechar(); orgBichoEscolha(); return; }
@@ -6113,6 +6139,80 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     (f.querySelector('[data-festa-escolher]') || f.querySelector('[data-festa-ok]')).focus();
     orgFestaSom(true);
     if (!orgFestaReduz) orgConfete(innerWidth * 0.5, innerHeight * 0.8, 90);
+  }
+
+  // ---- brinde das 20 estrelas ----
+  // Com 20 estrelas acumuladas a pessoa ganha um brinde físico. O banner aparece uma vez (ao chegar nas 20,
+  // depois do banner de parabéns, ou ao abrir o quadro, para quem já tinha 20) e o botão fica na barra de
+  // estrelas até ela pedir. "Quero meu brinde" vira uma tarefa no quadro do gestor (org_pedir_brinde).
+  var orgBrindeVisto = {};
+  function orgBrindePendente(){
+    var e = org.estrelas;
+    return orgBichoMexe() && !!e.brindes && e.total >= ORG_BRINDE_ESTRELAS && e.brindes.indexOf(ORG_BRINDE_ESTRELAS) === -1;
+  }
+  // Mostra sozinho uma vez por pessoa (se outro banner estiver aberto, espera ele fechar)
+  function orgBrindeConfere(){
+    if (!orgBrindePendente()) return;
+    var chave = 'orgBrindeVisto:' + org.estrelas.dono + ':' + ORG_BRINDE_ESTRELAS;
+    if (orgBrindeVisto[chave]) return;
+    try { if (localStorage.getItem(chave)) return; } catch (e) {}
+    if (document.querySelector('.org-festa')){ org.brindeDepois = true; return; }
+    orgBrindeVisto[chave] = true;
+    try { localStorage.setItem(chave, '1'); } catch (e) {}
+    orgBrindeBanner();
+  }
+  // Chamado quando um banner de parabéns fecha
+  function orgBrindeDepois(){
+    if (!org.brindeDepois) return;
+    org.brindeDepois = false;
+    setTimeout(orgBrindeConfere, 350);
+  }
+  function orgBrindeBanner(){
+    if (!orgBrindePendente()) return;
+    var velho = document.querySelector('.org-festa'); if (velho) velho.remove();
+    var nome = String(org.euNome || '').trim().split(/\s+/)[0], n = ORG_BRINDE_ESTRELAS, fileira = '';
+    for (var i = 0; i < n; i++) fileira += '<svg viewBox="0 0 20 20" aria-hidden="true" style="animation-delay:' + (0.5 + i * 0.05).toFixed(2) + 's">' + ICON_ESTRELA + '</svg>';
+    var f = document.createElement('div');
+    f.className = 'org-festa'; f.setAttribute('role', 'dialog'); f.setAttribute('aria-modal', 'true'); f.setAttribute('aria-labelledby', 'orgFestaTit');
+    f.innerHTML = '<div class="org-festa-card brinde">' +
+      '<button type="button" class="brinde-fechar" aria-label="Fechar" data-festa-ok>×</button>' +
+      '<svg class="medalha" viewBox="0 0 84 84" aria-hidden="true"><path class="fita" d="M24 4h14l8 26H32z"/><path class="fita2" d="M60 4H46l-8 26h14z"/><circle class="disco" cx="42" cy="52" r="26"/><circle class="borda" cx="42" cy="52" r="20"/><text x="42" y="60" text-anchor="middle">' + n + '</text></svg>' +
+      '<h2 id="orgFestaTit">Parabéns' + (nome ? ', ' + escapeHtml(nome) : '') + '!</h2>' +
+      '<div class="big brinde-big">Você juntou ' + n + ' estrelas!</div>' +
+      '<div class="brinde-fileira" role="img" aria-label="' + n + ' estrelas">' + fileira + '</div>' +
+      '<div class="brinde-caixa"><div class="brinde-ico" aria-hidden="true">🎁</div><div>' +
+        '<h3>Você ganhou um brinde físico</h3>' +
+        '<p>São ' + n + ' dias em que você concluiu ' + ORG_ESTRELA_META + ' tarefas ou mais. Como agradecimento, você escolhe um brinde de verdade, basta avisar o gestor.</p>' +
+      '</div></div>' +
+      '<div class="brinde-acao"><button type="button" class="btn brinde-btn" data-brinde-pedir>Quero meu brinde</button></div>' +
+      '<p class="brinde-rodape">O brinde não expira. Suas estrelas continuam valendo para os próximos prêmios.</p></div>';
+    document.body.appendChild(f);
+    function fechar(){ f.remove(); document.removeEventListener('keydown', esc, true); }
+    function esc(ev){ if (ev.key === 'Escape'){ ev.stopPropagation(); fechar(); } }
+    f.addEventListener('click', async function(ev){
+      var b = ev.target.closest('[data-brinde-pedir]');
+      if (b){
+        b.disabled = true; b.textContent = 'Avisando o gestor…';
+        var r = await orgCall('org_pedir_brinde', { p_marco: n });
+        if (!orgOk(r)){ fechar(); await orgLoad(); return; }
+        org.estrelas.brindes.push(n);
+        orgEstrelasRender();
+        f.querySelector('.brinde-acao').innerHTML = '<div class="brinde-ok" role="status">✓ Pronto! O gestor foi avisado. Na hora de receber, é só escolher o seu brinde.</div>' +
+          '<button type="button" class="btn primary" data-festa-ok>Voltar ao quadro</button>';
+        f.querySelector('.brinde-acao [data-festa-ok]').focus();
+        orgFestaSom(true);
+        if (!orgFestaReduz) orgConfete(innerWidth * 0.5, innerHeight * 0.75, 90);
+        return;
+      }
+      if (ev.target === f || ev.target.closest('[data-festa-ok]')) fechar();
+    });
+    document.addEventListener('keydown', esc, true);
+    f.querySelector('[data-brinde-pedir]').focus();
+    orgFestaSom(true);
+    if (!orgFestaReduz){
+      orgConfete(innerWidth * 0.15, innerHeight * 0.9, 90); orgConfete(innerWidth * 0.85, innerHeight * 0.9, 90);
+      setTimeout(function(){ orgConfete(innerWidth * 0.5, innerHeight * 0.75, 90); }, 450);
+    }
   }
 
   // ---- escolha do bichinho ----
@@ -10023,7 +10123,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       (est.escolher ? '<div class="festa-botoes"><button type="button" class="btn primary" data-festa-escolher>🐾 Escolher meu bichinho</button><button type="button" class="btn" data-festa-ok>Depois</button></div>'
         : '<button type="button" class="btn primary" data-festa-ok>Continuar</button>') + '</div>';
     document.body.appendChild(f);
-    function fechar(){ clearTimeout(orgFestaT); f.remove(); document.removeEventListener('keydown', esc, true); if (est.chegou) orgBichoOi(); }
+    function fechar(){ clearTimeout(orgFestaT); f.remove(); document.removeEventListener('keydown', esc, true); if (est.chegou) orgBichoOi(); orgBrindeDepois(); }
     function esc(e){ if (e.key === 'Escape'){ e.stopPropagation(); fechar(); } }
     f.addEventListener('click', function(e){
       if (e.target.closest('[data-festa-escolher]')){ fechar(); orgBichoEscolha(); return; }
