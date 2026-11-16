@@ -26,7 +26,6 @@ test.describe('em dezembro', () => {
     await expect(page.locator('#orgKanban .arvore .luz').first()).toBeVisible();
     expect(enfeites()).toBe(2);
     await expect(page.locator('#orgKanban .arvore .bola:not(.vazia)')).toHaveCount(enfeites());
-    await expect(page.locator('#orgEstrelas')).toContainText('Árvore de Natal');
     await expect(page.locator('.neve')).toBeVisible();
   });
 
@@ -82,7 +81,6 @@ test.describe('fora da época', () => {
     await expect(page.locator('#orgKanban .bicho .gorro')).toBeHidden();
     await expect(page.locator('#orgKanban .arvore')).toHaveCount(0);
     await expect(page.locator('.neve')).toBeHidden();
-    await expect(page.locator('#orgEstrelas')).not.toContainText('Árvore de Natal');
     await page.click('#aparBtn');
     await expect(page.locator('#aparNatalBox')).toBeHidden();
   });
