@@ -2201,6 +2201,10 @@ as $$
     'total', (select count(*) from org_estrelas e where e.dono = p_dono),
     'semana', (select count(*) from org_estrelas e where e.dono = p_dono and e.dia >= date_trunc('week', org_hoje())::date),
     'hoje', exists (select 1 from org_estrelas e where e.dono = p_dono and e.dia = org_hoje()),
+    -- Natal: estrelas desde o último 15/11 (até 06/01 de janeiro conta o 15/11 do ano anterior);
+    -- cada uma vira um enfeite da árvore de Natal do quadro (o site mostra a árvore só de 15/11 a 06/01)
+    'natal', (select count(*) from org_estrelas e where e.dono = p_dono
+               and e.dia >= make_date(extract(year from org_hoje())::int - (case when extract(month from org_hoje()) < 11 then 1 else 0 end), 11, 15)),
     'bichos', coalesce((select jsonb_agg(b.tipo order by b.created_at) from org_bichos b where b.dono = p_dono), '[]'::jsonb),
     'no_quadro', (select p.bicho_quadro from org_pessoas p where p.id = p_dono),
     -- a mais recente: se foi o gestor que deu, a tela da pessoa mostra o motivo no aviso
