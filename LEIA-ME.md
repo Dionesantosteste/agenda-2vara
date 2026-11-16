@@ -755,7 +755,7 @@ Na época do Natal o sistema se enfeita sozinho, em todo navegador:
   do aquário vira uma arvorezinha com luz piscando.
 - **Árvore de Natal** grande ao lado da caminha, com dois presentes e luzes em pisca-pisca. Cada
   estrela ganha **desde 15/11** vira um enfeite (bolinha) na árvore; com **10**, a estrela do topo acende.
-  Quando o bichinho dorme, as luzes apagam. A barra de estrelas mostra "Árvore de Natal 6/10 enfeites".
+  Quando o bichinho dorme, as luzes apagam.
 - **A estrela vira presente:** o banner de parabéns diz "🎁 Presente de Natal!" e avisa quando a árvore
   ganhou um enfeite.
 - **Neve** caindo na faixa do topo da página, por trás do conteúdo.

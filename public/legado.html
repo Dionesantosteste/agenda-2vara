@@ -6052,7 +6052,6 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     else h += '<span class="est-barra" role="progressbar" aria-label="Tarefas concluídas hoje" aria-valuemin="0" aria-valuemax="' + ORG_ESTRELA_META + '" aria-valuenow="' + Math.min(feitas, ORG_ESTRELA_META) + '"><i style="width:' + Math.min(100, feitas / ORG_ESTRELA_META * 100) + '%"></i></span>' +
       '<span><b>' + Math.min(feitas, ORG_ESTRELA_META) + '/' + ORG_ESTRELA_META + '</b> tarefas</span>';
     h += '</div><div class="est-bloco est-total"><span class="est-rot">Acumuladas</span>' + orgEstrelaSvg('cheia') + '<b>' + e.total + '</b></div>';
-    if (orgTemArvore() && e.natal !== null) h += '<div class="est-bloco est-arvore"><span class="est-rot">Árvore de Natal</span><span>🎄 <b>' + orgNatalEnfeites() + '/' + ORG_NATAL_ENFEITES + '</b> enfeites</span></div>';
     if (orgBichoMexe() && orgBichoPendentes()) h += '<div class="est-bloco est-acao"><button type="button" class="btn" data-bicho-escolher>🐾 Escolher meu ' + orgOrdinal(e.bichos.length + 1) + ' bichinho</button></div>';
     h += '<div class="est-ajuda">Conclua ' + ORG_ESTRELA_META + ' tarefas no mesmo dia e ganhe 1 estrela (até ' + ORG_ESTRELA_SEMANA + ' por semana). A contagem da semana zera toda segunda-feira; as acumuladas nunca zeram e liberam prêmios.</div>';
     EST.innerHTML = h;
