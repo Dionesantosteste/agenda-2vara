@@ -725,6 +725,7 @@ acumulado. A trilha de prêmios não aparece; cada conquista é avisada no banne
 | 3 | 1º bichinho: a pessoa escolhe entre gatinho, cachorrinho, raposinha, leoazinha, dragãozinho e peixinho (este mora num aquário e nada parado no lugar) |
 | 8 | Caminha (ele dorme nela quando o sistema fica parado). Para o peixinho: luminária do aquário, que apaga quando o sistema fica parado |
 | 15 | Potinho (de vez em quando vai comer). Para o peixinho: pote de ração, ele sobe para comer |
+| 20 | **Brinde físico** (veja "Brinde das 20 estrelas", abaixo) |
 | 25 | Bolinha (de vez em quando brinca). Para o peixinho: baú do tesouro, que de vez em quando abre e brilha |
 | 40 | Cresce: vira adulto |
 | 55, 75 e 100 | 2º, 3º e 4º bichinho (escolhe entre os que ainda não tem; são 6 no total) |
@@ -745,6 +746,28 @@ recebe a estrela desse dia (até 5 por semana). Rodar de novo não repete estrel
 - Os prêmios ficam em `ORG_PREMIOS`, no `public/legado.html`. Os marcos de bichinho (3, 55, 75 e 100) se
   repetem na função `org_escolher_bicho`, no SQL.
 - Os bichinhos (nome, jeito e frases) ficam em `ORG_BICHOS`, e o desenho em `orgBichoSvg`.
+
+### Brinde das 20 estrelas
+
+Com **20 estrelas acumuladas** a pessoa ganha um **brinde de verdade**. Aparece um banner de parabéns
+com a medalha "20", as 20 estrelinhas e o texto: "São 20 dias em que você concluiu 10 tarefas ou mais.
+Como agradecimento, você escolhe um brinde de verdade, basta avisar o gestor."
+
+- O botão **"Quero meu brinde"** avisa o gestor: entra no quadro dele uma tarefa "🎁 Entregar o brinde
+  de 20 estrelas para (nome)", marcada "De (nome)" e com o recado da pessoa, e ele recebe o mesmo aviso
+  (som, mensagem e notificação do Windows) de quando alguém da equipe manda tarefa. Os brindes ficam à
+  disposição e a pessoa escolhe na hora de receber. Depois de entregar, o gestor conclui a tarefa.
+- O banner aparece sozinho **uma vez**: logo depois do banner da estrela que completou as 20, ou ao abrir
+  o quadro (para quem já tinha 20 quando o brinde entrou). Se a pessoa fechar sem pedir, o botão
+  **"🎁 Quero meu brinde"** fica na barra de estrelas até ela pedir. O brinde não expira.
+- Cada pessoa pede **uma vez**. Só a própria pessoa pede (o gestor, vendo a tela dela, não vê o botão).
+- A estrela dada pelo gestor que já foi usada para pedir o brinde não pode ser desfeita.
+
+**Para ativar:** rode o `sql/organizacao.sql` inteiro de novo no SQL Editor (cria a tabela `org_brindes`
+e a função `org_pedir_brinde`). Enquanto isso não for feito, o brinde não aparece.
+
+- O marco (20) fica em `ORG_BRINDE_ESTRELAS`, no `public/legado.html`, e na função `org_pedir_brinde`,
+  no SQL. Se mudar, mude nos dois.
 
 ### Natal (de 15/11 a 06/01)
 

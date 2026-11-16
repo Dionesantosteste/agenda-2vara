@@ -157,6 +157,49 @@ test.describe('estrelas e bichinhos', () => {
   });
 });
 
+test.describe('brinde das 20 estrelas', () => {
+  const vinte = (n = 20) => Array.from({ length: n }, (_, i) => ({ dono: ANA, dia: '2026-0' + (1 + Math.floor(i / 28)) + '-' + String(1 + i % 28).padStart(2, '0') }));
+
+  test('com 20 estrelas o banner aparece; "Quero meu brinde" vira tarefa no quadro do gestor', async ({ page, banco }) => {
+    equipe(banco, { estrelas: vinte() });
+    await entrarComoPessoa(page, 'Ana Souza');
+    const card = page.locator('.org-festa-card.brinde');
+    await expect(card).toContainText('Você juntou 20 estrelas!');
+    await expect(card).toContainText('você escolhe um brinde de verdade, basta avisar o gestor');
+    await card.locator('[data-brinde-pedir]').click();
+    await expect(card).toContainText('O gestor foi avisado');
+    expect(banco.org.brindes).toEqual([expect.objectContaining({ dono: ANA, marco: 20 })]);
+    expect(banco.org.tarefas.find(t => t.enviada_por === ANA)).toMatchObject({ dono: null, etapa: 'afazer', titulo: '🎁 Entregar o brinde de 20 estrelas para Ana Souza' });
+    await card.locator('[data-festa-ok]').last().click();
+    await expect(page.locator('[data-brinde-ver]')).toHaveCount(0);
+    // no quadro do gestor ela aparece como as outras tarefas mandadas pela equipe ("De Ana" + recado)
+  });
+
+  test('fechou sem pedir: o banner não volta sozinho, mas o botão fica na barra de estrelas', async ({ page, banco }) => {
+    equipe(banco, { estrelas: vinte() });
+    await entrarComoPessoa(page, 'Ana Souza');
+    await page.locator('.org-festa-card.brinde [aria-label="Fechar"]').click();
+    await expect(page.locator('.org-festa')).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator('#orgEstrelas [data-brinde-ver]')).toBeVisible();
+    await expect(page.locator('.org-festa')).toHaveCount(0);
+    await page.locator('#orgEstrelas [data-brinde-ver]').click();
+    await expect(page.locator('.org-festa-card.brinde')).toBeVisible();
+  });
+
+  test('com 19 estrelas não tem brinde; quem já pediu não vê de novo', async ({ page, banco }) => {
+    equipe(banco, { estrelas: vinte(19) });
+    await entrarComoPessoa(page, 'Ana Souza');
+    await expect(page.locator('#orgEstrelas')).toContainText(/Acumuladas\s*19/);
+    await expect(page.locator('[data-brinde-ver], .org-festa')).toHaveCount(0);
+    banco.org.estrelas.push({ dono: ANA, dia: '2026-02-20', manual: false, motivo: null, created_at: new Date().toISOString() });
+    banco.org.brindes.push({ dono: ANA, marco: 20 });
+    await page.reload();
+    await expect(page.locator('#orgEstrelas')).toContainText(/Acumuladas\s*20/);
+    await expect(page.locator('[data-brinde-ver], .org-festa')).toHaveCount(0);
+  });
+});
+
 test.describe('estrela dada pelo gestor', () => {
   const linhaPainel = (page, nome) => page.locator('#orgPnCarga tr', { hasText: nome });
 
