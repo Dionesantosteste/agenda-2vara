@@ -409,6 +409,9 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .icon-btn:hover{ background:var(--accent-soft); color:var(--accent); }
   .icon-btn.danger:hover{ background:var(--accent-soft); color:var(--danger); }
 
+  .aud-ocultas{ display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:4px 10px; margin-top:14px; padding:10px 14px;
+    font-family:var(--font-ui); font-size:13px; color:var(--muted); border:1px dashed var(--line); border-radius:10px; }
+  .aud-ocultas button{ border:0; background:transparent; color:var(--accent); font:inherit; font-weight:600; cursor:pointer; padding:2px 4px; border-radius:6px; text-decoration:underline; text-underline-offset:2px; }
   .empty{ text-align:center; padding: 48px 20px; color:var(--muted); font-family:var(--font-ui); font-size:17px; }
 
   .fab{
@@ -3026,6 +3029,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
 
     <div class="groups" id="audGroups"></div>
     <div class="empty" id="audEmpty" hidden></div>
+    <div class="aud-ocultas" id="audOcultas" hidden><span></span><button type="button">Ver canceladas</button></div>
   </section>
 </div>
 </main>
@@ -4361,6 +4365,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     statuses: document.getElementById('audStatuses'),
     conf: document.getElementById('audConf'),
     intim: document.getElementById('audIntim'),
+    ocultas: document.getElementById('audOcultas'),
     tiposFiltro: document.getElementById('audTiposFiltro'),
     groups: document.getElementById('audGroups'),
     empty: document.getElementById('audEmpty'),
@@ -4458,7 +4463,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       toast('Não foi possível alterar o status: ' + res.error.message);
       return;
     }
-    toast('Status: ' + status);
+    toast(status === 'Cancelada' && !audMostraCanceladas() ? 'Audiência cancelada · saiu da lista (para ver, clique em “Ver canceladas”)' : 'Status: ' + status);
   }
 
   async function toggleConferida(a){
@@ -4510,6 +4515,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   }
 
   function nextMonthStart(d){ return new Date(d.getFullYear(), d.getMonth() + 1, 1); }
+
+  function audMostraCanceladas(){ return aud.status === 'Cancelada' || !!(aud.query || '').trim(); }
 
   function audMatches(a){
     if (aud.status !== 'Todos' && a.status !== aud.status) return false;
@@ -4893,7 +4900,12 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     renderAudFilters();
     renderSummary(now);
 
-    var list = aud.items.filter(function(a){ return audInPeriod(a, now) && audMatches(a); });
+    var todas = aud.items.filter(function(a){ return audInPeriod(a, now) && audMatches(a); });
+    // canceladas ficam fora da lista; aparecem na busca ou com o filtro "Status: Cancelada"
+    var list = audMostraCanceladas() ? todas : todas.filter(function(a){ return a.status !== 'Cancelada'; });
+    var ocultas = todas.length - list.length;
+    A.ocultas.hidden = !ocultas;
+    A.ocultas.querySelector('span').textContent = ocultas + (ocultas === 1 ? ' audiência cancelada não aparece' : ' audiências canceladas não aparecem') + ' na lista.';
     var desc = aud.period === 'anteriores';
     list.sort(function(x, y){ return desc ? y.date - x.date : x.date - y.date; });
     aud.tela = list;
@@ -4939,6 +4951,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     });
     if (focado){ var f = document.getElementById(focado); if (f){ f.focus(); if (f.tagName === 'INPUT' && f.value) f.setSelectionRange(f.value.length, f.value.length); } }
   }
+
+  A.ocultas.querySelector('button').addEventListener('click', function(){ aud.status = 'Cancelada'; renderAudiencias(); });
 
   A.stats.forEach(function(b){
     b.addEventListener('click', function(){

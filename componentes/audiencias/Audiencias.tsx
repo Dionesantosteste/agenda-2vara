@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   CONF_FILTROS, JANELA_DIAS, PERIODOS, STATUSES, STATUS_PADRAO, TODOS, dataDaImpressao, deLinha, diaMes, erroDosTipos, hora,
-  descreverAudiencia, nomesTipos, pauta, pendente, previaDoLote, repetidasDe, resumo, resumoDoLote, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
+  descreverAudiencia, mostraCanceladas, nomesTipos, pauta, pendente, previaDoLote, repetidasDe, resumo, resumoDoLote, rotuloDoDia, somaDias, textoDoFiltro, type Audiencia, type Conf, type Filtros, type Periodo
 } from '@/lib/audiencias';
 import { destaque } from '@/lib/agenda';
 import { chaveDoDia, formatarDataHora } from '@/lib/datas';
@@ -201,7 +201,7 @@ function Corpo(){
       avisar('Não foi possível alterar o status: ' + res.error.message);
       return;
     }
-    avisar('Status: ' + status);
+    avisar(status === 'Cancelada' && !mostraCanceladas(f) ? 'Audiência cancelada · saiu da lista (para ver, clique em “Ver canceladas”)' : 'Status: ' + status);
   }
   async function conferir(a: Audiencia){
     const antes = a.conferidaEm, depois = antes ? null : new Date();
@@ -279,7 +279,7 @@ function Corpo(){
   }
 
   const r = resumo(itens, agora);
-  const { lista, dias } = pauta(itens, f, agora);
+  const { lista, dias, ocultas } = pauta(itens, f, agora);
   let vazio = '';
   if (!lista.length){
     if (!carregado) vazio = 'Carregando audiências…';
@@ -469,6 +469,12 @@ function Corpo(){
           })}
         </div>
         <div className="empty" id="audEmpty" hidden={lista.length > 0}>{vazio}</div>
+        {ocultas > 0 && (
+          <div className="aud-ocultas" id="audOcultas">
+            {ocultas + (ocultas === 1 ? ' audiência cancelada não aparece' : ' audiências canceladas não aparecem') + ' na lista.'}
+            <button type="button" className="link-btn" onClick={() => mudar({ status: 'Cancelada' })}>Ver canceladas</button>
+          </div>
+        )}
       </section>
 
       <DialogoAudiencia audiencia={editando} nomes={nomes} fechar={() => setEditando(null)} salvar={salvar} excluir={excluir}

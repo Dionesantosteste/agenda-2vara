@@ -104,8 +104,21 @@ for (const v of VERSOES){
         await abrir(page);
         const cartao = page.locator('#audGroups .hcard', { hasText: '1002345-67' });
         await cartao.locator('.status-pill select').selectOption('Cancelada');
-        await expect(cartao).toHaveClass(/cancelled/);
+        // some da lista, mas dá para ver pela linha "Ver canceladas", pelo filtro ou pela busca
+        await expect(page.locator('#toast')).toContainText('Audiência cancelada · saiu da lista');
+        await expect(cartao).toHaveCount(0);
+        await expect(page.locator('#audCount')).toHaveText('1 audiência');
         await expect(page.locator('#statSemana')).toHaveText('1');
+        await expect(page.locator('#audOcultas')).toContainText('1 audiência cancelada não aparece na lista.');
+        await page.locator('#audOcultas').getByRole('button', { name: 'Ver canceladas' }).click();
+        await expect(page.locator('#audCount')).toHaveText('1 audiência');
+        await expect(cartao).toHaveClass(/cancelled/);
+        await expect(chip(page, 'audStatuses', 'Cancelada')).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.locator('#audOcultas')).toBeHidden();
+        await chip(page, 'audStatuses', 'Todos').click();
+        await expect(cartao).toHaveCount(0);
+        await page.fill('#audSearch', '1002345');
+        await expect(cartao).toHaveClass(/cancelled/);
       });
 
       test('marca e desmarca a conferência', async ({ page, banco }) => {
