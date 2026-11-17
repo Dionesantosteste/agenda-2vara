@@ -126,7 +126,8 @@ Para cada audiência ter a lista de quem precisa ser intimado, rode uma vez no S
 [`sql/audiencias_intimacoes.sql`](sql/audiencias_intimacoes.sql). Ele só acrescenta a coluna `intimacoes` na tabela
 `audiencias`; nada é apagado. Enquanto ele não rodar, a tela avisa ao tentar salvar.
 
-No site (`/novo/audiencias`), cada cartão ganha o botão **"+ Quem intimar"** (depois, **"3/5 intimados"** com
+No site, tanto na tela de Audiências do endereço principal (`#audiencias`) quanto em `/novo/audiencias`
+(as duas usam a mesma lista), cada cartão ganha o botão **"+ Quem intimar"** (depois, **"3/5 intimados"** com
 quadradinhos coloridos). Clique para abrir a lista:
 
 - **Adicionar**: nome e papel (autor, réu, testemunha do autor/réu/juízo, perito, informante…). Pode colar vários

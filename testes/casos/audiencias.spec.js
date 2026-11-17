@@ -237,6 +237,68 @@ for (const v of VERSOES){
         await page.click('#audPrint');
         await expect(page.locator('#toast')).toHaveText('Nada para imprimir neste filtro.');
       });
+
+      test('intimações: lista de quem intimar, ✓ / ✗, filtro, busca, status e impressão', async ({ page, banco }) => {
+        await abrir(page);
+        const cartao = page.locator('#audGroups .hcard', { hasText: '1002345-67' });
+        const lista = () => banco.tabelas.audiencias.find(a => a.processo.startsWith('1002345')).intimacoes;
+        await expect(cartao.locator('.int-btn')).toHaveText('+ Quem intimar');
+        await cartao.locator('.int-btn').click();
+        await expect(cartao.locator('.int-painel')).toContainText('Ninguém na lista ainda');
+        // vários nomes de uma vez (a numeração do rol sai; repetido não entra)
+        await cartao.getByLabel('Nome de quem intimar').fill('1. Ana Paula; 2. Carlos Lima; ana paula');
+        await cartao.getByRole('button', { name: 'Adicionar' }).click();
+        await expect(cartao.locator('.int-pessoa')).toHaveCount(2);
+        await expect(cartao.getByLabel('Nome de quem intimar')).toHaveValue('');
+        expect(lista().map(p => [p.nome, p.papel, p.meio, p.situacao])).toEqual([
+          ['Ana Paula', 'Testemunha do autor', 'Mandado', ''], ['Carlos Lima', 'Testemunha do autor', 'Mandado', '']]);
+        await expect(cartao.locator('.int-btn')).toContainText('0/2 intimados');
+
+        await cartao.getByRole('button', { name: 'Intimado: Ana Paula', exact: true }).click();
+        await expect(cartao.locator('.int-btn')).toContainText('1/2 intimados');
+        expect(lista()[0].situacao).toBe('intimada');
+        expect(lista()[0].em).toBeTruthy();
+
+        await cartao.getByRole('button', { name: 'Não intimado: Carlos Lima' }).click();
+        await expect(cartao).toHaveClass(/intim-alerta/);
+        await expect(cartao.locator('.int-btn')).toContainText('1 não intimado');
+        await cartao.getByLabel('Motivo de não ter intimado Carlos Lima').selectOption('Mudou-se');
+        await expect.poll(() => lista()[1].motivo).toBe('Mudou-se');
+
+        // remover pede confirmação
+        await cartao.getByLabel('Nome de quem intimar').fill('Pedro Costa');
+        await cartao.getByRole('button', { name: 'Adicionar' }).click();
+        await expect(cartao.locator('.int-pessoa')).toHaveCount(3);
+        await cartao.getByRole('button', { name: 'Tirar Pedro Costa da lista' }).click();
+        await cartao.getByRole('button', { name: 'Remover?' }).click();
+        await expect(cartao.locator('.int-pessoa')).toHaveCount(2);
+        expect(lista()).toHaveLength(2);
+
+        // todos intimados: sugere o status (não muda sozinho)
+        await expect(cartao.locator('.int-sug')).toHaveCount(0);
+        await cartao.getByRole('button', { name: 'Intimado: Carlos Lima', exact: true }).click();
+        await expect(cartao).not.toHaveClass(/intim-alerta/);
+        expect(lista()[1].motivo).toBe('');
+        await expect(cartao.locator('.status-pill select')).toHaveValue('A cumprir');
+        await cartao.locator('.int-sug').click();
+        await expect(cartao.locator('.status-pill select')).toHaveValue('Intimações feitas');
+        await expect.poll(() => banco.tabelas.audiencias.find(a => a.processo.startsWith('1002345')).status).toBe('Intimações feitas');
+
+        // filtro, busca pelo nome e impressão
+        await cartao.getByRole('button', { name: 'Não intimado: Carlos Lima' }).click();
+        await chip(page, 'audIntim', 'Com intimação frustrada').click();
+        await expect(page.locator('#audCount')).toHaveText('1 audiência');
+        await chip(page, 'audIntim', 'Com intimação pendente').click();
+        await expect(page.locator('#audCount')).toHaveText('1 audiência');
+        await chip(page, 'audIntim', 'Todas').click();
+        await page.fill('#audSearch', 'carlos lima');
+        await expect(page.locator('#audCount')).toHaveText('1 audiência');
+        await page.evaluate(() => { window.print = () => { window.__impresso = document.getElementById('printArea').innerText; }; });
+        await page.click('#audPrint');
+        const txt = await page.evaluate(() => window.__impresso);
+        expect(txt).toContain('✓ Ana Paula (Testemunha do autor)');
+        expect(txt).toContain('✗ Carlos Lima (Testemunha do autor)');
+      });
     });
 
     test('períodos, resumo e audiência que já passou', async ({ page, banco }) => {

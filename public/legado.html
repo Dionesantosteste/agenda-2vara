@@ -321,6 +321,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     .pr-st{ font-weight:600; }
     .pr-sub{ font-weight:400; font-size:8pt; color:#444; }
     .pr-obs{ white-space:pre-wrap; }
+    .pr-int{ margin-top:3pt; font-size:8.5pt; white-space:normal; }
   }
   h1{
     font-family:var(--font-ui);
@@ -648,6 +649,57 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .conf-btn.done{ border-style:solid; border-color:var(--ok); background:var(--ok-soft); color:var(--ok); }
   .conf-btn.done .conf-date{ font-family:var(--font-data); font-size:12px; font-variant-numeric:tabular-nums; }
   .conf-btn.armed{ border-style:solid; border-color:var(--danger); background:transparent; color:var(--danger); }
+
+  /* Intimações da audiência (checklist de quem intimar) */
+  .hcard.intim-alerta{ border-color:var(--st-red); }
+  .int-btn{ display:inline-flex; align-items:center; gap:8px; align-self:flex-start; margin-top:4px; cursor:pointer; max-width:100%;
+    border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:8px; padding:4px 10px; min-height:30px;
+    font-family:var(--font-ui); font-size:12.5px; }
+  .int-btn:hover{ border-color:var(--accent); }
+  .int-btn.vazio{ background:transparent; border-style:dashed; color:var(--muted); }
+  .int-bar{ display:flex; flex:none; gap:2px; }
+  .int-bar i{ width:10px; height:10px; border-radius:3px; background:var(--line); }
+  .int-bar i.s-intimada{ background:var(--ok); }
+  .int-bar i.s-nao{ background:var(--st-red); }
+  .int-bar i.s-dispensada{ background:var(--muted); opacity:.45; }
+  .int-alerta{ color:var(--st-red); font-weight:600; }
+  .int-caret{ width:6px; height:6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-top:-3px; flex:none; }
+  .int-btn[aria-expanded="true"] .int-caret{ transform:rotate(-135deg); margin-top:3px; }
+  .int-painel{ grid-column:1 / -1; margin:2px -16px -14px; padding:12px 16px 14px; border-top:1px solid var(--line); background:var(--sunken);
+    border-radius:0 0 13px 13px; display:flex; flex-direction:column; gap:8px; min-width:0; }
+  .int-head{ display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap; }
+  .int-head h3{ margin:0; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  .int-sug{ font-family:var(--font-ui); font-size:12.5px; color:var(--ok); background:var(--ok-soft); border:1px solid var(--ok); border-radius:8px; padding:4px 10px; cursor:pointer; }
+  .int-pessoa{ background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:8px 10px;
+    display:grid; grid-template-columns:auto minmax(0,1fr) auto; gap:10px; align-items:center; }
+  .int-pessoa.s-nao{ border-color:var(--st-red); }
+  .int-seg{ display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
+  .int-seg button{ border:0; background:transparent; width:34px; height:32px; cursor:pointer; display:grid; place-items:center; color:var(--muted); }
+  .int-seg button + button{ border-left:1px solid var(--line); }
+  .int-seg button:hover{ background:var(--sunken); }
+  .int-seg button.b-ok[aria-pressed="true"]{ background:var(--ok); color:var(--paper); }
+  .int-seg button.b-no[aria-pressed="true"]{ background:var(--st-red); color:var(--paper); }
+  .int-info{ min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .int-nome{ font-weight:500; overflow-wrap:anywhere; }
+  .int-pessoa.s-dispensada .int-nome{ text-decoration:line-through; color:var(--muted); }
+  .int-meta{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; font-size:12.5px; color:var(--muted); }
+  .int-papel{ font-size:11px; letter-spacing:.04em; text-transform:uppercase; background:var(--accent-soft); color:var(--accent); border-radius:5px; padding:1px 6px; }
+  .int-meta select{ border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:6px; padding:1px 4px; font-size:12.5px; font-family:var(--font-ui); max-width:100%; }
+  .int-meta select.int-motivo{ color:var(--st-red); border-color:var(--st-red); }
+  .int-data{ font-family:var(--font-data); font-size:12px; font-variant-numeric:tabular-nums; }
+  .int-acoes{ display:flex; gap:2px; align-items:center; }
+  .int-mini{ border:0; background:transparent; color:var(--muted); cursor:pointer; border-radius:6px; padding:4px 6px; font-family:var(--font-ui); font-size:12px; display:inline-flex; align-items:center; }
+  .int-mini:hover{ background:var(--sunken); color:var(--ink); }
+  .int-mini.armed{ color:var(--danger); border:1px solid var(--danger); }
+  .int-dica{ margin:0; font-size:12.5px; color:var(--muted); }
+  .int-add{ display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px; }
+  .int-add input, .int-add select{ border:1px solid var(--line); background:var(--paper); color:var(--ink); border-radius:8px; padding:6px 9px; min-width:0; font-family:var(--font-ui); font-size:13.5px; }
+  @media (max-width:560px){
+    .int-pessoa{ grid-template-columns:auto minmax(0,1fr); }
+    .int-acoes{ grid-column:1 / -1; justify-content:flex-end; }
+    .int-add{ grid-template-columns:1fr auto; }
+    .int-add input{ grid-column:1 / -1; }
+  }
 
   .status-pill{ position:relative; display:inline-flex; border-radius:999px; border:1px solid var(--line); color:var(--muted); background:transparent; }
   .status-pill select{
@@ -2952,7 +3004,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
 
     <div class="searchbar">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="audSearch" type="text" placeholder="Buscar por processo, tipo ou observação…" autocomplete="off" />
+      <input id="audSearch" type="text" placeholder="Buscar por processo, tipo, observação ou nome de quem intimar…" autocomplete="off" />
       <button class="clear-btn" id="audClearSearch" hidden>limpar</button>
     </div>
 
@@ -2970,6 +3022,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     <div class="filter-row" id="audStatuses" role="group" aria-label="Status"></div>
     <div class="filter-row" id="audTiposFiltro" role="group" aria-label="Tipo"></div>
     <div class="filter-row" id="audConf" role="group" aria-label="Conferência"></div>
+    <div class="filter-row" id="audIntim" role="group" aria-label="Intimações"></div>
 
     <div class="groups" id="audGroups"></div>
     <div class="empty" id="audEmpty" hidden></div>
@@ -4293,7 +4346,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     { key: 'intervalo',  label: 'Entre datas' }
   ];
 
-  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', tipo: 'Todos', conf: 'todas' };
+  var aud = { items: [], loaded: false, error: null, query: "", period: 'proximas', status: 'Todos', tipo: 'Todos', conf: 'todas', intim: 'todas' };
   var CONF_FILTROS = [
     { key: 'todas', label: 'Todas' },
     { key: 'nao',   label: 'Não conferidas' },
@@ -4307,6 +4360,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     periods: document.getElementById('audPeriods'),
     statuses: document.getElementById('audStatuses'),
     conf: document.getElementById('audConf'),
+    intim: document.getElementById('audIntim'),
     tiposFiltro: document.getElementById('audTiposFiltro'),
     groups: document.getElementById('audGroups'),
     empty: document.getElementById('audEmpty'),
@@ -4365,7 +4419,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         tipo: r.tipo || "",
         status: STATUS_ANTIGOS[r.status] || r.status || STATUS_PADRAO,
         observacoes: r.observacoes || "",
-        conferidaEm: r.conferida_em ? new Date(r.conferida_em) : null
+        conferidaEm: r.conferida_em ? new Date(r.conferida_em) : null,
+        intimacoes: lerIntimacoes(r.intimacoes)
       };
     });
     prox7Render();
@@ -4461,11 +4516,12 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     if (aud.tipo !== 'Todos' && a.tipo !== aud.tipo) return false;
     if (aud.conf === 'sim' && !a.conferidaEm) return false;
     if (aud.conf === 'nao' && a.conferidaEm) return false;
+    if (!intCombina(a.intimacoes || [], aud.intim)) return false;
     var q = normalize(aud.query).trim();
     if (!q) return true;
     var qd = digitsOnly(q);
     if (qd.length >= 3 && digitsOnly(a.processo).indexOf(qd) !== -1) return true;
-    return [a.processo, a.tipo, a.observacoes, a.status].some(function(f){ return normalize(f).indexOf(q) !== -1; });
+    return [a.processo, a.tipo, a.observacoes, a.status].concat((a.intimacoes || []).map(function(p){ return p.nome; })).some(function(f){ return normalize(f).indexOf(q) !== -1; });
   }
 
   function chip(label, pressed, onClick){
@@ -4512,6 +4568,10 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     CONF_FILTROS.forEach(function(c){
       A.conf.appendChild(chip(c.label, aud.conf === c.key, function(){ aud.conf = c.key; renderAudiencias(); }));
     });
+    A.intim.innerHTML = '<span class="filter-label">Intimações</span>';
+    INT_FILTROS.forEach(function(c){
+      A.intim.appendChild(chip(c.label, aud.intim === c.key, function(){ aud.intim = c.key; renderAudiencias(); }));
+    });
     A.stats.forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-period') === aud.period)); });
   }
 
@@ -4544,12 +4604,196 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       hoje === 0 ? "Nenhuma audiência hoje" : hoje === 1 ? "1 audiência hoje" : hoje + " audiências hoje";
   }
 
+  // ---- intimações da audiência: quem intimar e se foi intimado (✓) ou não (✗) ----
+  // As mesmas regras de lib/intimacoes.ts (sistema novo); grava na coluna audiencias.intimacoes (jsonb).
+  var INT_PAPEIS = ['Autor', 'Réu', 'Testemunha do autor', 'Testemunha do réu', 'Testemunha do juízo', 'Perito', 'Informante', 'Advogado', 'Outro'];
+  var INT_MEIOS = ['Mandado', 'AR', 'DJEN (advogado)', 'WhatsApp', 'E-mail', 'Carta precatória', 'Em secretaria', 'Outro'];
+  var INT_MOTIVOS = ['Não localizada', 'Mudou-se', 'Endereço insuficiente', 'Faleceu', 'Recusou-se', 'Outro'];
+  var INT_FILTROS = [
+    { key: 'todas', label: 'Todas' },
+    { key: 'pendentes', label: 'Com intimação pendente' },
+    { key: 'frustradas', label: 'Com intimação frustrada' }
+  ];
+  var INT_SITUACOES = ['', 'intimada', 'nao', 'dispensada'];
+  var intUI = { abertas: {}, papel: {}, rascunho: {}, remover: null };
+
+  function intNovoId(){
+    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  }
+  function intTexto(v, max){ return typeof v === 'string' ? v.trim().slice(0, max) : ''; }
+  function lerIntimacoes(v){
+    if (!Array.isArray(v)) return [];
+    var out = [];
+    v.forEach(function(r){
+      if (!r || typeof r !== 'object') return;
+      var nome = intTexto(r.nome, 200);
+      if (!nome) return;
+      var s = INT_SITUACOES.indexOf(r.situacao) !== -1 ? r.situacao : '';
+      out.push({ id: intTexto(r.id, 60) || intNovoId(), nome: nome, papel: intTexto(r.papel, 60) || 'Outro', meio: intTexto(r.meio, 60),
+        situacao: s, em: typeof r.em === 'string' && r.em ? r.em : null, motivo: s === 'nao' ? intTexto(r.motivo, 200) : '' });
+    });
+    return out;
+  }
+  function intMeioPadrao(papel){ return /^Testemunha|^Informante/.test(papel) ? 'Mandado' : papel === 'Perito' ? 'E-mail' : 'DJEN (advogado)'; }
+  function intChave(s){ return normalize(s).replace(/\s+/g, ' ').trim(); }
+  // vários nomes: um por linha ou separados por ";"; tira a numeração do rol e ignora repetidos
+  function intSepararNomes(txt, jaTem){
+    var vistos = {}, out = [];
+    (jaTem || []).forEach(function(p){ vistos[intChave(p.nome)] = true; });
+    txt.split(/\r?\n|;/).forEach(function(parte){
+      var nome = parte.replace(/^\s*(\d{1,3}|[a-zA-Z])\s*[-.)–]\s+/, '').replace(/\s+/g, ' ').trim().slice(0, 200);
+      if (!nome || vistos[intChave(nome)]) return;
+      vistos[intChave(nome)] = true;
+      out.push(nome);
+    });
+    return out;
+  }
+  function intContagem(lista){
+    var ativos = lista.filter(function(p){ return p.situacao !== 'dispensada'; });
+    var ok = ativos.filter(function(p){ return p.situacao === 'intimada'; }).length, nao = ativos.filter(function(p){ return p.situacao === 'nao'; }).length;
+    return { total: ativos.length, intimadas: ok, nao: nao, pendentes: ativos.length - ok - nao };
+  }
+  function intTodasIntimadas(lista){ var c = intContagem(lista); return c.total > 0 && c.intimadas === c.total; }
+  function intCombina(lista, f){
+    if (f === 'todas') return true;
+    var c = intContagem(lista);
+    return f === 'frustradas' ? c.nao > 0 : c.pendentes > 0 || c.nao > 0;
+  }
+  function intDiaMes(iso){ if (!iso) return ''; var d = new Date(iso); return pad(d.getDate()) + '/' + pad(d.getMonth() + 1); }
+  function intLinhaImpressao(p){
+    var m = p.situacao === 'intimada' ? '✓' : p.situacao === 'nao' ? '✗' : p.situacao === 'dispensada' ? '–' : '☐';
+    return m + ' ' + p.nome + ' (' + p.papel + ')' + (p.situacao === 'nao' && p.motivo ? ' — ' + p.motivo : '') + (p.situacao === 'dispensada' ? ' — dispensado' : '');
+  }
+
+  // Grava a lista inteira (aparece na hora; volta atrás se der erro)
+  async function salvarIntimacoes(a, nova){
+    var antes = a.intimacoes;
+    a.intimacoes = nova;
+    renderAudiencias();
+    var res = await supabase.from('audiencias').update({ intimacoes: nova, updated_at: new Date().toISOString() }).eq('id', a.id);
+    if (res.error){
+      a.intimacoes = antes;
+      renderAudiencias();
+      var msg = res.error.message || '';
+      toast(/intimacoes/.test(msg) ? 'Falta a coluna "intimacoes" no Supabase. Rode o sql/audiencias_intimacoes.sql (LEIA-ME, Passo 2.1.3).' : 'Não foi possível salvar as intimações: ' + msg);
+      return false;
+    }
+    return true;
+  }
+  function intMarcar(a, id, s){
+    salvarIntimacoes(a, a.intimacoes.map(function(p){
+      if (p.id !== id) return p;
+      var nova = p.situacao === s ? '' : s;
+      return Object.assign({}, p, { situacao: nova, em: nova && nova !== 'dispensada' ? new Date().toISOString() : null, motivo: nova === 'nao' ? p.motivo : '' });
+    }));
+  }
+  function intAlterar(a, id, campos){ salvarIntimacoes(a, a.intimacoes.map(function(p){ return p.id === id ? Object.assign({}, p, campos) : p; })); }
+  async function intIncluir(a, txt){
+    var nomes = intSepararNomes(txt, a.intimacoes);
+    if (!nomes.length){ intUI.rascunho[a.id] = ''; renderAudiencias(); return; }
+    var papel = intUI.papel[a.id] || 'Testemunha do autor';
+    var nova = a.intimacoes.concat(nomes.map(function(n){ return { id: intNovoId(), nome: n, papel: papel, meio: intMeioPadrao(papel), situacao: '', em: null, motivo: '' }; }));
+    intUI.rascunho[a.id] = '';
+    if (!(await salvarIntimacoes(a, nova))) intUI.rascunho[a.id] = txt;
+    renderAudiencias();
+  }
+
+  var IC_OK = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>';
+  function icX(t){ return '<svg width="' + t + '" height="' + t + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>'; }
+  function intOpcoes(lista, atual, vazio){
+    var l = atual && lista.indexOf(atual) === -1 ? lista.concat([atual]) : lista;
+    return (vazio ? '<option value="">' + vazio + '</option>' : '') +
+      l.map(function(x){ return '<option value="' + escapeHtml(x) + '"' + (x === atual ? ' selected' : '') + '>' + escapeHtml(x) + '</option>'; }).join('');
+  }
+
+  // Botão do cartão: quadradinhos coloridos + "3/5 intimados"
+  function buildIntResumo(a){
+    var lista = a.intimacoes, c = intContagem(lista);
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'int-btn' + (lista.length ? '' : ' vazio');
+    b.title = 'Quem intimar para esta audiência';
+    b.setAttribute('aria-label', 'Intimações da audiência do processo ' + a.processo);
+    b.setAttribute('aria-expanded', String(!!intUI.abertas[a.id]));
+    var txt;
+    if (!lista.length) txt = '+ Quem intimar';
+    else if (!c.total) txt = 'Todos dispensados';
+    else txt = c.intimadas + '/' + c.total + ' ' + (c.total === 1 ? 'intimado' : 'intimados') +
+      (c.nao ? ' · <b class="int-alerta">' + c.nao + (c.nao === 1 ? ' não intimado' : ' não intimados') + '</b>' : '');
+    b.innerHTML = (lista.length ? '<span class="int-bar" aria-hidden="true">' + lista.map(function(p){ return '<i' + (p.situacao ? ' class="s-' + p.situacao + '"' : '') + '></i>'; }).join('') + '</span>' : '') +
+      '<span>' + txt + '</span><span class="int-caret" aria-hidden="true"></span>';
+    b.addEventListener('click', function(){ intUI.abertas[a.id] = !intUI.abertas[a.id]; renderAudiencias(); });
+    return b;
+  }
+
+  function buildIntPainel(a){
+    var lista = a.intimacoes;
+    var box = document.createElement('div');
+    box.className = 'int-painel';
+    var h = '<div class="int-head"><h3>Quem intimar</h3>' +
+      (intTodasIntimadas(lista) && a.status === STATUS_PADRAO ? '<button type="button" class="int-sug" data-acao="status">Todos intimados · mudar status para “Intimações feitas”</button>' : '') + '</div>';
+    lista.forEach(function(p){
+      var nm = escapeHtml(p.nome), meta = '<span class="int-papel">' + escapeHtml(p.papel) + '</span>' +
+        '<select id="intMeio-' + p.id + '" data-meio="' + p.id + '" aria-label="Meio de intimação de ' + nm + '">' + intOpcoes(INT_MEIOS, p.meio, p.meio ? '' : 'Meio…') + '</select>';
+      if (p.situacao === 'intimada') meta += '<span>intimado em <span class="int-data">' + intDiaMes(p.em) + '</span></span>';
+      if (p.situacao === 'nao') meta += '<select id="intMotivo-' + p.id + '" class="int-motivo" data-motivo="' + p.id + '" aria-label="Motivo de não ter intimado ' + nm + '">' + intOpcoes(INT_MOTIVOS, p.motivo, 'Motivo…') + '</select><span class="int-data">' + intDiaMes(p.em) + '</span>';
+      if (p.situacao === 'dispensada') meta += '<span>dispensado</span>';
+      var armado = intUI.remover === p.id;
+      h += '<div class="int-pessoa' + (p.situacao ? ' s-' + p.situacao : '') + '">' +
+        '<div class="int-seg" role="group" aria-label="Situação de ' + nm + '">' +
+          '<button type="button" class="b-ok" data-sit="intimada" data-id="' + p.id + '" aria-pressed="' + (p.situacao === 'intimada') + '" title="Intimado" aria-label="Intimado: ' + nm + '">' + IC_OK + '</button>' +
+          '<button type="button" class="b-no" data-sit="nao" data-id="' + p.id + '" aria-pressed="' + (p.situacao === 'nao') + '" title="Não intimado" aria-label="Não intimado: ' + nm + '">' + icX(14) + '</button>' +
+        '</div>' +
+        '<div class="int-info"><span class="int-nome">' + nm + '</span><span class="int-meta">' + meta + '</span></div>' +
+        '<div class="int-acoes">' +
+          '<button type="button" class="int-mini" data-sit="dispensada" data-id="' + p.id + '" title="' + (p.situacao === 'dispensada' ? 'Volta a contar como pendente' : 'Não precisa mais intimar (ex.: testemunha desistida). Não conta no total.') + '">' + (p.situacao === 'dispensada' ? 'Reativar' : 'Dispensar') + '</button>' +
+          (armado ? '<button type="button" class="int-mini armed" data-del="' + p.id + '">Remover?</button>'
+                  : '<button type="button" class="int-mini" data-armar="' + p.id + '" title="Tirar da lista" aria-label="Tirar ' + nm + ' da lista">' + icX(13) + '</button>') +
+        '</div></div>';
+    });
+    if (!lista.length) h += '<p class="int-dica">Ninguém na lista ainda. Adicione as partes e testemunhas que precisam ser intimadas.</p>';
+    h += '<form class="int-add"><input id="intNome-' + a.id + '" aria-label="Nome de quem intimar" placeholder="Nome (pode colar vários, um por linha)" maxlength="2000" autocomplete="off" value="' + escapeHtml(intUI.rascunho[a.id] || '') + '" />' +
+      '<select id="intPapel-' + a.id + '" aria-label="Papel">' + intOpcoes(INT_PAPEIS, intUI.papel[a.id] || 'Testemunha do autor') + '</select>' +
+      '<button type="submit" class="btn primary">Adicionar</button></form>';
+    box.innerHTML = h;
+
+    box.addEventListener('click', function(e){
+      var t = e.target.closest('button'); if (!t) return;
+      if (t.getAttribute('data-acao') === 'status'){ setAudStatus(a, 'Intimações feitas'); return; }
+      var sit = t.getAttribute('data-sit');
+      if (sit){ intUI.remover = null; intMarcar(a, t.getAttribute('data-id'), sit); return; }
+      if (t.hasAttribute('data-armar')){ intUI.remover = t.getAttribute('data-armar'); renderAudiencias(); var r = document.querySelector('.int-mini.armed'); if (r) r.focus(); return; }
+      if (t.hasAttribute('data-del')){ var id = t.getAttribute('data-del'); intUI.remover = null; salvarIntimacoes(a, a.intimacoes.filter(function(p){ return p.id !== id; })); }
+    });
+    box.addEventListener('focusout', function(e){
+      if (intUI.remover && e.target.classList && e.target.classList.contains('armed') && !(e.relatedTarget && e.relatedTarget.hasAttribute && e.relatedTarget.hasAttribute('data-del'))){
+        intUI.remover = null; setTimeout(renderAudiencias, 0);
+      }
+    });
+    box.addEventListener('change', function(e){
+      var t = e.target;
+      if (t.hasAttribute('data-meio')) intAlterar(a, t.getAttribute('data-meio'), { meio: t.value });
+      else if (t.hasAttribute('data-motivo')) intAlterar(a, t.getAttribute('data-motivo'), { motivo: t.value });
+      else if (t.id === 'intPapel-' + a.id) intUI.papel[a.id] = t.value;
+    });
+    var form = box.querySelector('.int-add'), nome = form.querySelector('input');
+    nome.addEventListener('input', function(){ intUI.rascunho[a.id] = nome.value; });
+    nome.addEventListener('paste', function(e){
+      var t = (e.clipboardData || window.clipboardData).getData('text');
+      if (/\n/.test(t.trim())){ e.preventDefault(); intIncluir(a, t); }
+    });
+    form.addEventListener('submit', function(e){ e.preventDefault(); intIncluir(a, nome.value); });
+    return box;
+  }
+
   function buildAudCard(a, now){
     var card = document.createElement('div');
     card.className = 'hcard';
     var pending = isPending(a, now);
     if (pending) card.classList.add('pending');
     if (a.status === 'Cancelada') card.classList.add('cancelled');
+    if (!a.intimacoes) a.intimacoes = [];
+    if (intContagem(a.intimacoes).nao > 0) card.classList.add('intim-alerta');
 
     var time = document.createElement('div');
     time.className = 'htime';
@@ -4580,6 +4824,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       flag.textContent = 'Já passou — atualize o status';
       info.appendChild(flag);
     }
+    info.appendChild(buildIntResumo(a));
 
     var side = document.createElement('div');
     side.className = 'hside';
@@ -4639,6 +4884,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     card.appendChild(time);
     card.appendChild(info);
     card.appendChild(side);
+    if (intUI.abertas[a.id]) card.appendChild(buildIntPainel(a));
     return card;
   }
 
@@ -4651,6 +4897,8 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     var desc = aud.period === 'anteriores';
     list.sort(function(x, y){ return desc ? y.date - x.date : x.date - y.date; });
     aud.tela = list;
+    // redesenhar não pode tirar o foco de quem está digitando ou marcando as intimações
+    var focado = document.activeElement && A.groups.contains(document.activeElement) && document.activeElement.id ? document.activeElement.id : '';
 
     A.count.textContent = list.length + (list.length === 1 ? " audiência" : " audiências");
     A.groups.innerHTML = "";
@@ -4689,6 +4937,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       day.appendChild(cards);
       A.groups.appendChild(day);
     });
+    if (focado){ var f = document.getElementById(focado); if (f){ f.focus(); if (f.tagName === 'INPUT' && f.value) f.setSelectionRange(f.value.length, f.value.length); } }
   }
 
   A.stats.forEach(function(b){
@@ -7715,7 +7964,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       per.query = p.processo; P.search.value = p.processo; P.clearSearch.hidden = false; irPara('pericias');
     } else {
       var a = aud.items.filter(function(x){ return x.id === id; })[0]; if (!a) return;
-      aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas';
+      aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas'; aud.intim = 'todas';
       aud.query = a.processo; A.search.value = a.processo; A.clearSearch.hidden = false; irPara('audiencias');
     }
   });
@@ -11467,14 +11716,15 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   document.getElementById('audPrint').addEventListener('click', function(){
     var list = aud.tela || [];
     if (!list.length){ toast('Nada para imprimir neste filtro.'); return; }
-    var h = '<table class="pr-tab"><thead><tr><th style="width:9%">Hora</th><th style="width:24%">Processo</th><th style="width:22%">Tipo</th><th style="width:17%">Situação</th><th>Observações</th></tr></thead><tbody>';
+    var h = '<table class="pr-tab"><thead><tr><th style="width:9%">Hora</th><th style="width:24%">Processo</th><th style="width:22%">Tipo</th><th style="width:17%">Situação</th><th>Observações e intimações</th></tr></thead><tbody>';
     var dia = '';
     list.forEach(function(a){
       var k = dayKey(a.date);
       if (k !== dia){ dia = k; h += '<tr class="pr-dia"><td colspan="5">' + escapeHtml(prData(a.date)) + '</td></tr>'; }
       h += '<tr><td class="pr-hora">' + prHora(a.date) + '</td><td class="pr-proc">' + escapeHtml(a.processo) + '</td><td>' + escapeHtml(a.tipo || '—') + '</td>' +
         '<td class="pr-st">' + escapeHtml(a.status) + (a.conferidaEm ? '<div class="pr-sub">conferida em ' + fmtDia(a.conferidaEm) + '</div>' : '') + '</td>' +
-        '<td class="pr-obs">' + escapeHtml(a.observacoes || '') + '</td></tr>';
+        '<td class="pr-obs">' + escapeHtml(a.observacoes || '') +
+        ((a.intimacoes || []).length ? '<div class="pr-int">' + a.intimacoes.map(function(p){ return '<div>' + escapeHtml(intLinhaImpressao(p)) + '</div>'; }).join('') + '</div>' : '') + '</td></tr>';
     });
     h += '</tbody></table>';
     imprimir('Pauta de audiências', audFiltroTexto(), list.length + (list.length === 1 ? ' audiência' : ' audiências'), h);
@@ -11555,7 +11805,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         s: escapeHtml(a.tipo || 'Tipo não informado') + ' · ' + fmtData(a.date) + ' às ' + pad(a.date.getHours()) + ':' + pad(a.date.getMinutes()) + (a.observacoes ? ' · ' + gMarca(a.observacoes.slice(0, 80), q) : ''),
         tag: '<span class="tag resp">' + escapeHtml(a.status) + '</span>',
         ir: function(){
-          aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas';
+          aud.period = 'todas'; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas'; aud.intim = 'todas';
           aud.query = a.processo; A.search.value = a.processo; A.clearSearch.hidden = false; irPara('audiencias');
         } };
     }) });
@@ -12524,7 +12774,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     var tipo = b.getAttribute('data-px'), dia = b.getAttribute('data-dia') || '';
     var de = dia || dayKey(new Date()), ate = dia || dayKey(addDays(new Date(), 7));
     if (tipo === 'aud'){
-      aud.period = 'intervalo'; aud.from = de; aud.to = ate; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas';
+      aud.period = 'intervalo'; aud.from = de; aud.to = ate; aud.status = 'Todos'; aud.tipo = 'Todos'; aud.conf = 'todas'; aud.intim = 'todas';
       aud.query = ''; A.search.value = ''; A.clearSearch.hidden = true;
     } else {
       per.aba = 'andamento'; per.situacao = 'andamento'; per.perito = ''; per.de = de; per.ate = ate; per.sel = {};
