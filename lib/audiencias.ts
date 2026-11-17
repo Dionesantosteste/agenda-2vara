@@ -100,10 +100,15 @@ export function combina(a: Audiencia, f: Pick<Filtros, 'status' | 'tipo' | 'conf
   return [a.processo, a.tipo, a.observacoes, a.status, ...a.intimacoes.map(p => p.nome)].some(c => normalizar(c).includes(q));
 }
 
-// Lista da tela: filtrada e em ordem (anteriores: a mais recente primeiro), agrupada por dia
-export function pauta(itens: Audiencia[], f: Filtros, agora: Date): { lista: Audiencia[]; dias: { chave: string; date: Date; itens: Audiencia[] }[] } {
+// Canceladas ficam fora da lista; aparecem na busca ou com o filtro "Status: Cancelada"
+export const mostraCanceladas = (f: Pick<Filtros, 'status' | 'busca'>) => f.status === 'Cancelada' || !!f.busca.trim();
+
+// Lista da tela: filtrada e em ordem (anteriores: a mais recente primeiro), agrupada por dia.
+// "ocultas": canceladas que entrariam no filtro mas ficaram de fora.
+export function pauta(itens: Audiencia[], f: Filtros, agora: Date): { lista: Audiencia[]; dias: { chave: string; date: Date; itens: Audiencia[] }[]; ocultas: number } {
   const desc = f.periodo === 'anteriores';
-  const lista = itens.filter(a => noPeriodo(a, f, agora) && combina(a, f))
+  const todas = itens.filter(a => noPeriodo(a, f, agora) && combina(a, f));
+  const lista = (mostraCanceladas(f) ? todas : todas.filter(a => a.status !== 'Cancelada'))
     .sort((x, y) => (desc ? y.date.getTime() - x.date.getTime() : x.date.getTime() - y.date.getTime()));
   const dias: { chave: string; date: Date; itens: Audiencia[] }[] = [];
   for (const a of lista){
@@ -111,7 +116,7 @@ export function pauta(itens: Audiencia[], f: Filtros, agora: Date): { lista: Aud
     if (!dias.length || dias[dias.length - 1].chave !== k) dias.push({ chave: k, date: a.date, itens: [] });
     dias[dias.length - 1].itens.push(a);
   }
-  return { lista, dias };
+  return { lista, dias, ocultas: todas.length - lista.length };
 }
 
 // Quadros do resumo (as canceladas não contam)

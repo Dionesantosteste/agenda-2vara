@@ -90,6 +90,20 @@ test('título da tarefa da audiência', () => {
   assert.equal(tituloDaTarefa('Instrução', new Date(2026, 9, 20, 14, 5)), 'Audiência de Instrução · 20/10/2026 às 14:05');
 });
 
+test('canceladas ficam fora da lista, menos na busca ou no filtro de canceladas', () => {
+  const ativa = aud(20, 9), cancelada = aud(21, 9, { status: 'Cancelada', observacoes: 'réu faleceu' });
+  let r = pauta([ativa, cancelada], F, agora);
+  assert.deepEqual(r.lista, [ativa]);
+  assert.equal(r.ocultas, 1);
+  r = pauta([ativa, cancelada], { ...F, status: 'Cancelada' }, agora);
+  assert.deepEqual(r.lista, [cancelada]);
+  assert.equal(r.ocultas, 0);
+  r = pauta([ativa, cancelada], { ...F, busca: 'faleceu' }, agora);
+  assert.deepEqual(r.lista, [cancelada]);
+  assert.equal(r.ocultas, 0);
+  assert.equal(pauta([ativa, cancelada], { ...F, status: 'A cumprir' }, agora).ocultas, 0, 'não conta canceladas que o filtro já tira');
+});
+
 test('filtro de intimações e busca pelo nome de quem intimar', () => {
   const p = (nome: string, situacao: '' | 'intimada' | 'nao') => ({ id: nome, nome, papel: 'Réu', meio: '', situacao, em: null, motivo: '' });
   const a = aud(20, 9, { intimacoes: [p('João Batista', 'intimada'), p('Ana', 'nao')] });
