@@ -271,6 +271,26 @@ for (const v of VERSOES){
         await expect(page.locator('#toast')).toHaveText('Abra "Em andamento" ou "Concluídas" para imprimir a lista de perícias.');
       });
 
+      test('imprime só as perícias selecionadas', async ({ page, banco }) => {
+        banco.semear('pericias', [{ processo: '1002351-00.2026.8.11.0041', autor: 'Lúcia Prado', perito: 'Dr. Ricardo Mendes', especialidade: 'Contábil', status: 'nao_agendada' }]);
+        await abrir(page, '3 perícias');
+        await page.evaluate(() => { window.print = () => { window.__impresso = document.getElementById('printArea').innerText; }; });
+        await cartao(page, 'Maria Aparecida').locator('[data-psel]').check();
+        await cartao(page, 'Lúcia Prado').locator('[data-psel]').check();
+        await page.click('#perBatchPrint');
+        const txt = await page.evaluate(() => window.__impresso);
+        expect(txt).toContain('Selecionadas');
+        expect(txt).toContain('2 perícias');
+        expect(txt).toContain('Maria Aparecida dos Santos');
+        expect(txt).toContain('Lúcia Prado');
+        expect(txt).not.toContain('José Carlos');
+        // a seleção continua (dá para imprimir de novo ou aplicar a alteração)
+        await expect(page.locator('#perBatchN')).toHaveText('2 perícias selecionadas');
+        // o botão Imprimir de cima continua imprimindo a lista inteira
+        await page.click('#perPrint');
+        expect(await page.evaluate(() => window.__impresso)).toContain('José Carlos');
+      });
+
       test('peritos: cadastra, edita (as perícias acompanham o nome), completa e exclui', async ({ page, banco }) => {
         banco.semear('pericias', [{ processo: '1002351-00.2026.8.11.0041', autor: 'Lúcia Prado', perito: 'Dra. Sem Cadastro', especialidade: 'Social', status: 'nao_agendada' }]);
         await abrir(page, '3 perícias');

@@ -5,8 +5,8 @@ import { dataSugerida, type Pericia } from '@/lib/pericias';
 
 export type Lote = { st: string; data: string; hora: string; intervalo: string; andamento: string };
 
-export function BarraLote({ sel, aplicar, limpar, sugestao }: {
-  sel: Pericia[]; aplicar: (l: Lote) => Promise<boolean>; limpar: () => void;
+export function BarraLote({ sel, aplicar, limpar, imprimir, sugestao }: {
+  sel: Pericia[]; aplicar: (l: Lote) => Promise<boolean>; limpar: () => void; imprimir: () => void;
   sugestao: number;   // muda quando a seleção pede uma nova data sugerida (marcou um cartão ou um grupo)
 }){
   const [l, setL] = useState<Lote>({ st: 'realizada', data: '', hora: '08:00', intervalo: '10', andamento: '' });
@@ -47,6 +47,7 @@ export function BarraLote({ sel, aplicar, limpar, sugestao }: {
             setAplicando(false);
             if (ok) setL(x => ({ ...x, andamento: '' }));
           }}>{aplicando ? 'Aplicando…' : 'Aplicar'}</button>
+          <button type="button" className="btn" id="perBatchPrint" title="Imprime só as perícias selecionadas" onClick={imprimir}>Imprimir selecionadas</button>
           <button type="button" className="btn" id="perBatchClear" onClick={limpar}>Limpar seleção</button>
         </div>
       </div>

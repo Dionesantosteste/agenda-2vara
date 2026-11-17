@@ -782,10 +782,10 @@
   .bfield.grow{ flex:1 1 220px; }
   .bfield input, .bfield select{ height:40px; border:1px solid var(--line); background:var(--sunken); color:var(--ink); border-radius:10px; padding:0 10px;
     font-family:var(--font-ui); font-size:14px; text-transform:none; letter-spacing:0; min-width:0; }
-  .batch-btns{ display:flex; gap:8px; }
+  .batch-btns{ display:flex; flex-wrap:wrap; gap:8px; }
   .batch-btns .btn{ height:40px; }
   .main.has-batch{ padding-bottom:240px; }
-  @media (max-width:860px){ .batch{ left:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); } .bfield{ flex:1 1 140px; } .batch-btns{ flex-basis:100%; } .batch-btns .btn{ flex:1; } }
+  @media (max-width:860px){ .batch{ left:0; padding:10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); } .bfield{ flex:1 1 140px; } .batch-btns{ flex-basis:100%; } .batch-btns .btn{ flex:1 1 auto; } }
   .prow{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
   .pautor{ font-size:16.5px; font-weight:600; color:var(--ink); line-height:1.3; overflow-wrap:anywhere; }
   .pautor.vazio{ font-size:14px; font-weight:500; color:var(--muted); font-style:italic; }

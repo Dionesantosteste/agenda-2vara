@@ -214,14 +214,18 @@ function Corpo(){
     else vazio = 'Nenhuma perícia nesta situação.';
   }
 
-  function imprimirLista(){
+  // soSelecionadas: imprime só as marcadas (na ordem e nos grupos da tela)
+  function imprimirLista(soSelecionadas = false){
     if (naAbaPeritos){ avisar('Abra "Em andamento" ou "Concluídas" para imprimir a lista de perícias.'); return; }
-    if (!total){ avisar('Nada para imprimir neste filtro.'); return; }
-    const nomePerito = nomes.find(n => chaveNome(n) === f.perito) || '';
-    imprimir('Perícias', textoDoFiltro(f, nomePerito), total + (total === 1 ? ' perícia' : ' perícias'), (
+    const gs = soSelecionadas ? grupos.map(g => ({ ...g, itens: g.itens.filter(p => sel[p.id]) })).filter(g => g.itens.length) : grupos;
+    const n = gs.reduce((s, g) => s + g.itens.length, 0);
+    if (!n){ avisar(soSelecionadas ? 'Nenhuma perícia selecionada nesta lista.' : 'Nada para imprimir neste filtro.'); return; }
+    const nomePerito = nomes.find(x => chaveNome(x) === f.perito) || '';
+    const filtro = textoDoFiltro(f, nomePerito);
+    imprimir('Perícias', soSelecionadas ? 'Selecionadas' + (filtro ? ' · ' + filtro : '') : filtro, n + (n === 1 ? ' perícia' : ' perícias'), (
       <table className="pr-tab">
         <thead><tr><th style={{ width: '13%' }}>Data e hora</th><th style={{ width: '27%' }}>Autor e processo</th><th style={{ width: '24%' }}>Perito</th><th style={{ width: '15%' }}>Situação</th><th>Laudo</th></tr></thead>
-        <tbody>{grupos.flatMap((g, gi) => [
+        <tbody>{gs.flatMap((g, gi) => [
           <tr className="pr-dia" key={'g' + gi}><td colSpan={5}>{g.titulo}{g.rel && <> <span className="pr-rel">({g.rel})</span></>}</td></tr>,
           ...g.itens.map(p => {
             const pr = prazoLaudo(p, util);
@@ -259,7 +263,7 @@ function Corpo(){
             <div className="tagline">Da nomeação do perito ao laudo juntado · prazo de 30 dias úteis após a realização</div>
           </div>
           <div className="head-acts"><div className="count" id="perCount">{naAbaPeritos ? nPeritos + (nPeritos === 1 ? ' perito' : ' peritos') : total + (total === 1 ? ' perícia' : ' perícias')}</div>
-            <button type="button" className="btn print-btn" id="perPrint" title="Imprime a lista que está na tela, com os filtros aplicados" onClick={imprimirLista}>
+            <button type="button" className="btn print-btn" id="perPrint" title="Imprime a lista que está na tela, com os filtros aplicados" onClick={() => imprimirLista()}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg> Imprimir</button></div>
         </header>
 
@@ -352,7 +356,7 @@ function Corpo(){
           recarregar={carregar} />}
         {!naAbaPeritos && <div id="perPeritosView" hidden />}
 
-        <BarraLote sel={selecionadas} aplicar={aplicarLote} limpar={() => setSel({})} sugestao={sugestao} />
+        <BarraLote sel={selecionadas} aplicar={aplicarLote} limpar={() => setSel({})} imprimir={() => imprimirLista(true)} sugestao={sugestao} />
       </section>
 
       <DialogoPericia edicao={edicao} itens={itens} nomes={nomes} peritos={peritos} util={util} fechar={() => setEdicao(null)}
