@@ -3,6 +3,7 @@
 import { normalizar } from './agenda.ts';
 import { chaveDoDia } from './datas.ts';
 import { formatarProcesso, soDigitos } from './processo.ts';
+import { INTIM_FILTROS, combinaIntim, lerIntimacoes, type FiltroIntim, type Intimacao } from './intimacoes.ts';
 
 export const STATUSES = ['A cumprir', 'Intimações feitas', 'Pronto para audiência', 'Redesignada', 'Cancelada'];
 export const STATUS_PADRAO = STATUSES[0];
@@ -30,8 +31,8 @@ export const CONF_FILTROS: { key: Conf; label: string }[] = [
   { key: 'sim', label: 'Conferidas' }
 ];
 
-export type Audiencia = { id: string; processo: string; date: Date; tipo: string; status: string; observacoes: string; conferidaEm: Date | null; responsavelId: string | null; tarefaId: string | null };
-export type Filtros = { periodo: Periodo; de: string; ate: string; status: string; tipo: string; conf: Conf; busca: string };
+export type Audiencia = { id: string; processo: string; date: Date; tipo: string; status: string; observacoes: string; conferidaEm: Date | null; responsavelId: string | null; tarefaId: string | null; intimacoes: Intimacao[] };
+export type Filtros = { periodo: Periodo; de: string; ate: string; status: string; tipo: string; conf: Conf; intim: FiltroIntim; busca: string };
 
 export function deLinha(r: Record<string, unknown>): Audiencia {
   const st = r.status as string;
@@ -44,7 +45,8 @@ export function deLinha(r: Record<string, unknown>): Audiencia {
     observacoes: (r.observacoes as string) || '',
     conferidaEm: r.conferida_em ? new Date(r.conferida_em as string) : null,
     responsavelId: r.responsavel_id ? String(r.responsavel_id) : null,
-    tarefaId: r.tarefa_id ? String(r.tarefa_id) : null
+    tarefaId: r.tarefa_id ? String(r.tarefa_id) : null,
+    intimacoes: lerIntimacoes(r.intimacoes)
   };
 }
 
@@ -85,16 +87,17 @@ export function noPeriodo(a: Audiencia, f: Pick<Filtros, 'periodo' | 'de' | 'ate
   }
 }
 
-export function combina(a: Audiencia, f: Pick<Filtros, 'status' | 'tipo' | 'conf' | 'busca'>): boolean {
+export function combina(a: Audiencia, f: Pick<Filtros, 'status' | 'tipo' | 'conf' | 'busca'> & { intim?: FiltroIntim }): boolean {
   if (f.status !== TODOS && a.status !== f.status) return false;
   if (f.tipo !== TODOS && a.tipo !== f.tipo) return false;
   if (f.conf === 'sim' && !a.conferidaEm) return false;
   if (f.conf === 'nao' && a.conferidaEm) return false;
+  if (f.intim && !combinaIntim(a.intimacoes, f.intim)) return false;
   const q = normalizar(f.busca).trim();
   if (!q) return true;
   const qd = soDigitos(q);
   if (qd.length >= 3 && soDigitos(a.processo).includes(qd)) return true;
-  return [a.processo, a.tipo, a.observacoes, a.status].some(c => normalizar(c).includes(q));
+  return [a.processo, a.tipo, a.observacoes, a.status, ...a.intimacoes.map(p => p.nome)].some(c => normalizar(c).includes(q));
 }
 
 // Lista da tela: filtrada e em ordem (anteriores: a mais recente primeiro), agrupada por dia
@@ -145,6 +148,8 @@ export function textoDoFiltro(f: Filtros): string {
   if (f.tipo !== TODOS) partes.push('Tipo: ' + f.tipo);
   const cf = CONF_FILTROS.find(x => x.key === f.conf);
   if (f.conf !== 'todas' && cf) partes.push(cf.label);
+  const fi = INTIM_FILTROS.find(x => x.key === f.intim);
+  if (f.intim !== 'todas' && fi) partes.push(fi.label);
   if (f.busca.trim()) partes.push('Busca: "' + f.busca.trim() + '"');
   return partes.join(' · ');
 }
@@ -213,7 +218,7 @@ export function previaDoLote(texto: string, itens: Audiencia[], forcar: Record<n
     if (!r.erro && r.date){
       const rep = repetidasDe([...itens, ...anteriores], r.processo, r.date, base.tipo);
       if (rep.length) r.aviso = 'Já tem audiência em ' + rep.map(descreverAudiencia).join('; ');
-      anteriores.push({ id: 'lote-' + i, processo: r.processo, date: r.date, tipo: base.tipo, status: STATUS_PADRAO, observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null });
+      anteriores.push({ id: 'lote-' + i, processo: r.processo, date: r.date, tipo: base.tipo, status: STATUS_PADRAO, observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null, intimacoes: [] });
     }
     r.incluir = !r.erro && (!r.aviso || !!forcar[i]);
     if (r.erro) problemas++; else if (r.aviso && !r.incluir) repetidas++; else prontas++;

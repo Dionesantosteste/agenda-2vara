@@ -120,6 +120,25 @@ mostra "Com: nome". Em **"Várias de uma vez"** cole uma audiência por linha (n
 observação); repetidas (mesmo processo no mesmo dia ou com o mesmo tipo) ficam de fora, a menos que marque "cadastrar
 mesmo assim".
 
+## Passo 2.1.3 — Intimações da audiência (quem intimar)
+
+Para cada audiência ter a lista de quem precisa ser intimado, rode uma vez no SQL Editor o arquivo
+[`sql/audiencias_intimacoes.sql`](sql/audiencias_intimacoes.sql). Ele só acrescenta a coluna `intimacoes` na tabela
+`audiencias`; nada é apagado. Enquanto ele não rodar, a tela avisa ao tentar salvar.
+
+No site (`/novo/audiencias`), cada cartão ganha o botão **"+ Quem intimar"** (depois, **"3/5 intimados"** com
+quadradinhos coloridos). Clique para abrir a lista:
+
+- **Adicionar**: nome e papel (autor, réu, testemunha do autor/réu/juízo, perito, informante…). Pode colar vários
+  nomes de uma vez, um por linha (a numeração "1.", "2)" do rol é tirada).
+- **✓ intimado** e **✗ não intimado**: grava o dia em que foi marcado. Clicar de novo desmarca. No ✗, escolha o
+  motivo (não localizada, mudou-se…); o cartão fica com a borda vermelha.
+- **Meio**: mandado, AR, DJEN (advogado), WhatsApp, e-mail, carta precatória, em secretaria.
+- **Dispensar**: para quem não precisa mais ser intimado (ex.: testemunha desistida). Não conta no total.
+- Quando todos estão intimados, aparece o botão para mudar o status para **"Intimações feitas"** (não muda sozinho).
+- Filtro **Intimações**: "Com intimação pendente" e "Com intimação frustrada". A busca também acha pelo nome da pessoa,
+  e a pauta impressa traz a lista com ✓ / ✗ / ☐.
+
 ## Organização: editar anotações e formatar o texto
 
 Para editar uma anotação já feita na tarefa do Quadro, rode no SQL Editor, depois do `sql/organizacao.sql`, o arquivo
