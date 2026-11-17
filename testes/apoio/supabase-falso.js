@@ -44,7 +44,7 @@ const copia = x => JSON.parse(JSON.stringify(x));
 const PADROES = {
   contacts: () => ({ id: uuid(), name: '', phones: [], emails: [], category: '', service_hours: '', has_on_call: false, on_call_phone: '', created_at: agora() }),
   categories: () => ({ id: uuid(), name: '' }),
-  audiencias: () => ({ id: uuid(), processo: '', tipo: '', status: 'A cumprir', observacoes: '', conferida_em: null, created_at: agora(), updated_at: agora() }),
+  audiencias: () => ({ id: uuid(), processo: '', tipo: '', status: 'A cumprir', observacoes: '', conferida_em: null, intimacoes: [], created_at: agora(), updated_at: agora() }),
   audiencias_tipos: () => ({ id: uuid(), nome: '', created_at: agora() }),
   pericias: () => ({ id: uuid(), processo: '', autor: '', perito: '', especialidade: '', status: 'nao_agendada', data_pericia: null, local: '',
     realizada_em: null, laudo_em: null, observacoes: '', conferida_em: null, created_at: agora(), updated_at: agora() }),
