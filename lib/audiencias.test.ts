@@ -4,8 +4,8 @@ import { combina, deLinha, nomesTipos, noPeriodo, pauta, interpretarLinha, pende
 
 const agora = new Date(2026, 9, 16, 10, 0);   // sexta, 16/10/2026 10:00
 const aud = (dia: number, mes = 9, extra: Partial<Audiencia> = {}): Audiencia =>
-  ({ id: String(dia) + '-' + mes, processo: '1002345-67.2026.8.11.0041', date: new Date(2026, mes, dia, 9, 0), tipo: 'Conciliação', status: 'A cumprir', observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null, ...extra });
-const F: Filtros = { periodo: 'proximas', de: '', ate: '', status: 'Todos', tipo: 'Todos', conf: 'todas', busca: '' };
+  ({ id: String(dia) + '-' + mes, processo: '1002345-67.2026.8.11.0041', date: new Date(2026, mes, dia, 9, 0), tipo: 'Conciliação', status: 'A cumprir', observacoes: '', conferidaEm: null, responsavelId: null, tarefaId: null, intimacoes: [], ...extra });
+const F: Filtros = { periodo: 'proximas', de: '', ate: '', status: 'Todos', tipo: 'Todos', conf: 'todas', intim: 'todas', busca: '' };
 
 test('status antigos são convertidos ao carregar', () => {
   assert.equal(deLinha({ id: 1, data_hora: '2026-10-16T12:00:00Z', status: 'Designada' }).status, 'A cumprir');
@@ -88,4 +88,17 @@ test('lote: interpreta a linha e confere a prévia', () => {
 
 test('título da tarefa da audiência', () => {
   assert.equal(tituloDaTarefa('Instrução', new Date(2026, 9, 20, 14, 5)), 'Audiência de Instrução · 20/10/2026 às 14:05');
+});
+
+test('filtro de intimações e busca pelo nome de quem intimar', () => {
+  const p = (nome: string, situacao: '' | 'intimada' | 'nao') => ({ id: nome, nome, papel: 'Réu', meio: '', situacao, em: null, motivo: '' });
+  const a = aud(20, 9, { intimacoes: [p('João Batista', 'intimada'), p('Ana', 'nao')] });
+  const b = aud(21, 9, { intimacoes: [p('Carlos', 'intimada')] });
+  assert.ok(combina(a, { ...F, intim: 'frustradas' }));
+  assert.ok(!combina(b, { ...F, intim: 'frustradas' }));
+  assert.ok(combina(a, { ...F, intim: 'pendentes' }));
+  assert.ok(!combina(b, { ...F, intim: 'pendentes' }));
+  assert.ok(combina(a, { ...F, busca: 'joao batista' }));
+  assert.equal(textoDoFiltro({ ...F, intim: 'frustradas' }), 'Próximas · Com intimação frustrada');
+  assert.equal(deLinha({ id: 1, data_hora: '2026-10-16T12:00:00Z', intimacoes: [{ nome: 'Ana', situacao: 'intimada' }] }).intimacoes[0].nome, 'Ana');
 });

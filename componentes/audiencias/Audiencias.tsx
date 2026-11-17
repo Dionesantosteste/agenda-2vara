@@ -16,6 +16,8 @@ import { CampoProcesso } from '@/componentes/CampoProcesso';
 import { useImpressao } from '@/componentes/Impressao';
 import { IconeEngrenagem } from '@/componentes/Icones';
 import { DialogoAudiencia } from './DialogoAudiencia';
+import { PainelIntimacoes, ResumoIntimacoes } from './Intimacoes';
+import { INTIM_FILTROS, contagem, linhaDaImpressao, type Intimacao } from '@/lib/intimacoes';
 import { atribuirAudiencias, pessoasAtivas, senhaDoGestor, type Pessoa } from './atribuir';
 import { DialogoTipos, type Tipo } from './DialogoTipos';
 import { SelectTipo } from './SelectTipo';
@@ -45,11 +47,13 @@ function BotaoConferir({ a, alternar }: { a: Audiencia; alternar: () => void }){
   return <button type="button" className="conf-btn" onClick={clique} title="Marcar como conferida (grava a data e a hora de agora)"><IconeCheck /><span>Conferir</span></button>;
 }
 
-function Cartao({ a, agora, busca, com, mudarStatus, conferir, editar }: { a: Audiencia; agora: Date; busca: string; com: string; mudarStatus: (s: string) => void; conferir: () => void; editar: () => void }){
+function Cartao({ a, agora, busca, com, mudarStatus, conferir, editar, salvarIntimacoes }: { a: Audiencia; agora: Date; busca: string; com: string; mudarStatus: (s: string) => void; conferir: () => void; editar: () => void; salvarIntimacoes: (l: Intimacao[]) => Promise<boolean> }){
   const pend = pendente(a, agora);
   const opcoes = STATUSES.includes(a.status) ? STATUSES : [...STATUSES, a.status];
+  const [aberto, setAberto] = useState(false);
+  const frustrada = contagem(a.intimacoes).nao > 0;
   return (
-    <div className={'hcard' + (pend ? ' pending' : '') + (a.status === 'Cancelada' ? ' cancelled' : '')}>
+    <div className={'hcard' + (pend ? ' pending' : '') + (frustrada ? ' intim-alerta' : '') + (a.status === 'Cancelada' ? ' cancelled' : '')}>
       <div className="htime">{hora(a.date)}</div>
       <div className="hinfo">
         <div className="hproc"><Destacado texto={a.processo || 'Processo não informado'} busca={busca} /></div>
@@ -57,6 +61,7 @@ function Cartao({ a, agora, busca, com, mudarStatus, conferir, editar }: { a: Au
         {a.observacoes && <div className="hobs" title={a.observacoes}><Destacado texto={a.observacoes} busca={busca} /></div>}
         {com && <div className="hobs" title="Tarefa criada no Quadro desta pessoa">Com: {com}</div>}
         {pend && <span className="flag">Já passou — atualize o status</span>}
+        <ResumoIntimacoes lista={a.intimacoes} aberto={aberto} alternar={() => setAberto(v => !v)} rotulo={'Intimações da audiência do processo ' + a.processo} />
       </div>
       <div className="hside">
         <label className="status-pill" data-status={a.status}>
@@ -71,6 +76,7 @@ function Cartao({ a, agora, busca, com, mudarStatus, conferir, editar }: { a: Au
           </button>
         </div>
       </div>
+      {aberto && <PainelIntimacoes lista={a.intimacoes} salvar={salvarIntimacoes} status={a.status} mudarStatus={mudarStatus} idBase={'int-' + a.id} />}
     </div>
   );
 }
@@ -104,7 +110,7 @@ function Corpo(){
   const [carregado, setCarregado] = useState(false);
   const [erro, setErro] = useState<{ message?: string; code?: string } | null>(null);
   const [tipos, setTipos] = useState<{ lista: Tipo[]; erro: { message?: string; code?: string } | null; carregado: boolean }>({ lista: [], erro: null, carregado: false });
-  const [f, setF] = useState<Filtros>({ periodo: 'proximas', de: '', ate: '', status: TODOS, tipo: TODOS, conf: 'todas', busca: '' });
+  const [f, setF] = useState<Filtros>({ periodo: 'proximas', de: '', ate: '', status: TODOS, tipo: TODOS, conf: 'todas', intim: 'todas', busca: '' });
   const [agora, setAgora] = useState(() => new Date());
   // cadastro rápido (a data fica para a próxima)
   const [q, setQ] = useState(() => ({ processo: '', data: chaveDoDia(new Date()), hora: '', status: STATUS_PADRAO, tipo: '', obs: '' }));
@@ -127,7 +133,7 @@ function Corpo(){
     const aplicar = () => {
       const p = lerPeriodoDoHash(location.hash);
       if (!p) return;
-      setF(v => ({ ...v, periodo: 'intervalo', de: p.de, ate: p.ate, status: TODOS, tipo: TODOS, conf: 'todas', busca: '' }));
+      setF(v => ({ ...v, periodo: 'intervalo', de: p.de, ate: p.ate, status: TODOS, tipo: TODOS, conf: 'todas', intim: 'todas', busca: '' }));
     };
     aplicar();
     window.addEventListener('hashchange', aplicar);
@@ -210,6 +216,20 @@ function Corpo(){
     avisar(depois ? 'Audiência conferida em ' + formatarDataHora(depois) : 'Conferência desmarcada');
   }
 
+  // Grava a lista inteira de intimações da audiência (aparece na hora; volta atrás se der erro)
+  async function salvarIntimacoes(a: Audiencia, nova: Intimacao[]): Promise<boolean> {
+    const antes = itens.find(x => x.id === a.id)?.intimacoes ?? a.intimacoes;
+    setItens(xs => xs.map(x => (x.id === a.id ? { ...x, intimacoes: nova } : x)));
+    const res = await supabase().from('audiencias').update({ intimacoes: nova, updated_at: new Date().toISOString() }).eq('id', a.id);
+    if (res.error){
+      setItens(xs => xs.map(x => (x.id === a.id ? { ...x, intimacoes: antes } : x)));
+      const m = res.error.message || '';
+      avisar(/intimacoes/.test(m) ? 'Falta a coluna "intimacoes" no Supabase. Rode o sql/audiencias_intimacoes.sql (LEIA-ME, Passo 2.1.3).' : 'Não foi possível salvar as intimações: ' + m);
+      return false;
+    }
+    return true;
+  }
+
   async function cadastrarRapido(){
     const date = new Date(q.data + 'T' + q.hora);
     if (isNaN(date.getTime())){ avisar('Informe data e hora válidas'); return; }
@@ -274,14 +294,14 @@ function Corpo(){
     if (!lista.length){ avisar('Nada para imprimir neste filtro.'); return; }
     imprimir('Pauta de audiências', textoDoFiltro(f), lista.length + (lista.length === 1 ? ' audiência' : ' audiências'), (
       <table className="pr-tab">
-        <thead><tr><th style={{ width: '9%' }}>Hora</th><th style={{ width: '24%' }}>Processo</th><th style={{ width: '22%' }}>Tipo</th><th style={{ width: '17%' }}>Situação</th><th>Observações</th></tr></thead>
+        <thead><tr><th style={{ width: '9%' }}>Hora</th><th style={{ width: '24%' }}>Processo</th><th style={{ width: '22%' }}>Tipo</th><th style={{ width: '17%' }}>Situação</th><th>Observações e intimações</th></tr></thead>
         <tbody>{dias.flatMap(d => [
           <tr className="pr-dia" key={'d' + d.chave}><td colSpan={5}>{dataDaImpressao(d.date)}</td></tr>,
           ...d.itens.map(a => (
             <tr key={a.id}>
               <td className="pr-hora">{hora(a.date)}</td><td className="pr-proc">{a.processo}</td><td>{a.tipo || '—'}</td>
               <td className="pr-st">{a.status}{a.conferidaEm && <div className="pr-sub">conferida em {diaMes(a.conferidaEm)}</div>}</td>
-              <td className="pr-obs">{a.observacoes || ''}</td>
+              <td className="pr-obs">{a.observacoes || ''}{a.intimacoes.length > 0 && <div className="pr-int">{a.intimacoes.map(p => <div key={p.id}>{linhaDaImpressao(p)}</div>)}</div>}</td>
             </tr>
           ))
         ])}</tbody>
@@ -399,7 +419,7 @@ function Corpo(){
 
         <div className="searchbar">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input id="audSearch" type="text" placeholder="Buscar por processo, tipo ou observação…" autoComplete="off" value={f.busca} onChange={e => mudar({ busca: e.target.value })} />
+          <input id="audSearch" type="text" placeholder="Buscar por processo, tipo, observação ou nome de quem intimar…" autoComplete="off" value={f.busca} onChange={e => mudar({ busca: e.target.value })} />
           <button className="clear-btn" id="audClearSearch" hidden={!f.busca} onClick={() => { mudar({ busca: '' }); document.getElementById('audSearch')?.focus(); }}>limpar</button>
         </div>
 
@@ -430,6 +450,10 @@ function Corpo(){
           <span className="filter-label">Conferência</span>
           {CONF_FILTROS.map(c => <Chip key={c.key} pressionado={f.conf === c.key} onClick={() => mudar({ conf: c.key as Conf })}>{c.label}</Chip>)}
         </div>
+        <div className="filter-row" id="audIntim" role="group" aria-label="Intimações">
+          <span className="filter-label">Intimações</span>
+          {INTIM_FILTROS.map(c => <Chip key={c.key} pressionado={f.intim === c.key} onClick={() => mudar({ intim: c.key })}>{c.label}</Chip>)}
+        </div>
 
         <div className="groups" id="audGroups">
           {dias.map(d => {
@@ -438,7 +462,7 @@ function Corpo(){
               <div className="day" key={d.chave}>
                 <div className="day-label"><span className="d">{rot.texto}</span>{rot.rel && <span className="rel">{rot.rel}</span>}</div>
                 <div className="cards">
-                  {d.itens.map(a => <Cartao key={a.id} a={a} agora={agora} busca={f.busca} com={nomeDe(a.responsavelId)} mudarStatus={s => mudarStatus(a, s)} conferir={() => conferir(a)} editar={() => setEditando(a)} />)}
+                  {d.itens.map(a => <Cartao key={a.id} a={a} agora={agora} busca={f.busca} com={nomeDe(a.responsavelId)} mudarStatus={s => mudarStatus(a, s)} conferir={() => conferir(a)} editar={() => setEditando(a)} salvarIntimacoes={l => salvarIntimacoes(a, l)} />)}
                 </div>
               </div>
             );
