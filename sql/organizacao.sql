@@ -681,6 +681,65 @@ begin
 end;
 $$;
 
+-- Procurar tarefa (só o gestor): acha qualquer tarefa que ele mandou para a equipe ou que está no quadro
+-- dele, em aberto, concluída ou arquivada, de qualquer data. Busca pelas palavras do título, do nome da
+-- pessoa, do responsável e do nº do processo (só os números, com ou sem pontos e traço), sem acento.
+-- Devolve as 60 mais recentes, com as anotações de cada uma.
+create or replace function org_buscar_tarefas(p_pin text, p_pessoa uuid, p_busca text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  ac record;
+  de text := 'áàâãäéèêëíìîïóòôõöúùûüçñ';
+  pa text := 'aaaaaeeeeiiiiooooouuuucn';
+  q text := translate(lower(btrim(coalesce(p_busca, ''))), de, pa);
+  dig text := regexp_replace(coalesce(p_busca, ''), '\D', '', 'g');
+  palavras text[];
+  achadas jsonb;
+  total int;
+begin
+  select * into ac from org_acesso(p_pin, p_pessoa);
+  if ac.o_st <> 'ok' then
+    return jsonb_build_object('status', ac.o_st);
+  end if;
+  if not ac.o_gestor then
+    return jsonb_build_object('status', 'erro', 'message', 'Só o gestor procura nas tarefas da equipe.');
+  end if;
+  if length(q) < 3 then
+    return jsonb_build_object('status', 'ok', 'total', 0, 'tarefas', '[]'::jsonb);
+  end if;
+  palavras := array(select w from unnest(regexp_split_to_array(q, '\s+')) w where w <> '');
+  with alvo as (
+    select t.*, pe.nome as dono_nome, c.nome as coluna
+      from org_tarefas t
+      left join org_pessoas pe on pe.id = t.dono
+      left join org_colunas c on c.dono is not distinct from t.dono and c.chave = t.etapa
+     where (t.dono is null or t.do_gestor or t.conferencia is not null)
+       and ((length(dig) >= 4 and t.processo <> '' and regexp_replace(t.processo, '\D', '', 'g') like '%' || dig || '%')
+         or not exists (select 1 from unnest(palavras) w
+                         where position(w in translate(lower(t.titulo || ' ' || coalesce(pe.nome, '') || ' ' || coalesce(t.responsavel, '') || ' ' || coalesce(t.processo, '')), de, pa)) = 0))
+  )
+  select count(*)::int,
+         coalesce(jsonb_agg(x.j order by x.quando desc) filter (where x.n <= 60), '[]'::jsonb)
+    into total, achadas
+    from (
+      select row_number() over (order by a.created_at desc) as n, a.created_at as quando,
+             jsonb_build_object(
+               'id', a.id, 'titulo', a.titulo, 'processo', a.processo, 'dono', a.dono, 'dono_nome', a.dono_nome,
+               'etapa', a.etapa, 'coluna', a.coluna, 'prazo', a.prazo, 'prioridade', a.prioridade, 'do_gestor', a.do_gestor,
+               'feita_em', a.feita_em, 'arquivada_em', a.arquivada_em, 'created_at', a.created_at, 'conclusao', a.conclusao,
+               'responsavel', a.responsavel,
+               'anotacoes', coalesce((select jsonb_agg(jsonb_build_object('texto', x.texto, 'created_at', x.created_at) order by x.created_at)
+                                        from org_anotacoes x where x.tarefa_id = a.id), '[]'::jsonb)) as j
+        from alvo a
+    ) x;
+  return jsonb_build_object('status', 'ok', 'total', total, 'tarefas', achadas);
+end;
+$$;
+
 -- Processo repetido: antes de mandar uma tarefa, o gestor vê se o processo já está com alguém.
 -- Compara só os números (com ou sem pontos e traço) e devolve as tarefas não concluídas e não arquivadas,
 -- de qualquer tela (dono vazio = o próprio gestor), com o nome da coluna em que estão.
@@ -2068,6 +2127,7 @@ grant execute on function org_listar(text, uuid) to anon, authenticated;
 grant execute on function org_carregar(text, uuid, int) to anon, authenticated;
 grant execute on function org_processo_em_uso(text, uuid, text) to anon, authenticated;
 grant execute on function org_feitas_dia(text, uuid, date) to anon, authenticated;
+grant execute on function org_buscar_tarefas(text, uuid, text) to anon, authenticated;
 grant execute on function org_novidades(text, uuid) to anon, authenticated;
 grant execute on function org_titulo_nota(text, uuid, uuid, text) to anon, authenticated;
 grant execute on function org_ordenar_lista(text, uuid, uuid[]) to anon, authenticated;

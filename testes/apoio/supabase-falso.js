@@ -569,6 +569,26 @@ const ORG_FUNCOES = {
       enviada_por: null, recado_gestor: null, enviada_em: null, updated_at: agora() });
     return { status: 'ok', n: t ? 1 : 0 };
   },
+  // Procurar tarefa (só o gestor): dele ou mandadas para a equipe, em aberto, concluídas ou arquivadas
+  org_buscar_tarefas(org, a){
+    const ac = acesso(org, a);
+    if (ac.st !== 'ok') return { status: ac.st };
+    if (!ac.gestor) return erro('Só o gestor procura nas tarefas da equipe.');
+    const sem = x => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const q = sem(String(a.p_busca || '').trim()), dig = String(a.p_busca || '').replace(/\D/g, '');
+    if (q.length < 3) return { status: 'ok', total: 0, tarefas: [] };
+    const palavras = q.split(/\s+/).filter(Boolean);
+    const nome = id => (org.pessoas.find(p => p.id === id) || {}).nome || null;
+    const achadas = org.tarefas.filter(t => !t.dono || t.do_gestor || t.conferencia)
+      .filter(t => (dig.length >= 4 && t.processo && t.processo.replace(/\D/g, '').includes(dig)) ||
+        palavras.every(w => sem([t.titulo, nome(t.dono) || '', t.responsavel || '', t.processo || ''].join(' ')).includes(w)))
+      .sort((x, y) => String(y.created_at).localeCompare(String(x.created_at)));
+    return { status: 'ok', total: achadas.length, tarefas: achadas.slice(0, 60).map(t => ({
+      id: t.id, titulo: t.titulo, processo: t.processo, dono: t.dono, dono_nome: nome(t.dono), etapa: t.etapa, coluna: null, prazo: t.prazo,
+      prioridade: t.prioridade, do_gestor: t.do_gestor, feita_em: t.feita_em, arquivada_em: t.arquivada_em, created_at: t.created_at,
+      conclusao: t.conclusao, responsavel: t.responsavel,
+      anotacoes: org.anotacoes.filter(n => n.tarefa_id === t.id).map(n => ({ texto: n.texto, created_at: n.created_at })) })) };
+  },
   org_processo_em_uso(org, a){
     const ac = acesso(org, a);
     if (ac.st !== 'ok') return { status: ac.st };

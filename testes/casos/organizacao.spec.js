@@ -309,3 +309,56 @@ test.describe('lembretes', () => {
     expect(banco.org.lembretes[0]).toMatchObject({ dono: ANA, texto: 'Ligar para o perito sobre a intimação' });
   });
 });
+
+test.describe('procurar tarefa (gestor)', () => {
+  test('acha tarefa mandada há muito tempo, já concluída e arquivada, e não mostra as particulares da equipe', async ({ page, banco }) => {
+    const antiga = new Date(Date.now() - 200 * 86400000).toISOString();
+    equipe(banco, { tarefas: [
+      { id: '00000000-0000-4000-8000-0000000000f1', dono: ANA, do_gestor: true, titulo: 'Expedir intimação da testemunha', processo: '1002345-67.2025.8.11.0041',
+        etapa: 'feito', feita_em: antiga, arquivada_em: antiga, created_at: antiga },
+      { dono: BIA, do_gestor: true, titulo: 'Certidão de trânsito em julgado' },
+      { dono: ANA, do_gestor: false, titulo: 'Intimação particular da Ana' },
+      { dono: null, titulo: 'Ofício ao INSS', etapa: 'feito', feita_em: antiga, arquivada_em: antiga }
+    ], anotacoes: [{ tarefa_id: '00000000-0000-4000-8000-0000000000f1', texto: 'Mandado devolvido negativo' }] });
+    await entrarComoGestor(page);
+    await expect(page.locator('#orgContent')).toBeVisible();
+    await page.click('#orgProcurarBtn');
+    const lista = page.locator('#orgProcLista');
+
+    await page.fill('#orgProcBusca', 'intimacao');
+    await expect(page.locator('#orgProcInfo')).toHaveText('1 tarefa encontrada');
+    await expect(lista).toContainText('Expedir intimação da testemunha');
+    await expect(lista).toContainText('Ana Souza');
+    await expect(lista).toContainText('arquivada em');
+    await expect(lista).not.toContainText('particular');
+    await expect(lista.locator('[data-proc-abrir]')).toHaveCount(0);
+    await lista.locator('summary').click();
+    await expect(lista).toContainText('Mandado devolvido negativo');
+
+    // pelo nº do processo (só os números) e pelas próprias tarefas arquivadas
+    await page.fill('#orgProcBusca', '2345-67');
+    await expect(lista).toContainText('Expedir intimação da testemunha');
+    await page.fill('#orgProcBusca', 'oficio inss');
+    await expect(lista).toContainText('Ofício ao INSS');
+    await expect(lista).toContainText('Seu quadro');
+
+    // em aberto: abre direto no quadro da pessoa
+    await page.fill('#orgProcBusca', 'certidao');
+    await expect(lista).toContainText('Em aberto');
+    await lista.locator('[data-proc-abrir]').click();
+    await expect(page.locator('#orgProcDialog')).not.toBeVisible();
+    await expect(page.locator('#orgVerAviso')).toContainText('Bia');
+    await expect(page.locator('#orgCardDialog')).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.click('#orgProcurarBtn');
+    await page.fill('#orgProcBusca', 'zz');
+    await expect(page.locator('#orgProcInfo')).toHaveText('Digite pelo menos 3 letras ou números.');
+  });
+
+  test('a pessoa da equipe não vê o botão', async ({ page, banco }) => {
+    equipe(banco);
+    await entrarComoPessoa(page, 'Ana Souza');
+    await expect(page.locator('#orgProcurarBtn')).toBeHidden();
+  });
+});
