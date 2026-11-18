@@ -1138,7 +1138,15 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
   .vinc-row{ display:flex; align-items:center; gap:8px; font-size:13.5px; flex-wrap:wrap; }
   .vinc-row > span:nth-child(2){ flex:1; min-width:0; }
   .oc-modelo{ align-items:flex-start; }
-  #orgHistDialog{ width:min(620px, calc(100vw - 32px)); }
+  #orgHistDialog, #orgProcDialog{ width:min(620px, calc(100vw - 32px)); }
+  .proc-st{ font-size:12.5px; border-radius:6px; padding:1px 7px; }
+  .proc-st.aberta{ color:var(--accent); background:var(--accent-soft); }
+  .proc-st.feita{ color:var(--ok); background:var(--ok-soft); }
+  .proc-st.arq{ color:var(--muted); background:var(--sunken); border:1px solid var(--line); }
+  .proc-det summary{ cursor:pointer; color:var(--accent); font-size:13px; width:max-content; }
+  .proc-det[open] summary{ margin-bottom:6px; }
+  .proc-anot{ margin:0; padding-left:18px; display:flex; flex-direction:column; gap:4px; font-size:13.5px; }
+  .proc-anot .quando{ color:var(--muted); font-size:12px; }
   .hist-list{ display:flex; flex-direction:column; gap:8px; max-height:min(58vh, 560px); overflow-y:auto; }
   .hist-row{ border:1px solid var(--item-line); background:var(--item); border-radius:10px; padding:10px; display:flex; flex-direction:column; gap:6px; }
   .hist-t{ font-weight:500; overflow-wrap:anywhere; }
@@ -2639,6 +2647,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
         </div>
         <div class="org-head-actions">
           <select class="org-in so-gestor" id="orgVer" aria-label="Ver a tela de"></select>
+          <button type="button" class="btn so-gestor" id="orgProcurarBtn" title="Acha qualquer tarefa sua ou que você mandou para a equipe, inclusive as concluídas e arquivadas">Procurar tarefa</button>
           <button type="button" class="btn so-gestor" id="orgPessoasBtn" title="Cadastrar as pessoas da equipe">Pessoas</button>
           <button type="button" class="btn" id="orgSomBtn" hidden aria-pressed="true" title="Toca um aviso quando chega tarefa urgente do gestor">Som: ligado</button>
           <button type="button" class="btn" id="orgNotifBtn" hidden title="Mostra um aviso do Windows quando chega tarefa urgente, mesmo com outra janela na frente">Avisar no Windows</button>
@@ -3281,6 +3290,21 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
       <div style="display:flex; gap:8px; margin-left:auto;">
         <button type="button" class="btn" id="ocCancelar">Cancelar</button>
         <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="orgProcDialog">
+  <form class="sheet" id="orgProcForm" autocomplete="off">
+    <h2>Procurar tarefa</h2>
+    <p class="field-hint" style="margin:-6px 0 0">Suas tarefas e as que você mandou para a equipe: em aberto, concluídas ou arquivadas, de qualquer data.</p>
+    <div class="field"><input id="orgProcBusca" type="search" maxlength="80" placeholder="Título, nome da pessoa ou nº do processo…" aria-label="Procurar tarefa" /></div>
+    <p class="field-hint" id="orgProcInfo" role="status" aria-live="polite"></p>
+    <div class="hist-list" id="orgProcLista"></div>
+    <div class="sheet-actions">
+      <div style="margin-left:auto;">
+        <button type="button" class="btn" id="orgProcFechar">Fechar</button>
       </div>
     </div>
   </form>
@@ -5375,7 +5399,7 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     org.eqCarregado = false; org.eqTodas = false; org.eqConferir = 0; org.painel = null;
     orgRelLimpa();
     document.getElementById('txtProc').value = ''; document.getElementById('txtAchou').innerHTML = '';
-    ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
+    ['orgCardDialog', 'orgCadDialog', 'orgFechDialog', 'orgEqDialog', 'orgProcDialog'].forEach(function(dId){ var dl = document.getElementById(dId); if (dl && dl.open) dl.close(); });
     try { sessionStorage.removeItem('orgPin'); sessionStorage.removeItem('orgVer'); } catch (e) {}
     try { localStorage.removeItem('orgPessoa'); } catch (e) {}
     astAtualizar();
@@ -8108,6 +8132,71 @@ try{ if(!Object.keys(localStorage).some(function(k){ return /^sb-.*-auth-token$/
     var id = b.getAttribute('data-id');
     if (b.getAttribute('data-hist') === 'abrir') orgAbrirCartao(id);
     else if (await orgArquivar([id], false)) renderHist();
+  });
+
+
+  // ---- Procurar tarefa (gestor): qualquer tarefa dele ou mandada para a equipe, inclusive arquivadas ----
+  var PD = {
+    dialog: document.getElementById('orgProcDialog'), form: document.getElementById('orgProcForm'), busca: document.getElementById('orgProcBusca'),
+    info: document.getElementById('orgProcInfo'), lista: document.getElementById('orgProcLista'), fechar: document.getElementById('orgProcFechar'),
+    btn: document.getElementById('orgProcurarBtn')
+  };
+  var orgProc = { timer: null, seq: 0, achadas: [] };
+  async function orgProcurar(){
+    var q = PD.busca.value.trim(), seq = ++orgProc.seq;
+    if (q.length < 3){ orgProc.achadas = []; PD.info.textContent = q ? 'Digite pelo menos 3 letras ou números.' : ''; PD.lista.innerHTML = ''; return; }
+    PD.info.textContent = 'Procurando…';
+    var r = await orgCall('org_buscar_tarefas', { p_busca: q });
+    if (seq !== orgProc.seq) return;   // chegou a resposta de uma busca antiga
+    if (r.status !== 'ok'){
+      PD.lista.innerHTML = '';
+      PD.info.textContent = r.codigo === 'PGRST202' || /desatualizada/.test(r.message || '')
+        ? 'Para procurar, rode o arquivo sql/organizacao.sql atualizado no Supabase (veja o LEIA-ME.md).' : (r.message || 'Não foi possível procurar agora.');
+      if (r.status !== 'erro') orgOk(r);
+      return;
+    }
+    orgProc.achadas = r.tarefas || [];
+    var n = r.total || 0;
+    PD.info.textContent = !n ? 'Nenhuma tarefa encontrada.' : n > orgProc.achadas.length
+      ? n + ' tarefas encontradas · mostrando as ' + orgProc.achadas.length + ' mais recentes. Escreva mais para filtrar.'
+      : n + (n === 1 ? ' tarefa encontrada' : ' tarefas encontradas');
+    PD.lista.innerHTML = orgProc.achadas.map(function(t){
+      var data = function(x){ return x ? fmtData(new Date(x)) : ''; };
+      var st = t.arquivada_em ? '<span class="proc-st arq">' + (t.feita_em ? 'Concluída em ' + data(t.feita_em) + ' · arquivada em ' : 'Arquivada sem concluir em ') + data(t.arquivada_em) + '</span>'
+        : t.etapa === 'feito' ? '<span class="proc-st feita">Concluída' + (t.feita_em ? ' em ' + data(t.feita_em) : '') + '</span>'
+        : '<span class="proc-st aberta">Em aberto · ' + escapeHtml(t.coluna || (t.etapa === 'afazer' ? 'A fazer' : t.etapa === 'fazendo' ? 'Fazendo' : 'Em andamento')) + '</span>';
+      var quem = t.dono ? (t.dono_nome || 'Pessoa excluída') : 'Seu quadro';
+      var anot = Array.isArray(t.anotacoes) ? t.anotacoes : [];
+      var det = (t.conclusao && typeof t.conclusao === 'object' ? orgFechHtml(t.conclusao) : '') +
+        (anot.length ? '<div class="vinc-t">Anotações</div><ul class="proc-anot">' + anot.map(function(a){
+          return '<li>' + escapeHtml(a.texto) + ' <span class="quando">' + formatDataHora(new Date(a.created_at)) + '</span></li>'; }).join('') + '</ul>' : '');
+      return '<div class="hist-row">' +
+        '<div class="hist-t">' + escapeHtml(t.titulo) + '</div>' +
+        '<div class="t-meta"><span class="eq-quem">' + orgAvatar(quem, true) + escapeHtml(quem) + '</span>' + st +
+          (t.processo ? procCopyBtn(t.processo) : '') +
+          (t.prazo ? '<span class="field-hint">prazo ' + fmtData(new Date(t.prazo + 'T00:00')) + '</span>' : '') +
+          '<span class="field-hint">' + (t.dono ? 'mandada' : 'criada') + ' em ' + data(t.created_at) + '</span></div>' +
+        (det ? '<details class="proc-det"><summary>Ver conclusão e anotações</summary>' + det + '</details>' : '') +
+        (!t.arquivada_em ? '<div class="hist-acts"><button type="button" class="btn kbtn" data-proc-abrir="' + t.id + '">Abrir no quadro' + (t.dono ? ' de ' + escapeHtml((t.dono_nome || '').split(' ')[0]) : '') + '</button></div>' : '') +
+        '</div>';
+    }).join('');
+  }
+  PD.btn.addEventListener('click', function(){
+    PD.dialog.showModal();
+    setTimeout(function(){ PD.busca.focus(); PD.busca.select(); }, 30);
+  });
+  PD.fechar.addEventListener('click', function(){ PD.dialog.close(); });
+  PD.form.addEventListener('submit', function(e){ e.preventDefault(); clearTimeout(orgProc.timer); orgProcurar(); });
+  PD.busca.addEventListener('input', function(){ clearTimeout(orgProc.timer); orgProc.timer = setTimeout(orgProcurar, 350); });
+  PD.lista.addEventListener('click', async function(e){
+    var c = e.target.closest('[data-act=copiar]'); if (c){ copiarTexto(c.getAttribute('data-proc'), c); return; }
+    var b = e.target.closest('[data-proc-abrir]'); if (!b) return;
+    var t = orgProc.achadas.filter(function(x){ return x.id === b.getAttribute('data-proc-abrir'); })[0]; if (!t) return;
+    PD.dialog.close();
+    org.tab = 'quadro';
+    try { sessionStorage.setItem('orgTab', org.tab); } catch (err) {}
+    await orgVerTela(t.dono || null);
+    if (org.unlocked && (org.ver || null) === (t.dono || null)) orgAbrirCartao(t.id);
   });
 
   // ---- calendário ----

@@ -150,6 +150,18 @@ Nas anotações: **B** (negrito, Ctrl+B), *I* (itálico, Ctrl+I) e **A** com fun
 com marcas simples (`**negrito**`, `*itálico*`, `==marcado==`) e aparece formatado depois de registrado. Para editar,
 use o lápis ao lado da anotação (Ctrl+Enter salva, Esc cancela).
 
+## Organização: procurar tarefa (gestor)
+
+Na tela do gestor, o botão **Procurar tarefa** (no alto da Organização) acha qualquer tarefa do quadro do gestor ou
+mandada para a equipe: em aberto, concluída ou **arquivada**, de qualquer data. Busque pelo título, pelo nome da
+pessoa ou pelo nº do processo (só os números, com ou sem pontos e traço); acentos não importam. Cada resultado mostra
+com quem está, a situação (com as datas de conclusão e de arquivamento), a conclusão e as anotações; as que ainda
+estão em aberto têm o botão para abrir direto no quadro. As tarefas particulares de cada pessoa (as que ela mesma
+criou) não aparecem.
+
+Para funcionar, rode de novo no SQL Editor o arquivo [`sql/organizacao.sql`](sql/organizacao.sql) inteiro (cria a
+função `org_buscar_tarefas`; nada é apagado).
+
 ## Organização: relatório de produtividade por pessoa
 
 Na aba **Tarefas da equipe** (só o gestor), dentro do **Painel da equipe**, a seção **Relatório de produtividade** fica na sanfona, logo abaixo de **Desempenho** (clique no título para abrir). Para ele funcionar, rode
