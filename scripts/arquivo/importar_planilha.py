@@ -74,7 +74,8 @@ def ler(caminho):
                         nome = cx.group(1).upper()
                         if re.search(r'CRI', s, re.I) and 'CRI' not in nome:
                             nome = nome.rstrip('-') + '-CRI'
-                        nome = re.sub(r'-CRIME$', '-CRI', nome)
+                        # série criminal com um só nome: 60CRIME, 60-CRIM, 60CRIMINAL -> 60-CRI (igual a nomeCaixa no site)
+                        nome = re.sub(r'^0*(\d+)-?(?:CRIMINAL|CRIMES|CRIME|CRIM|CRI|CR1|CRL)$', r'\1-CRI', nome)
                         caixa = caixas.setdefault(nome, {'locais': collections.Counter()})
                         if loc:
                             caixa['locais'][loc] += 1

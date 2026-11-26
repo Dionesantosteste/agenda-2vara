@@ -2,7 +2,7 @@
 // Janelas pequenas do Arquivo: mudar a caixa de lugar, renomear, trocar processos de caixa,
 // remeter a outra vara e mandar para outra secretaria. E o campo Caixa + Prateleira + Fileira.
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ARQUIVADO, EM_SECRETARIA, REMETIDO, NAO_INFORMADA, localValido, norm, ordemCaixa, textoLocal, type Caixa, type Processo } from '@/lib/arquivo';
+import { ARQUIVADO, EM_SECRETARIA, REMETIDO, NAO_INFORMADA, chaveCaixa, ehCriminal, localValido, nomeCaixa, norm, ordemCaixa, textoLocal, type Caixa, type Processo } from '@/lib/arquivo';
 import type { ArquivoDados, Desfazer, Mudanca } from './useArquivo';
 import { useArq } from './Arquivo';
 
@@ -15,13 +15,13 @@ export type ValorCaixa = { nome: string; p: string; f: string };
 export function CampoCaixa({ id, valor, mudar }: { id: string; valor: ValorCaixa; mudar: (v: ValorCaixa) => void }){
   const { d } = useArq();
   const normais = d.caixas.filter(c => !c.secretaria);
-  const achar = (n: string) => normais.find(c => c.nome.toUpperCase() === n.trim().toUpperCase());
+  const achar = (n: string) => { const k = chaveCaixa(n); return k ? normais.find(c => chaveCaixa(c.nome) === k) : undefined; };
   const c = valor.nome.trim() ? achar(valor.nome) : undefined;
   const l = c?.locais[0];
   const p = valor.p.trim(), f = valor.f.trim().toUpperCase();
   let prev: ReactNode = null;
   if (valor.nome.trim()){
-    if (!c) prev = <><b>Caixa nova.</b> {p && f ? 'Vai ficar na prateleira ' + p + ', fileira ' + f + '.' : 'Diga a prateleira e a fileira onde ela vai ficar.'}</>;
+    if (!c) prev = <><b>Caixa nova: {nomeCaixa(valor.nome)}{ehCriminal(nomeCaixa(valor.nome)) ? ' (criminal)' : ''}.</b> {p && f ? 'Vai ficar na prateleira ' + p + ', fileira ' + f + '.' : 'Diga a prateleira e a fileira onde ela vai ficar.'}</>;
     else if (l && p && f && (String(l[0]) !== p || l[1] !== f)) prev = <span style={{ color: 'var(--c3)' }}><b>Atenção:</b> a caixa {c.nome} está anotada na prateleira {l[0]}, fileira {l[1]}. Salvando, a caixa inteira ({(d.porCaixa.get(c.id) || []).length} processos) passa para P.{p} F.{f}.</span>;
     else prev = <>Caixa {c.nome} · {(d.porCaixa.get(c.id) || []).length} processos{c.locais.length > 1 ? ' · anotada em dois lugares, confira' : !c.locais.length ? ' · ainda sem prateleira anotada: se souber, preencha' : ''}</>;
   }
@@ -47,10 +47,10 @@ export function CampoCaixa({ id, valor, mudar }: { id: string; valor: ValorCaixa
 
 // Acha (ou cria) a caixa do campo; muda o lugar dela se a pessoa trocou a prateleira/fileira.
 export async function resolverCaixa(d: ArquivoDados, v: ValorCaixa): Promise<{ caixa: Caixa; desfazerLugar: Desfazer | null } | { erro: string }> {
-  const nome = v.nome.trim().toUpperCase();
+  const nome = nomeCaixa(v.nome);
   if (!nome) return { erro: 'Diga em qual caixa o processo vai ficar' };
   const loc = localValido(v.p, v.f);
-  const c = d.caixas.find(x => !x.secretaria && x.nome.toUpperCase() === nome);
+  const c = d.caixas.find(x => !x.secretaria && chaveCaixa(x.nome) === chaveCaixa(nome));
   if (!c){
     if (!loc) return { erro: 'Caixa nova: preencha a prateleira e a fileira' };
     const nova = await d.criarCaixa(nome, [loc]);
@@ -139,9 +139,9 @@ function FormNome({ c, botoes, enviar }: FormProps & { c: Caixa }){
   const [n, setN] = useState(c.nome);
   return (
     <form className="aq-jan" id="aq-jan" onSubmit={enviar(async () => {
-      const novo = c.secretaria ? n.trim() : n.trim().toUpperCase();
+      const novo = c.secretaria ? n.trim() : nomeCaixa(n);
       if (!novo || novo === c.nome) return;
-      const outra = d.caixas.find(x => x !== c && x.secretaria === c.secretaria && norm(x.nome) === norm(novo));
+      const outra = d.caixas.find(x => x !== c && x.secretaria === c.secretaria && (c.secretaria ? norm(x.nome) === norm(novo) : chaveCaixa(x.nome) === chaveCaixa(novo)));
       if (outra) return (c.secretaria ? 'Já existe a secretaria ' : 'Já existe a caixa ') + novo + '. Use “' + (c.secretaria ? 'Trocar de secretaria' : 'Trocar de caixa') + '” nos processos.';
       const desf = await d.mudarCaixa(c, { nome: novo }, (c.secretaria ? 'Secretaria ' : 'Caixa ') + c.nome + ' renomeada para ' + novo);
       if (!desf) return 'Não foi possível salvar';
@@ -150,7 +150,7 @@ function FormNome({ c, botoes, enviar }: FormProps & { c: Caixa }){
       <h2>{c.secretaria ? 'Renomear a secretaria' : 'Renomear a caixa ' + c.nome}</h2>
       <div className="aq-campo"><label htmlFor="aq-j-n">{c.secretaria ? 'Nome da secretaria' : 'Número da caixa'}</label>
         <input id="aq-j-n" className={c.secretaria ? '' : 'aq-mono'} value={n} onChange={e => setN(e.target.value)} autoFocus />
-        {!c.secretaria && <span className="aq-dica">Use quando o número da etiqueta foi anotado errado.</span>}</div>
+        {!c.secretaria && <span className="aq-dica">Use quando o número da etiqueta foi anotado errado. Caixa criminal: escreva “CRIME” ou “CRI” depois do número (fica {nomeCaixa(n) || '—'}).</span>}</div>
       {botoes('Renomear')}
     </form>
   );

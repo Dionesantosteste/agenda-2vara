@@ -3,7 +3,7 @@
 // no sistema e, depois de a pessoa conferir e corrigir, grava o lugar e a SEQUÊNCIA das caixas (com histórico
 // e Desfazer). A fileira A é a de BAIXO; a IA lê de cima para baixo e a conversão fica em letraFileira.
 import { useState } from 'react';
-import { compararFoto, letraFileira, letraMais, posicaoEm, sugerirLetras, type Caixa, type ItemFoto, type Local } from '@/lib/arquivo';
+import { compararFoto, ehCriminal, letraFileira, letraMais, posicaoEm, sugerirLetras, type Caixa, type ItemFoto, type Local } from '@/lib/arquivo';
 import { supabase } from '@/lib/supabase';
 import { useArq } from './Arquivo';
 import { Icone } from './Pecas';
@@ -131,14 +131,14 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
   }
 
   const cartao = (l: Linha, it: ItemFoto | undefined) => (
-    <div key={l.id} className={'aq-fp-cx aq-fp-' + (it?.estado || 'certo') + (l.duvida ? ' aq-fp-duvida' : '')} title={l.duvida || undefined}>
+    <div key={l.id} className={'aq-fp-cx aq-fp-' + (it?.estado || 'certo') + (l.duvida ? ' aq-fp-duvida' : '') + (it && ehCriminal(it.nome) ? ' aq-fp-cri' : '')} title={l.duvida || undefined}>
       <div className="aq-fila" style={{ gap: 4, flexWrap: 'nowrap' }}>
         {it?.pos ? <span className="aq-fp-pos" aria-hidden="true">{it.pos}</span> : null}
         <input className="aq-mono aq-fp-nome" aria-label={'Número da caixa na fileira ' + l.f} value={l.nome} placeholder="nº" onChange={e => mudarLinha(l.id, { nome: e.target.value.toUpperCase(), duvida: '' })} />
         <input className="aq-mono aq-fp-f" aria-label={'Fileira da caixa ' + l.nome} maxLength={2} value={l.f} onChange={e => mudarLinha(l.id, { f: e.target.value.toUpperCase() })} />
         <button type="button" className="aq-fp-tirar" aria-label={'Tirar a caixa ' + l.nome + ' da lista'} onClick={() => tirar(l.id)}><Icone n="x" t={14} /></button>
       </div>
-      <small>{it ? situacao(it, pn) : ''}{l.duvida ? ' · conferir etiqueta' : ''}</small>
+      <small>{it && ehCriminal(it.nome) ? <b className="aq-fp-tag-cri">CRI</b> : null}{it ? situacao(it, pn) : ''}{l.duvida ? ' · conferir etiqueta' : ''}</small>
     </div>
   );
 

@@ -677,6 +677,12 @@ Histórico e pode ser desfeita pelo aviso. A **fileira A é a de baixo**: o topo
 caixas em cima, é a última letra; prateleira vazia também conta. Custo estimado: cerca de US$ 0,03 a
 0,05 por foto, com até 40 leituras por pessoa por hora.
 
+**Caixas criminais.** A caixa da série criminal é outra caixa: a **60-CRI** não é a **60**. Em todo o
+Arquivo (busca, cadastro, renomear, conferência por foto e filtro das Prateleiras), "60 CRIME", "60 crim",
+"60 CRI", "60-Criminal" ou "60CR1" viram **60-CRI**. Na estante elas aparecem com uma faixa vermelha. Nomes
+antigos fora do padrão (ex.: "60CRIME") aparecem em **Conferir → nomes fora do padrão (CRI)**, com o botão
+**Padronizar**.
+
 **Sequência das caixas.** Cada caixa guarda também a posição na fileira (1ª, 2ª…, da esquerda para a
 direita), junto com a prateleira e a fileira (no mesmo campo `locais`: `[prateleira, fileira, posição]`;
 não precisa rodar SQL). A tela Prateleiras mostra as caixas nessa sequência; as sem posição anotada vão

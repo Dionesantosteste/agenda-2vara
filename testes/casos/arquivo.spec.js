@@ -225,6 +225,22 @@ test('arrastar: a caixa entra onde foi solta e a sequência da fileira é gravad
   expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '654').locais).toEqual([[26, 'A', 6]]);
 });
 
+test('caixa criminal: "155 crime" no cadastro é a 155-CRI; nome fora do padrão se padroniza no Conferir', async ({ page, banco }) => {
+  banco.semear('arquivo_caixas', [{ id: 'c0000000-0000-4000-8000-000000000060', nome: '60CRIME', locais: [[3, 'A']] }]);
+  await abrir(page, '#cadastrar');
+  await page.fill('#aq-c-cx', '155 crime');
+  await expect(page.locator('#aq-c-cx-prev')).toContainText('Caixa 155-CRI');
+  await page.fill('#aq-c-cx', '61 crim');
+  await expect(page.locator('#aq-c-cx-prev')).toContainText('Caixa nova: 61-CRI (criminal)');
+  await page.goto('/arquivo#conferir');
+  await page.locator('.aq-conf-aba', { hasText: 'nomes fora do padrão' }).click();
+  await expect(page.locator('.aq-conf-item')).toContainText('vira 60-CRI');
+  await page.locator('.aq-conf-item button', { hasText: 'Padronizar' }).click();
+  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.id === 'c0000000-0000-4000-8000-000000000060').nome).toBe('60-CRI');
+  await page.goto('/arquivo#prateleiras');
+  await expect(page.locator('.aq-cxb.aq-cri')).toHaveCount(2);   // 155-CRI e 60-CRI com a faixa vermelha
+});
+
 test('mandar para uma secretaria cria a caixa dela e devolver volta para a caixa de origem', async ({ page, banco }) => {
   await abrir(page);
   await page.fill('#aq-q', '14212');

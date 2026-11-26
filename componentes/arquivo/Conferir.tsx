@@ -2,7 +2,7 @@
 // Conferir: o que a planilha deixou em dúvida, para resolver na hora (anotar a prateleira, escolher
 // o lugar certo, dizer em que caixa o processo está, dar por resolvida uma anotação estranha).
 import { useState } from 'react';
-import { localValido, ordemCaixa, type Caixa, type Processo } from '@/lib/arquivo';
+import { chaveCaixa, localValido, nomeCaixa, ordemCaixa, type Caixa, type Processo } from '@/lib/arquivo';
 import { useArq } from './Arquivo';
 import type { ArquivoDados } from './useArquivo';
 import { Icone } from './Pecas';
@@ -13,11 +13,13 @@ export function pendencias(d: ArquivoDados){
   const repetidos = [...d.indice.entries()].filter(([, ps]) => ps.length > 1 && !ps.every(p => p.volumes_ok))
     .sort((a, b) => (parseInt(a[0]) || 0) - (parseInt(b[0]) || 0));
   const notas = d.notas.filter(n => !n.resolvida);
-  return { semLocal, doisLugares, repetidos, notas };
+  // nomes fora do padrão ("60CRIME", "60 crim" -> "60-CRI"), só das caixas em uso
+  const nomes = d.caixas.filter(c => !c.secretaria && c.nome !== nomeCaixa(c.nome) && ((d.porCaixa.get(c.id) || []).length || c.locais.length)).sort(ordemCaixa);
+  return { semLocal, doisLugares, repetidos, notas, nomes };
 }
 export function contarPendencias(d: ArquivoDados){
   const p = pendencias(d);
-  return p.semLocal.length + p.doisLugares.length + p.repetidos.length + p.notas.length;
+  return p.semLocal.length + p.doisLugares.length + p.repetidos.length + p.notas.length + p.nomes.length;
 }
 
 const CHAVE_INICIO = 'arquivo-pendencias-inicio';
@@ -25,10 +27,10 @@ const LIMITE = 80;
 
 export function Conferir(){
   const { d, aviso, abrirProc } = useArq();
-  const [aba, setAba] = useState<'semLocal' | 'doisLugares' | 'repetidos' | 'notas'>('semLocal');
+  const [aba, setAba] = useState<'semLocal' | 'doisLugares' | 'repetidos' | 'notas' | 'nomes'>('semLocal');
   const [locais, setLocais] = useState<Record<string, { p: string; f: string }>>({});
   const pend = pendencias(d);
-  const falta = pend.semLocal.length + pend.doisLugares.length + pend.repetidos.length + pend.notas.length;
+  const falta = pend.semLocal.length + pend.doisLugares.length + pend.repetidos.length + pend.notas.length + pend.nomes.length;
   let inicio = falta;
   try { const s = Number(localStorage.getItem(CHAVE_INICIO)); if (s >= falta) inicio = s; else localStorage.setItem(CHAVE_INICIO, String(falta)); } catch (e) { /* sem armazenamento: barra começa agora */ }
   const feito = inicio - falta;
@@ -45,7 +47,7 @@ export function Conferir(){
     if (desf) aviso('Processo ' + cod + ' fica na caixa ' + cx, desf);
   };
 
-  const abas = [['semLocal', 'caixas sem prateleira', pend.semLocal.length], ['doisLugares', 'caixas em dois lugares', pend.doisLugares.length], ['repetidos', 'processos em mais de uma caixa', pend.repetidos.length], ['notas', 'anotações estranhas', pend.notas.length]] as const;
+  const abas = [['semLocal', 'caixas sem prateleira', pend.semLocal.length], ['doisLugares', 'caixas em dois lugares', pend.doisLugares.length], ['repetidos', 'processos em mais de uma caixa', pend.repetidos.length], ['notas', 'anotações estranhas', pend.notas.length], ['nomes', 'nomes fora do padrão (CRI)', pend.nomes.length]] as const;
   const mais = (n: number) => n > LIMITE ? <div className="aq-conf-item aq-sub">E mais {n - LIMITE}. Resolva estas primeiro.</div> : null;
   let lista;
   if (aba === 'semLocal') lista = <>{pend.semLocal.slice(0, LIMITE).map(c => (
@@ -64,10 +66,18 @@ export function Conferir(){
       {ps.map(p => <button key={p.id} type="button" className="aq-btn aq-peq" onClick={() => ficaEm(cod, p, ps.filter(o => o !== p))}>{d.caixasM.get(p.caixa_id)?.nome}</button>)}
       <button type="button" className="aq-btn aq-peq aq-leve" onClick={async () => { const desf = await d.mudarProcessos(ps.map(o => ({ p: o, novo: { volumes_ok: true }, texto: 'Processo ' + cod + ': volumes em caixas diferentes' }))); if (desf) aviso('Marcado como volumes diferentes', desf); }}>São volumes diferentes</button>
     </div>))}{mais(pend.repetidos.length)}</>;
+  else if (aba === 'nomes') lista = pend.nomes.map(c => {
+    const novo = nomeCaixa(c.nome), outra = d.caixas.find(x => x.id !== c.id && !x.secretaria && chaveCaixa(x.nome) === chaveCaixa(novo));
+    return (
+      <div key={c.id} className="aq-conf-item"><a className="aq-quem" href={'#cx-' + c.id}>Caixa {c.nome}</a>
+        <span className="aq-sub" style={{ fontSize: 13, flex: 1 }}>{outra ? <>Já existe a caixa <a href={'#cx-' + outra.id}>{outra.nome}</a>: se for a mesma, abra a {c.nome} e use “Trocar de caixa” nos processos.</> : <>vira <b className="aq-mono">{novo}</b></>}</span>
+        {!outra && <button type="button" className="aq-btn aq-peq" onClick={async () => { const desf = await d.mudarCaixa(c, { nome: novo }, 'Caixa ' + c.nome + ' renomeada para ' + novo + ' (padrão)'); if (desf) aviso('Caixa ' + c.nome + ' agora é ' + novo, desf); }}>Padronizar</button>}
+      </div>);
+  });
   else lista = pend.notas.map(n => (
     <div key={n.celula} className="aq-conf-item"><span className="aq-quem aq-sub">célula {n.celula}</span><b>“{n.texto}”</b><span className="aq-sub" style={{ fontSize: 13, flex: 1 }}>{n.contexto}</span>
       <button type="button" className="aq-btn aq-peq" onClick={async () => { const desf = await d.resolverNota(n.celula, true); if (desf) aviso('Anotação resolvida', desf); }}>Resolvido</button></div>));
-  const vazia = (aba === 'semLocal' && !pend.semLocal.length) || (aba === 'doisLugares' && !pend.doisLugares.length) || (aba === 'repetidos' && !pend.repetidos.length) || (aba === 'notas' && !pend.notas.length);
+  const vazia = (aba === 'semLocal' && !pend.semLocal.length) || (aba === 'doisLugares' && !pend.doisLugares.length) || (aba === 'repetidos' && !pend.repetidos.length) || (aba === 'notas' && !pend.notas.length) || (aba === 'nomes' && !pend.nomes.length);
 
   return (
     <section className="aq-pilha" aria-labelledby="aq-titulo-conf">
