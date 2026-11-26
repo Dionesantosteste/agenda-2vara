@@ -452,8 +452,13 @@
 /* Conferir prateleira por foto (FotoPrateleira.tsx) */
 .aq-app .aq-fp-grade{ display:grid; grid-template-columns:minmax(0,300px) minmax(0,1fr); gap:20px; align-items:start; }
 .aq-app .aq-fp-camera{ min-height:320px; }
-.aq-app .aq-fp-fileira{ display:grid; grid-template-columns:32px minmax(0,1fr); gap:10px; align-items:start; padding:8px 0; border-bottom:1px solid var(--fio); }
-.aq-app .aq-fp-letra{ display:grid; place-items:center; width:32px; height:32px; border-radius:5px; background:var(--couro); color:var(--couro-tinta); font:700 15px var(--f-maq); }
+.aq-app .aq-fp-fileira{ display:grid; grid-template-columns:44px minmax(0,1fr); gap:10px; align-items:start; padding:8px 0; border-bottom:1px solid var(--fio); }
+.aq-app .aq-fp-letra{ display:grid; place-items:center; width:44px; height:36px; border-radius:5px; border:0; background:var(--couro); color:var(--couro-tinta); font:700 15px var(--f-maq); text-align:center; text-align-last:center; padding:0 4px; }
+.aq-app select.aq-fp-letra{ cursor:pointer; }
+.aq-app .aq-fp-pos{ min-width:18px; text-align:right; font:700 11px var(--f-maq); color:var(--tinta-3); }
+.aq-app .aq-fp-dicas{ font-size:13px; color:var(--tinta-2); }
+.aq-app .aq-fp-dicas summary{ cursor:pointer; font-weight:600; }
+.aq-app .aq-fp-dicas ul{ margin:6px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:3px; }
 .aq-app .aq-fp-caixas{ display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; }
 .aq-app .aq-fp-cx{ display:flex; flex-direction:column; gap:3px; padding:6px; border-radius:5px; border:1.5px solid var(--fio-2); border-left-width:4px; background:var(--ficha); }
 .aq-app .aq-fp-cx input{ border:1px solid var(--fio-2); border-radius:4px; background:var(--ficha); padding:5px 6px; min-height:32px; }
@@ -464,7 +469,10 @@
 .aq-app .aq-fp-tirar:hover{ background:var(--ficha-2); color:var(--c1); }
 .aq-app .aq-fp-cx small{ font-size:11.5px; color:var(--tinta-2); max-width:160px; }
 .aq-app .aq-fp-cx.aq-fp-certo{ border-left-color:var(--c0); }
-.aq-app .aq-fp-cx.aq-fp-mudou{ border-left-color:var(--c3); background:var(--c3-f); }
+.aq-app .aq-fp-cx.aq-fp-mudou, .aq-app .aq-fp-cx.aq-fp-fileira{ border-left-color:var(--c3); background:var(--c3-f); }
+.aq-app .aq-fp-cx.aq-fp-fileira small{ color:var(--c3); }
+.aq-app .aq-fp-cx.aq-fp-ordem{ border-left-color:var(--c4); }
+.aq-app .aq-fp-cx.aq-fp-ordem small{ color:var(--c4); }
 .aq-app .aq-fp-cx.aq-fp-mudou small{ color:var(--c3); }
 .aq-app .aq-fp-cx.aq-fp-nova{ border-left-color:var(--c2); background:var(--c2-f); }
 .aq-app .aq-fp-cx.aq-fp-nova small{ color:var(--c2); }
@@ -475,6 +483,7 @@
 .aq-app .aq-fp-bola{ display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:middle; }
 .aq-app .aq-fp-bola.aq-fp-certo{ background:var(--c0); }
 .aq-app .aq-fp-bola.aq-fp-mudou{ background:var(--c3); }
+.aq-app .aq-fp-bola.aq-fp-ordem{ background:var(--c4); }
 .aq-app .aq-fp-bola.aq-fp-nova{ background:var(--c2); }
 .aq-app .aq-fp-bola.aq-fp-invalida{ background:var(--c1); }
 @media (max-width:820px){

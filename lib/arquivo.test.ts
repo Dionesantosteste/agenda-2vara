@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscar, chaveCaixa, chaveNum, compararFoto, destaque, letraFileira, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Processo } from './arquivo.ts';
+import { buscar, chaveCaixa, chaveNum, comPosicao, compararFoto, destaque, letraFileira, letraMais, ordemNaFileira, reordenar, sugerirLetras, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Local, type Processo } from './arquivo.ts';
 
-const cx = (id: string, nome: string, locais: [number, string][] = [[1, 'A']], secretaria = false): Caixa => ({ id, nome, locais, secretaria });
+const cx = (id: string, nome: string, locais: Local[] = [[1, 'A']], secretaria = false): Caixa => ({ id, nome, locais, secretaria });
 const pr = (id: string, codigo: string, caixa_id: string, extra: Partial<Processo> = {}): Processo => ({
   id, codigo, caixa_id, origem_id: null, situacao: 0, com_quem: '', destino: '', numero: '', classe: '', partes: '', ano: '', obs: '',
   volumes_ok: false, excluido: false, ...extra
@@ -96,8 +96,33 @@ test('foto da prateleira: certo, mudou de lugar, nova, repetida, sem número e a
     { nome: '1104', f: 'a' }, { nome: '721', f: 'A' }, { nome: '155 CRI', f: 'A' }, { nome: '584', f: 'A' },
     { nome: '1542', f: 'A' }, { nome: '01104', f: 'B' }, { nome: '', f: 'A' }, { nome: '469', f: '?' }
   ], caixas);
-  assert.deepEqual(itens.map(i => i.estado), ['certo', 'mudou', 'mudou', 'mudou', 'nova', 'repetida', 'invalida', 'invalida']);
+  // 1104 está em P.24 F.A mas sem sequência anotada: "ordem"
+  assert.deepEqual(itens.map(i => i.estado), ['ordem', 'mudou', 'mudou', 'mudou', 'nova', 'repetida', 'invalida', 'invalida']);
+  assert.deepEqual(itens.map(i => i.pos), [1, 2, 3, 4, 5, 0, 0, 0]);
   assert.equal(itens[1].caixa?.id, 'b');   // a caixa normal, não a da secretaria com o mesmo nome
   assert.equal(itens[2].caixa?.id, 'c');
   assert.deepEqual(ausentes.map(c => c.nome), ['1487', '999']);
+});
+
+test('ordem na fileira: a sequência anotada vale; sem ela, vai para o fim por número', () => {
+  const cs = [cx('a', '522', [[26, 'A', 1]]), cx('b', '543', [[26, 'A', 6]]), cx('c', '595', [[26, 'A', 2]]), cx('d', '100', [[26, 'A']]), cx('e', '627', [[26, 'A', 4]])];
+  assert.deepEqual([...cs].sort(ordemNaFileira(26, 'A')).map(c => c.nome), ['522', '595', '627', '543', '100']);
+  assert.deepEqual(comPosicao(cx('x', '1', [[26, 'A'], [3, 'B', 2]]), 26, 'A', 5), [[26, 'A', 5], [3, 'B', 2]]);
+  assert.deepEqual(reordenar(['a', 'b', 'c', 'd'], 'd', 1), ['a', 'd', 'b', 'c']);
+  assert.deepEqual(reordenar(['a', 'b', 'c'], 'a', 9), ['b', 'c', 'a']);
+  assert.equal(letraMais('C', -1), 'B'); assert.equal(letraMais('A', -1), '');
+});
+
+test('foto: no lugar só com a mesma sequência; mesma prateleira e outra fileira é "fileira"', () => {
+  const cs = [cx('a', '522', [[26, 'A', 1]]), cx('b', '595', [[26, 'A', 3]]), cx('c', '654', [[26, 'B', 1]])];
+  const { itens } = compararFoto(26, [{ nome: '522', f: 'A' }, { nome: '595', f: 'A' }, { nome: '654', f: 'A' }], cs);
+  assert.deepEqual(itens.map(i => i.estado), ['certo', 'ordem', 'fileira']);
+});
+
+test('foto: letras deslocadas viram sugestão (a fileira C da foto é a B do sistema)', () => {
+  const cs = ['1', '2', '3', '4'].map(n => cx(n, n, [[26, 'B']]));
+  const { itens } = compararFoto(26, [...['1', '2', '3', '4'].map(n => ({ nome: n, f: 'C' })), { nome: '9', f: 'C' }], cs);
+  assert.deepEqual(sugerirLetras(itens), [{ foto: 'C', sistema: 'B', caixas: 4 }]);
+  const poucas = compararFoto(26, [{ nome: '1', f: 'C' }, { nome: '2', f: 'C' }], cs).itens;
+  assert.deepEqual(sugerirLetras(poucas), []);
 });

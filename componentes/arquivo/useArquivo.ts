@@ -82,7 +82,7 @@ async function guardarCopia(c: Copia){
 
 const caixaDeLinha = (r: Record<string, unknown>): Caixa => ({
   id: String(r.id), nome: String(r.nome || ''), secretaria: !!r.secretaria,
-  locais: Array.isArray(r.locais) ? (r.locais as unknown[]).filter(Array.isArray).map(l => [Number((l as unknown[])[0]), String((l as unknown[])[1])] as Local) : []
+  locais: Array.isArray(r.locais) ? (r.locais as unknown[]).filter(Array.isArray).map(l => { const x = l as unknown[]; return (Number(x[2]) > 0 ? [Number(x[0]), String(x[1]), Number(x[2])] : [Number(x[0]), String(x[1])]) as Local; }) : []
 });
 const procDeLinha = (r: Record<string, unknown>): Processo => ({
   id: String(r.id), codigo: String(r.codigo || ''), caixa_id: String(r.caixa_id), origem_id: r.origem_id ? String(r.origem_id) : null,
@@ -197,6 +197,29 @@ export function useArquivo(avisar: (msg: string) => void){
     return () => { const a = caixasRef.current.get(c.id) || c; mudarCaixa(a, antes, 'Desfeito: ' + texto); };
   }, [avisar]);
 
+  // Várias caixas de uma vez (ex.: a sequência de uma fileira). Cada uma pode ter o seu texto no histórico;
+  // "resumo" vira uma linha a mais. Se alguma falhar, volta todas. Devolve um só desfazer.
+  const mudarCaixas = useCallback(async (lista: { c: Caixa; novo: Partial<Caixa>; texto?: string }[], resumo: string): Promise<Desfazer | null> => {
+    if (!lista.length) return null;
+    const antes = lista.map(({ c, novo }) => ({ c, valores: Object.fromEntries(Object.keys(novo).map(k => [k, c[k as keyof Caixa]])) as Partial<Caixa> }));
+    setCaixasM(m => { const x = new Map(m); for (const { c, novo } of lista) x.set(c.id, { ...(x.get(c.id) || c), ...novo }); return x; });
+    const agora = new Date().toISOString();
+    for (const { c, novo } of lista){
+      const r = await supabase().from('arquivo_caixas').update({ ...novo, updated_at: agora }).eq('id', c.id);
+      if (r.error){
+        for (const a of antes) await supabase().from('arquivo_caixas').update({ ...a.valores, updated_at: agora }).eq('id', a.c.id);
+        setCaixasM(m => { const x = new Map(m); for (const a of antes) x.set(a.c.id, { ...(x.get(a.c.id) || a.c), ...a.valores }); return x; });
+        avisar('Não foi possível salvar: ' + r.error.message);
+        return null;
+      }
+    }
+    await anotar([...lista.filter(l => l.texto).map(l => ({ caixa_id: l.c.id, texto: l.texto! })), ...(resumo ? [{ texto: resumo }] : [])]);
+    return () => {
+      const atual = caixasRef.current;
+      mudarCaixas(antes.map(a => ({ c: atual.get(a.c.id) || a.c, novo: a.valores })), 'Desfeito: ' + resumo);
+    };
+  }, [avisar]);
+
   const criarCaixa = useCallback(async (nome: string, locais: Local[], secretaria = false): Promise<Caixa | null> => {
     const c: Caixa = { id: crypto.randomUUID(), nome, locais, secretaria };
     const r = await supabase().from('arquivo_caixas').insert({ id: c.id, nome, locais, secretaria });
@@ -223,7 +246,7 @@ export function useArquivo(avisar: (msg: string) => void){
     return () => { resolverNota(celula, !resolvida); };
   }, [avisar]);
 
-  return { estado, erro, carregar, atualizando, caixas, caixasM, processos, procsM, indice, porCaixa, notas, mudarProcessos, mudarCaixa, criarCaixa, criarProcesso, resolverNota };
+  return { estado, erro, carregar, atualizando, caixas, caixasM, processos, procsM, indice, porCaixa, notas, mudarProcessos, mudarCaixa, mudarCaixas, criarCaixa, criarProcesso, resolverNota };
 }
 
 export type ArquivoDados = ReturnType<typeof useArquivo>;

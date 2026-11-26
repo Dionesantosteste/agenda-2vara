@@ -664,14 +664,24 @@ Custo estimado: cerca de US$ 0,01 por foto. A foto é reduzida no celular antes 
 para a leitura e não fica guardada. Cada pessoa pode fazer até 120 leituras por hora.
 
 **4. Conferir prateleira por foto (usa a mesma chave).** Em **Prateleiras → Conferir por foto**,
-fotografe a estante inteira, de frente. A IA lê o número de cada caixa, fileira por fileira, e a
-tela compara com o que está anotado: **no lugar**, **muda de lugar** (mostra onde estava),
-**caixa nova** ou **para corrigir**. Também avisa quais caixas estão anotadas na prateleira, mas
-não aparecem na foto. As etiquetas duvidosas (com fita, riscadas ou escritas à mão) vêm
-tracejadas. Dá para corrigir números, trocar a fileira ou tirar caixas antes de **Gravar**. Cada
-mudança entra no Histórico e pode ser desfeita pelo aviso. A **fileira A é a de baixo**: o topo
-da estante, quando tem caixas em cima, é a última letra. Custo estimado: cerca de US$ 0,03 por
-foto, com até 40 leituras por pessoa por hora.
+fotografe a estante inteira, de frente. O celular manda a foto inteira e as metades de cima e de baixo
+ampliadas (até 2576 px), para a IA ler as etiquetas pequenas. A IA lê o número de cada caixa, fileira
+por fileira e na ordem em que estão, e a tela compara com o que está anotado: **no lugar**, **só a
+sequência** (fileira certa, posição diferente), **muda de lugar** (mostra onde estava; na mesma
+prateleira, "sistema: F.B → foto: F.C"), **caixa nova** ou **para corrigir**. Também avisa quais caixas
+estão anotadas na prateleira, mas não aparecem na foto. As etiquetas duvidosas (com fita, riscadas ou
+escritas à mão) vêm tracejadas. Se a leitura contar uma fileira a mais ou a menos, a tela sugere a letra
+certa; dá para trocar a letra de uma fileira inteira no quadradinho da letra, ou subir/descer todas.
+Dá para corrigir números, trocar a fileira ou tirar caixas antes de **Gravar**. Cada mudança entra no
+Histórico e pode ser desfeita pelo aviso. A **fileira A é a de baixo**: o topo da estante, quando tem
+caixas em cima, é a última letra; prateleira vazia também conta. Custo estimado: cerca de US$ 0,03 a
+0,05 por foto, com até 40 leituras por pessoa por hora.
+
+**Sequência das caixas.** Cada caixa guarda também a posição na fileira (1ª, 2ª…, da esquerda para a
+direita), junto com a prateleira e a fileira (no mesmo campo `locais`: `[prateleira, fileira, posição]`;
+não precisa rodar SQL). A tela Prateleiras mostra as caixas nessa sequência; as sem posição anotada vão
+para o fim, por número. A sequência é gravada pela conferência por foto e pelo **Arrastar caixas** (a
+caixa entra onde for solta).
 
 ## Passo 3 — Pegar a URL e a chave do projeto
 
