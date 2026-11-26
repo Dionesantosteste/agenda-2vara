@@ -215,19 +215,21 @@ export type LidaFoto = { nome: string; f: string };
 // certo = mesmo lugar e mesma posição; ordem = fileira certa, mas fora da sequência (ou sem sequência
 // anotada); fileira = mesma prateleira, outra fileira; mudou = outra prateleira (ou dois lugares, ou sem lugar)
 export type EstadoFoto = 'certo' | 'ordem' | 'fileira' | 'mudou' | 'nova' | 'repetida' | 'invalida';
-export type ItemFoto = LidaFoto & { estado: EstadoFoto; caixa: Caixa | null; pos: number };
+// renomear: a caixa achada tem o nome fora do padrão (ex.: "CX163CR1") e passa a se chamar "nome" ao gravar
+export type ItemFoto = LidaFoto & { estado: EstadoFoto; caixa: Caixa | null; pos: number; renomear?: boolean };
 
 // Compara o que a foto mostra na prateleira p com o que o sistema tem anotado. "pos" é a posição da caixa
 // na fileira, contando só as caixas válidas da foto, da esquerda para a direita. "ausentes" = caixas
 // anotadas nesta prateleira que não apareceram na foto (só aviso).
 export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { itens: ItemFoto[]; ausentes: Caixa[] } {
+  // Se duas caixas têm a mesma chave ("163-CRI" e a antiga "CX163CR1"), vale a que já tem o nome no padrão
   const porChave = new Map<string, Caixa>();
   for (const c of [...caixas].sort(ordemCaixa)){
     if (c.secretaria) continue;
-    const k = chaveCaixa(c.nome);
-    if (k && !porChave.has(k)) porChave.set(k, c);
+    const k = chaveCaixa(c.nome), atual = porChave.get(k);
+    if (k && (!atual || (atual.nome !== nomeCaixa(atual.nome) && c.nome === nomeCaixa(c.nome)))) porChave.set(k, c);
   }
-  const vistas = new Set<string>();
+  const vistas = new Set<string>(), usadas = new Set<string>();
   const contagem = new Map<string, number>();
   const itens: ItemFoto[] = lidas.map(l => {
     const nome = nomeCaixa(l.nome), f = l.f.trim().toUpperCase(), k = chaveCaixa(nome);
@@ -237,14 +239,16 @@ export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { i
     vistas.add(k);
     const pos = (contagem.get(f) || 0) + 1; contagem.set(f, pos);
     if (!caixa) return { nome, f, estado: 'nova', caixa: null, pos };
+    usadas.add(caixa.id);
+    const renomear = caixa.nome !== nome;
     const um = caixa.locais.length === 1 ? caixa.locais[0] : null;
     let estado: EstadoFoto = 'mudou';
     if (um && um[0] === p && um[1] === f) estado = posicaoEm(caixa, p, f) === pos ? 'certo' : 'ordem';
     else if (um && um[0] === p) estado = 'fileira';
-    return { nome, f, estado, caixa, pos };
+    return { nome, f, estado, caixa, pos, renomear };
   });
   const ausentes = caixas
-    .filter(c => !c.secretaria && c.locais.some(l => l[0] === p) && !vistas.has(chaveCaixa(c.nome)))
+    .filter(c => !c.secretaria && c.locais.some(l => l[0] === p) && !usadas.has(c.id))
     .sort((a, b) => (a.locais.find(l => l[0] === p)![1]).localeCompare(b.locais.find(l => l[0] === p)![1]) || ordemCaixa(a, b));
   return { itens, ausentes };
 }
