@@ -286,6 +286,23 @@ test.describe('gestor e equipe', () => {
     expect(banco.org.tarefas[0].conferencia).toBe('aprovada');
   });
 
+  test('a lista da equipe mostra quando a tarefa foi enviada; em aberto há mais de 7 dias fica em vermelho', async ({ page, banco }) => {
+    const diasAtras = n => new Date(Date.now() - n * 86400000).toISOString();
+    equipe(banco, { tarefas: [
+      { dono: ANA, titulo: 'Tarefa antiga', do_gestor: true, etapa: 'afazer', created_at: diasAtras(10) },
+      { dono: ANA, titulo: 'Tarefa recente', do_gestor: true, etapa: 'afazer', created_at: diasAtras(3) }
+    ] });
+    await entrarComoGestor(page);
+    await abaOrg(page, 'equipe');
+    await expect(page.locator('#orgEqLista th', { hasText: 'Enviada' })).toHaveCount(1);
+    const antiga = page.locator('#orgEqLista tr', { hasText: 'Tarefa antiga' }).locator('.eq-env');
+    const recente = page.locator('#orgEqLista tr', { hasText: 'Tarefa recente' }).locator('.eq-env');
+    await expect(antiga.locator('.late')).toHaveAttribute('title', 'Enviada há 10 dias');
+    await expect(recente.locator('.late')).toHaveCount(0);
+    await expect(recente.locator('[title]')).toHaveAttribute('title', 'Enviada há 3 dias');
+    if (process.env.PRINT_EQ) await page.locator('#orgEqLista').screenshot({ path: process.env.PRINT_EQ });
+  });
+
   test('o gestor manda uma tarefa do quadro dele para a tela da pessoa', async ({ page, banco }) => {
     equipe(banco, { tarefas: [{ dono: null, titulo: 'Intimar perito' }] });
     await entrarComoGestor(page);
