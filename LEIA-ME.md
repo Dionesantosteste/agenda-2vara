@@ -663,6 +663,16 @@ tela avisa que a leitura não está configurada. Para ligar:
 Custo estimado: cerca de US$ 0,01 por foto. A foto é reduzida no celular antes de ir, é usada só
 para a leitura e não fica guardada. Cada pessoa pode fazer até 120 leituras por hora.
 
+**4. Conferir prateleira por foto (usa a mesma chave).** Em **Prateleiras → Conferir por foto**,
+fotografe a estante inteira, de frente. A IA lê o número de cada caixa, fileira por fileira, e a
+tela compara com o que está anotado: **no lugar**, **muda de lugar** (mostra onde estava),
+**caixa nova** ou **para corrigir**. Também avisa quais caixas estão anotadas na prateleira, mas
+não aparecem na foto. As etiquetas duvidosas (com fita, riscadas ou escritas à mão) vêm
+tracejadas. Dá para corrigir números, trocar a fileira ou tirar caixas antes de **Gravar**. Cada
+mudança entra no Histórico e pode ser desfeita pelo aviso. A **fileira A é a de baixo**: o topo
+da estante, quando tem caixas em cima, é a última letra. Custo estimado: cerca de US$ 0,03 por
+foto, com até 40 leituras por pessoa por hora.
+
 ## Passo 3 — Pegar a URL e a chave do projeto
 
 1. No painel, vá em **Settings → API**.

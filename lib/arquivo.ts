@@ -151,3 +151,48 @@ export function localValido(p: string, f: string): Local | null {
   const pn = parseInt(p, 10), fl = f.trim().toUpperCase();
   return pn > 0 && /^[A-Z]{1,2}$/.test(fl) ? [pn, fl] : null;
 }
+
+// ---------- conferir uma prateleira por foto ----------
+// A IA lê as fileiras de CIMA para BAIXO (como se vê na foto); na vara a fileira A é a de BAIXO.
+// Com 7 níveis: o 1º lido (topo) é G e o último (chão) é A.
+export function letraFileira(indiceDeCima: number, total: number): string {
+  const n = total - 1 - indiceDeCima;
+  return n >= 0 && n < 26 ? String.fromCharCode(65 + n) : '';
+}
+
+// Chave para achar a caixa pelo nome lido: sem espaços, traços e zeros à esquerda ("0155-cri" = "155CRI")
+export function chaveCaixa(nome: string): string {
+  return String(nome || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^0+(?=\d)/, '');
+}
+
+export type LidaFoto = { nome: string; f: string };
+export type EstadoFoto = 'certo' | 'mudou' | 'nova' | 'repetida' | 'invalida';
+export type ItemFoto = LidaFoto & { estado: EstadoFoto; caixa: Caixa | null };
+
+// Compara o que a foto mostra na prateleira p com o que o sistema tem anotado.
+// certo = já está em P.p F.f (só nesse lugar); mudou = existe mas está anotada em outro lugar (ou em dois,
+// ou sem lugar); nova = não existe; repetida = a mesma caixa já apareceu antes na foto; invalida = sem nome
+// ou fileira. "ausentes" = caixas anotadas nesta prateleira que não apareceram na foto (só aviso).
+export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { itens: ItemFoto[]; ausentes: Caixa[] } {
+  const porChave = new Map<string, Caixa>();
+  for (const c of [...caixas].sort(ordemCaixa)){
+    if (c.secretaria) continue;
+    const k = chaveCaixa(c.nome);
+    if (k && !porChave.has(k)) porChave.set(k, c);
+  }
+  const vistas = new Set<string>();
+  const itens: ItemFoto[] = lidas.map(l => {
+    const nome = l.nome.trim().toUpperCase(), f = l.f.trim().toUpperCase(), k = chaveCaixa(nome);
+    if (!k || !/^[A-Z]{1,2}$/.test(f)) return { nome, f, estado: 'invalida', caixa: null };
+    const caixa = porChave.get(k) || null;
+    if (vistas.has(k)) return { nome, f, estado: 'repetida', caixa };
+    vistas.add(k);
+    if (!caixa) return { nome, f, estado: 'nova', caixa: null };
+    const certo = caixa.locais.length === 1 && caixa.locais[0][0] === p && caixa.locais[0][1] === f;
+    return { nome, f, estado: certo ? 'certo' : 'mudou', caixa };
+  });
+  const ausentes = caixas
+    .filter(c => !c.secretaria && c.locais.some(l => l[0] === p) && !vistas.has(chaveCaixa(c.nome)))
+    .sort((a, b) => (a.locais.find(l => l[0] === p)![1]).localeCompare(b.locais.find(l => l[0] === p)![1]) || ordemCaixa(a, b));
+  return { itens, ausentes };
+}
