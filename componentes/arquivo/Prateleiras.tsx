@@ -2,7 +2,7 @@
 // Sala do arquivo: estantes de madeira com as caixas em pé em cada fileira; filtro "P25",
 // atalhos P.1…P.36 e OS, "Conferir por foto" (FotoPrateleira) e o modo "Arrastar caixas" (mouse ou dedo) para mudar caixa de lugar.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { filtroPrateleira, ordemCaixa, norm, type Caixa } from '@/lib/arquivo';
+import { comPosicao, filtroPrateleira, ordemNaFileira, reordenar, norm, type Caixa, type Local } from '@/lib/arquivo';
 import { useArq } from './Arquivo';
 import { Icone, Vazio } from './Pecas';
 import { FotoPrateleira } from './FotoPrateleira';
@@ -31,7 +31,7 @@ export function Prateleiras(){
   }
   const estantes: Estante[] = [...mapa.keys()].sort((a, b) => (a || 999) - (b || 999)).map(p => {
     const fs = mapa.get(p)!;
-    return { p, fileiras: [...fs.keys()].sort().map(f => [f, fs.get(f)!.sort(ordemCaixa)] as [string, Caixa[]]), total: [...fs.values()].reduce((n, l) => n + l.length, 0) };
+    return { p, fileiras: [...fs.keys()].sort().map(f => [f, fs.get(f)!.sort(ordemNaFileira(p, f))] as [string, Caixa[]]), total: [...fs.values()].reduce((n, l) => n + l.length, 0) };
   });
   const secs = d.caixas.filter(c => c.secretaria && (d.porCaixa.get(c.id) || []).length).sort((a, b) => a.nome.localeCompare(b.nome));
   const nSec = secs.reduce((n, c) => n + (d.porCaixa.get(c.id) || []).length, 0);
@@ -65,9 +65,25 @@ export function Prateleiras(){
       arr.current = null; cancelAnimationFrame(a.raf); a.g.remove(); a.b.classList.remove('aq-arrastando'); a.alvo?.classList.remove('aq-alvo');
       if (e.type === 'pointercancel' || !a.alvo) return;
       const P = Number(a.alvo.dataset.p), F = a.alvo.dataset.f || '', l = a.c.locais[0];
-      if (a.c.locais.length === 1 && l[0] === P && l[1] === F) return;
-      const desf = await d.mudarCaixa(a.c, { locais: [[P, F]] }, 'Caixa ' + a.c.nome + ' arrastada para a prateleira ' + P + ', fileira ' + F + (l ? ' (estava em P.' + l[0] + ' F.' + l[1] + ')' : ''));
-      if (desf) aviso('Caixa ' + a.c.nome + ' agora em P.' + P + ' F.' + F, desf);
+      // onde soltou: antes da primeira caixa que fica depois do dedo (fileiras podem quebrar em várias linhas)
+      const outras = [...a.alvo.querySelectorAll<HTMLElement>('.aq-cxb[data-cx]')].filter(b => b.dataset.cx !== a.c.id);
+      let i = outras.findIndex(b => { const r = b.getBoundingClientRect(); return a.y < r.top || (a.y <= r.bottom && a.x < r.left + r.width / 2); });
+      if (i < 0) i = outras.length;
+      const seq = reordenar(outras.map(b => b.dataset.cx!), a.c.id, i);
+      const mesmaFileira = a.c.locais.length === 1 && l[0] === P && l[1] === F;
+      const lista: { c: Caixa; novo: Partial<Caixa>; texto?: string }[] = [];
+      seq.forEach((id, k) => {
+        const c = d.caixasM.get(id); if (!c) return;
+        if (id === a.c.id){
+          const novo: Local[] = [[P, F, k + 1]];
+          if (!mesmaFileira || (l as Local)[2] !== k + 1) lista.push({ c, novo: { locais: novo }, texto: 'Caixa ' + c.nome + (mesmaFileira ? ' mudou de posição na fileira: agora é a ' + (k + 1) + 'ª' : ' arrastada para a prateleira ' + P + ', fileira ' + F + ', posição ' + (k + 1) + (l ? ' (estava em P.' + l[0] + ' F.' + l[1] + ')' : '')) });
+        } else if ((c.locais.find(x => x[0] === P && x[1] === F) as Local | undefined)?.[2] !== k + 1){
+          lista.push({ c, novo: { locais: comPosicao(c, P, F, k + 1) } });
+        }
+      });
+      if (!lista.length) return;
+      const desf = await d.mudarCaixas(lista, '');
+      if (desf) aviso('Caixa ' + a.c.nome + ' agora em P.' + P + ' F.' + F + ', ' + (i + 1) + 'ª da fileira', desf);
     };
     const el = raiz.current!;
     el.addEventListener('pointerdown', baixo);

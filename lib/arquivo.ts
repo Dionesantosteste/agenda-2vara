@@ -1,7 +1,9 @@
 // Arquivo de processos físicos: regras que não dependem da tela (busca, prateleiras, pendências).
 // As mesmas do protótipo aprovado; os testes ficam em lib/arquivo.test.ts.
 
-export type Local = [number, string];   // [prateleira, fileira]
+// [prateleira, fileira] ou [prateleira, fileira, posição]: a posição (1, 2, 3… da esquerda para a direita)
+// guarda a sequência das caixas na fileira; sem ela a caixa vai para o fim, em ordem de número.
+export type Local = [number, string] | [number, string, number];
 export type Caixa = { id: string; nome: string; locais: Local[]; secretaria: boolean };
 export type Processo = {
   id: string; codigo: string; caixa_id: string; origem_id: string | null; situacao: number;
@@ -152,6 +154,31 @@ export function localValido(p: string, f: string): Local | null {
   return pn > 0 && /^[A-Z]{1,2}$/.test(fl) ? [pn, fl] : null;
 }
 
+// ---------- ordem das caixas dentro da fileira ----------
+export const posicaoEm = (c: Caixa, p: number, f: string): number | null => {
+  const l = c.locais.find(x => x[0] === p && x[1] === f);
+  return l && l.length > 2 && Number(l[2]) > 0 ? Number(l[2]) : null;
+};
+// Ordem da fileira: primeiro as que têm posição anotada, depois as outras por número
+export function ordemNaFileira(p: number, f: string){
+  return (a: Caixa, b: Caixa) => {
+    const pa = posicaoEm(a, p, f), pb = posicaoEm(b, p, f);
+    if (pa !== null && pb !== null && pa !== pb) return pa - pb;
+    if ((pa === null) !== (pb === null)) return pa === null ? 1 : -1;
+    return ordemCaixa(a, b);
+  };
+}
+// Locais da caixa com a posição trocada só no lugar [p, f] (os outros lugares ficam como estão)
+export function comPosicao(c: Caixa, p: number, f: string, pos: number): Local[] {
+  return c.locais.map(l => (l[0] === p && l[1] === f ? [p, f, pos] as Local : l));
+}
+// Onde a caixa solta entra numa fileira: nova sequência (ids) e quem precisa mudar de posição
+export function reordenar(ids: string[], id: string, indice: number): string[] {
+  const resto = ids.filter(x => x !== id);
+  const i = Math.max(0, Math.min(indice, resto.length));
+  return [...resto.slice(0, i), id, ...resto.slice(i)];
+}
+
 // ---------- conferir uma prateleira por foto ----------
 // A IA lê as fileiras de CIMA para BAIXO (como se vê na foto); na vara a fileira A é a de BAIXO.
 // Com 7 níveis: o 1º lido (topo) é G e o último (chão) é A.
@@ -159,6 +186,10 @@ export function letraFileira(indiceDeCima: number, total: number): string {
   const n = total - 1 - indiceDeCima;
   return n >= 0 && n < 26 ? String.fromCharCode(65 + n) : '';
 }
+export const letraMais = (f: string, d: number) => {
+  const n = f.length === 1 ? f.charCodeAt(0) - 65 + d : -1;
+  return n >= 0 && n < 26 ? String.fromCharCode(65 + n) : '';
+};
 
 // Chave para achar a caixa pelo nome lido: sem espaços, traços e zeros à esquerda ("0155-cri" = "155CRI")
 export function chaveCaixa(nome: string): string {
@@ -166,13 +197,14 @@ export function chaveCaixa(nome: string): string {
 }
 
 export type LidaFoto = { nome: string; f: string };
-export type EstadoFoto = 'certo' | 'mudou' | 'nova' | 'repetida' | 'invalida';
-export type ItemFoto = LidaFoto & { estado: EstadoFoto; caixa: Caixa | null };
+// certo = mesmo lugar e mesma posição; ordem = fileira certa, mas fora da sequência (ou sem sequência
+// anotada); fileira = mesma prateleira, outra fileira; mudou = outra prateleira (ou dois lugares, ou sem lugar)
+export type EstadoFoto = 'certo' | 'ordem' | 'fileira' | 'mudou' | 'nova' | 'repetida' | 'invalida';
+export type ItemFoto = LidaFoto & { estado: EstadoFoto; caixa: Caixa | null; pos: number };
 
-// Compara o que a foto mostra na prateleira p com o que o sistema tem anotado.
-// certo = já está em P.p F.f (só nesse lugar); mudou = existe mas está anotada em outro lugar (ou em dois,
-// ou sem lugar); nova = não existe; repetida = a mesma caixa já apareceu antes na foto; invalida = sem nome
-// ou fileira. "ausentes" = caixas anotadas nesta prateleira que não apareceram na foto (só aviso).
+// Compara o que a foto mostra na prateleira p com o que o sistema tem anotado. "pos" é a posição da caixa
+// na fileira, contando só as caixas válidas da foto, da esquerda para a direita. "ausentes" = caixas
+// anotadas nesta prateleira que não apareceram na foto (só aviso).
 export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { itens: ItemFoto[]; ausentes: Caixa[] } {
   const porChave = new Map<string, Caixa>();
   for (const c of [...caixas].sort(ordemCaixa)){
@@ -181,18 +213,39 @@ export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { i
     if (k && !porChave.has(k)) porChave.set(k, c);
   }
   const vistas = new Set<string>();
+  const contagem = new Map<string, number>();
   const itens: ItemFoto[] = lidas.map(l => {
     const nome = l.nome.trim().toUpperCase(), f = l.f.trim().toUpperCase(), k = chaveCaixa(nome);
-    if (!k || !/^[A-Z]{1,2}$/.test(f)) return { nome, f, estado: 'invalida', caixa: null };
+    if (!k || !/^[A-Z]{1,2}$/.test(f)) return { nome, f, estado: 'invalida', caixa: null, pos: 0 };
     const caixa = porChave.get(k) || null;
-    if (vistas.has(k)) return { nome, f, estado: 'repetida', caixa };
+    if (vistas.has(k)) return { nome, f, estado: 'repetida', caixa, pos: 0 };
     vistas.add(k);
-    if (!caixa) return { nome, f, estado: 'nova', caixa: null };
-    const certo = caixa.locais.length === 1 && caixa.locais[0][0] === p && caixa.locais[0][1] === f;
-    return { nome, f, estado: certo ? 'certo' : 'mudou', caixa };
+    const pos = (contagem.get(f) || 0) + 1; contagem.set(f, pos);
+    if (!caixa) return { nome, f, estado: 'nova', caixa: null, pos };
+    const um = caixa.locais.length === 1 ? caixa.locais[0] : null;
+    let estado: EstadoFoto = 'mudou';
+    if (um && um[0] === p && um[1] === f) estado = posicaoEm(caixa, p, f) === pos ? 'certo' : 'ordem';
+    else if (um && um[0] === p) estado = 'fileira';
+    return { nome, f, estado, caixa, pos };
   });
   const ausentes = caixas
     .filter(c => !c.secretaria && c.locais.some(l => l[0] === p) && !vistas.has(chaveCaixa(c.nome)))
     .sort((a, b) => (a.locais.find(l => l[0] === p)![1]).localeCompare(b.locais.find(l => l[0] === p)![1]) || ordemCaixa(a, b));
   return { itens, ausentes };
+}
+
+// Leitura com as letras deslocadas: quando quase todas as caixas conhecidas de uma fileira da foto estão
+// anotadas, nesta mesma prateleira, numa outra fileira (a mesma para todas), a letra da foto provavelmente
+// está errada. Devolve { foto: 'C', sistema: 'B', caixas: 5 } para cada fileira assim.
+export function sugerirLetras(itens: ItemFoto[]): { foto: string; sistema: string; caixas: number }[] {
+  const porF = new Map<string, ItemFoto[]>();
+  for (const it of itens){ if (it.caixa && it.pos){ const l = porF.get(it.f); if (l) l.push(it); else porF.set(it.f, [it]); } }
+  const out: { foto: string; sistema: string; caixas: number }[] = [];
+  for (const [f, l] of [...porF.entries()].sort((a, b) => b[0].localeCompare(a[0]))){
+    const outras = new Map<string, number>();
+    for (const it of l) if (it.estado === 'fileira') { const s = it.caixa!.locais[0][1]; outras.set(s, (outras.get(s) || 0) + 1); }
+    const [s, n] = [...outras.entries()].sort((a, b) => b[1] - a[1])[0] || ['', 0];
+    if (n >= 3 && n / l.length >= 0.6) out.push({ foto: f, sistema: s, caixas: n });
+  }
+  return out;
 }

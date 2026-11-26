@@ -150,17 +150,79 @@ test('conferir prateleira por foto: fileira A é a de baixo, mostra o que muda e
   await expect(page.locator('#aq-fp-estado')).toContainText('Li 3 caixas em 2 fileiras');
   await expect(page.locator('#aq-fp-p')).toHaveValue('24');
   await expect(page.locator('.aq-fp-fileira[data-f]')).toHaveCount(2);
+  await expect(page.locator('select.aq-fp-letra')).toHaveCount(2);
   await expect(page.locator('.aq-fp-fileira[data-f="B"] .aq-fp-cx').first()).toContainText('estava em P.5 F.B');
   await expect(page.locator('.aq-fp-fileira[data-f="B"] .aq-fp-nova')).toContainText('caixa nova');
   await expect(page.locator('.aq-fp-fileira[data-f="A"] .aq-fp-mudou')).toContainText('P.5 F.C e P.7 F.A');
   await expect(page.locator('#aq-fp-gravar')).toHaveText('Gravar 3 mudanças');
   await page.click('#aq-fp-gravar');
   await expect(page.locator('.aq-toast')).toContainText('Prateleira 24 conferida');
-  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.nome === '1320').locais).toEqual([[24, 'B']]);
-  expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '1321').locais).toEqual([[24, 'A']]);
-  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.nome === '9999')?.locais).toEqual([[24, 'B']]);
-  expect(banco.tabelas.arquivo_movimentos.some(m => m.texto.includes('Caixa 1320 conferida por foto: prateleira 24, fileira B (estava em P.5 F.B)'))).toBe(true);
+  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.nome === '1320').locais).toEqual([[24, 'B', 1]]);
+  expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '1321').locais).toEqual([[24, 'A', 1]]);
+  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.nome === '9999')?.locais).toEqual([[24, 'B', 2]]);
+  expect(banco.tabelas.arquivo_movimentos.some(m => m.texto.includes('Caixa 1320 conferida por foto: prateleira 24, fileira B, 1ª (estava em P.5 F.B)'))).toBe(true);
   await expect(page.locator('#aq-estantes .aq-estante-cab h3')).toHaveText([/Prateleira 24/]);
+});
+
+const FOTO = { name: 'estante.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64') };
+const leitura = (niveis, etiqueta = '26') => ({ json: { leitura: { etiqueta_estante: etiqueta, observacao: '', niveis: niveis.map(l => ({ caixas: l.map(n => ({ nome: n, legivel: 'sim', observacao: '' })) })) } } });
+const P26 = ['522', '543', '595', '627', '654', '657'];
+const semearP26 = (banco, f = 'A') => banco.semear('arquivo_caixas', P26.map((n, i) => ({ id: 'c0000000-0000-4000-8000-0000000026' + String(i).padStart(2, '0'), nome: n, locais: [[26, f]] })));
+const ordemNaTela = page => page.locator('.aq-fileira[data-p="26"][data-f="A"] .aq-cxb .aq-jan').allTextContents();
+
+test('foto: grava a sequência da fileira e a tela Prateleiras mostra as caixas nessa ordem', async ({ page, banco }) => {
+  semearP26(banco);
+  // prateleira vazia em cima também conta: 2 níveis -> o vazio é B e as caixas ficam na A
+  await page.route('**/api/arquivo/ler-prateleira', r => r.fulfill(leitura([[], ['522', '595', '654', '627', '657', '543']])));
+  await abrir(page, '#prateleiras');
+  await expect.poll(() => ordemNaTela(page)).toEqual(P26);
+  await page.click('#aq-porfoto');
+  await page.setInputFiles('#aq-fotoprat', FOTO);
+  await expect(page.locator('#aq-fp-estado')).toContainText('2 fileiras (1 vazia)');
+  await expect(page.locator('.aq-fp-fileira[data-f="B"]')).toContainText('fileira vazia');
+  await expect(page.locator('.aq-fp-fileira[data-f="A"] .aq-fp-ordem')).toHaveCount(6);
+  await expect(page.locator('#aq-fp-resumo')).toContainText('6 só a sequência');
+  await page.click('#aq-fp-gravar');
+  await expect(page.locator('.aq-toast')).toContainText('6 com a sequência ajustada');
+  await expect.poll(() => ordemNaTela(page)).toEqual(['522', '595', '654', '627', '657', '543']);
+  expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '543').locais).toEqual([[26, 'A', 6]]);
+  // conferindo de novo, tudo no lugar
+  await page.click('#aq-porfoto');
+  await page.setInputFiles('#aq-fotoprat', FOTO);
+  await expect(page.locator('#aq-fp-resumo')).toContainText('6 no lugar');
+  await expect(page.locator('#aq-fp-gravar')).toHaveText('Concluir');
+});
+
+test('foto: quando a leitura desloca as letras, sugere a letra do sistema para a fileira', async ({ page, banco }) => {
+  semearP26(banco);
+  await page.route('**/api/arquivo/ler-prateleira', r => r.fulfill(leitura([P26, ['9998']])));   // IA contou uma fileira a mais embaixo
+  await abrir(page, '#prateleiras');
+  await page.click('#aq-porfoto');
+  await page.setInputFiles('#aq-fotoprat', FOTO);
+  await expect(page.locator('.aq-fp-fileira[data-f="B"] .aq-fp-cx').first()).toContainText('sistema: F.A → foto: F.B');
+  await expect(page.locator('.aq-fp-sugestao')).toContainText('A fileira B da foto parece ser a A do sistema');
+  await page.locator('.aq-fp-sugestao button').click();
+  await expect(page.locator('.aq-fp-sugestao')).toHaveCount(0);
+  await expect(page.locator('.aq-fp-fileira[data-f="A"] .aq-fp-ordem')).toHaveCount(6);
+  await page.click('text=Subir todas uma letra');
+  await expect(page.locator('.aq-fp-fileira[data-f="B"] .aq-fp-fileira, .aq-fp-fileira[data-f="B"] .aq-fp-cx.aq-fp-fileira')).toHaveCount(6);
+});
+
+test('arrastar: a caixa entra onde foi solta e a sequência da fileira é gravada', async ({ page, banco }) => {
+  semearP26(banco);
+  await abrir(page, '#prateleiras');
+  await page.fill('#aq-fcx', 'P26');
+  await page.click('#aq-arrastar');
+  const caixa = n => page.locator('.aq-fileira[data-f="A"] .aq-cxb', { hasText: n });
+  const de = await caixa('657').boundingBox(), para = await caixa('543').boundingBox();
+  await page.mouse.move(de.x + de.width / 2, de.y + de.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(para.x + 4, para.y + para.height / 2, { steps: 8 });
+  await page.mouse.up();
+  await expect(page.locator('.aq-toast')).toContainText('2ª da fileira');
+  await expect.poll(() => ordemNaTela(page)).toEqual(['522', '657', '543', '595', '627', '654']);
+  expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '657').locais).toEqual([[26, 'A', 2]]);
+  expect(banco.tabelas.arquivo_caixas.find(c => c.nome === '654').locais).toEqual([[26, 'A', 6]]);
 });
 
 test('mandar para uma secretaria cria a caixa dela e devolver volta para a caixa de origem', async ({ page, banco }) => {
