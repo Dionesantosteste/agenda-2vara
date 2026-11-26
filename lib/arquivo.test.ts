@@ -150,3 +150,13 @@ test('caixa criminal: foto, busca e filtro não confundem a 51 com a 51-CRI', ()
   if (r2.modo === 'caixas') assert.deepEqual(r2.caixas.map(c => c.nome), ['51', '51-CRI']);
   assert.deepEqual(filtroPrateleira('51 crime'), { tipo: 'caixa', alvo: '51-CRI' });
 });
+
+test('foto: caixa antiga fora do padrão é renomeada; a vazia que sobra na prateleira vira "ausente"', () => {
+  const so = compararFoto(24, [{ nome: '163-CRI', f: 'E' }], [cx('x', 'CX163CR1', [[24, 'E', 1]])]).itens[0];
+  assert.deepEqual([so.caixa?.id, so.estado, so.renomear, so.nome], ['x', 'certo', true, '163-CRI']);
+  // com a 163-CRI de verdade em outro lugar, ela é a escolhida e a CX163CR1 fica de fora
+  const cs = [cx('x', 'CX163CR1', [[24, 'E', 1]]), cx('r', '163-CRI', [[9, 'A']]), cx('n', '51', [[24, 'G', 1]]), cx('c', '51-CRI', [])];
+  const { itens, ausentes } = compararFoto(24, [{ nome: 'CX163CR1', f: 'E' }, { nome: '51 crime', f: 'G' }], cs);
+  assert.deepEqual(itens.map(i => [i.caixa?.id, i.estado, !!i.renomear]), [['r', 'mudou', false], ['c', 'mudou', false]]);
+  assert.deepEqual(ausentes.map(c => c.id).sort(), ['n', 'x']);
+});

@@ -241,6 +241,26 @@ test('caixa criminal: "155 crime" no cadastro é a 155-CRI; nome fora do padrão
   await expect(page.locator('.aq-cxb.aq-cri')).toHaveCount(2);   // 155-CRI e 60-CRI com a faixa vermelha
 });
 
+test('foto: conferir de novo corrige caixas de uma leitura antiga (51 vazia e CX163CR1)', async ({ page, banco }) => {
+  banco.semear('arquivo_caixas', [
+    { id: 'c0000000-0000-4000-8000-000000002451', nome: '51', locais: [[24, 'B', 1]] },
+    { id: 'c0000000-0000-4000-8000-000000002463', nome: 'CX163CR1', locais: [[24, 'A', 1]] }
+  ]);
+  await page.route('**/api/arquivo/ler-prateleira', r => r.fulfill(leitura([['51-CRI'], ['163-CRI']], '24')));
+  await abrir(page, '#prateleiras');
+  await page.click('#aq-porfoto');
+  await page.setInputFiles('#aq-fotoprat', FOTO);
+  await expect(page.locator('.aq-fp-fileira[data-f="A"] .aq-fp-cx')).toContainText('nome CX163CR1 vira 163-CRI');
+  await expect(page.locator('.aq-fp-fileira[data-f="B"] .aq-fp-cx')).toContainText('caixa nova');
+  await expect(page.locator('label', { has: page.locator('#aq-fp-tirar-vazias') })).toContainText('(51)');
+  await page.click('#aq-fp-gravar');
+  await expect(page.locator('.aq-toast')).toContainText('nome padronizado');
+  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.id === 'c0000000-0000-4000-8000-000000002463').nome).toBe('163-CRI');
+  expect(banco.tabelas.arquivo_caixas.find(c => c.id === 'c0000000-0000-4000-8000-000000002451').locais).toEqual([]);
+  await expect.poll(() => banco.tabelas.arquivo_caixas.find(c => c.nome === '51-CRI')?.locais).toEqual([[24, 'B', 1]]);
+  await expect(page.locator('.aq-fileira[data-p="24"] .aq-cxb .aq-jan')).toHaveText(['163-CRI', '51-CRI']);
+});
+
 test('mandar para uma secretaria cria a caixa dela e devolver volta para a caixa de origem', async ({ page, banco }) => {
   await abrir(page);
   await page.fill('#aq-q', '14212');

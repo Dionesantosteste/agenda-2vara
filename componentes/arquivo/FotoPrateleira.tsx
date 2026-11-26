@@ -57,6 +57,7 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
   const [nFil, setNFil] = useState(0);   // quantas fileiras a IA contou (inclusive as vazias)
   const [etiqueta, setEtiqueta] = useState('');
   const [criarNovas, setCriarNovas] = useState(true);
+  const [tirarVazias, setTirarVazias] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const pn = parseInt(p, 10) > 0 ? parseInt(p, 10) : 0;
 
@@ -105,7 +106,11 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
   const fileiras = [...letras].sort((a, b) => b.length - a.length || b.localeCompare(a));
   const opcoes = Array.from({ length: Math.min(26, Math.max(nFil, ...fileiras.map(f => f.charCodeAt(0) - 64)) + 1) }, (_, i) => String.fromCharCode(65 + i));
   const etiquetaDiferente = !!etiqueta && /^\d+$/.test(etiqueta) && pn > 0 && +etiqueta !== pn;
-  const aGravar = nMuda + nOrdem + (criarNovas ? nNova : 0);
+  const nRenomear = itens.filter(i => i.renomear && i.caixa && !['repetida', 'invalida'].includes(i.estado)).length;
+  const soNome = itens.filter(i => i.renomear && i.estado === 'certo').length;   // as outras já entram como mudança
+  // anotadas nesta prateleira, sem processos e fora da foto: em geral criadas por engano numa leitura antiga
+  const vaziasFora = (cmp?.ausentes || []).filter(c => !(d.porCaixa.get(c.id) || []).length);
+  const aGravar = nMuda + nOrdem + soNome + (criarNovas ? nNova : 0) + (tirarVazias ? vaziasFora.length : 0);
 
   async function gravar(){
     if (!cmp || salvando) return;
@@ -115,17 +120,23 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
     setSalvando(true);
     const lista: { c: Caixa; novo: Partial<Caixa>; texto?: string }[] = [];
     for (const it of cmp.itens){
-      if (!it.caixa || !['mudou', 'fileira', 'ordem'].includes(it.estado)) continue;
+      if (!it.caixa || !(['mudou', 'fileira', 'ordem'].includes(it.estado) || (it.estado === 'certo' && it.renomear))) continue;
       const c = d.caixasM.get(it.caixa.id) || it.caixa;
-      lista.push({ c, novo: { locais: [[pn, it.f, it.pos]] },
-        texto: it.estado === 'ordem' ? undefined : 'Caixa ' + c.nome + ' conferida por foto: prateleira ' + pn + ', fileira ' + it.f + ', ' + it.pos + 'ª' + (c.locais.length ? ' (estava em ' + lugares(c.locais) + ')' : '') });
+      const nome = it.renomear ? { nome: it.nome } : {};
+      const texto = [it.renomear && 'Caixa ' + c.nome + ' renomeada para ' + it.nome + ' (padrão)',
+        ['mudou', 'fileira'].includes(it.estado) && 'Caixa ' + it.nome + ' conferida por foto: prateleira ' + pn + ', fileira ' + it.f + ', ' + it.pos + 'ª' + (c.locais.length ? ' (estava em ' + lugares(c.locais) + ')' : '')].filter(Boolean).join('; ');
+      lista.push({ c, novo: { ...nome, locais: [[pn, it.f, it.pos]] }, texto: texto || undefined });
+    }
+    if (tirarVazias) for (const c0 of vaziasFora){
+      const c = d.caixasM.get(c0.id) || c0;
+      lista.push({ c, novo: { locais: c.locais.filter(l => l[0] !== pn) }, texto: 'Caixa ' + c.nome + ' (vazia) tirada da prateleira ' + pn + ': não aparece na foto' });
     }
     const desf = await d.mudarCaixas(lista, 'Prateleira ' + pn + ' conferida por foto: ' + nMuda + ' caixa(s) mudaram de lugar, ' + nOrdem + ' com a sequência anotada');
     if (lista.length && !desf){ setSalvando(false); return; }
     let criadas = 0;
     if (criarNovas) for (const it of cmp.itens) if (it.estado === 'nova' && await d.criarCaixa(it.nome, [[pn, it.f, it.pos]])) criadas++;
     setSalvando(false);
-    const partes = [nMuda && nMuda + (nMuda === 1 ? ' caixa mudou' : ' caixas mudaram') + ' de lugar', nOrdem && nOrdem + ' com a sequência ajustada', criadas && criadas + (criadas === 1 ? ' caixa criada' : ' caixas criadas')].filter(Boolean);
+    const partes = [nMuda && nMuda + (nMuda === 1 ? ' caixa mudou' : ' caixas mudaram') + ' de lugar', nOrdem && nOrdem + ' com a sequência ajustada', nRenomear && nRenomear + ' com o nome padronizado', tirarVazias && vaziasFora.length && vaziasFora.length + ' vazia(s) tirada(s) da prateleira', criadas && criadas + (criadas === 1 ? ' caixa criada' : ' caixas criadas')].filter(Boolean);
     aviso('Prateleira ' + pn + ' conferida: ' + partes.join(', '), desf);
     fechar(pn);
   }
@@ -138,7 +149,7 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
         <input className="aq-mono aq-fp-f" aria-label={'Fileira da caixa ' + l.nome} maxLength={2} value={l.f} onChange={e => mudarLinha(l.id, { f: e.target.value.toUpperCase() })} />
         <button type="button" className="aq-fp-tirar" aria-label={'Tirar a caixa ' + l.nome + ' da lista'} onClick={() => tirar(l.id)}><Icone n="x" t={14} /></button>
       </div>
-      <small>{it && ehCriminal(it.nome) ? <b className="aq-fp-tag-cri">CRI</b> : null}{it ? situacao(it, pn) : ''}{l.duvida ? ' · conferir etiqueta' : ''}</small>
+      <small>{it && ehCriminal(it.nome) ? <b className="aq-fp-tag-cri">CRI</b> : null}{it ? situacao(it, pn) : ''}{it?.renomear && it.caixa ? ' · nome ' + it.caixa.nome + ' vira ' + it.nome : ''}{l.duvida ? ' · conferir etiqueta' : ''}</small>
     </div>
   );
 
@@ -212,8 +223,10 @@ export function FotoPrateleira({ pInicial, fechar }: { pInicial: number | null; 
             {cmp && cmp.ausentes.length > 0 && (
               <div className="aq-aviso" id="aq-fp-ausentes"><Icone n="alerta" t={16} /><span><b>Anotadas na prateleira {pn}, mas não aparecem na foto:</b>{' '}
                 {cmp.ausentes.map((c, i) => <span key={c.id}>{i ? ', ' : ''}<a href={'#cx-' + c.id}>{c.nome}</a> ({c.locais.filter(l => l[0] === pn).map(l => 'F.' + l[1]).join('/')})</span>)}.
-                {' '}Nada será mudado nelas. Se saíram desta prateleira, anote o novo lugar na caixa.</span></div>
+                {' '}As que têm processos não mudam: se saíram desta prateleira, anote o novo lugar na caixa.</span></div>
             )}
+            {vaziasFora.length > 0 && <label className="aq-fila" style={{ fontSize: 14 }}><input type="checkbox" id="aq-fp-tirar-vazias" checked={tirarVazias} onChange={e => setTirarVazias(e.target.checked)} />
+              Tirar da prateleira {pn} as {vaziasFora.length} caixa(s) vazia(s) que não aparecem na foto ({vaziasFora.map(c => c.nome).join(', ')})</label>}
             {nNova > 0 && <label className="aq-fila" style={{ fontSize: 14 }}><input type="checkbox" checked={criarNovas} onChange={e => setCriarNovas(e.target.checked)} />Criar as {nNova} caixas novas nesta prateleira</label>}
             <div className="aq-acoes">
               <button type="button" className="aq-btn" onClick={() => fechar()}>Cancelar</button>
