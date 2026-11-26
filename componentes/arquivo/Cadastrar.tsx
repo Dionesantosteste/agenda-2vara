@@ -12,7 +12,7 @@ const VAZIO = { codigo: '', numero: '', classe: '', partes: '', ano: '', obs: ''
 type Leitura = { codigo?: string | null; numero?: string | null; classe?: string | null; partes?: string[] | null; ano?: string | null; confianca?: string | null; observacao?: string | null };
 
 // Reduz a foto antes de enviar (mais rápido e mais barato): lado maior com até 1568 px, em JPEG
-async function reduzir(arq: File): Promise<string> {
+export async function reduzir(arq: File): Promise<string> {
   const img = await createImageBitmap(arq);
   const esc = Math.min(1, 1568 / Math.max(img.width, img.height));
   const cv = document.createElement('canvas'); cv.width = Math.round(img.width * esc); cv.height = Math.round(img.height * esc);

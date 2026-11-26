@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscar, chaveNum, destaque, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Processo } from './arquivo.ts';
+import { buscar, chaveCaixa, chaveNum, compararFoto, destaque, letraFileira, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Processo } from './arquivo.ts';
 
 const cx = (id: string, nome: string, locais: [number, string][] = [[1, 'A']], secretaria = false): Caixa => ({ id, nome, locais, secretaria });
 const pr = (id: string, codigo: string, caixa_id: string, extra: Partial<Processo> = {}): Processo => ({
@@ -81,4 +81,23 @@ test('lugar da caixa: prateleira e fileira só valem juntas', () => {
   assert.equal(localValido('', 'C'), null);
   assert.equal(localValido('12', ''), null);
   assert.equal(localValido('x', 'C'), null);
+});
+
+test('foto da prateleira: fileira A é a de baixo (a IA lê de cima para baixo)', () => {
+  assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(i => letraFileira(i, 7)), ['G', 'F', 'E', 'D', 'C', 'B', 'A']);
+  assert.equal(letraFileira(0, 1), 'A');
+  assert.equal(chaveCaixa(' 0155-cri '), '155CRI');
+});
+
+test('foto da prateleira: certo, mudou de lugar, nova, repetida, sem número e ausentes', () => {
+  const caixas = [cx('a', '1104', [[24, 'A']]), cx('b', '721', [[12, 'C']]), cx('c', '155-CRI', []), cx('d', '584', [[24, 'A'], [3, 'B']]),
+    cx('e', '999', [[24, 'B']]), cx('f', '1487', [[24, 'A']]), cx('s', '721', [], true)];
+  const { itens, ausentes } = compararFoto(24, [
+    { nome: '1104', f: 'a' }, { nome: '721', f: 'A' }, { nome: '155 CRI', f: 'A' }, { nome: '584', f: 'A' },
+    { nome: '1542', f: 'A' }, { nome: '01104', f: 'B' }, { nome: '', f: 'A' }, { nome: '469', f: '?' }
+  ], caixas);
+  assert.deepEqual(itens.map(i => i.estado), ['certo', 'mudou', 'mudou', 'mudou', 'nova', 'repetida', 'invalida', 'invalida']);
+  assert.equal(itens[1].caixa?.id, 'b');   // a caixa normal, não a da secretaria com o mesmo nome
+  assert.equal(itens[2].caixa?.id, 'c');
+  assert.deepEqual(ausentes.map(c => c.nome), ['1487', '999']);
 });

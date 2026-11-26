@@ -1,10 +1,11 @@
 'use client';
 // Sala do arquivo: estantes de madeira com as caixas em pé em cada fileira; filtro "P25",
-// atalhos P.1…P.36 e OS, e o modo "Arrastar caixas" (mouse ou dedo) para mudar caixa de lugar.
+// atalhos P.1…P.36 e OS, "Conferir por foto" (FotoPrateleira) e o modo "Arrastar caixas" (mouse ou dedo) para mudar caixa de lugar.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { filtroPrateleira, ordemCaixa, norm, type Caixa } from '@/lib/arquivo';
 import { useArq } from './Arquivo';
 import { Icone, Vazio } from './Pecas';
+import { FotoPrateleira } from './FotoPrateleira';
 
 type Estante = { p: number; fileiras: [string, Caixa[]][]; total: number };
 
@@ -12,6 +13,7 @@ export function Prateleiras(){
   const { d, aviso } = useArq();
   const [txt, setTxt] = useState('');
   const [arrastando, setArrastando] = useState(false);
+  const [porFoto, setPorFoto] = useState(false);
   const raiz = useRef<HTMLDivElement>(null);
   const filtro = filtroPrateleira(txt);
   const alvoCx = filtro.tipo === 'caixa' ? filtro.alvo : '';
@@ -118,10 +120,12 @@ export function Prateleiras(){
       <div className="aq-topo-tela">
         <div><span className="aq-sobrelinha">Sala do arquivo</span><h1 id="aq-titulo-prat">Prateleiras</h1><p className="aq-sub">Cada caixa na sua fileira, como na estante. Toque numa caixa para abrir.</p></div>
         <div className="aq-fila">
+          <button type="button" className={'aq-btn' + (porFoto ? ' aq-ligado' : '')} aria-pressed={porFoto} id="aq-porfoto" onClick={() => { setPorFoto(!porFoto); setArrastando(false); }}><Icone n="camera" t={16} />Conferir por foto</button>
           <button type="button" className={'aq-btn' + (arrastando ? ' aq-ligado' : '')} aria-pressed={arrastando} id="aq-arrastar" onClick={() => setArrastando(!arrastando)}><Icone n="caixa" t={16} />Arrastar caixas</button>
           <label className="aq-busca-mini" htmlFor="aq-fcx"><Icone n="busca" t={16} /><input id="aq-fcx" placeholder="Caixa ou prateleira (P25)" aria-label="Achar caixa ou prateleira" value={txt} onChange={e => setTxt(e.target.value)} /></label>
         </div>
       </div>
+      {porFoto && <FotoPrateleira pInicial={filtro.tipo === 'prateleira' ? filtro.p : null} fechar={pf => { setPorFoto(false); if (pf) setTxt('P' + pf); }} />}
       {arrastando && <div className="aq-barra-arrastar"><span><b>Modo arrastar.</b> Pegue uma caixa e solte em outra fileira. As caixas sem prateleira também podem ser arrastadas para o lugar certo.</span><button type="button" className="aq-btn" onClick={() => setArrastando(false)}>Concluir</button></div>}
       <div className="aq-legenda"><span><b style={{ color: 'var(--c2)' }}>!</b> caixa anotada em dois lugares na planilha</span></div>
       <div className="aq-atalhos-prat" aria-label="Ir para a prateleira">
