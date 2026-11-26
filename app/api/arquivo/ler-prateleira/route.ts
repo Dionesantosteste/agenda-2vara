@@ -25,8 +25,10 @@ const PROMPT = 'Você está lendo a FOTO DE UMA ESTANTE de aço do arquivo de pr
   'Liste os níveis de CIMA para BAIXO: se houver caixas apoiadas em cima da estante, esse é o primeiro nível; depois cada prateleira até a de baixo. ' +
   'Inclua TODAS as prateleiras da estante, mesmo uma prateleira vazia (com a lista de caixas vazia): a contagem das prateleiras define as letras. ' +
   'Em cada nível, as caixas da ESQUERDA para a DIREITA, na ordem exata em que estão. ' +
-  '"nome": o número da caixa como está na etiqueta, sem a palavra "caixa" (ex.: "1204"). Se a etiqueta tiver letras no código, mantenha como está (ex.: "CX163CR1"). ' +
-  'Palavras extras da etiqueta (ex.: "Crime", "Elástico", "Arquivo provisório", "Termos temporários") vão em "observacao", não no nome. ' +
+  '"nome": o número da caixa como está na etiqueta, sem a palavra "caixa" (ex.: "1204"). Outras letras no código ficam como estão. ' +
+  'IMPORTANTE: caixa da série CRIMINAL é outra caixa (a "51 Crime" não é a "51"). Se a etiqueta tiver CRIME, CRIM, CRI ou CRIMINAL junto do número, ' +
+  'escreva o nome como NÚMERO-CRI (ex.: "51-CRI"; "CX163CR1" -> "163-CRI"). ' +
+  'Outras palavras da etiqueta (ex.: "Elástico", "Arquivo provisório", "Termos temporários") vão em "observacao", não no nome. ' +
   'Se houver número riscado ou escrito à mão diferente do impresso, use o da etiqueta principal, marque legivel = "duvida" e explique em "observacao". ' +
   'Etiqueta coberta, borrada ou ilegível: legivel = "duvida"; se não der para ler nada, nome vazio. Nunca invente números. ' +
   '"etiqueta_estante": o número da plaquinha da estante, se aparecer (ex.: "24"); senão vazio. ' +

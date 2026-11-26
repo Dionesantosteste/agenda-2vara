@@ -2,7 +2,7 @@
 // Sala do arquivo: estantes de madeira com as caixas em pé em cada fileira; filtro "P25",
 // atalhos P.1…P.36 e OS, "Conferir por foto" (FotoPrateleira) e o modo "Arrastar caixas" (mouse ou dedo) para mudar caixa de lugar.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { comPosicao, filtroPrateleira, ordemNaFileira, reordenar, norm, type Caixa, type Local } from '@/lib/arquivo';
+import { chaveCaixa, comPosicao, ehCriminal, filtroPrateleira, ordemNaFileira, reordenar, norm, type Caixa, type Local } from '@/lib/arquivo';
 import { useArq } from './Arquivo';
 import { Icone, Vazio } from './Pecas';
 import { FotoPrateleira } from './FotoPrateleira';
@@ -94,10 +94,10 @@ export function Prateleiras(){
   const abrirCaixa = (id: string) => { if (!arrastando) location.hash = 'cx-' + id; };
   const caixaBtn = (c: Caixa, extra = '') => {
     const n = (d.porCaixa.get(c.id) || []).length;
-    const achou = alvoCx && (c.secretaria ? norm(c.nome).toUpperCase().includes(norm(alvoCx).toUpperCase()) : c.nome.toUpperCase().startsWith(alvoCx));
+    const achou = alvoCx && (c.secretaria ? norm(c.nome).toUpperCase().includes(norm(alvoCx).toUpperCase()) : chaveCaixa(c.nome).startsWith(chaveCaixa(alvoCx)));
     return (
-      <button key={c.id} type="button" className={'aq-cxb' + (achou ? ' aq-achou' : '') + (c.locais.length > 1 ? ' aq-conf' : '') + (!n ? ' aq-vazia' : '') + extra}
-        data-cx={c.id} title={(c.secretaria ? c.nome : 'Caixa ' + c.nome) + ' · ' + n + ' processos'} aria-label={c.secretaria ? 'Caixa da secretaria ' + c.nome : 'Caixa ' + c.nome}
+      <button key={c.id} type="button" className={'aq-cxb' + (achou ? ' aq-achou' : '') + (ehCriminal(c.nome) ? ' aq-cri' : '') + (c.locais.length > 1 ? ' aq-conf' : '') + (!n ? ' aq-vazia' : '') + extra}
+        data-cx={c.id} title={(c.secretaria ? c.nome : 'Caixa ' + c.nome + (ehCriminal(c.nome) ? ' (criminal)' : '')) + ' · ' + n + ' processos'} aria-label={c.secretaria ? 'Caixa da secretaria ' + c.nome : 'Caixa ' + c.nome}
         onClick={() => abrirCaixa(c.id)}>
         <span className="aq-jan">{c.nome}</span>{c.secretaria && <span className="aq-qt">{n}</span>}<span className="aq-furo" />
       </button>

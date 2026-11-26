@@ -490,3 +490,8 @@
   .aq-app .aq-fp-grade{ grid-template-columns:minmax(0,1fr); }
   .aq-app .aq-fp-camera{ min-height:220px; }
 }
+
+/* Caixas da série criminal (nome terminando em -CRI): faixa vermelha na estante e etiqueta "CRI" na conferência */
+.aq-app .aq-cxb.aq-cri{ box-shadow:inset 0 -6px 0 var(--c1); }
+.aq-app .aq-cxb.aq-cri .aq-jan{ color:var(--c1); font-weight:700; }
+.aq-app .aq-fp-tag-cri{ display:inline-block; margin-right:5px; padding:0 4px; border-radius:3px; background:var(--c1); color:var(--ficha); font:700 10px var(--f-maq); letter-spacing:.06em; }

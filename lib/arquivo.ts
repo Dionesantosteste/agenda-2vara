@@ -38,6 +38,20 @@ export function chaveNum(v: string | null | undefined): string {
   return t.replace(/\D/g, '').replace(/^0+/, '');
 }
 
+// Nome padronizado da caixa. As caixas da série criminal levam "-CRI" e são OUTRA caixa (60-CRI não é a 60).
+// Aceita como vem da etiqueta, da planilha ou digitado: "60 CRIME", "60 crim", "CX 60 CRI", "60-Criminal",
+// "60CR1" (I lido como 1) -> "60-CRI"; "caixa 0060" -> "60". O que não for número + série fica como está.
+export const SERIE_CRI = /^(?:CRI|CRIM|CRIME|CRIMES|CRIMINAL|CR1|CRL)$/;
+export function nomeCaixa(txt: string): string {
+  const t = String(txt || '').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ');
+  const m = t.match(/^(?:CX|CAIXA)?\s*\.?\s*0*(\d+)\s*(?:[-\/.]\s*)?([A-Z][A-Z0-9]*)?$/);
+  if (!m) return t;
+  if (!m[2]) return m[1];
+  if (SERIE_CRI.test(m[2])) return m[1] + '-CRI';
+  return t.replace(/^(?:CX|CAIXA)\s*\.?\s*/, '').replace(/^0+(?=\d)/, '');   // outra letra: fica como escrito
+}
+export const ehCriminal = (nome: string) => /-CRI$/.test(nome);
+
 export function ordemCaixa(a: Caixa, b: Caixa): number {
   return (parseInt(a.nome) || 0) - (parseInt(b.nome) || 0) || a.nome.localeCompare(b.nome);
 }
@@ -61,9 +75,10 @@ export function buscar(txt: string, indice: Map<string, Processo[]>, caixas: Cai
   if (!t) return { modo: 'vazio' };
   const mcx = t.match(/^(?:cx|caixa)\.?\s*(.+)$/i);
   if (mcx){
-    const alvo = mcx[1].trim().toUpperCase().replace(/\s+/g, '-');
-    const achadas = caixas.filter(c => c.nome.toUpperCase().startsWith(alvo))
-      .sort((a, b) => Number(b.nome.toUpperCase() === alvo) - Number(a.nome.toUpperCase() === alvo) || ordemCaixa(a, b)).slice(0, 30);
+    const alvo = nomeCaixa(mcx[1]);
+    const k = chaveCaixa(alvo), igual = (c: Caixa) => Number(chaveCaixa(c.nome) === k);
+    const achadas = caixas.filter(c => chaveCaixa(c.nome).startsWith(k))
+      .sort((a, b) => igual(b) - igual(a) || ordemCaixa(a, b)).slice(0, 30);
     return { modo: 'caixas', alvo, caixas: achadas };
   }
   const alvo = sem0(t.replace(/\s+/g, ''));
@@ -114,7 +129,7 @@ export function filtroPrateleira(txt: string): FiltroPrateleira {
   const m = t.match(/^(?:P|PRAT|PRATELEIRA)\.?\s*(\d+)(?:\s*[-,·]?\s*(?:F|FIL|FILEIRA)?\.?\s*([A-Z]))?$/);
   if (m) return { tipo: 'prateleira', p: +m[1], f: m[2] || null };
   if (/^(OS|SEC|SECRETARIA|OUTRA)/.test(t)) return { tipo: 'secretaria' };
-  return { tipo: 'caixa', alvo: t };
+  return { tipo: 'caixa', alvo: nomeCaixa(t) };
 }
 
 // ---------- pendências ----------
@@ -191,9 +206,9 @@ export const letraMais = (f: string, d: number) => {
   return n >= 0 && n < 26 ? String.fromCharCode(65 + n) : '';
 };
 
-// Chave para achar a caixa pelo nome lido: sem espaços, traços e zeros à esquerda ("0155-cri" = "155CRI")
+// Chave para achar a caixa pelo nome lido: o nome padronizado, sem espaços e traços ("0155 crime" = "155CRI")
 export function chaveCaixa(nome: string): string {
-  return String(nome || '').toUpperCase().replace(/[^A-Z0-9]/g, '').replace(/^0+(?=\d)/, '');
+  return nomeCaixa(nome).replace(/[^A-Z0-9]/g, '');
 }
 
 export type LidaFoto = { nome: string; f: string };
@@ -215,7 +230,7 @@ export function compararFoto(p: number, lidas: LidaFoto[], caixas: Caixa[]): { i
   const vistas = new Set<string>();
   const contagem = new Map<string, number>();
   const itens: ItemFoto[] = lidas.map(l => {
-    const nome = l.nome.trim().toUpperCase(), f = l.f.trim().toUpperCase(), k = chaveCaixa(nome);
+    const nome = nomeCaixa(l.nome), f = l.f.trim().toUpperCase(), k = chaveCaixa(nome);
     if (!k || !/^[A-Z]{1,2}$/.test(f)) return { nome, f, estado: 'invalida', caixa: null, pos: 0 };
     const caixa = porChave.get(k) || null;
     if (vistas.has(k)) return { nome, f, estado: 'repetida', caixa, pos: 0 };

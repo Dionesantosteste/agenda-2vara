@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buscar, chaveCaixa, chaveNum, comPosicao, compararFoto, destaque, letraFileira, letraMais, ordemNaFileira, reordenar, sugerirLetras, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Local, type Processo } from './arquivo.ts';
+import { buscar, chaveCaixa, ehCriminal, nomeCaixa, chaveNum, comPosicao, compararFoto, destaque, letraFileira, letraMais, ordemNaFileira, reordenar, sugerirLetras, filtroPrateleira, indexar, jaCadastrados, localValido, numeroAntigo, pendenciasDe, type Caixa, type Local, type Processo } from './arquivo.ts';
 
 const cx = (id: string, nome: string, locais: Local[] = [[1, 'A']], secretaria = false): Caixa => ({ id, nome, locais, secretaria });
 const pr = (id: string, codigo: string, caixa_id: string, extra: Partial<Processo> = {}): Processo => ({
@@ -125,4 +125,28 @@ test('foto: letras deslocadas viram sugestão (a fileira C da foto é a B do sis
   assert.deepEqual(sugerirLetras(itens), [{ foto: 'C', sistema: 'B', caixas: 4 }]);
   const poucas = compararFoto(26, [{ nome: '1', f: 'C' }, { nome: '2', f: 'C' }], cs).itens;
   assert.deepEqual(sugerirLetras(poucas), []);
+});
+
+test('caixa criminal: CRIME, CRIM, CRI, Criminal e CR1 viram "-CRI" e são outra caixa', () => {
+  for (const t of ['60 CRIME', '60 crim', '60-CRI', 'CX 60 CRI', '60-Criminal', '060CRIME', '60CR1', 'caixa 60 crime'])
+    assert.equal(nomeCaixa(t), '60-CRI', t);
+  assert.equal(nomeCaixa('CX163CR1'), '163-CRI');
+  assert.equal(nomeCaixa('caixa 0060'), '60');
+  assert.equal(nomeCaixa('141A'), '141A');
+  assert.equal(nomeCaixa('Não informada'), 'NAO INFORMADA');
+  assert.notEqual(chaveCaixa('60'), chaveCaixa('60 crime'));
+  assert.equal(chaveCaixa('60CRIME'), chaveCaixa('60-CRI'));   // nome antigo fora do padrão ainda é achado
+  assert.ok(ehCriminal('60-CRI')); assert.ok(!ehCriminal('60'));
+});
+
+test('caixa criminal: foto, busca e filtro não confundem a 51 com a 51-CRI', () => {
+  const cs = [cx('n', '51', [[24, 'G', 1]]), cx('c', '51-CRI', [[24, 'G', 2]])];
+  const { itens } = compararFoto(24, [{ nome: '51 CRIME', f: 'G' }, { nome: '51', f: 'G' }], cs);
+  assert.deepEqual(itens.map(i => [i.nome, i.caixa?.id, i.estado]), [['51-CRI', 'c', 'ordem'], ['51', 'n', 'ordem']]);
+  const r = buscar('cx 51 crime', new Map(), cs);
+  assert.equal(r.modo, 'caixas');
+  if (r.modo === 'caixas') assert.deepEqual(r.caixas.map(c => c.nome), ['51-CRI']);
+  const r2 = buscar('cx 51', new Map(), cs);
+  if (r2.modo === 'caixas') assert.deepEqual(r2.caixas.map(c => c.nome), ['51', '51-CRI']);
+  assert.deepEqual(filtroPrateleira('51 crime'), { tipo: 'caixa', alvo: '51-CRI' });
 });
